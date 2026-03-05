@@ -25,7 +25,7 @@ class Buildings(Base):
     __tablename__ = 'buildings'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    building_name: Mapped[str | None] = mapped_column(String(255), unique=True)
+    building_name: Mapped[str | None] = mapped_column(String(255))
     building_number: Mapped[str] = mapped_column(String(255), unique=True)
 
 
