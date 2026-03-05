@@ -2,7 +2,6 @@ import os
 from logging.config import fileConfig
 
 from alembic import context
-# Added to download environment variables from .env file
 from dotenv import load_dotenv
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
