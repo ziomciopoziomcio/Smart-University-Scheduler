@@ -7,9 +7,7 @@ Tables:
 - Faculty_buildings
 """
 
-from datetime import datetime
-
-from sqlalchemy import String, DateTime, text, Table, Column, Integer, ForeignKey, \
+from sqlalchemy import String, Table, Column, Integer, ForeignKey, \
     UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database.base import Base
@@ -20,6 +18,7 @@ faculty_buildings = Table(
     Column('faculty_id', Integer, ForeignKey('faculty.id'), primary_key=True),
     Column('building_id', Integer, ForeignKey('buildings.id'), primary_key=True)
 )
+
 
 class Campus(Base):
     """Campus model representing a campus in the system."""
@@ -47,6 +46,7 @@ class Buildings(Base):
         secondary=faculty_buildings,
         back_populates='buildings'
     )
+
 
 class Rooms(Base):
     """Rooms model representing a room in the system."""
