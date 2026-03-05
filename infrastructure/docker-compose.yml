@@ -28,5 +28,20 @@ services:
     depends_on:
       - postgres
 
+  # graph DB
+  neo4j:
+    image: neo4j:5.15.0
+    container_name: smart_scheduler_neo4j
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: "neo4j/secretpassword"
+      NEO4J_PLUGINS: '["graph-data-science"]'
+    ports:
+      - "7474:7474" # HTTP
+      - "7687:7687" # Bolt
+    volumes:
+      - neo4j_data:/data
+
 volumes:
   postgres_data:
+  neo4j_data:
