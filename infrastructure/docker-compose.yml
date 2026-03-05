@@ -1,2 +1,32 @@
 version: '3.8'
 
+services:
+  # postgres service for the database
+  postgres:
+    image: postgres:15-alpine
+    container_name: smart_scheduler_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: scheduler_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # pgadmin service for database management
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: smart_scheduler_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
