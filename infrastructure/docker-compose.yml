@@ -7,9 +7,9 @@ services:
     container_name: smart_scheduler_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: secretpassword
-      POSTGRES_DB: scheduler_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
@@ -34,7 +34,7 @@ services:
     container_name: smart_scheduler_neo4j
     restart: unless-stopped
     environment:
-      NEO4J_AUTH: "neo4j/secretpassword"
+      NEO4J_AUTH: "neo4j/${NEO4J_PASSWORD}"
       NEO4J_PLUGINS: '["graph-data-science"]'
     ports:
       - "7474:7474" # HTTP
