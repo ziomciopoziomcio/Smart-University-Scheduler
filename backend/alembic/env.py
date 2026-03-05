@@ -5,6 +5,10 @@ from sqlalchemy import pool
 
 from alembic import context
 
+# Added to download environment variables from .env file
+import os
+from dotenv import load_dotenv
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -24,6 +28,22 @@ target_metadata = None
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+"""
+Loading environment variables from .env file.
+author: ziomciopoziomcio
+"""
+
+load_dotenv()
+user = os.getenv("DB_USER")
+password = os.getenv("DB_PASSWORD")
+host = os.getenv("DB_HOST")
+port = os.getenv("DB_PORT")
+database = os.getenv("DB_NAME")
+
+DATABASE_URL = f"postgresql://{user}:{password}@{host}:{port}/{database}"
+
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 
 def run_migrations_offline() -> None:
