@@ -6,7 +6,9 @@ Tables:
 """
 
 from datetime import datetime
-from sqlalchemy import String, Text, DateTime, text, Table, Column, Integer, ForeignKey, UniqueConstraint
+
+from sqlalchemy import String, DateTime, text, Table, Column, Integer, ForeignKey, \
+    UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database.base import Base
 
@@ -26,7 +28,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     password_hash: Mapped[str] = mapped_column(String(255))
-    email: Mapped[str] = mapped_column(String(255), unique=True) # Citext
+    email: Mapped[str] = mapped_column(String(255), unique=True)  # Citext
     phone_number: Mapped[str | None] = mapped_column(String(20))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=text("now()"))
     name: Mapped[str] = mapped_column(String(255))
@@ -37,6 +39,7 @@ class User(Base):
         secondary=user_roles,
         back_populates='users'
     )
+
 
 class Roles(Base):
     """Roles model representing a role in the system."""
