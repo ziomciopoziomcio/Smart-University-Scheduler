@@ -4,3 +4,34 @@ Tables:
 - Roles
 - User_roles
 """
+
+from datetime import datetime
+from sqlalchemy import String, Text, DateTime, text, Table, Column, Integer, ForeignKey, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from src.database.base import Base
+
+
+class User(Base):
+    """User model representing a user in the system."""
+    __tablename__ = 'user'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    email: Mapped[str] = mapped_column(String(255), unique=True) # Citext
+    phone_number: Mapped[str | None] = mapped_column(String(20))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=text("now()"))
+    name: Mapped[str] = mapped_column(String(255))
+    surname: Mapped[str] = mapped_column(String(255))
+    grade: Mapped[str | None] = mapped_column(String(255))
+
+    roles: Mapped[list['Roles']] = relationship(
+        secondary=user_roles,
+        back_populates='users'
+    )
+
+class Roles(Base):
+    """Roles model representing a role in the system."""
+    __tablename__ = 'roles'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    role_name: Mapped[str] = mapped_column(String(255), unique=True)
