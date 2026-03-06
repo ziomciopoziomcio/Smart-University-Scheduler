@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import csv
 import re
+import os
 
 
 def scrape_study_plans_to_csv(dest, kierunek, url, soup=None):
@@ -40,6 +41,7 @@ def scrape_study_plans_to_csv(dest, kierunek, url, soup=None):
         - Stacjonarne – True dla studiów stacjonarnych, False dla niestacjonarnych
         - Link – pełny URL do planu studiów
     """
+    os.makedirs(dest, exist_ok=True)
     destination = f"{dest}{kierunek}.csv"
 
     if not soup:
@@ -173,8 +175,8 @@ if __name__ == "__main__":
     # url = "https://programy.p.lodz.pl/ectslabel-web/?l=pl&wersja202526=true&s=programKsztalcenia&pk=informatyka.&v=4"
     #
     # scrape_study_plans_to_csv(dest, kierunek, url)
-    #
-    #
+
+
     # # scrape_study_plans_from_courses
     # sourcefile = "kierunki.csv"
     # dest = "plany/"
