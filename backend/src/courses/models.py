@@ -7,3 +7,108 @@ Tables:
 - course_type_details
 - Courses instructors
 """
+
+from sqlalchemy import String, Integer, ForeignKey, \
+    UniqueConstraint, Float, Boolean
+from sqlalchemy.orm import Mapped, mapped_column
+from src.database.base import Base
+import enum
+
+
+class CourseLanguage(enum.Enum):
+    POLISH = "Polish"
+    ENGLISH = "English"
+    FRENCH = "French"
+
+
+class ClassType(enum.Enum):
+    LECTURE = "Lecture"
+    TUTORIALS = "Tutorials"
+    LABORATORY = "Laboratory"
+    SEMINAR = "Seminar"
+    OTHER = "Other"
+    ELEARNING = "E-learning"
+
+
+class Study_fields(Base):
+    """Study_fields model representing a study field in the system."""
+    __tablename__ = 'study_fields'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    faculty: Mapped[int] = mapped_column(Integer, ForeignKey('Faculty.id'))
+    field_name: Mapped[str] = mapped_column(String(255), unique=True)
+
+
+class Major(Base):
+    """Major model representing a major in the system."""
+    __tablename__ = 'major'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    study_field: Mapped[int | None] = mapped_column(Integer, ForeignKey('study_fields.id'))
+    major_name: Mapped[str] = mapped_column(String(255))
+
+
+class Elective_block(Base):
+    """Elective_block model representing an elective block in the system."""
+    __tablename__ = 'elective_block'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    study_field: Mapped[int] = mapped_column(Integer, ForeignKey('study_fields.id'))
+    block_name: Mapped[str] = mapped_column(String(255))
+
+
+class Courses(Base):
+    """Courses model representing a course in the system."""
+    __tablename__ = 'courses'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    ECTS_points: Mapped[int] = mapped_column(Integer)
+    course_name: Mapped[str] = mapped_column(String(255))
+    course_language: Mapped[CourseLanguage] = mapped_column(
+        enum.Enum(CourseLanguage, name="course_language_enum")
+    )
+    leading_unit: Mapped[int] = mapped_column(Integer, ForeignKey('units.id'))
+    course_coordinator: Mapped[int] = mapped_column(Integer, ForeignKey('employees.id'))
+    study_field: Mapped[int] = mapped_column(Integer, ForeignKey('study_fields.id'))
+    major: Mapped[int | None] = mapped_column(Integer, ForeignKey('major.id'))
+    elective_block: Mapped[int | None] = mapped_column(Integer, ForeignKey('elective_block.id'))
+    # Only one of the fields major or elective_block can have a non-null value at the same time
+
+
+class Course_type_details(Base):
+    """Course_type_details model representing details of a course type in the system."""
+    __tablename__ = 'course_type_details'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    course: Mapped[int] = mapped_column(Integer, ForeignKey('courses.course_code'))
+    class_type: Mapped[ClassType] = mapped_column(
+        enum.Enum(ClassType, name="class_type_enum")
+    )
+    class_hours: Mapped[int] = mapped_column(Integer, default=0)
+    PC_needed: Mapped[bool] = mapped_column(default=False)
+    projector_needed: Mapped[bool] = mapped_column(default=True)
+    max_group_participants_number: Mapped[int] = mapped_column(Integer, default=15)
+
+    __table_args__ = (
+        UniqueConstraint('course', 'class_type', name='uq_course_class_type'),
+    )
+
+
+class Courses_instructors(Base):
+    """Courses_instructors model representing the relationship between courses and instructors in the system."""
+    __tablename__ = 'courses_instructors'
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    employee: Mapped[int] = mapped_column(Integer, ForeignKey('employees.id'))
+    course_type_details: Mapped[int] = mapped_column(Integer, ForeignKey('course_type_details.id'))
+    class_type: Mapped[ClassType] = mapped_column(
+        enum.Enum(ClassType, name="class_type_enum")
+    )
+    min_hours: Mapped[int | None] = mapped_column(Integer)
+    max_hours: Mapped[int | None] = mapped_column(Integer)
+    priority: Mapped[bool | None] = mapped_column(Boolean)
+
+    __table_args__ = (
+        UniqueConstraint('course_type_details', 'employee', 'class_type',
+                         name='uq_course_type_details_employee_class_type'),
+    )

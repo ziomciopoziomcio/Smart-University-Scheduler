@@ -35,7 +35,7 @@ class Employees(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('user.id'))
     faculty_id: Mapped[int] = mapped_column(Integer, ForeignKey('faculty.id'))
     unit_id: Mapped[int] = mapped_column(Integer, ForeignKey('units.id'))
-    workload: Mapped[float] = mapped_column(Float)  # Shouldn't be set by default?
+    workload: Mapped[float] = mapped_column(Float, default=80)
 
     __table_args__ = (
         UniqueConstraint('user_id', 'unit_id', 'faculty_id', name='uq_employees_user_id'),
@@ -50,10 +50,6 @@ class Units(Base):
     unit_name: Mapped[str] = mapped_column(String(255), unique=True)
     faculty_id: Mapped[int] = mapped_column(Integer, ForeignKey('faculty.id'))
     unit_short: Mapped[str] = mapped_column(String(255), unique=True)
-
-    __table_args__ = (
-        UniqueConstraint('unit_short', 'faculty_id', name='uq_units_unit_name'),
-    )  # Isn't it useless if unit_short is unique?
 
 
 class Groups(Base):
