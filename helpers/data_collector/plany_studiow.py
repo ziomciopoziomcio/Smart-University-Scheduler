@@ -5,7 +5,7 @@ import csv
 import re
 
 
-def scrape_study_plans_to_csv(dest, kierunek, url):
+def scrape_study_plans_to_csv(dest, kierunek, url, soup=None):
     """
     Pobiera informacje o planach studiów ze strony kierunku i zapisuje je do pliku CSV.
 
@@ -25,6 +25,11 @@ def scrape_study_plans_to_csv(dest, kierunek, url):
         url (str):
             Adres URL strony zawierającej plany studiów dla danego kierunku.
 
+        soup (BeautifulSoup):
+            Wstępnie sparsowany obiekt BeautifulSoup strony kierunku.
+            Jeśli zostanie przekazany, funkcja użyje go zamiast ponownie
+            pobierać stronę z internetu. Domyślnie None.
+
     Returns:
         None
 
@@ -37,8 +42,9 @@ def scrape_study_plans_to_csv(dest, kierunek, url):
     """
     destination = f"{dest}{kierunek}.csv"
 
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
+    if not soup:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
 
     wydzial = soup.find("pre").text.replace("\r", " ")
 
@@ -117,19 +123,66 @@ def scrape_study_plans_from_courses(sourcefile, destination_dir, start=0, end=-1
 
             scrape_study_plans_to_csv(f"{destination_dir}/", kierunek, url)
 
+def scrape_study_plans_from_faculties(sourcefile, destination_dir, faculties):
+    """
+    Pobiera plany studiów tylko dla kierunków należących do wybranych wydziałów.
+
+    Funkcja odczytuje listę kierunków studiów z pliku CSV, następnie dla każdego
+    kierunku pobiera jego stronę internetową, sprawdza nazwę wydziału i jeśli
+    znajduje się ona na liście `faculties`, zapisuje plany studiów do osobnego
+    pliku CSV przy użyciu funkcji `scrape_study_plans_to_csv()`.
+
+    Args:
+        sourcefile (str):
+            Ścieżka do pliku CSV zawierającego listę kierunków studiów.
+
+        destination_dir (str):
+            Katalog, w którym zostaną zapisane pliki CSV z planami studiów.
+
+        faculties (list[str]):
+            Lista nazw wydziałów. Tylko kierunki należące do tych wydziałów
+            zostaną przetworzone i zapisane.
+
+    Returns:
+        None
+    """
+
+    with open(sourcefile, newline='', encoding='utf-8') as csvfile:
+        reader = csv.reader(csvfile)
+        header = next(reader, None)
+        rows = list(reader)
+
+        session = requests.Session()
+
+        for row in rows:
+            kierunek = row[0].strip()
+            url = row[1].strip()
+
+            response = session.get(url)
+            soup = BeautifulSoup(response.text, "html.parser")
+            wydzial = soup.find("pre").text.replace("\r", " ")
+
+            if wydzial in faculties:
+                scrape_study_plans_to_csv(f"{destination_dir}/", kierunek, url, soup=soup)
 
 
 if __name__ == "__main__":
-    # scrape_study_plans_to_csv
-    dest = "plany/"
-    kierunek = "informatyka"
-    url = "https://programy.p.lodz.pl/ectslabel-web/?l=pl&wersja202526=true&s=programKsztalcenia&pk=informatyka.&v=4"
+    # # scrape_study_plans_to_csv
+    # dest = "plany/"
+    # kierunek = "informatyka"
+    # url = "https://programy.p.lodz.pl/ectslabel-web/?l=pl&wersja202526=true&s=programKsztalcenia&pk=informatyka.&v=4"
+    #
+    # scrape_study_plans_to_csv(dest, kierunek, url)
+    #
+    #
+    # # scrape_study_plans_from_courses
+    # sourcefile = "kierunki.csv"
+    # dest = "plany/"
+    #
+    # scrape_study_plans_from_courses(sourcefile, dest, start=0, end=4)
 
-    scrape_study_plans_to_csv(dest, kierunek, url)
-
-
-    # scrape_study_plans_from_courses
+    # scrape_study_plans_from_faculties
     sourcefile = "kierunki.csv"
     dest = "plany/"
-
-    scrape_study_plans_from_courses(sourcefile, dest, start=0, end=4)
+    wydzial = ["Wydział Elektrotechniki, Elektroniki, Informatyki i Automatyki"]
+    scrape_study_plans_from_faculties(sourcefile, dest, wydzial)
