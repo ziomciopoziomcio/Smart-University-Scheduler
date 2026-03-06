@@ -9,19 +9,19 @@ Tables:
 """
 
 from sqlalchemy import String, Integer, ForeignKey, \
-    UniqueConstraint, Float, Boolean
+    UniqueConstraint, Float, Boolean, CheckConstraint, Enum
 from sqlalchemy.orm import Mapped, mapped_column
 from src.database.base import Base
 import enum
 
 
-class CourseLanguage(enum.Enum):
+class CourseLanguage(str, enum.Enum):
     POLISH = "Polish"
     ENGLISH = "English"
     FRENCH = "French"
 
 
-class ClassType(enum.Enum):
+class ClassType(str, enum.Enum):
     LECTURE = "Lecture"
     TUTORIALS = "Tutorials"
     LABORATORY = "Laboratory"
@@ -65,7 +65,7 @@ class Courses(Base):
     ECTS_points: Mapped[int] = mapped_column(Integer)
     course_name: Mapped[str] = mapped_column(String(255))
     course_language: Mapped[CourseLanguage] = mapped_column(
-        enum.Enum(CourseLanguage, name="course_language_enum")
+        Enum(CourseLanguage)
     )
     leading_unit: Mapped[int] = mapped_column(Integer, ForeignKey('units.id'))
     course_coordinator: Mapped[int] = mapped_column(Integer, ForeignKey('employees.id'))
@@ -82,7 +82,7 @@ class Course_type_details(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     course: Mapped[int] = mapped_column(Integer, ForeignKey('courses.course_code'))
     class_type: Mapped[ClassType] = mapped_column(
-        enum.Enum(ClassType, name="class_type_enum")
+        Enum(ClassType)
     )
     class_hours: Mapped[int] = mapped_column(Integer, default=0)
     PC_needed: Mapped[bool] = mapped_column(default=False)
