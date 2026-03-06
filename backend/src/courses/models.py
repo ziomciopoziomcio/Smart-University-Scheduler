@@ -72,7 +72,10 @@ class Courses(Base):
     study_field: Mapped[int] = mapped_column(Integer, ForeignKey('study_fields.id'))
     major: Mapped[int | None] = mapped_column(Integer, ForeignKey('major.id'))
     elective_block: Mapped[int | None] = mapped_column(Integer, ForeignKey('elective_block.id'))
-    # Only one of the fields major or elective_block can have a non-null value at the same time
+
+    __table_args__ = (
+        CheckConstraint('(major IS NULL) OR (elective_block IS NULL)', name='chk_courses_major_elective'),
+    )
 
 
 class Course_type_details(Base):
