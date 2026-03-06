@@ -104,14 +104,12 @@ class Courses_instructors(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     employee: Mapped[int] = mapped_column(Integer, ForeignKey('employees.id'))
     course_type_details: Mapped[int] = mapped_column(Integer, ForeignKey('course_type_details.id'))
-    class_type: Mapped[ClassType] = mapped_column(
-        enum.Enum(ClassType, name="class_type_enum")
-    )
+
     min_hours: Mapped[int | None] = mapped_column(Integer)
     max_hours: Mapped[int | None] = mapped_column(Integer)
     priority: Mapped[bool | None] = mapped_column(Boolean)
 
     __table_args__ = (
-        UniqueConstraint('course_type_details', 'employee', 'class_type',
-                         name='uq_course_type_details_employee_class_type'),
+        UniqueConstraint('course_type_details', 'employee',
+                         name='uq_course_type_details_employee'),
     )
