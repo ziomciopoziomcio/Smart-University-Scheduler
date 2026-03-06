@@ -20,7 +20,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), '..'))
 
 from src.database.base import Base
 
