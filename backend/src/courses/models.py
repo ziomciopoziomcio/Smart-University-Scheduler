@@ -35,7 +35,7 @@ class Study_fields(Base):
     __tablename__ = 'study_fields'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    faculty: Mapped[int] = mapped_column(Integer, ForeignKey('Faculty.id'))
+    faculty: Mapped[int] = mapped_column(Integer, ForeignKey('faculty.id'))
     field_name: Mapped[str] = mapped_column(String(255), unique=True)
 
 
@@ -61,7 +61,7 @@ class Courses(Base):
     """Courses model representing a course in the system."""
     __tablename__ = 'courses'
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    course_code: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     ECTS_points: Mapped[int] = mapped_column(Integer)
     course_name: Mapped[str] = mapped_column(String(255))
     course_language: Mapped[CourseLanguage] = mapped_column(
