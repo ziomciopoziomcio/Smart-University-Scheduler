@@ -72,8 +72,64 @@ def scrape_study_plans_to_csv(dest, kierunek, url):
 
 
 
+
+def scrape_study_plans_from_courses(sourcefile, destination_dir, start=0, end=-1):
+    """
+    Odczytuje listę kierunków studiów z pliku CSV i dla każdego z nich
+    pobiera plany studiów, zapisując je do osobnych plików CSV.
+
+    Funkcja wykorzystuje `scrape_study_plans_to_csv()` do pobrania danych
+    z każdej strony kierunku.
+
+    Args:
+        sourcefile (str):
+            Ścieżka do pliku CSV zawierającego listę kierunków studiów.
+            Oczekiwany format wiersza:
+            [nazwa_kierunku, url_strony_kierunku]
+
+        destination_dir (str):
+            Katalog, w którym zostaną zapisane pliki CSV z planami studiów.
+
+        start (int, optional):
+            Indeks wiersza, od którego rozpocznie się przetwarzanie.
+            Domyślnie 0.
+
+        end (int, optional):
+            Indeks wiersza kończącego zakres przetwarzania.
+            Jeśli `end < start`, funkcja przetworzy wszystkie wiersze od `start`
+            do końca pliku. Domyślnie -1.
+
+    Returns:
+        None
+    """
+    with open(sourcefile, newline='', encoding='utf-8') as csvfile:
+        reader = csv.reader(csvfile)
+        header = next(reader, None)
+        rows = list(reader)
+        if end >= start:
+            selected_rows = rows[start:end]
+        else:
+            selected_rows = rows[start:]
+
+        for row in selected_rows:
+            kierunek = row[0].strip()
+            url = row[1].strip()
+
+            scrape_study_plans_to_csv(f"{destination_dir}/", kierunek, url)
+
+
+
 if __name__ == "__main__":
+    # scrape_study_plans_to_csv
     dest = "plany/"
     kierunek = "informatyka"
     url = "https://programy.p.lodz.pl/ectslabel-web/?l=pl&wersja202526=true&s=programKsztalcenia&pk=informatyka.&v=4"
+
     scrape_study_plans_to_csv(dest, kierunek, url)
+
+
+    # scrape_study_plans_from_courses
+    sourcefile = "kierunki.csv"
+    dest = "plany/"
+
+    scrape_study_plans_from_courses(sourcefile, dest, start=0, end=4)
