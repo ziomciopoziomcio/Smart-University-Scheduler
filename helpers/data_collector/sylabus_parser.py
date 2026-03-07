@@ -10,102 +10,6 @@ import re
 # todo bo np na sium z weei link z programow p.lodz.pl przekierowuje na sylabusa
 
 
-# url = "https://www.sylabus.p.lodz.pl/pl/1/2/3/1/3/0/41#nav-tab-7" # informatyka magisterska - dziala
-# url = "https://sylabus.p.lodz.pl/pl/1/2/4/1/1/2/31" # eit - dziala
-url = "https://sylabus.p.lodz.pl/pl/1/2/4/1/1/7/52" # mads (wtims) - dziala
-# url = "https://sylabus.p.lodz.pl/pl/1/2/3/1/3/2/10" # Elektrotechnika - dziala (bez specjalności)
-
-
-response = requests.get(url)
-soup = BeautifulSoup(response.text, "html.parser")
-#
-# captions = soup.find_all("caption")
-# for c in captions:
-#     print(c.get_text(strip=True))
-
-
-# ======================================================================================
-# pozyskiwanie opisów przedmiotów (liczba wykladow, zajec itp)
-meta = []
-
-dane = soup.find_all("dd", class_=["m-0"])
-cnt = 1
-skip = False
-
-current_group = []
-
-for el in dane:
-
-    text = el.get_text(strip=True)
-
-    if text == "": # tutaj dane ogolnie o przedmiocie obieralnym, dlatego pomijam
-        skip = True
-        continue
-    if not skip:
-        # print(f"{cnt}. {text}")
-        current_group.append(text)
-    if "Obligatoryjność" in text or "Obligatory" in text:
-        # print()
-        # print()
-        if not skip:
-            meta.append({cnt: current_group})
-            cnt += 1
-            current_group = []
-        skip = False
-
-
-
-
-# ======================================================================================
-# pozyskiwanie nazw przedmiotów
-
-# btn btn-link syl-get-document text-start text-decoration-none p-0
-elements = soup.select("button.btn.btn-link.syl-get-document.text-start.text-decoration-none.p-0, tr, a, caption")
-
-current_semester = 0
-
-subjects = []
-sems = []
-
-for el in elements:
-    if el.name == "caption":
-        if "specjalność" not in el.text.lower():
-            current_semester += 1
-
-    if el.name == "button":
-        name = el.get_text(strip=True)
-        subjects.append(name)
-        sems.append(current_semester)
-
-    elif el.name == "a":
-        name = el.get_text(strip=True)
-        if "Wychowanie fizyczne" in name or "Physical Education" in name:
-            subjects.append(name)
-            sems.append(current_semester)
-
-    elif el.name == "tr":
-        td = el.find("td")
-        if not td:
-            continue
-
-        # name = td.get_text(strip=True)
-        name = td.contents[0].strip()
-
-        if not name:
-            continue
-        # if "Obligatoryjność" in name:
-        #     continue
-        if "Student wybiera" in name:
-            continue
-        if "The student chooses one" in name:
-            continue
-
-        # l = len(subjects)
-        # if l > 0 and name not in subjects[-1]:
-        #     subjects.append(name)
-        subjects.append(name)
-        sems.append(current_semester)
-
 
 def get_meta_from_entry(entry, semester):
     """
@@ -182,30 +86,154 @@ def get_meta_from_entry(entry, semester):
     return result
 
 
+def scrap_study_programmes_sylabus(url):
+    """
+        Scrapuje dane z Sylabusa PŁ programu studiów ze strony podanej w `url`.
+        Funkcja obsługuje zarówno polskie, jak i angielskie nazwy typów zajęć.
 
-# WALIDACJA ZEBRANYCH DANYCH
-if len(subjects) == len(meta):
-    print("Dane okej\n")
-else:
-    print("Dane NIEokej\n")
-    print(len(subjects))
-    print(len(meta))
-    # exit(1)
+        Funkcja pobiera stronę HTML programu studiów, analizuje ją za pomocą
+        BeautifulSoup i wyciąga następujące informacje:
+
+        1. Opisy przedmiotów (liczba godzin wykładów, laboratoriów, ćwiczeń itp.)
+        2. Nazwy przedmiotów
+        3. Semestry, w których są realizowane
+
+        Dane są walidowane pod kątem zgodności liczby przedmiotów z liczbą opisów
+        (jeżeli nie pasują, rzucany jest wyjątek ValueError).
+
+        Args:
+            url : str
+                Adres URL strony sylabusa programu studiów.
+
+        Returns:
+            dict
+                Słownik, w którym kluczami są nazwy przedmiotów, a wartościami są
+                słowniki z metadanymi o przedmiocie, np.:
+                {
+                    "Matematyka": {"Wyk": 30, "Lab": 15, "ECTS": 5, "Zal.": "E"},
+                    "Fizyka": {"Wyk": 20, "Ćw.": 10, "ECTS": 4, "Zal.": ""}
+                }
+        """
+
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
+
+
+    # ======================================================================================
+    # pozyskiwanie opisów przedmiotów (liczba wykladow, zajec itp)
+    meta = []
+
+    dane = soup.find_all("dd", class_=["m-0"])
+    cnt = 1
+    skip = False
+
+    current_group = []
+
+    for el in dane:
+
+        text = el.get_text(strip=True)
+
+        if text == "": # tutaj dane ogolnie o przedmiocie obieralnym, dlatego pomijam
+            skip = True
+            continue
+        if not skip:
+            current_group.append(text)
+        if "Obligatoryjność" in text or "Obligatory" in text:
+            if not skip:
+                meta.append({cnt: current_group})
+                cnt += 1
+                current_group = []
+            skip = False
 
 
 
-# WYSWIETLENIE
-for i in range(len(meta)):
-    print(f"{i+1}. {subjects[i]} - semestr {sems[i]}")
-    for entry in meta[i].values():
-        res = get_meta_from_entry(entry, current_semester)
-        print(res)
 
-    print()
-    print()
+    # ======================================================================================
+    # pozyskiwanie nazw przedmiotów
 
-#
-# for el in subjects:
-#     print(el)
+    elements = soup.select("button.btn.btn-link.syl-get-document.text-start.text-decoration-none.p-0, tr, a, caption")
+
+    current_semester = 0
+
+    subjects = []
+    sems = []
+
+    for el in elements:
+        if el.name == "caption":
+            if "specjalność" not in el.text.lower():
+                current_semester += 1
+
+        if el.name == "button":
+            name = el.get_text(strip=True)
+            subjects.append(name)
+            sems.append(current_semester)
+
+        elif el.name == "a":
+            name = el.get_text(strip=True)
+            if "Wychowanie fizyczne" in name or "Physical Education" in name:
+                subjects.append(name)
+                sems.append(current_semester)
+
+        elif el.name == "tr":
+            td = el.find("td")
+            if not td:
+                continue
+
+            name = td.contents[0].strip()
+
+            if not name:
+                continue
+            # if "Obligatoryjność" in name:
+            #     continue
+            if "Student wybiera" in name:
+                continue
+            if "The student chooses one" in name:
+                continue
+            if "elective courses" in name.lower():
+                continue
 
 
+            subjects.append(name)
+            sems.append(current_semester)
+
+
+
+
+
+    # WALIDACJA ZEBRANYCH DANYCH
+    if len(subjects) != len(meta):
+        raise ValueError(
+            f"Niezgodna liczba elementów: subjects={len(subjects)}, meta={len(meta)}"
+        )
+
+
+
+    # WYSWIETLENIE
+    subject_and_meta_dict = {}
+    for i in range(len(meta)):
+        print(f"{i+1}. {subjects[i]} - semestr {sems[i]}")
+        for entry in meta[i].values():
+            res = get_meta_from_entry(entry, sems[i])
+            print(res)
+            subject_and_meta_dict[subjects[i]] = res
+
+        print()
+        print()
+
+    return subject_and_meta_dict
+
+
+
+if __name__ == "__main__":
+    url = "https://www.sylabus.p.lodz.pl/pl/1/2/3/1/3/0/41#nav-tab-7" # informatyka magisterska - dziala
+    # url = "https://sylabus.p.lodz.pl/pl/1/2/4/1/1/2/31" # eit - dziala
+    # url = "https://sylabus.p.lodz.pl/pl/1/2/4/1/1/7/52"  # mads (wtims) - dziala
+    # url = "https://sylabus.p.lodz.pl/pl/1/2/3/1/3/2/10" # Elektrotechnika - dziala (bez specjalności)
+    # url = "https://sylabus.p.lodz.pl/pl/1/2/3/1/1/8/5" # Digital Management - oiz
+    # url = "https://sylabus.p.lodz.pl/pl/1/2/3/1/1/4/13#nav-tab-7" # Inżynieria wzornictwa przemysłowego - włókiennictwo
+    # url = "https://sylabus.p.lodz.pl/pl/1/2/3/1/2/5/15" # Menedżer żywności i żywienia - binoż
+
+    res = scrap_study_programmes_sylabus(url)
+
+    for key, value in res.items():
+        print(f"{key}: {value}")
