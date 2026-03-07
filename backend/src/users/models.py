@@ -15,16 +15,16 @@ from src.database.base import Base
 user_roles = Table(
     'user_roles',
     Base.metadata,
-    Column('user_id', Integer, ForeignKey('user.id'), primary_key=True),
+    Column('user_id', Integer, ForeignKey('users.id'), primary_key=True),
     Column('role_id', Integer, ForeignKey('roles.id'), primary_key=True),
 
     UniqueConstraint('user_id', 'role_id', name='uq_user_role')
 )
 
 
-class User(Base):
+class Users(Base):
     """User model representing a user in the system."""
-    __tablename__ = 'user'
+    __tablename__ = 'users'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     password_hash: Mapped[str] = mapped_column(String(255))

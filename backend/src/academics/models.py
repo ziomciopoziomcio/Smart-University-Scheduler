@@ -18,7 +18,7 @@ class Students(Base):
     __tablename__ = 'students'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('user.id'))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
     study_field: Mapped[int] = mapped_column(Integer, ForeignKey('study_fields.id'))
     major: Mapped[int | None] = mapped_column(Integer, ForeignKey('major.id'))
 
@@ -32,7 +32,7 @@ class Employees(Base):
     __tablename__ = 'employees'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('user.id'))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
     faculty_id: Mapped[int] = mapped_column(Integer, ForeignKey('faculty.id'))
     unit_id: Mapped[int] = mapped_column(Integer, ForeignKey('units.id'))
     workload: Mapped[float] = mapped_column(Float, default=80)
