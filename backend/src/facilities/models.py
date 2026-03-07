@@ -55,7 +55,7 @@ class Rooms(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     room_name: Mapped[str] = mapped_column(String(255), unique=True)
     projector_availability: Mapped[bool] = mapped_column(default=False)
-    PC_amount: Mapped[int] = mapped_column(default=0)
+    pc_amount: Mapped[int] = mapped_column(default=0)
     room_capacity: Mapped[int] = mapped_column(default=15)
 
     building_id: Mapped[int] = mapped_column(Integer, ForeignKey('buildings.id'))
