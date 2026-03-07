@@ -47,3 +47,8 @@ class Roles(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     role_name: Mapped[str] = mapped_column(String(255), unique=True)
+
+    users: Mapped[list['Users']] = relationship(
+        secondary=user_roles,
+        back_populates='roles'
+    )
