@@ -30,7 +30,7 @@ class Users(Base):
     password_hash: Mapped[str] = mapped_column(String(255))
     email: Mapped[str] = mapped_column(String(255), unique=True)  # Citext
     phone_number: Mapped[str | None] = mapped_column(String(20))
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=text("now()"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
     name: Mapped[str] = mapped_column(String(255))
     surname: Mapped[str] = mapped_column(String(255))
     grade: Mapped[str | None] = mapped_column(String(255))
