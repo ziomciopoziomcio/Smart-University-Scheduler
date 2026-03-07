@@ -1,2 +1,3 @@
 alembic
 python-dotenv
+psycopg2
