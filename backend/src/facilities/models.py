@@ -59,7 +59,7 @@ class Rooms(Base):
     room_capacity: Mapped[int] = mapped_column(server_default="15")
 
     building_id: Mapped[int] = mapped_column(Integer, ForeignKey('buildings.id'))
-    unit_id: Mapped[int] = mapped_column(Integer, ForeignKey('units.id'))
+    unit_id: Mapped[int | None] = mapped_column(Integer, ForeignKey('units.id'))
 
     building: Mapped['Buildings'] = relationship(back_populates="rooms")
 
