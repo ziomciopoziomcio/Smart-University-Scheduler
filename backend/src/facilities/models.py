@@ -53,7 +53,7 @@ class Rooms(Base):
     __tablename__ = 'rooms'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    room_name: Mapped[str] = mapped_column(String(255), unique=True)
+    room_name: Mapped[str] = mapped_column(String(255))
     projector_availability: Mapped[bool] = mapped_column(default=False)
     pc_amount: Mapped[int] = mapped_column(default=0)
     room_capacity: Mapped[int] = mapped_column(default=15)
