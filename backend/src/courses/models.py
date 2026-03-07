@@ -62,7 +62,7 @@ class Courses(Base):
     __tablename__ = 'courses'
 
     course_code: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    ECTS_points: Mapped[int] = mapped_column(Integer)
+    ects_points: Mapped[int] = mapped_column(Integer)
     course_name: Mapped[str] = mapped_column(String(255))
     course_language: Mapped[CourseLanguage] = mapped_column(
         Enum(CourseLanguage)
@@ -88,7 +88,7 @@ class Course_type_details(Base):
         Enum(ClassType)
     )
     class_hours: Mapped[int] = mapped_column(Integer, default=0)
-    PC_needed: Mapped[bool] = mapped_column(default=False)
+    pc_needed: Mapped[bool] = mapped_column(default=False)
     projector_needed: Mapped[bool] = mapped_column(default=True)
     max_group_participants_number: Mapped[int] = mapped_column(Integer, default=15)
 
