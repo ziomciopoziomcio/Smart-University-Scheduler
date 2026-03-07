@@ -24,10 +24,10 @@ sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), '..'))
 
 from src.database.base import Base
 
-from src.academics import models
-from src.courses import models
-from src.users import models
-from src.facilities import models
+from src.academics import models as academics_models
+from src.courses import models as courses_models
+from src.users import models as users_models
+from src.facilities import models as facilities_models
 
 target_metadata = Base.metadata
 
