@@ -8,6 +8,7 @@ import json
 import logging
 from urllib.parse import urlparse, parse_qs
 
+# DEPRECATED
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 # 1. do kierunki.csv liste kierunków
@@ -279,7 +280,6 @@ def parse_subject(url, wydzial, zajrzyj_glebiej=False):
         if not sem_header:
             continue
 
-        # Bezpieczne pobieranie nagłówków tabeli
         thead = table.find("thead")
         if not thead:
             continue
@@ -307,7 +307,6 @@ def parse_subject(url, wydzial, zajrzyj_glebiej=False):
                 link_tag = items[0].find("a")
                 if link_tag and link_tag.has_attr('onclick'):
                     try:
-                        # Wyciąganie linku z JavaScriptowego onclick
                         js_click = link_tag['onclick']
                         path = js_click.split("'")[1]
                         link = "https://programy.p.lodz.pl/ectslabel-web/" + path
@@ -388,8 +387,8 @@ if __name__ == "__main__":
            
     # CLEAR
 
-    for e in os.scandir(plany_dir):
-        if e.is_file():
-            os.remove(e)
-    os.rmdir(module_dir + "plany")
-    os.remove(module_dir + "kierunki.csv")
+    # for e in os.scandir(plany_dir):
+    #     if e.is_file():
+    #         os.remove(e)
+    # os.rmdir(module_dir + "plany")
+    # os.remove(module_dir + "kierunki.csv")
