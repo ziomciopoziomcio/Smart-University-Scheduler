@@ -67,8 +67,8 @@ def get_employee(employee_id: int, db: Session = Depends(get_db)):
     return schemas.EmployeeRead.from_orm(obj)
 
 @router.patch("/employees/{employee_id}", response_model=schemas.EmployeeRead)
-def update_employee(emp_id: int, payload: schemas.EmployeeUpdate, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.Employees, emp_id, "Employee")
+def update_employee(employee_id: int, payload: schemas.EmployeeUpdate, db: Session = Depends(get_db)):
+    obj = _get_or_404(db, models.Employees, employee_id, "Employee")
     for k, v in payload.dict(exclude_unset=True).items():
         setattr(obj, k, v)
     db.add(obj)
