@@ -60,7 +60,7 @@ class GroupsBase(BaseSchema):
     group_name: constr(max_length=255)
     study_field: int
     major: Optional[int] = None
-    elective_block: Optional[bool] = False
+    elective_block: Optional[int] = False
 
     @root_validator
     def check_major_or_elective(cls, values):
