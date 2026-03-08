@@ -26,7 +26,7 @@ def create_student(payload: schemas.StudentCreate, db: Session = Depends(get_db)
 def list_students(db: Session = Depends(get_db)):
     return [schemas.StudentRead.from_orm(x) for x in db.query(models.Students).all()]
 
-@router.get("/students/{student_id}", response_model=List[schemas.StudentRead])
+@router.get("/students/{student_id}", response_model=schemas.StudentRead)
 def get_student(student_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Students, student_id, "Student")
     return schemas.StudentRead.from_orm(obj)
