@@ -66,7 +66,7 @@ class GroupsBase(BaseSchema):
     def check_major_or_elective(cls, values):
         major, elective = values.get('major'), values.get('elective_block')
         if major is not None and elective is not None:
-            raise ValueError('`major` i `elective_block` can`t be set at the same time')
+            raise ValueError('`major` and `elective_block` can`t be set at the same time')
         return values
 
 class GroupsCreate(GroupsBase):
@@ -85,7 +85,7 @@ class GroupsUpdate(GroupsBase):
     def check_major_or_elective(cls, values):
         major, elective = values.get('major'), values.get('elective_block')
         if major is not None and elective is not None:
-            raise ValueError('`major` i `elective_block` can`t be set at the same time')
+            raise ValueError('`major` and `elective_block` can`t be set at the same time')
         return values
 
 class GroupMembersBase(BaseSchema):
