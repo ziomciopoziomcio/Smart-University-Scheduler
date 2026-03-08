@@ -54,7 +54,7 @@ class Elective_block(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     study_field: Mapped[int] = mapped_column(Integer, ForeignKey('study_fields.id'))
-    block_name: Mapped[str] = mapped_column(String(255))
+    elective_block_name: Mapped[str] = mapped_column(String(255))
 
 
 class Courses(Base):
