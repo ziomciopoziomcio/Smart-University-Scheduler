@@ -61,7 +61,7 @@ def create_employee(payload: schemas.EmployeeCreate, db: Session = Depends(get_d
 def list_employees(db: Session = Depends(get_db)):
     return [schemas.EmployeeRead.from_orm(x) for x in db.query(models.Employees).all()]
 
-@router.get("/employees/{employee_id}", response_model=List[schemas.EmployeeRead])
+@router.get("/employees/{employee_id}", response_model=schemas.EmployeeRead)
 def get_employee(employee_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Employees, employee_id, "Employee")
     return schemas.EmployeeRead.from_orm(obj)
