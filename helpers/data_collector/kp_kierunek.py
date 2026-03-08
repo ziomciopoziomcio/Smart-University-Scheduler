@@ -1,7 +1,5 @@
 import requests
 from bs4 import BeautifulSoup as soup
-import json
-
 
 
 def parse_subject(url, wydzial, zajrzyj_glebiej=False):
@@ -107,6 +105,8 @@ def parse_subject(url, wydzial, zajrzyj_glebiej=False):
     print(f"Zakończono parsowanie dla kierunku: {kierunek['nazwa']} z {kierunek["od"]}")
     return kierunek
 
+
+
 if __name__ == "__main__":
 
     test_url = "https://programy.p.lodz.pl/ectslabel-web/kierunekSiatkaV4.jsp?l=pl&w=informatyka.&pkId=1672&p=7631&stopien=studia%20pierwszego%20stopnia&tryb=studia%20stacjonarne&v=4&sp=1"
@@ -116,4 +116,3 @@ if __name__ == "__main__":
     
     with open("test_informatyka.json", "w", encoding="utf-8") as f:
         json.dump(kierunek, f)
-    

@@ -5,6 +5,10 @@ from bs4 import BeautifulSoup
 import re
 import os
 import json
+import logging
+from urllib.parse import urlparse, parse_qs
+
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 # 1. do kierunki.csv liste kierunków
 def parse_study_programmes_to_csv(filename, url):
@@ -212,6 +216,7 @@ def scrape_study_plans_from_faculties(sourcefile, destination_dir, faculties):
             url = row[1].strip()
 
             response = session.get(url)
+            response.encoding = 'utf-8'
             soup = BeautifulSoup(response.text, "html.parser")
             wydzial = soup.find("pre").text.replace("\r", " ")
 
@@ -221,112 +226,119 @@ def scrape_study_plans_from_faculties(sourcefile, destination_dir, faculties):
 
 # 3.1 url z kartami przedmiotu z danego kierunku przerabia na słownik
 def parse_subject(url, wydzial, zajrzyj_glebiej=False):
-    """
-    Parsuje siatkę studiów kierunku z portalu ECTS Label Politechniki Łódzkiej (programy.p.lodz.pl).
 
-    Funkcja pobiera dane o semestrach i przedmiotach, a opcjonalnie wchodzi w 
-    szczegóły każdego przedmiotu (karta przedmiotu), aby wyciągnąć informacje 
-    o prowadzących i jednostce organizacyjnej.
+    try:
+        response = requests.get(url, timeout=15)
+        response.encoding = 'utf-8'
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Nie udało się pobrać strony głównej: {e}")
+        return None
 
-    Args:
-        url (str): Pełny adres URL do strony siatki przedmiotów (kierunekSiatkaV4.jsp).
-        wydzial (str): Nazwa wydziału prowadzącego kierunek (np. "WEEIA").
-        zajrzyj_glebiej (bool, optional): Jeśli True, skrypt wyśle dodatkowe zapytanie 
-            HTTP dla każdego przedmiotu, aby pobrać szczegółowe dane z jego karty. 
-            Defaults to False.
-
-    Returns:
-        dict: Słownik zawierający metadane kierunku, listę semestrów oraz 
-            szczegółowe wykazy przedmiotów wraz z ich atrybutami.
-    """
-    
-    response = requests.get(url) 
     soup_page = BeautifulSoup(response.text, "html.parser")
 
-    # INFORMACJE OGÓLNE O KIERUNKU
-    args = url.split("&")[1:]
-    args_dict = {arg.split("=")[0]: arg.split("=")[1] for arg in args}
-    
-    specjalizacja = None
+    # 1. DANE KIERUNKU
     try:
-        specjalizacja = int(args_dict["sp"])
-    except:
-        pass
-    
-    kierunek = {
-        "nazwa" : args_dict["w"],
-        "wydzial" : wydzial,
-        "stopien" : 1 if args_dict["stopien"] == "studia%20pierwszego%20stopnia" else 2,
-        "stacjonarne" : args_dict["tryb"] == "studia%20stacjonarne",
-        "specjalizacja": specjalizacja,
-        "semestry": []
-    }
-    
-    main_header_words = soup_page.find("h1").text.split()
-    for word in main_header_words:
-        if "/" in word:
-            kierunek["od"] = word
-
-
-    # SEMESTRY
-    semester_tables = soup_page.find_all("div", class_="iform")   
-
-            
-    for table in semester_tables:
-        sem = table.find("h3")
-        if not sem:
-            break
-
-        headers_raw = table.find("thead").find_all("th")
-        headers = [header.text.strip() for header in headers_raw]
+        parsed_url = urlparse(url)
+        args_dict = parse_qs(parsed_url.query)
         
+        specjalizacja = args_dict.get("sp", [None])[0]
+        if specjalizacja:
+            try:
+                specjalizacja = int(specjalizacja)
+            except ValueError:
+                pass
+
+        kierunek = {
+            "nazwa": args_dict.get("w", ["Nieznany"])[0],
+            "wydzial": wydzial,
+            "stopien": 1 if "studia pierwszego stopnia" in args_dict.get("stopien", [""])[0] else 2,
+            "stacjonarne": "studia stacjonarne" in args_dict.get("tryb", [""])[0],
+            "specjalizacja": specjalizacja,
+            "semestry": [],
+            "od": "Nieznany"
+        }
+    except Exception as e:
+        logging.warning(f"Błąd podczas parsowania parametrów URL: {e}")
+        kierunek = {"semestry": [], "nazwa": "Błąd", "od": "Błąd"}
+
+    # 2. ROK
+    header = soup_page.find("h1")
+    if header:
+        for word in header.text.split():
+            if "/" in word:
+                kierunek["od"] = word
+
+    # 3. SEMESTRY
+    semester_tables = soup_page.find_all("div", class_="iform")
+    if not semester_tables:
+        logging.warning("Nie znaleziono żadnych tabel z semestrami (klasa .iform)")
+
+    for table in semester_tables:
+        sem_header = table.find("h3")
+        if not sem_header:
+            continue
+
+        # Bezpieczne pobieranie nagłówków tabeli
+        thead = table.find("thead")
+        if not thead:
+            continue
+        headers = [header.text.strip() for header in thead.find_all("th")]
+
         semestr = {
-            "nazwa": sem.text.strip(),
+            "nazwa": sem_header.text.strip(),
             "przedmioty": []
         }
-        
-        # PRZEDMIOTY
-        for row in table.find("tbody").find_all("tr"):
+
+        # 4. PRZEDMIOTY
+        tbody = table.find("tbody")
+        if not tbody:
+            continue
+
+        for row in tbody.find_all("tr"):
             items = row.find_all("td")
+            if not items:
+                continue
             
             przedmiot = {header: item.text.strip() for header, item in zip(headers, items)}
-                
-            # SZUKA JEDNOSTKI PROWADZACEJ I PROWADZACYCH
-            if zajrzyj_glebiej:
-                
-                link_tag = items[0].find("a")
-                
-                if link_tag and link_tag.has_attr('onclick'):
-                    
-                    try:
-                        link = "https://programy.p.lodz.pl/ectslabel-web/" + link_tag['onclick'].split("'")[1]
-                        response_card = requests.get(link, timeout=10) 
-                        karta = BeautifulSoup(response_card.text, "html.parser")
 
-                        detale = {
-                            tr.find('td', class_='parametr').get_text(strip=True): 
-                            tr.find('td', class_='wartosc').get_text(" ", strip=True)
-                            for tr in karta.find_all('tr') 
-                            if tr.find('td', class_='parametr') and tr.find('td', class_='wartosc')
-                        }
+            # 5. OPCJONALNE WEJŚCIE GŁĘBIEJ
+            if zajrzyj_glebiej:
+                link_tag = items[0].find("a")
+                if link_tag and link_tag.has_attr('onclick'):
+                    try:
+                        # Wyciąganie linku z JavaScriptowego onclick
+                        js_click = link_tag['onclick']
+                        path = js_click.split("'")[1]
+                        link = "https://programy.p.lodz.pl/ectslabel-web/" + path
                         
-                        realizatorzy = [r.strip() for r in detale.get("Realizatorzy przedmiotu", "").split(',')]
-                        
+                        resp_card = requests.get(link, timeout=10)
+                        resp_card.raise_for_status()
+                        karta = BeautifulSoup(resp_card.text, "html.parser")
+
+                        detale = {}
+                        for tr in karta.find_all('tr'):
+                            param = tr.find('td', class_='parametr')
+                            val = tr.find('td', class_='wartosc')
+                            if param and val:
+                                detale[param.get_text(strip=True)] = val.get_text(" ", strip=True)
+
+                        realizatorzy_raw = detale.get("Realizatorzy przedmiotu", "")
+                        realizatorzy = [r.strip() for r in realizatorzy_raw.split(',') if r.strip()]
+
                         przedmiot.update({
-                            "jednostka": detale.get("Jednostka prowadząca", ""),
-                            "kierownik": detale.get("Kierownik przedmiotu", ""),
+                            "jednostka": detale.get("Jednostka prowadząca", "Brak danych"),
+                            "kierownik": detale.get("Kierownik przedmiotu", "Brak danych"),
                             "realizatorzy": realizatorzy
                         })
-                        
                     except Exception as e:
-                        print(f"Błąd przy karcie {przedmiot.get('Kod przedmiotu')}: {e}") 
-                
+                        logging.error(f"Błąd przy karcie przedmiotu {przedmiot.get('Kod przedmiotu', '???')}: {e}")
+
             semestr["przedmioty"].append(przedmiot)
-            
-        
+
         kierunek["semestry"].append(semestr)
-    
-    print(f"Zakończono parsowanie dla kierunku: {kierunek['nazwa']} z {kierunek["od"]}")
+
+    logging.info(f"Zakończono parsowanie: {kierunek['nazwa']} ({kierunek['od']})")
     return kierunek
 
 # 3.2 z \plany do json
@@ -335,37 +347,49 @@ def parse_karty_przedmiotow_to_json(plany_dir, output_file_dir):
     kierunki = []
     
     for e in os.scandir(plany_dir):
-        if e.is_file():
-            with open(e.path, "r") as f:
+        if e.is_file() and e.name.endswith(".csv"):
+            with open(e.path, "r", encoding="utf-8") as f:
                 plans = csv.reader(f)
                 next(plans, None)
                 for p in plans:
                     
-                    # print(p)
-                    kierunki.append(parse_subject(p[4], p[1], True))
+                    kierunki.append(parse_subject(parse_link(p[4]), p[1], zajrzyj_glebiej=False))
                     print(f"Dodano {p[0]}.")
                     
                     
     with open(output_file_dir, "w", encoding="utf-8") as f:
         json.dump(kierunki, f)
 
+def parse_link(url: str) -> str:
+    return url.replace(" ", "%20", -1)
 
 if __name__ == "__main__":
     
     module_dir = "helpers\\data_collector\\"
+    plany_dir = module_dir + "plany\\"
+    pipeline_filename_kierunki = module_dir + "kierunki.csv"
     
-    pipeline_filename_kierunki = module_dir + "output/kierunki.csv"
-    dest = module_dir + "output/plany/"
     main_url = "https://programy.p.lodz.pl/ectslabel-web/?l=pl&wersja202526=true"
+    
     wydzialy = ["Wydział Elektrotechniki, Elektroniki, Informatyki i Automatyki"]
-    output_file_dir = module_dir + "output/programy.json"
+    
+    output_file_dir = module_dir + "programy.json"
     
     # PIPELINE
     # 1.
     parse_study_programmes_to_csv(pipeline_filename_kierunki, main_url)
     
     # 2.
-    scrape_study_plans_from_faculties(pipeline_filename_kierunki, dest, wydzialy)
+    os.mkdir(plany_dir)
+    scrape_study_plans_from_faculties(pipeline_filename_kierunki, plany_dir, wydzialy)
     
     # 3.
-    # parse_karty_przedmiotow_to_json(dest, output_file_dir)
+    parse_karty_przedmiotow_to_json(plany_dir, output_file_dir)
+           
+    # CLEAR
+
+    for e in os.scandir(plany_dir):
+        if e.is_file():
+            os.remove(e)
+    os.rmdir(module_dir + "plany")
+    os.remove(module_dir + "kierunki.csv")
