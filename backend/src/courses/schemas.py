@@ -3,7 +3,7 @@ Data validation schemas
 """
 from typing import Optional
 from pydantic import BaseModel, root_validator, constr, conint
-from models import CourseLanguage, ClassType
+from .models import CourseLanguage, ClassType
 
 
 class BaseSchema(BaseModel):
