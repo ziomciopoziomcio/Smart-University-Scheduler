@@ -76,7 +76,7 @@ class GroupsRead(GroupsBase):
     id: int
 
 class GroupsUpdate(GroupsBase):
-    group_name = Optional[constr(max_length=255)] = None
+    group_name: Optional[constr(max_length=255)] = None
     study_field: Optional[int] = None
     major: Optional[int] = None
     elective_block: Optional[bool] = None
