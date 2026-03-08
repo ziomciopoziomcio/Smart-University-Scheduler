@@ -156,7 +156,7 @@ def delete_group(group_id: int, db: Session = Depends(get_db)):
 # Group Members
 @router.post("/group-members", response_model=schemas.GroupMembersRead, status_code=status.HTTP_201_CREATED)
 def create_group_member(payload: schemas.GroupMembersCreate, db: Session = Depends(get_db)):
-    obj = models.GroupMembers(**payload.dict())
+    obj = models.Group_members(**payload.dict())
     db.add(obj)
     db.commit()
     db.refresh(obj)
@@ -164,16 +164,16 @@ def create_group_member(payload: schemas.GroupMembersCreate, db: Session = Depen
 
 @router.get("/group-members", response_model=List[schemas.GroupMembersRead])
 def list_group_members(db: Session = Depends(get_db)):
-    return [schemas.GroupMembersRead.from_orm(x) for x in db.query(models.GroupMembers).all()]
+    return [schemas.GroupMembersRead.from_orm(x) for x in db.query(models.Group_members).all()]
 
 @router.get("/group-members/{group_member_id}", response_model=schemas.GroupMembersRead)
 def get_group_member(group_member_id: int, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.GroupMembers, group_member_id, "Group Member")
+    obj = _get_or_404(db, models.Group_members, group_member_id, "Group Member")
     return schemas.GroupMembersRead.from_orm(obj)
 
 @router.patch("/group-members/{group_member_id}", response_model=schemas.GroupMembersRead)
 def update_group_member(group_member_id: int, payload: schemas.GroupMembersUpdate, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.GroupMembers, group_member_id, "Group Member")
+    obj = _get_or_404(db, models.Group_members, group_member_id, "Group Member")
     for k, v in payload.dict(exclude_unset=True).items():
         setattr(obj, k, v)
     db.add(obj)
@@ -184,7 +184,7 @@ def update_group_member(group_member_id: int, payload: schemas.GroupMembersUpdat
 
 @router.delete("/group-members/{group_member_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_group_member(group_member_id: int, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.GroupMembers, group_member_id, "Group Member")
+    obj = _get_or_404(db, models.Group_members, group_member_id, "Group Member")
     db.delete(obj)
     db.commit()
     return None
