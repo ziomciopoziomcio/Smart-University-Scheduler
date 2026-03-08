@@ -52,7 +52,7 @@ class UnitsRead(UnitsBase):
     id: int
 
 class UnitsUpdate(UnitsBase):
-    unit_name = Optional[constr(max_length=255)] = None
+    unit_name: Optional[constr(max_length=255)] = None
     faculty_id: Optional[int] = None
     unit_short: Optional[constr(max_length=255)] = None
 
