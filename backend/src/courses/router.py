@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -8,8 +8,20 @@ from src.database.database import get_db
 router = APIRouter(prefix="/courses", tags=["courses"])
 
 
-def _get_or_404(db: Session, model, obj_id: int, name: str):
-    obj = db.query(model).filter(model.id == obj_id).first()
+def _get_or_404(db: Session, model, obj_id: Any, name: str, pk_attr: Optional[str] = None):
+    if pk_attr:
+        attr = getattr(model, pk_attr)
+    else:
+        mapper = getattr(model, "__mapper__", None)
+        if mapper is None:
+            raise RuntimeError("Model does not have SQLAlchemy mapper")
+        pks = mapper.primary_key
+        if len(pks) != 1:
+            raise RuntimeError(f"Model {model.__name__} has composite primary key; pass `pk_attr`")
+        col = pks[0]
+        attr = getattr(model, col.name)
+
+    obj = db.query(model).filter(attr == obj_id).first()
     if not obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{name} not found")
     return obj
