@@ -33,7 +33,7 @@ def _commit_or_rollback(db: Session):
 def create_study_field(payload: schemas.StudyFieldCreate, db: Session = Depends(get_db)):
     obj = models.Study_fields(**payload.model_dump())
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -55,7 +55,7 @@ def update_study_field(field_id: int, payload: schemas.StudyFieldUpdate, db: Ses
     for k, v in payload.model_dump(exclude_unset=True).items():
         setattr(obj, k, v)
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -64,7 +64,7 @@ def update_study_field(field_id: int, payload: schemas.StudyFieldUpdate, db: Ses
 def delete_study_field(field_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Study_fields, field_id, "Study Field")
     db.delete(obj)
-    db.commit()
+    _commit_or_rollback(db)
     return None
 
 
@@ -74,7 +74,7 @@ def delete_study_field(field_id: int, db: Session = Depends(get_db)):
 def create_major(payload: schemas.MajorCreate, db: Session = Depends(get_db)):
     obj = models.Major(**payload.model_dump())
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -96,7 +96,7 @@ def update_major(major_id: int, payload: schemas.MajorUpdate, db: Session = Depe
     for k, v in payload.model_dump(exclude_unset=True).items():
         setattr(obj, k, v)
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -105,7 +105,7 @@ def update_major(major_id: int, payload: schemas.MajorUpdate, db: Session = Depe
 def delete_major(major_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Major, major_id, "Major")
     db.delete(obj)
-    db.commit()
+    _commit_or_rollback(db)
     return None
 
 
@@ -114,7 +114,7 @@ def delete_major(major_id: int, db: Session = Depends(get_db)):
 def create_elective_block(payload: schemas.ElectiveBlockCreate, db: Session = Depends(get_db)):
     obj = models.Elective_block(**payload.model_dump())
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -135,7 +135,7 @@ def update_elective_block(block_id: int, payload: schemas.ElectiveBlockUpdate, d
     for k, v in payload.model_dump(exclude_unset=True).items():
         setattr(obj, k, v)
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -144,7 +144,7 @@ def update_elective_block(block_id: int, payload: schemas.ElectiveBlockUpdate, d
 def delete_elective_block(block_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Elective_block, block_id, "Elective Block")
     db.delete(obj)
-    db.commit()
+    _commit_or_rollback(db)
     return None
 
 
@@ -153,7 +153,7 @@ def delete_elective_block(block_id: int, db: Session = Depends(get_db)):
 def create_course_type(payload: schemas.CourseTypeDetailsCreate, db: Session = Depends(get_db)):
     obj = models.Course_type_details(**payload.model_dump())
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -174,7 +174,7 @@ def update_course_type(type_id: int, payload: schemas.CourseTypeDetailsUpdate, d
     for k, v in payload.model_dump(exclude_unset=True).items():
         setattr(obj, k, v)
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -183,7 +183,7 @@ def update_course_type(type_id: int, payload: schemas.CourseTypeDetailsUpdate, d
 def delete_course_type(type_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Course_type_details, type_id, "Course Type")
     db.delete(obj)
-    db.commit()
+    _commit_or_rollback(db)
     return None
 
 
@@ -192,7 +192,7 @@ def delete_course_type(type_id: int, db: Session = Depends(get_db)):
 def create_course_instructor(payload: schemas.CourseInstructorCreate, db: Session = Depends(get_db)):
     obj = models.Courses_instructors(**payload.model_dump())
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -213,7 +213,7 @@ def update_course_instructor(instructor_id: int, payload: schemas.CourseInstruct
     for k, v in payload.model_dump(exclude_unset=True).items():
         setattr(obj, k, v)
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -222,7 +222,7 @@ def update_course_instructor(instructor_id: int, payload: schemas.CourseInstruct
 def delete_course_instructor(instructor_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Courses_instructors, instructor_id, "Course Instructor")
     db.delete(obj)
-    db.commit()
+    _commit_or_rollback(db)
     return None
 
 
@@ -231,7 +231,7 @@ def delete_course_instructor(instructor_id: int, db: Session = Depends(get_db)):
 def create_course(payload: schemas.CourseCreate, db: Session = Depends(get_db)):
     obj = models.Courses(**payload.model_dump())
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -252,7 +252,7 @@ def update_course(course_id: int, payload: schemas.CourseUpdate, db: Session = D
     for k, v in payload.model_dump(exclude_unset=True).items():
         setattr(obj, k, v)
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -261,5 +261,5 @@ def update_course(course_id: int, payload: schemas.CourseUpdate, db: Session = D
 def delete_course(course_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Courses, course_id, "Course")
     db.delete(obj)
-    db.commit()
+    _commit_or_rollback(db)
     return None
