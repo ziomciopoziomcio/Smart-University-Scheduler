@@ -38,8 +38,8 @@ def _commit_or_rollback(db: Session):
             detail="Internal server error"
         )
 
-def _apply_patch_or_reject_nulls(obj, payload, nullable_fields: Iterable[str] = (), exclude: set = set()):
-    provided = payload.model_dump(exclude_unset=True, exclude=exclude)
+def _apply_patch_or_reject_nulls(obj, payload, nullable_fields: Iterable[str] = (), exclude: set[str] | None = None):
+    provided = payload.model_dump(exclude_unset=True, exclude=exclude or set())
     nullable_set = set(nullable_fields)
     for k, v in provided.items():
         if v is None and k not in nullable_set:
