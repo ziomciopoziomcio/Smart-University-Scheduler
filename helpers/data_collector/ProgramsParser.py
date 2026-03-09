@@ -32,7 +32,7 @@ class ProgramsParser():
         Fetches the list of majors from programy.p.lodz.pl and saves it to .csv file
         """
         
-        self.logger.info(f"Pobieranie listy kierunków z {self.main_url}")
+        self.logger.info(f"Fetching the list of study programs from {self.main_url}")
         try:
             response = requests.get(self.main_url, timeout=15)
             response.encoding = 'utf-8'
@@ -54,9 +54,9 @@ class ProgramsParser():
                     link = urljoin(self.main_url, a_tag["href"])
                     writer.writerow([name, link])
             
-            self.logger.info("Lista kierunków zapisana pomyślnie.")
+            self.logger.info("The list of programs was saved successfully.")
         except Exception as e:
-            self.logger.error(f"Błąd podczas pobierania listy kierunków: {e}")
+            self.logger.error(f"Error while fetching the list of programs: {e}")
         
     def get_majors_all_versions(self, major: str, url: str, soup=None) -> None:
         """ From file created by get_majors_list() creates directory with:
@@ -94,7 +94,7 @@ class ProgramsParser():
                         stopien = 1 if 'studia pierwszego stopnia' in full_link else 2
                         writer.writerow([name, wydzial, stopien, stacjonarne, full_link])
         except Exception as e:
-            self.logger.error(f"Błąd podczas pobierania planów dla {major}: {e}")
+            self.logger.error(f"Error while fetching schedules for {major}: {e}")
                     
     def get_plans_from_courses(self, start=0, end=-1) -> None:
         """ Fetches plans from all listed courses.
@@ -104,7 +104,7 @@ class ProgramsParser():
             end (int, optional): End index. Defaults to -1.
         """
         if not os.path.exists(self.majors_filename):
-            self.logger.error("Plik kierunków nie istnieje!")
+            self.logger.error("The file with programs does not exist!")
             return
 
         with open(self.majors_filename, newline='', encoding='utf-8') as csvfile:
@@ -135,10 +135,10 @@ class ProgramsParser():
                     wydzial = pre.text.replace("\r", " ").strip() if pre else ""
 
                     if any(f in wydzial for f in faculties):
-                        self.logger.info(f"Przetwarzanie kierunku: {row[0]}")
+                        self.logger.info(f"Processing major: {row[0]}")
                         self.get_majors_all_versions(row[0], row[1], soup=soup)
                 except Exception as e:
-                    self.logger.warning(f"Pominięto {row[0]} z powodu błędu: {e}")
+                    self.logger.warning(f"Skipped {row[0]} due to an error: {e}")
                     
     def parse_major(self, url: str, faculty: str, specialty_name: str = None) -> dict:
         """
@@ -158,12 +158,12 @@ class ProgramsParser():
             response.encoding = 'utf-8'
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            logging.error(f"Nie udało się pobrać strony głównej: {e}")
+            logging.error(f"Failed to fetch the main page: {e}")
             return None
 
         soup_page = BeautifulSoup(response.text, "html.parser")
 
-        # 1. DANE KIERUNKU
+        # 1. MAJOR DATA
         try:
             parsed_url = urlparse(url)
             args_dict = parse_qs(parsed_url.query)
@@ -178,20 +178,20 @@ class ProgramsParser():
                 "od": "Nieznany"
             }
         except Exception as e:
-            logging.warning(f"Błąd podczas parsowania parametrów URL: {e}")
+            logging.warning(f"Error while parsing URL parameters: {e}")
             kierunek = {"semestry": [], "nazwa": "Błąd", "od": "Błąd"}
 
-        # 2. ROK
+        # 2. YEAR
         header = soup_page.find("h1")
         if header:
             for word in header.text.split():
                 if "/" in word:
                     kierunek["od"] = word
 
-        # 3. SEMESTRY
+        # 3. SEMESTERS
         semester_tables = soup_page.find_all("div", class_="iform")
         if not semester_tables:
-            logging.warning("Nie znaleziono żadnych tabel z semestrami (klasa .iform)")
+            logging.warning("No tables with semesters found (class .iform)")
 
         for table in semester_tables:
             sem_header = table.find("h3")
@@ -208,7 +208,7 @@ class ProgramsParser():
                 "przedmioty": []
             }
 
-            # 4. PRZEDMIOTY
+            # 4. SUBJECTS
             tbody = table.find("tbody")
             if not tbody:
                 continue
@@ -220,7 +220,7 @@ class ProgramsParser():
                 
                 przedmiot = {header: item.text.strip() for header, item in zip(headers, items)}
 
-                # 5. OPCJONALNE WEJŚCIE GŁĘBIEJ
+                # 5. OPTIONAL GETTING DETAILS
                 if self.get_details:
                     link_tag = items[0].find("a")
                     if link_tag and link_tag.has_attr('onclick'):
@@ -250,13 +250,13 @@ class ProgramsParser():
                                 "realizatorzy": realizatorzy
                             })
                         except Exception as e:
-                            logging.error(f"Błąd przy karcie przedmiotu {przedmiot.get('Kod przedmiotu', '???')}: {e}")
+                            logging.error(f"Error in course page {przedmiot.get('Course Code', '???')}: {e}")
 
                 semestr["przedmioty"].append(przedmiot)
 
             kierunek["semestry"].append(semestr)
 
-        logging.info(f"Zakończono parsowanie: {kierunek['nazwa']} ({kierunek['od']}) ({"stac." if kierunek['stacjonarne'] else "nstac."})")
+        logging.info(f"Finished parsing: {kierunek['name']} ({kierunek['from']}) ({'full-time' if kierunek['stacjonarne'] else 'part-time'})")
         return kierunek
     
     def get_majors_specialties(self, url: str) -> dict:
@@ -275,7 +275,7 @@ class ProgramsParser():
             response.encoding = 'utf-8'
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            logging.error(f"Nie udało się pobrać strony głównej: {e}")
+            logging.error(f"Failed to fetch the main page: {e}")
             return None
 
         soup_page = BeautifulSoup(response.text, "html.parser")
@@ -302,10 +302,10 @@ class ProgramsParser():
         """
         From the list of majors fetches the details using get_majors_specialties() and parse_major(). Then saves to JSON file.
         """
-        self.logger.info("Generowanie końcowego pliku JSON...")
+        self.logger.info("Generating final JSON file...")
         kierunki = []
         if not os.path.exists(self.plans_dir):
-            self.logger.warning("Folder planów nie istnieje.")
+            self.logger.warning("Plans folder does not exist.")
             return
 
         for e in os.scandir(self.plans_dir):
@@ -329,20 +329,20 @@ class ProgramsParser():
                             
         with open(self.output_filename, "w", encoding="utf-8") as f:
             json.dump(kierunki, f, ensure_ascii=False, indent=4)
-        self.logger.info(f"Zapisano dane do {self.output_filename}")
+        self.logger.info(f"Data saved to {self.output_filename}")
 
     def clean(self) -> None:
         """
         Deletes the temporary files generated in the process of fetching the data.
         """
-        self.logger.info("Sprzątanie plików tymczasowych...")
+        self.logger.info("Cleaning up temporary files...")
         try:
             if os.path.exists(self.plans_dir):
                 shutil.rmtree(self.plans_dir)
             if os.path.exists(self.majors_filename):
                 os.remove(self.majors_filename)
         except Exception as e:
-            self.logger.warning(f"Nie udało się w pełni posprzątać: {e}")
+            self.logger.warning(f"Failed to fully clean up: {e}")
 
     def get_programs(self, faculties: list[str] = None, clean: bool = True, get_details: bool = False) -> None:
         """
