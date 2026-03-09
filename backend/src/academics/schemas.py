@@ -2,7 +2,8 @@
 Data validation schemas
 """
 from typing import Optional, Annotated
-from pydantic import BaseModel, model_validator, Field, StringConstraints, ConfigDict
+from pydantic import BaseModel, model_validator, Field, StringConstraints, ConfigDict, field_validator
+
 
 class BaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -26,7 +27,7 @@ class EmployeesBase(BaseSchema):
     user_id: int
     faculty_id: int
     unit_id: int
-    workload: Optional[Annotated[float, Field(ge=0)]] = 80.0
+    workload: Annotated[float, Field(ge=0)] = 80.0
 
 class EmployeeCreate(EmployeesBase):
     pass
@@ -38,6 +39,12 @@ class EmployeeUpdate(BaseModel):
     faculty_id: Optional[int] = None
     unit_id: Optional[int] = None
     workload: Optional[Annotated[float, Field(ge=0)]] = None
+
+    @field_validator('workload', mode='before')
+    def _reject_null_workload(cls, v):
+        if v is None:
+            raise ValueError('`workload` cannot be null when provided')
+        return v
 
 class UnitsBase(BaseSchema):
     unit_name: Annotated[str, StringConstraints(max_length=255)]
