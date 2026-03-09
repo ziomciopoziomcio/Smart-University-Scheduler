@@ -59,7 +59,7 @@ class GroupsBase(BaseSchema):
     group_name: Annotated[str, StringConstraints(max_length=255)]
     study_field: int
     major: Optional[int] = None
-    elective_block: Optional[int] = False
+    elective_block: Optional[int] = None
 
     @model_validator(mode='after')
     def check_major_or_elective(self):
