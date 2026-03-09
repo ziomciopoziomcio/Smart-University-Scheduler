@@ -1,4 +1,4 @@
-# ProgramsParser
+# ProgramsParser (PL)
 
 ## Ogólne
 
@@ -46,13 +46,12 @@ pp.get_programs(
 get_programs()
 ```
 Główna metoda sterująca procesem.
-
-Argumenty:
-- faculties (list): Lista nazw wydziałów (np. ["WEEIA"]). Jeśli None lub "all", przetwarza wszystko.
-
-- clean (bool): Czy usunąć pliki tymczasowe po zakończeniu pracy.
-
-- get_details (bool): Czy pobierać szczegółowe dane o prowadzących (wymaga dodatkowych zapytań HTTP).
+### Argumenty
+|Parametr|Typ|Opis|
+|:------|:------|:------|
+|faculties |list| Lista nazw wydziałów (np. ["WEEIA"]). Jeśli None lub "all", przetwarza wszystko.|
+|clean |bool| Czy usunąć pliki tymczasowe po zakończeniu pracy.|
+|get_details |bool| Czy pobierać szczegółowe dane o prowadzących (wymaga dodatkowych zapytań HTTP).|
 
 ## Struktura pliku wyjściowego
 
@@ -137,3 +136,7 @@ Skrypt automatycznie ustawia kodowanie utf-8 dla wszystkich operacji plikowych.
 W przypadku błędu połączenia lub braku elementu na stronie, metoda loguje błąd i kontynuuje pracę dla następnych rekordów.
 
 Limitowanie zapytań: Opcja get_details=True znacznie wydłuża czas działania ze względu na dużą liczbę zapytań HTTP (jedno na każdy przedmiot).
+
+Skrypt obsługuje zbieranie poszczególnych specjalizacji - tworzy osobne struktury. Jeśli kierunek nie ma specjalizacji, ustawiana jest na `null`.
+
+
