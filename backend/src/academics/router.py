@@ -2,11 +2,13 @@ from typing import List, Iterable
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
+import logging
 
 from . import models, schemas
 from ..database.database import get_db
 
 router = APIRouter(prefix="/academics", tags=["academics"])
+logger = logging.getLogger(__name__)
 
 def _get_or_404(db: Session, model, obj_id: int, name: str):
     obj = db.get(model, obj_id)
@@ -23,7 +25,11 @@ def _commit_or_rollback(db: Session):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail)
     except SQLAlchemyError as e:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        logger.exception("Unexpected database error during commit")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )
 
 def _apply_patch_or_reject_nulls(obj, payload, nullable_fields: Iterable[str] = ()):
     provided = payload.model_dump(exclude_unset=True)
