@@ -63,6 +63,17 @@ class UnitsUpdate(BaseModel):
     faculty_id: Optional[int] = None
     unit_short: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
+    @model_validator(mode='after')
+    def _reject_explicit_nulls(self):
+        provided = getattr(self, '__pydantic_fields_set__', set())
+        if 'unit_name' in provided and self.unit_name is None:
+            raise ValueError('`unit_name` cannot be null when provided')
+        if 'faculty_id' in provided and self.faculty_id is None:
+            raise ValueError('`faculty_id` cannot be null when provided')
+        if 'unit_short' in provided and self.unit_short is None:
+            raise ValueError('`unit_short` cannot be null when provided')
+        return self
+
 class GroupsBase(BaseSchema):
     group_name: Annotated[str, StringConstraints(max_length=255)]
     study_field: int
