@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import List, Any, Iterable
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -27,6 +27,17 @@ def _commit_or_rollback(db: Session):
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
+
+def _apply_patch_or_reject_nulls(obj, payload, nullable_fields: Iterable[str] = ()):
+    provided = payload.model_dump(exclude_unset=True)
+    nullable_set = set(nullable_fields)
+    for k, v in provided.items():
+        if v is None and k not in nullable_set:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"`{k}` cannot be set to null when provided"
+            )
+        setattr(obj, k, v)
 
 # Study Fields
 @router.post("/study-fields", response_model=schemas.StudyFieldRead, status_code=status.HTTP_201_CREATED)
