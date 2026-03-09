@@ -1,20 +1,19 @@
 """
 Data validation schemas
 """
-from typing import Optional
-from pydantic import BaseModel, root_validator, constr, conint
+from typing import Optional, Annotated
+from pydantic import BaseModel, model_validator, Field, StringConstraints, ConfigDict
 from .models import CourseLanguage, ClassType
 
 
 class BaseSchema(BaseModel):
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Study Fields
 class StudyFieldBase(BaseSchema):
     faculty: int
-    field_name: constr(max_length=255)
+    field_name: Annotated[str, StringConstraints(max_length=255)]
 
 
 class StudyFieldCreate(StudyFieldBase):
@@ -27,13 +26,13 @@ class StudyFieldRead(StudyFieldBase):
 
 class StudyFieldUpdate(BaseModel):
     faculty: Optional[int] = None
-    field_name: Optional[constr(max_length=255)] = None
+    field_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
 
 # Major
 class MajorBase(BaseSchema):
     study_field: Optional[int] = None
-    major_name: constr(max_length=255)
+    major_name: Annotated[str, StringConstraints(max_length=255)]
 
 
 class MajorCreate(MajorBase):
@@ -46,13 +45,13 @@ class MajorRead(MajorBase):
 
 class MajorUpdate(BaseModel):
     study_field: Optional[int] = None
-    major_name: Optional[constr(max_length=255)] = None
+    major_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
 
 # Elective Block
 class ElectiveBlockBase(BaseSchema):
     study_field: int
-    elective_block_name: constr(max_length=255)
+    elective_block_name: Annotated[str, StringConstraints(max_length=255)]
 
 
 class ElectiveBlockCreate(ElectiveBlockBase):
@@ -65,14 +64,14 @@ class ElectiveBlockRead(ElectiveBlockBase):
 
 class ElectiveBlockUpdate(BaseModel):
     study_field: Optional[int] = None
-    elective_block_name: Optional[constr(max_length=255)] = None
+    elective_block_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
 
 
 # Courses
 class CourseBase(BaseSchema):
-    ects_points: conint(ge=0)
-    course_name: constr(max_length=255)
+    ects_points: Annotated[int, Field(ge=0)]
+    course_name: Annotated[str, StringConstraints(max_length=255)]
     course_language: CourseLanguage
     leading_unit: int
     course_coordinator: int
@@ -80,15 +79,11 @@ class CourseBase(BaseSchema):
     major: Optional[int] = None
     elective_block: Optional[int] = None
 
-    @root_validator
-    def check_major_or_elective(cls, values):
-        major = values.get("major")
-        elective = values.get("elective_block")
-
-        if major is not None and elective is not None:
-            raise ValueError("`major` and `elective_block` can't be set at the same time")
-
-        return values
+    @model_validator(mode="after")
+    def check_major_or_elective(self):
+        if self.major is not None and self.elective_block is not None:
+            raise ValueError("`major` and `elective_block` cannot be set at the same time")
+        return self
 
 
 class CourseCreate(CourseBase):
@@ -100,8 +95,8 @@ class CourseRead(CourseBase):
 
 
 class CourseUpdate(BaseModel):
-    ects_points: Optional[conint(ge=0)] = None
-    course_name: Optional[constr(max_length=255)] = None
+    ects_points: Optional[Annotated[int, Field(ge=0)]] = None
+    course_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     course_language: Optional[CourseLanguage] = None
     leading_unit: Optional[int] = None
     course_coordinator: Optional[int] = None
@@ -109,25 +104,22 @@ class CourseUpdate(BaseModel):
     major: Optional[int] = None
     elective_block: Optional[int] = None
 
-    @root_validator
-    def check_major_or_elective(cls, values):
-        major = values.get("major")
-        elective = values.get("elective_block")
 
-        if major is not None and elective is not None:
-            raise ValueError("`major` and `elective_block` can't be set at the same time")
-
-        return values
+    @model_validator(mode="after")
+    def check_major_or_elective(self):
+        if self.major is not None and self.elective_block is not None:
+            raise ValueError("`major` and `elective_block` cannot be set at the same time")
+        return self
 
 
 # Course Type Details
 class CourseTypeDetailsBase(BaseSchema):
     course: int
     class_type: ClassType
-    class_hours: conint(ge=0) = 0
+    class_hours: Annotated[int, Field(ge=0)] = 0
     pc_needed: bool = False
     projector_needed: bool = True
-    max_group_participants_number: conint(gt=0) = 15
+    max_group_participants_number: Annotated[int, Field(gt=0)] = 15
 
 
 class CourseTypeDetailsCreate(CourseTypeDetailsBase):
@@ -141,10 +133,10 @@ class CourseTypeDetailsRead(CourseTypeDetailsBase):
 class CourseTypeDetailsUpdate(BaseModel):
     course: Optional[int] = None
     class_type: Optional[ClassType] = None
-    class_hours: Optional[conint(ge=0)] = None
+    class_hours: Optional[Annotated[int, Field(ge=0)]] = None
     pc_needed: Optional[bool] = None
     projector_needed: Optional[bool] = None
-    max_group_participants_number: Optional[conint(gt=0)] = None
+    max_group_participants_number: Optional[Annotated[int, Field(ge=0)]] = None
 
 
 
@@ -152,8 +144,8 @@ class CourseTypeDetailsUpdate(BaseModel):
 class CourseInstructorBase(BaseSchema):
     employee: int
     course_type_details: int
-    min_hours: Optional[conint(ge=0)] = None
-    max_hours: Optional[conint(ge=0)] = None
+    min_hours: Optional[Annotated[int, Field(ge=0)]] = None
+    max_hours: Optional[Annotated[int, Field(ge=0)]] = None
     priority: Optional[bool] = None
 
 
@@ -168,6 +160,6 @@ class CourseInstructorRead(CourseInstructorBase):
 class CourseInstructorUpdate(BaseModel):
     employee: Optional[int] = None
     course_type_details: Optional[int] = None
-    min_hours: Optional[conint(ge=0)] = None
-    max_hours: Optional[conint(ge=0)] = None
+    min_hours: Optional[Annotated[int, Field(ge=0)]] = None
+    max_hours: Optional[Annotated[int, Field(ge=0)]] = None
     priority: Optional[bool] = None
