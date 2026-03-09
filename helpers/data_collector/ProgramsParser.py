@@ -9,11 +9,9 @@ import logging
 from urllib.parse import urlparse, parse_qs
 import shutil
 
-# TODO: specjalizacje
-
 class ProgramsParser():
     
-    def __init__(self, module_dir, plans_dir, majors_filename, output):
+    def __init__(self, module_dir: str, plans_dir: str, majors_filename: str, output: str):
         
         self.module_dir = module_dir
         self.plans_dir = os.path.join(module_dir, plans_dir)
@@ -29,7 +27,7 @@ class ProgramsParser():
         
         
     
-    def get_majors_list(self):
+    def get_majors_list(self) -> None:
         """
         Fetches the list of majors from programy.p.lodz.pl and saves it to .csv file
         """
@@ -60,7 +58,7 @@ class ProgramsParser():
         except Exception as e:
             self.logger.error(f"Błąd podczas pobierania listy kierunków: {e}")
         
-    def get_majors_all_versions(self, major, url, soup=None):
+    def get_majors_all_versions(self, major: str, url: str, soup=None) -> None:
         """ From file created by get_majors_list() creates directory with:
         - every major having separate file
         - every file contains all years/versions of major's plan
@@ -68,7 +66,6 @@ class ProgramsParser():
         Args:
             major (str): major name
             url (str): major's site url
-            soup (_type_, optional): _description_. Defaults to None.
         """
         
         os.makedirs(self.plans_dir, exist_ok=True)
@@ -99,7 +96,13 @@ class ProgramsParser():
         except Exception as e:
             self.logger.error(f"Błąd podczas pobierania planów dla {major}: {e}")
                     
-    def get_plans_from_courses(self, start=0, end=-1):
+    def get_plans_from_courses(self, start=0, end=-1) -> None:
+        """ Fetches plans from all listed courses.
+
+        Args:
+            start (int, optional): Start index. Defaults to 0.
+            end (int, optional): End index. Defaults to -1.
+        """
         if not os.path.exists(self.majors_filename):
             self.logger.error("Plik kierunków nie istnieje!")
             return
@@ -111,7 +114,7 @@ class ProgramsParser():
             for row in selected_rows:
                 self.get_majors_all_versions(row[0], row[1])
                 
-    def get_plans_from_faculties(self, faculties):
+    def get_plans_from_faculties(self, faculties: list[str]) -> None:
         """ Fetches plans from given faculties
 
         Args:
@@ -137,7 +140,18 @@ class ProgramsParser():
                 except Exception as e:
                     self.logger.warning(f"Pominięto {row[0]} z powodu błędu: {e}")
                     
-    def parse_major(self, url, faculty, specialty_name=None):
+    def parse_major(self, url: str, faculty: str, specialty_name: str = None) -> dict:
+        """
+        Parses a single major into a dictionary
+
+        Args:
+            url (str): URL to major's site.
+            faculty (str): Name of faculty.
+            specialty_name (str, optional): Name of specialty. Defaults to None.
+
+        Returns:
+            dict: description of a single major in form of a dictionary
+        """
 
         try:
             response = requests.get(url, timeout=15)
@@ -245,7 +259,17 @@ class ProgramsParser():
         logging.info(f"Zakończono parsowanie: {kierunek['nazwa']} ({kierunek['od']}) ({"stac." if kierunek['stacjonarne'] else "nstac."})")
         return kierunek
     
-    def get_majors_specialties(self, url):
+    def get_majors_specialties(self, url: str) -> dict:
+        """
+        Fetches all specialties from a given major's URL into a dict.
+
+        Args:
+            url (str): URL to major's site
+
+        Returns:
+            dict: list of all specialties of a major. {"id" : "name"}
+        """
+        
         try:
             response = requests.get(url, timeout=15)
             response.encoding = 'utf-8'
@@ -263,9 +287,21 @@ class ProgramsParser():
             return {opt.get('value'): opt.text.strip() for opt in opts}
         
     def parse_link(self, url: str) -> str:
+        """
+        Helper func. Fills white chars with "%20".
+
+        Args:
+            url (str): URL to fill
+
+        Returns:
+            str: Filled URL
+        """
         return url.replace(" ", "%20", -1)
     
-    def parse_programs_to_json(self):
+    def parse_programs_to_json(self) -> None:
+        """
+        From the list of majors fetches the details using get_majors_specialties() and parse_major(). Then saves to JSON file.
+        """
         self.logger.info("Generowanie końcowego pliku JSON...")
         kierunki = []
         if not os.path.exists(self.plans_dir):
@@ -277,7 +313,6 @@ class ProgramsParser():
                 with open(e.path, "r", encoding="utf-8") as f:
                     plans = list(csv.reader(f))[1:]
                     for p in plans:
-                        
                         
                         # p[4] link, p[1] wydzial
                         spec_dict = self.get_majors_specialties(p[4])
@@ -296,7 +331,10 @@ class ProgramsParser():
             json.dump(kierunki, f, ensure_ascii=False, indent=4)
         self.logger.info(f"Zapisano dane do {self.output_filename}")
 
-    def clean(self):
+    def clean(self) -> None:
+        """
+        Deletes the temporary files generated in the process of fetching the data.
+        """
         self.logger.info("Sprzątanie plików tymczasowych...")
         try:
             if os.path.exists(self.plans_dir):
@@ -306,7 +344,16 @@ class ProgramsParser():
         except Exception as e:
             self.logger.warning(f"Nie udało się w pełni posprzątać: {e}")
 
-    def get_programs(self, faculties=None, clean=True, get_details=False):
+    def get_programs(self, faculties: list[str] = None, clean: bool = True, get_details: bool = False) -> None:
+        """
+        Main function. Using sub-funcs set with given parameters fetches all the necessary data into a single JSON file. 
+
+        Args:
+            faculties (list[str], optional): List of faculties' names, from which the data is fetched. Defaults to None. If None or ["all"] - fetches all data without considering faculties.
+            clean (bool, optional): If the temp files should be deleted after fetching. Defaults to True.
+            get_details (bool, optional): If should fetch details about majors (requires requesting additional subpages - might take longer). Defaults to False.
+        """
+        
         self.get_majors_list()
         self.get_details = get_details
         

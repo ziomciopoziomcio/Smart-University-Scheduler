@@ -1,4 +1,4 @@
-from programs_parser import ProgramsParser
+from ProgramsParser import ProgramsParser
 
 if __name__ == "__main__":
     
