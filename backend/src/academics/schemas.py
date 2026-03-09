@@ -24,6 +24,13 @@ class StudentUpdate(BaseModel):
     study_field: Optional[int] = None
     major: Optional[int] = None
 
+    @model_validator(mode='after')
+    def check_study_field_not_none(self):
+        provided = getattr(self, '__pydantic_fields_set__', set())
+        if 'study_field' in provided and self.study_field is None:
+            raise ValueError('`study_field` cannot be set to null when provided')
+        return self
+
 class EmployeesBase(BaseSchema):
     user_id: int
     faculty_id: int
