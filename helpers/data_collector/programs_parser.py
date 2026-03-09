@@ -137,7 +137,7 @@ class ProgramsParser():
                 except Exception as e:
                     self.logger.warning(f"Pominięto {row[0]} z powodu błędu: {e}")
                     
-    def parse_subject(self, url, faculty):
+    def parse_major(self, url, faculty, specialty_name=None):
 
         try:
             response = requests.get(url, timeout=15)
@@ -153,20 +153,13 @@ class ProgramsParser():
         try:
             parsed_url = urlparse(url)
             args_dict = parse_qs(parsed_url.query)
-            
-            specjalizacja = args_dict.get("sp", [None])[0]
-            if specjalizacja:
-                try:
-                    specjalizacja = int(specjalizacja)
-                except ValueError:
-                    pass
 
             kierunek = {
                 "nazwa": args_dict.get("w", ["Nieznany"])[0],
                 "wydzial": faculty,
                 "stopien": 1 if "studia pierwszego stopnia" in args_dict.get("stopien", [""])[0] else 2,
                 "stacjonarne": "studia stacjonarne" in args_dict.get("tryb", [""])[0],
-                "specjalizacja": specjalizacja,
+                "specjalizacja": specialty_name,
                 "semestry": [],
                 "od": "Nieznany"
             }
@@ -249,9 +242,26 @@ class ProgramsParser():
 
             kierunek["semestry"].append(semestr)
 
-        logging.info(f"Zakończono parsowanie: {kierunek['nazwa']} ({kierunek['od']})")
+        logging.info(f"Zakończono parsowanie: {kierunek['nazwa']} ({kierunek['od']}) ({"stac." if kierunek['stacjonarne'] else "nstac."})")
         return kierunek
     
+    def get_majors_specialties(self, url):
+        try:
+            response = requests.get(url, timeout=15)
+            response.encoding = 'utf-8'
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Nie udało się pobrać strony głównej: {e}")
+            return None
+
+        soup_page = BeautifulSoup(response.text, "html.parser")
+        opts = soup_page.find("select").find_all("option")
+        
+        if not opts:
+            return None
+        else:
+            return {opt.get('value'): opt.text.strip() for opt in opts}
+        
     def parse_link(self, url: str) -> str:
         return url.replace(" ", "%20", -1)
     
@@ -267,11 +277,21 @@ class ProgramsParser():
                 with open(e.path, "r", encoding="utf-8") as f:
                     plans = list(csv.reader(f))[1:]
                     for p in plans:
+                        
+                        
                         # p[4] link, p[1] wydzial
-                        data = self.parse_subject(self.parse_link(p[4]), p[1])
-                        if data:
-                            kierunki.append(data)
-        
+                        spec_dict = self.get_majors_specialties(p[4])
+                        
+                        if not spec_dict:
+                            data = self.parse_major(self.parse_link(p[4]), p[1])
+                            if data: kierunki.append(data)
+                        else:
+                            for spec_id, spec_name in spec_dict.items():
+                                data = self.parse_major(self.parse_link(f"{p[4]}&sp={spec_id}"), p[1], specialty_name=spec_name)
+                                if data: kierunki.append(data)
+                            
+                        
+                            
         with open(self.output_filename, "w", encoding="utf-8") as f:
             json.dump(kierunki, f, ensure_ascii=False, indent=4)
         self.logger.info(f"Zapisano dane do {self.output_filename}")
@@ -299,5 +319,3 @@ class ProgramsParser():
         
         if clean:
             self.clean()
-            
-            

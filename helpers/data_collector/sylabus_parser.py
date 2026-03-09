@@ -225,6 +225,7 @@ def scrap_study_programmes_sylabus(url):
 
 
 if __name__ == "__main__":
+    
     url = "https://www.sylabus.p.lodz.pl/pl/1/2/3/1/3/0/41#nav-tab-7" # informatyka magisterska - dziala
     # url = "https://sylabus.p.lodz.pl/pl/1/2/4/1/1/2/31" # eit - dziala
     # url = "https://sylabus.p.lodz.pl/pl/1/2/4/1/1/7/52"  # mads (wtims) - dziala
