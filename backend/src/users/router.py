@@ -6,6 +6,7 @@ from typing import List, Iterable
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
+from passlib.context import CryptContext
 import logging
 
 from . import models, schemas
@@ -13,7 +14,7 @@ from ..database.database import get_db
 
 router = APIRouter(prefix="/users", tags=["users"])
 logger = logging.getLogger(__name__)
-
+pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def _get_or_404(db: Session, model, obj_id: int, name: str):
     obj = db.get(model, obj_id)
@@ -37,8 +38,8 @@ def _commit_or_rollback(db: Session):
             detail="Internal server error"
         )
 
-def _apply_patch_or_reject_nulls(obj, payload, nullable_fields: Iterable[str] = ()):
-    provided = payload.model_dump(exclude_unset=True)
+def _apply_patch_or_reject_nulls(obj, payload, nullable_fields: Iterable[str] = (), exclude: set = set()):
+    provided = payload.model_dump(exclude_unset=True, exclude=exclude)
     nullable_set = set(nullable_fields)
     for k, v in provided.items():
         if v is None and k not in nullable_set:
@@ -84,7 +85,9 @@ def delete_role(role_id: int, db: Session = Depends(get_db)):
 # Users
 @router.post("/", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED)
 def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
-    obj = models.Users(**payload.model_dump())
+    data = payload.model_dump()
+    data["password_hash"] = pwd_ctx.hash(data.pop("password"))
+    obj = models.Users(**data)
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -102,7 +105,11 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 @router.patch("/{user_id}", response_model=schemas.UserRead)
 def update_user(user_id: int, payload: schemas.UserUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Users, user_id, "User")
-    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"phone_number", "grade"})
+
+    if payload.password is not None:
+        obj.password_hash = pwd_ctx.hash(payload.password)
+
+    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"phone_number", "grade"}, exclude={"password"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)

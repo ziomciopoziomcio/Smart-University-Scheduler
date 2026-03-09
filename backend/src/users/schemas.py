@@ -18,7 +18,7 @@ class UserBase(BaseSchema):
     grade: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
 class UserCreate(UserBase):
-    password_hash: Annotated[str, StringConstraints(max_length=255)]
+    password: Annotated[str, StringConstraints(max_length=255)]
 
 class UserRead(UserBase):
     id: int
@@ -30,7 +30,7 @@ class UserUpdate(BaseModel):
     name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     surname: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     grade: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    password_hash: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    password: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
 class RoleBase(BaseSchema):
     role_name: Annotated[str, StringConstraints(max_length=255)]
