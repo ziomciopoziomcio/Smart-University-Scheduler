@@ -63,8 +63,7 @@ def get_study_field(field_id: int, db: Session = Depends(get_db)):
 @router.patch("/study-fields/{field_id}", response_model=schemas.StudyFieldRead)
 def update_study_field(field_id: int, payload: schemas.StudyFieldUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Study_fields, field_id, "Study Field")
-    for k, v in payload.model_dump(exclude_unset=True).items():
-        setattr(obj, k, v)
+    _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -104,8 +103,7 @@ def get_major(major_id: int, db: Session = Depends(get_db)):
 @router.patch("/majors/{major_id}", response_model=schemas.MajorRead)
 def update_major(major_id: int, payload: schemas.MajorUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Major, major_id, "Major")
-    for k, v in payload.model_dump(exclude_unset=True).items():
-        setattr(obj, k, v)
+    _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -143,8 +141,7 @@ def get_elective_block(block_id: int, db: Session = Depends(get_db)):
 @router.patch("/elective-blocks/{block_id}", response_model=schemas.ElectiveBlockRead)
 def update_elective_block(block_id: int, payload: schemas.ElectiveBlockUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Elective_block, block_id, "Elective Block")
-    for k, v in payload.model_dump(exclude_unset=True).items():
-        setattr(obj, k, v)
+    _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -182,8 +179,7 @@ def get_course_type(type_id: int, db: Session = Depends(get_db)):
 @router.patch("/types/{type_id}", response_model=schemas.CourseTypeDetailsRead)
 def update_course_type(type_id: int, payload: schemas.CourseTypeDetailsUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Course_type_details, type_id, "Course Type")
-    for k, v in payload.model_dump(exclude_unset=True).items():
-        setattr(obj, k, v)
+    _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -221,8 +217,7 @@ def get_course_instructor(instructor_id: int, db: Session = Depends(get_db)):
 @router.patch("/instructors/{instructor_id}", response_model=schemas.CourseInstructorRead)
 def update_course_instructor(instructor_id: int, payload: schemas.CourseInstructorUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Courses_instructors, instructor_id, "Course Instructor")
-    for k, v in payload.model_dump(exclude_unset=True).items():
-        setattr(obj, k, v)
+    _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -260,8 +255,7 @@ def get_course(course_id: int, db: Session = Depends(get_db)):
 @router.patch("/{course_id}", response_model=schemas.CourseRead)
 def update_course(course_id: int, payload: schemas.CourseUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Courses, course_id, "Course")
-    for k, v in payload.model_dump(exclude_unset=True).items():
-        setattr(obj, k, v)
+    _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
