@@ -77,7 +77,7 @@ class GroupsUpdate(GroupsBase):
     group_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     study_field: Optional[int] = None
     major: Optional[int] = None
-    elective_block: Optional[bool] = None
+    elective_block: Optional[int] = None
 
     @model_validator(mode='after')
     def check_major_or_elective(self):
