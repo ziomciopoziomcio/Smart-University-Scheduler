@@ -50,7 +50,7 @@ class UnitsCreate(UnitsBase):
 class UnitsRead(UnitsBase):
     id: int
 
-class UnitsUpdate(UnitsBase):
+class UnitsUpdate(BaseModel):
     unit_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     faculty_id: Optional[int] = None
     unit_short: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
@@ -73,7 +73,7 @@ class GroupsCreate(GroupsBase):
 class GroupsRead(GroupsBase):
     id: int
 
-class GroupsUpdate(GroupsBase):
+class GroupsUpdate(BaseModel):
     group_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     study_field: Optional[int] = None
     major: Optional[int] = None
