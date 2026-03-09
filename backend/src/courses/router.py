@@ -8,7 +8,7 @@ from ..database.database import get_db
 router = APIRouter(prefix="/courses", tags=["courses"])
 
 
-def _get_or_404(db: Session, model, obj_id: Any, name: str, pk_attr: Optional[str] = None):
+def _get_or_404(db: Session, model, obj_id: Any, name: str):
     obj = db.get(model, obj_id)
     if not obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{name} not found")
