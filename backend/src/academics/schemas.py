@@ -106,3 +106,15 @@ class GroupMembersRead(GroupMembersBase):
 class GroupMembersUpdate(BaseModel):
     group: Optional[int] = None
     student: Optional[int] = None
+
+    @field_validator('group', mode='before')
+    def _reject_null_group(cls, v):
+        if v is None:
+            raise ValueError('`group` cannot be null when provided')
+        return v
+
+    @field_validator('student', mode='before')
+    def _reject_null_student(cls, v):
+        if v is None:
+            raise ValueError('`student` cannot be null when provided')
+        return v
