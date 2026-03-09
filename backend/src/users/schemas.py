@@ -4,14 +4,14 @@ Data validation schemas
 
 from typing import Optional, Annotated
 from datetime import datetime
-from pydantic import BaseModel, StringConstraints, ConfigDict
+from pydantic import BaseModel, StringConstraints, ConfigDict, EmailStr
 
 
 class BaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class UserBase(BaseSchema):
-    email: Annotated[str, StringConstraints(max_length=255)]
+    email: Annotated[EmailStr, StringConstraints(max_length=255)]
     phone_number: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
     name: Annotated[str, StringConstraints(max_length=255)]
     surname: Annotated[str, StringConstraints(max_length=255)]
@@ -25,7 +25,7 @@ class UserRead(UserBase):
     created_at: datetime
 
 class UserUpdate(BaseModel):
-    email: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    email: Optional[Annotated[EmailStr, StringConstraints(max_length=255)]] = None
     phone_number: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
     name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     surname: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
