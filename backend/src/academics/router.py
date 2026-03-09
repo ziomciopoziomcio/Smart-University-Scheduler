@@ -33,7 +33,7 @@ def get_student(student_id: int, db: Session = Depends(get_db)):
 @router.patch("/students/{student_id}", response_model=schemas.StudentRead)
 def update_student(student_id: int, payload: schemas.StudentUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Students, student_id, "Student")
-    for k, v in payload.model_dump(exclude_unset=True).items():
+    for k, v in payload.model_dump(exclude_unset=True, exclude_none=True).items():
         setattr(obj, k, v)
     db.add(obj)
     db.commit()
