@@ -1,5 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -13,12 +14,23 @@ def _get_or_404(db: Session, model, obj_id: int, name: str):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{name} not found")
     return obj
 
+def _commit_or_rollback(db: Session):
+    try:
+        db.commit()
+    except IntegrityError as e:
+        db.rollback()
+        detail = str(e.orig) if getattr(e, "orig", None) else str(e)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail)
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
 # Students
 @router.post("/students", response_model=schemas.StudentRead, status_code=status.HTTP_201_CREATED)
 def create_student(payload: schemas.StudentCreate, db: Session = Depends(get_db)):
     obj = models.Students(**payload.model_dump())
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -36,7 +48,7 @@ def update_student(student_id: int, payload: schemas.StudentUpdate, db: Session 
     for k, v in payload.model_dump(exclude_unset=True, exclude_none=True).items():
         setattr(obj, k, v)
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -44,7 +56,7 @@ def update_student(student_id: int, payload: schemas.StudentUpdate, db: Session 
 def delete_student(student_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Students, student_id, "Student")
     db.delete(obj)
-    db.commit()
+    _commit_or_rollback(db)
     return None
 
 # Employees
@@ -52,7 +64,7 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
 def create_employee(payload: schemas.EmployeeCreate, db: Session = Depends(get_db)):
     obj = models.Employees(**payload.model_dump())
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -70,7 +82,7 @@ def update_employee(employee_id: int, payload: schemas.EmployeeUpdate, db: Sessi
     for k, v in payload.model_dump(exclude_unset=True).items():
         setattr(obj, k, v)
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -78,7 +90,7 @@ def update_employee(employee_id: int, payload: schemas.EmployeeUpdate, db: Sessi
 def delete_employee(employee_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Employees, employee_id, "Employee")
     db.delete(obj)
-    db.commit()
+    _commit_or_rollback(db)
     return None
 
 # Units
@@ -86,7 +98,7 @@ def delete_employee(employee_id: int, db: Session = Depends(get_db)):
 def create_unit(payload: schemas.UnitsCreate, db: Session = Depends(get_db)):
     obj = models.Units(**payload.model_dump())
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -104,7 +116,7 @@ def update_unit(unit_id: int, payload: schemas.UnitsUpdate, db: Session = Depend
     for k, v in payload.model_dump(exclude_unset=True).items():
         setattr(obj, k, v)
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -112,7 +124,7 @@ def update_unit(unit_id: int, payload: schemas.UnitsUpdate, db: Session = Depend
 def delete_unit(unit_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Units, unit_id, "Unit")
     db.delete(obj)
-    db.commit()
+    _commit_or_rollback(db)
     return None
 
 # Groups
@@ -120,7 +132,7 @@ def delete_unit(unit_id: int, db: Session = Depends(get_db)):
 def create_group(payload: schemas.GroupsCreate, db: Session = Depends(get_db)):
     obj = models.Groups(**payload.model_dump())
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -138,7 +150,7 @@ def update_group(group_id: int, payload: schemas.GroupsUpdate, db: Session = Dep
     for k, v in payload.model_dump(exclude_unset=True).items():
         setattr(obj, k, v)
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -146,7 +158,7 @@ def update_group(group_id: int, payload: schemas.GroupsUpdate, db: Session = Dep
 def delete_group(group_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Groups, group_id, "Group")
     db.delete(obj)
-    db.commit()
+    _commit_or_rollback(db)
     return None
 
 # Group Members
@@ -154,7 +166,7 @@ def delete_group(group_id: int, db: Session = Depends(get_db)):
 def create_group_member(payload: schemas.GroupMembersCreate, db: Session = Depends(get_db)):
     obj = models.Group_members(**payload.model_dump())
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -172,7 +184,7 @@ def update_group_member(group_member_id: int, payload: schemas.GroupMembersUpdat
     for k, v in payload.model_dump(exclude_unset=True).items():
         setattr(obj, k, v)
     db.add(obj)
-    db.commit()
+    _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
@@ -181,5 +193,5 @@ def update_group_member(group_member_id: int, payload: schemas.GroupMembersUpdat
 def delete_group_member(group_member_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Group_members, group_member_id, "Group Member")
     db.delete(obj)
-    db.commit()
+    _commit_or_rollback(db)
     return None
