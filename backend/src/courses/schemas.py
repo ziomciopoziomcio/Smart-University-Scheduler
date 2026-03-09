@@ -136,7 +136,7 @@ class CourseTypeDetailsUpdate(BaseModel):
     class_hours: Optional[Annotated[int, Field(ge=0)]] = None
     pc_needed: Optional[bool] = None
     projector_needed: Optional[bool] = None
-    max_group_participants_number: Optional[Annotated[int, Field(ge=0)]] = None
+    max_group_participants_number: Optional[Annotated[int, Field(gt=0)]] = None
 
 
 
