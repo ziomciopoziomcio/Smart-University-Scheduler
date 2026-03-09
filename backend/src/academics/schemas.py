@@ -103,6 +103,7 @@ class GroupsUpdate(BaseModel):
     group_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     study_field: Optional[int] = None
     major: Optional[int] = None
+    elective_block: Optional[int] = None
 
     @field_validator('group_name', mode='before')
     def _reject_null_group_name(cls, v):
@@ -121,7 +122,6 @@ class GroupsUpdate(BaseModel):
         if self.major is not None and self.elective_block is not None:
             raise ValueError('`major` and `elective_block` cannot be set at the same time')
         return self
-    elective_block: Optional[int] = None
 
     @model_validator(mode='after')
     def check_major_or_elective(self):
