@@ -1,6 +1,7 @@
-from typing import List, Any, Optional
+from typing import List, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from . import models, schemas
 from ..database.database import get_db
@@ -13,6 +14,18 @@ def _get_or_404(db: Session, model, obj_id: Any, name: str):
     if not obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{name} not found")
     return obj
+
+
+def _commit_or_rollback(db: Session):
+    try:
+        db.commit()
+    except IntegrityError as e:
+        db.rollback()
+        detail = str(e.orig) if getattr(e, "orig", None) else str(e)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail)
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 # Study Fields
