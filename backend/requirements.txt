@@ -1,3 +1,5 @@
 alembic
 python-dotenv
 psycopg2
+email-validator
+passlib[bcrypt]
