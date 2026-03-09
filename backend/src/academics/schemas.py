@@ -85,6 +85,24 @@ class GroupsUpdate(BaseModel):
     group_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     study_field: Optional[int] = None
     major: Optional[int] = None
+
+    @field_validator('group_name', mode='before')
+    def _reject_null_group_name(cls, v):
+        if v is None:
+            raise ValueError('`group_name` cannot be null when provided')
+        return v
+
+    @field_validator('study_field', mode='before')
+    def _reject_null_study_field(cls, v):
+        if v is None:
+            raise ValueError('`study_field` cannot be null when provided')
+        return v
+
+    @model_validator(mode='after')
+    def check_major_or_elective(self):
+        if self.major is not None and self.elective_block is not None:
+            raise ValueError('`major` and `elective_block` cannot be set at the same time')
+        return self
     elective_block: Optional[int] = None
 
     @model_validator(mode='after')
