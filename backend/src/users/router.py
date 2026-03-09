@@ -106,7 +106,12 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 def update_user(user_id: int, payload: schemas.UserUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Users, user_id, "User")
 
-    if payload.password is not None:
+    if "password" in payload.model_fields_set:
+        if payload.password is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="`password` cannot be set to null when provided"
+            )
         obj.password_hash = pwd_ctx.hash(payload.password)
 
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"phone_number", "grade"}, exclude={"password"})
