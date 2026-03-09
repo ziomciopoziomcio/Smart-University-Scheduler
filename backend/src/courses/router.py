@@ -134,45 +134,6 @@ def delete_elective_block(block_id: int, db: Session = Depends(get_db)):
     db.commit()
     return None
 
-# Courses
-@router.post("/", response_model=schemas.CourseRead, status_code=status.HTTP_201_CREATED)
-def create_course(payload: schemas.CourseCreate, db: Session = Depends(get_db)):
-    obj = models.Courses(**payload.model_dump())
-    db.add(obj)
-    db.commit()
-    db.refresh(obj)
-    return obj
-
-
-@router.get("/", response_model=List[schemas.CourseRead])
-def list_courses(db: Session = Depends(get_db)):
-    return db.query(models.Courses).all()
-
-
-@router.get("/{course_id}", response_model=schemas.CourseRead)
-def get_course(course_id: int, db: Session = Depends(get_db)):
-    return _get_or_404(db, models.Courses, course_id, "Course")
-
-
-@router.patch("/{course_id}", response_model=schemas.CourseRead)
-def update_course(course_id: int, payload: schemas.CourseUpdate, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.Courses, course_id, "Course")
-    for k, v in payload.model_dump(exclude_unset=True).items():
-        setattr(obj, k, v)
-    db.add(obj)
-    db.commit()
-    db.refresh(obj)
-    return obj
-
-
-@router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_course(course_id: int, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.Courses, course_id, "Course")
-    db.delete(obj)
-    db.commit()
-    return None
-
-
 
 # Course Type Details
 @router.post("/types", response_model=schemas.CourseTypeDetailsRead, status_code=status.HTTP_201_CREATED)
@@ -247,6 +208,45 @@ def update_course_instructor(instructor_id: int, payload: schemas.CourseInstruct
 @router.delete("/instructors/{instructor_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_course_instructor(instructor_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Courses_instructors, instructor_id, "Course Instructor")
+    db.delete(obj)
+    db.commit()
+    return None
+
+
+# Courses
+@router.post("/", response_model=schemas.CourseRead, status_code=status.HTTP_201_CREATED)
+def create_course(payload: schemas.CourseCreate, db: Session = Depends(get_db)):
+    obj = models.Courses(**payload.model_dump())
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+    return obj
+
+
+@router.get("/", response_model=List[schemas.CourseRead])
+def list_courses(db: Session = Depends(get_db)):
+    return db.query(models.Courses).all()
+
+
+@router.get("/{course_id}", response_model=schemas.CourseRead)
+def get_course(course_id: int, db: Session = Depends(get_db)):
+    return _get_or_404(db, models.Courses, course_id, "Course")
+
+
+@router.patch("/{course_id}", response_model=schemas.CourseRead)
+def update_course(course_id: int, payload: schemas.CourseUpdate, db: Session = Depends(get_db)):
+    obj = _get_or_404(db, models.Courses, course_id, "Course")
+    for k, v in payload.model_dump(exclude_unset=True).items():
+        setattr(obj, k, v)
+    db.add(obj)
+    db.commit()
+    db.refresh(obj)
+    return obj
+
+
+@router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_course(course_id: int, db: Session = Depends(get_db)):
+    obj = _get_or_404(db, models.Courses, course_id, "Course")
     db.delete(obj)
     db.commit()
     return None
