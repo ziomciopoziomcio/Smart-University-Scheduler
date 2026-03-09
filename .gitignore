@@ -1,3 +1,4 @@
 .vscode
 .idea
 __pycache__
+/helpers/data_collector/helpers/data_collector
