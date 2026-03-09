@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Iterable
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -25,6 +25,17 @@ def _commit_or_rollback(db: Session):
         db.rollback()
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
+def _apply_patch_or_reject_nulls(obj, payload, nullable_fields: Iterable[str] = ()):
+    provided = payload.model_dump(exclude_unset=True)
+    nullable_set = set(nullable_fields)
+    for k, v in provided.items():
+        if v is None and k not in nullable_set:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"`{k}` cannot be set to null when provided"
+            )
+        setattr(obj, k, v)
+
 # Students
 @router.post("/students", response_model=schemas.StudentRead, status_code=status.HTTP_201_CREATED)
 def create_student(payload: schemas.StudentCreate, db: Session = Depends(get_db)):
@@ -45,8 +56,7 @@ def get_student(student_id: int, db: Session = Depends(get_db)):
 @router.patch("/students/{student_id}", response_model=schemas.StudentRead)
 def update_student(student_id: int, payload: schemas.StudentUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Students, student_id, "Student")
-    for k, v in payload.model_dump(exclude_unset=True, exclude_none=True).items():
-        setattr(obj, k, v)
+    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"major"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -79,8 +89,7 @@ def get_employee(employee_id: int, db: Session = Depends(get_db)):
 @router.patch("/employees/{employee_id}", response_model=schemas.EmployeeRead)
 def update_employee(employee_id: int, payload: schemas.EmployeeUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Employees, employee_id, "Employee")
-    for k, v in payload.model_dump(exclude_unset=True).items():
-        setattr(obj, k, v)
+    _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -113,8 +122,7 @@ def get_unit(unit_id: int, db: Session = Depends(get_db)):
 @router.patch("/units/{unit_id}", response_model=schemas.UnitsRead)
 def update_unit(unit_id: int, payload: schemas.UnitsUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Units, unit_id, "Unit")
-    for k, v in payload.model_dump(exclude_unset=True).items():
-        setattr(obj, k, v)
+    _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -147,8 +155,7 @@ def get_group(group_id: int, db: Session = Depends(get_db)):
 @router.patch("/groups/{group_id}", response_model=schemas.GroupsRead)
 def update_group(group_id: int, payload: schemas.GroupsUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Groups, group_id, "Group")
-    for k, v in payload.model_dump(exclude_unset=True).items():
-        setattr(obj, k, v)
+    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"major", "elective_block"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -181,8 +188,7 @@ def get_group_member(group_member_id: int, db: Session = Depends(get_db)):
 @router.patch("/group-members/{group_member_id}", response_model=schemas.GroupMembersRead)
 def update_group_member(group_member_id: int, payload: schemas.GroupMembersUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Group_members, group_member_id, "Group Member")
-    for k, v in payload.model_dump(exclude_unset=True).items():
-        setattr(obj, k, v)
+    _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
