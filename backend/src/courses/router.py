@@ -9,19 +9,7 @@ router = APIRouter(prefix="/courses", tags=["courses"])
 
 
 def _get_or_404(db: Session, model, obj_id: Any, name: str, pk_attr: Optional[str] = None):
-    if pk_attr:
-        attr = getattr(model, pk_attr)
-    else:
-        mapper = getattr(model, "__mapper__", None)
-        if mapper is None:
-            raise RuntimeError("Model does not have SQLAlchemy mapper")
-        pks = mapper.primary_key
-        if len(pks) != 1:
-            raise RuntimeError(f"Model {model.__name__} has composite primary key; pass `pk_attr`")
-        col = pks[0]
-        attr = getattr(model, col.name)
-
-    obj = db.query(model).filter(attr == obj_id).first()
+    obj = db.get(model, obj_id)
     if not obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{name} not found")
     return obj
