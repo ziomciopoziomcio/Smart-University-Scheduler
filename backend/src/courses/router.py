@@ -218,7 +218,7 @@ def get_course_instructor(instructor_id: int, db: Session = Depends(get_db)):
 @router.patch("/instructors/{instructor_id}", response_model=schemas.CourseInstructorRead)
 def update_course_instructor(instructor_id: int, payload: schemas.CourseInstructorUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Courses_instructors, instructor_id, "Course Instructor")
-    _apply_patch_or_reject_nulls(obj, payload)
+    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"major", "elective_block"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -256,7 +256,7 @@ def get_course(course_id: int, db: Session = Depends(get_db)):
 @router.patch("/{course_id}", response_model=schemas.CourseRead)
 def update_course(course_id: int, payload: schemas.CourseUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Courses, course_id, "Course")
-    _apply_patch_or_reject_nulls(obj, payload)
+    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"major", "elective_block"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
