@@ -10,7 +10,7 @@ Tables:
 from sqlalchemy import String, Table, Column, Integer, ForeignKey, \
     UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.database.base import Base
+from ..database.base import Base
 
 faculty_buildings = Table(
     'faculty_buildings',

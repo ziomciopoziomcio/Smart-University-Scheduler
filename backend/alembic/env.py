@@ -22,12 +22,12 @@ if config.config_file_name is not None:
 import sys
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), '..'))
 
-from src.database.base import Base
+from ..src.database.base import Base
 
-from src.academics import models as academics_models
-from src.courses import models as courses_models
-from src.users import models as users_models
-from src.facilities import models as facilities_models
+from ..src.academics import models as academics_models
+from ..src.courses import models as courses_models
+from ..src.users import models as users_models
+from ..src.facilities import models as facilities_models
 
 from ..src.database.database import SQLALCHEMY_DATABASE_URL
 

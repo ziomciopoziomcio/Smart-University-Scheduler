@@ -10,7 +10,7 @@ Tables:
 from sqlalchemy import String, Integer, ForeignKey, \
     UniqueConstraint, Float, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column
-from src.database.base import Base
+from ..database.base import Base
 
 
 class Students(Base):

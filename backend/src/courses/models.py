@@ -11,7 +11,7 @@ Tables:
 from sqlalchemy import String, Integer, ForeignKey, \
     UniqueConstraint, Boolean, CheckConstraint, Enum
 from sqlalchemy.orm import Mapped, mapped_column
-from src.database.base import Base
+from ..database.base import Base
 import enum
 
 
