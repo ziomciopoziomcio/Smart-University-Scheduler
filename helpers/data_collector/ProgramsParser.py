@@ -256,7 +256,8 @@ class ProgramsParser():
 
             kierunek["semestry"].append(semestr)
 
-        logging.info(f"Finished parsing: {kierunek['name']} ({kierunek['from']}) ({'full-time' if kierunek['stacjonarne'] else 'part-time'})")
+        logging.info(
+            f"Finished parsing: {kierunek['nazwa']} ({kierunek['od']}) ({"stac." if kierunek['stacjonarne'] else "nstac."})")
         return kierunek
     
     def get_majors_specialties(self, url: str) -> dict:
