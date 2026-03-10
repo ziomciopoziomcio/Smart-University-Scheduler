@@ -25,7 +25,8 @@ def _commit_or_rollback(db: Session):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail)
     except SQLAlchemyError as e:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail="Internal server error")
 
 
 def _apply_patch_or_reject_nulls(obj, payload, nullable_fields: Iterable[str] = ()):
