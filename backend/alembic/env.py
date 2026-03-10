@@ -29,6 +29,8 @@ from src.courses import models as courses_models
 from src.users import models as users_models
 from src.facilities import models as facilities_models
 
+from ..src.database.database import SQLALCHEMY_DATABASE_URL
+
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -48,9 +50,7 @@ host = os.getenv("DB_HOST")
 port = os.getenv("DB_PORT")
 database = os.getenv("DB_NAME")
 
-DATABASE_URL = f"postgresql://{user}:{password}@{host}:{port}/{database}"
-
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
+config.set_main_option("sqlalchemy.url", SQLALCHEMY_DATABASE_URL)
 
 
 def run_migrations_offline() -> None:
