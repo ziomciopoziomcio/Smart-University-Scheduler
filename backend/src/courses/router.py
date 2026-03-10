@@ -104,7 +104,7 @@ def get_major(major_id: int, db: Session = Depends(get_db)):
 @router.patch("/majors/{major_id}", response_model=schemas.MajorRead)
 def update_major(major_id: int, payload: schemas.MajorUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Major, major_id, "Major")
-    _apply_patch_or_reject_nulls(obj, payload)
+    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"study_field"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
