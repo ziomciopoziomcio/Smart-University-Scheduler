@@ -38,18 +38,6 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-"""
-Loading environment variables from .env file.
-author: ziomciopoziomcio
-"""
-
-load_dotenv()
-user = os.getenv("DB_USER")
-password = os.getenv("DB_PASSWORD")
-host = os.getenv("DB_HOST")
-port = os.getenv("DB_PORT")
-database = os.getenv("DB_NAME")
-
 config.set_main_option("sqlalchemy.url", SQLALCHEMY_DATABASE_URL)
 
 
