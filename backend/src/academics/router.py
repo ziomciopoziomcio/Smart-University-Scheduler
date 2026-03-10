@@ -19,11 +19,11 @@ def _get_or_404(db: Session, model, obj_id: int, name: str):
 def _commit_or_rollback(db: Session):
     try:
         db.commit()
-    except IntegrityError as e:
+    except IntegrityError:
         db.rollback()
-        detail = str(e.orig) if getattr(e, "orig", None) else str(e)
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail)
-    except SQLAlchemyError as e:
+        logger.exception("Integrity error during commit")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Conflict: request violates database constraints")
+    except SQLAlchemyError:
         db.rollback()
         logger.exception("Unexpected database error during commit")
         raise HTTPException(
