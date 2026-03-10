@@ -42,7 +42,7 @@ def _apply_patch_or_reject_nulls(obj, payload, nullable_fields: Iterable[str] = 
         setattr(obj, k, v)
 
 #Campus
-@router.post("/campus", response_model=schemas.CampusRead, status_code=status.HTTP_201_CREATED)
+@router.post("/campuses", response_model=schemas.CampusRead, status_code=status.HTTP_201_CREATED)
 def create_campus(payload: schemas.CampusCreate, db: Session = Depends(get_db)):
     new_campus = models.Campus(**payload.model_dump())
     db.add(new_campus)
@@ -50,15 +50,15 @@ def create_campus(payload: schemas.CampusCreate, db: Session = Depends(get_db)):
     db.refresh(new_campus)
     return new_campus
 
-@router.get("/campus", response_model=List[schemas.CampusRead])
+@router.get("/campuses", response_model=List[schemas.CampusRead])
 def list_campus(db: Session = Depends(get_db)):
     return db.query(models.Campus).all()
 
-@router.get("/campus/{campus_id}", response_model=schemas.CampusRead)
+@router.get("/campuses/{campus_id}", response_model=schemas.CampusRead)
 def get_campus(campus_id: int, db: Session = Depends(get_db)):
     return _get_or_404(db, models.Campus, campus_id, "Campus")
 
-@router.patch("/campus/{campus_id}", response_model=schemas.CampusRead)
+@router.patch("/campuses/{campus_id}", response_model=schemas.CampusRead)
 def update_campus(campus_id: int, payload: schemas.CampusUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Campus, campus_id, "Campus")
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields=["campus_name"])
@@ -67,7 +67,7 @@ def update_campus(campus_id: int, payload: schemas.CampusUpdate, db: Session = D
     db.refresh(obj)
     return obj
 
-@router.delete("/campus/{campus_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/campuses/{campus_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_campus(campus_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Campus, campus_id, "Campus")
     db.delete(obj)
@@ -141,7 +141,7 @@ def delete_room(room_id: int, db: Session = Depends(get_db)):
     return None
 
 #Faculty
-@router.post("/faculty", response_model=schemas.FacultyRead, status_code=status.HTTP_201_CREATED)
+@router.post("/faculties", response_model=schemas.FacultyRead, status_code=status.HTTP_201_CREATED)
 def create_faculty(payload: schemas.FacultyCreate, db: Session = Depends(get_db)):
     new_faculty = models.Faculty(**payload.model_dump())
     db.add(new_faculty)
@@ -149,15 +149,15 @@ def create_faculty(payload: schemas.FacultyCreate, db: Session = Depends(get_db)
     db.refresh(new_faculty)
     return new_faculty
 
-@router.get("/faculty", response_model=List[schemas.FacultyRead])
+@router.get("/faculties", response_model=List[schemas.FacultyRead])
 def list_faculty(db: Session = Depends(get_db)):
     return db.query(models.Faculty).all()
 
-@router.get("/faculty/{faculty_id}", response_model=schemas.FacultyRead)
+@router.get("/faculties/{faculty_id}", response_model=schemas.FacultyRead)
 def get_faculty(faculty_id: int, db: Session = Depends(get_db)):
     return _get_or_404(db, models.Faculty, faculty_id, "Faculty")
 
-@router.patch("/faculty/{faculty_id}", response_model=schemas.FacultyRead)
+@router.patch("/faculties/{faculty_id}", response_model=schemas.FacultyRead)
 def update_faculty(faculty_id: int, payload: schemas.FacultyUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Faculty, faculty_id, "Faculty")
     _apply_patch_or_reject_nulls(obj, payload)
@@ -166,7 +166,7 @@ def update_faculty(faculty_id: int, payload: schemas.FacultyUpdate, db: Session 
     db.refresh(obj)
     return obj
 
-@router.delete("/faculty/{faculty_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/faculties/{faculty_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_faculty(faculty_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Faculty, faculty_id, "Faculty")
     db.delete(obj)

@@ -9,8 +9,8 @@ class BaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class CampusBase(BaseSchema):
-    campus_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     campus_short: Annotated[str, StringConstraints(max_length=255)]
+    campus_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
 class CampusCreate(CampusBase):
     pass
@@ -24,9 +24,9 @@ class CampusUpdate(BaseModel):
 
 #Buildings
 class BuildingBase(BaseSchema):
-    building_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     building_number: Annotated[str, StringConstraints(max_length=255)]
     campus_id: int
+    building_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
 class BuildingCreate(BuildingBase):
     pass
@@ -42,11 +42,11 @@ class BuildingUpdate(BaseModel):
 #Rooms
 class RoomBase(BaseSchema):
     room_name: Annotated[str, StringConstraints(max_length=255)]
-    projector_availability: bool = False
+    building_id: int
     pc_amount: Annotated[int, Field(ge=0)] = 0
     room_capacity: Annotated[int, Field(gt=0)] = 15
-    building_id: int
     unit_id: Optional[int] = None
+    projector_availability: bool = False
 
 class RoomCreate(RoomBase):
     pass
