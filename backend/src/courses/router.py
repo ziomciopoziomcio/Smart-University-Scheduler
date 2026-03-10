@@ -21,8 +21,8 @@ def _commit_or_rollback(db: Session):
         db.commit()
     except IntegrityError as e:
         db.rollback()
-        detail = str(e.orig) if getattr(e, "orig", None) else str(e)
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
+                            detail="Conflict: request violates database constraints")
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
