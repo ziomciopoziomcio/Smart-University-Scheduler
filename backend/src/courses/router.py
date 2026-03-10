@@ -218,7 +218,7 @@ def get_course_instructor(instructor_id: int, db: Session = Depends(get_db)):
 @router.patch("/instructors/{instructor_id}", response_model=schemas.CourseInstructorRead)
 def update_course_instructor(instructor_id: int, payload: schemas.CourseInstructorUpdate, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Courses_instructors, instructor_id, "Course Instructor")
-    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"major", "elective_block"})
+    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"min_hours", "max_hours", "priority"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
