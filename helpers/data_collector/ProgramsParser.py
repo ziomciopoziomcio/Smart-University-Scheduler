@@ -1,12 +1,13 @@
 import requests
-from urllib.parse import urljoin
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import csv
 from bs4 import BeautifulSoup
 import re
 import os
 import json
 import logging
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, urljoin
 import shutil
 
 class ProgramsParser():
@@ -18,8 +19,21 @@ class ProgramsParser():
         self.majors_filename = os.path.join(module_dir, majors_filename)
         self.output_filename = os.path.join(module_dir, output)
         self.get_details = False
+        self.session = None
         
         self.main_url = "https://programy.p.lodz.pl/ectslabel-web/?l=pl&wersja202526=true"
+        
+        self.headers = {
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                        }
+        retry_strategy = Retry(
+                                    total=5,
+                                    backoff_factor=2,
+                                    status_forcelist=[500, 502, 503, 504]
+                                )
+        
+        self.adapter = HTTPAdapter(max_retries=retry_strategy)
+        
         
         self.logger = logging.getLogger(__name__)
         if not self.logger.handlers:
@@ -34,7 +48,7 @@ class ProgramsParser():
         
         self.logger.info(f"Fetching the list of study programs from {self.main_url}")
         try:
-            response = requests.get(self.main_url, timeout=15)
+            response = self.session.get(self.main_url, timeout=15)
             response.encoding = 'utf-8'
             response.raise_for_status()
             soup = BeautifulSoup(response.text, "html.parser")
@@ -74,7 +88,7 @@ class ProgramsParser():
 
         try:
             if not soup:
-                response = requests.get(url, timeout=15)
+                response = self.session.get(url, timeout=15)
                 response.encoding = 'utf-8'
                 soup = BeautifulSoup(response.text, "html.parser")
 
@@ -124,11 +138,10 @@ class ProgramsParser():
 
         with open(self.majors_filename, newline='', encoding='utf-8') as csvfile:
             rows = list(csv.reader(csvfile))[1:]
-            session = requests.Session()
-
+            
             for row in rows:
                 try:
-                    resp = session.get(row[1], timeout=10)
+                    resp = self.session.get(row[1], timeout=10)
                     resp.encoding = 'utf-8'
                     soup = BeautifulSoup(resp.text, "html.parser")
                     pre = soup.find("pre")
@@ -154,11 +167,11 @@ class ProgramsParser():
         """
 
         try:
-            response = requests.get(url, timeout=15)
+            response = self.session.get(url, timeout=15)
             response.encoding = 'utf-8'
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            logging.error(f"Failed to fetch the main page: {e}")
+            self.logger.error(f"Failed to fetch the main page: {e}")
             return None
 
         soup_page = BeautifulSoup(response.text, "html.parser")
@@ -178,8 +191,10 @@ class ProgramsParser():
                 "od": "Nieznany"
             }
         except Exception as e:
-            logging.warning(f"Error while parsing URL parameters: {e}")
+            self.logger.warning(f"Error while parsing URL parameters: {e}")
             kierunek = {"semestry": [], "nazwa": "Błąd", "od": "Błąd"}
+
+        self.logger.info(f"Trying to parse: {kierunek['nazwa']} { f"- {specialty_name}" if specialty_name else ""} ({kierunek['od']}) ({"stac." if kierunek['stacjonarne'] else "nstac."})")
 
         # 2. YEAR
         header = soup_page.find("h1")
@@ -191,7 +206,7 @@ class ProgramsParser():
         # 3. SEMESTERS
         semester_tables = soup_page.find_all("div", class_="iform")
         if not semester_tables:
-            logging.warning("No tables with semesters found (class .iform)")
+            self.logger.warning("No tables with semesters found (class .iform)")
 
         for table in semester_tables:
             sem_header = table.find("h3")
@@ -223,6 +238,7 @@ class ProgramsParser():
                 # 5. OPTIONAL GETTING DETAILS
                 if self.get_details:
                     link_tag = items[0].find("a")
+                    
                     if link_tag and link_tag.has_attr('onclick'):
                         try:
 
@@ -230,7 +246,7 @@ class ProgramsParser():
                             path = js_click.split("'")[1]
                             link = "https://programy.p.lodz.pl/ectslabel-web/" + path
                             
-                            resp_card = requests.get(link, timeout=10)
+                            resp_card = self.session.get(link, timeout=10)
                             resp_card.raise_for_status()
                             karta = BeautifulSoup(resp_card.text, "html.parser")
 
@@ -250,13 +266,13 @@ class ProgramsParser():
                                 "realizatorzy": realizatorzy
                             })
                         except Exception as e:
-                            logging.error(f"Error in course page {przedmiot.get('Course Code', '???')}: {e}")
+                            self.logger.error(f"Error in course page {przedmiot.get('Kod przedmiotu', '???')}: {e}")
 
                 semestr["przedmioty"].append(przedmiot)
 
             kierunek["semestry"].append(semestr)
 
-        logging.info(
+        self.logger.info(
             f"Finished parsing: {kierunek['nazwa']} ({kierunek['od']}) ({"stac." if kierunek['stacjonarne'] else "nstac."})")
         return kierunek
     
@@ -272,11 +288,11 @@ class ProgramsParser():
         """
         
         try:
-            response = requests.get(url, timeout=15)
+            response = self.session.get(url, timeout=15)
             response.encoding = 'utf-8'
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
-            logging.error(f"Failed to fetch the main page: {e}")
+            self.logger.error(f"Failed to fetch the main page: {e}")
             return None
 
         soup_page = BeautifulSoup(response.text, "html.parser")
@@ -305,6 +321,7 @@ class ProgramsParser():
         """
         self.logger.info("Generating final JSON file...")
         kierunki = []
+        
         if not os.path.exists(self.plans_dir):
             self.logger.warning("Plans folder does not exist.")
             return
@@ -314,6 +331,8 @@ class ProgramsParser():
                 with open(e.path, "r", encoding="utf-8") as f:
                     plans = list(csv.reader(f))[1:]
                     for p in plans:
+                        
+                        
                         
                         # p[4] link, p[1] wydzial
                         spec_dict = self.get_majors_specialties(p[4])
@@ -354,6 +373,9 @@ class ProgramsParser():
             clean (bool, optional): If the temp files should be deleted after fetching. Defaults to True.
             get_details (bool, optional): If should fetch details about majors (requires requesting additional subpages - might take longer). Defaults to False.
         """
+        
+        self.session = requests.Session()
+        self.session.mount("https://", self.adapter)
         
         self.get_majors_list()
         self.get_details = get_details
