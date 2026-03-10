@@ -6,7 +6,10 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from . import models, schemas
 from ..database.database import get_db
 
+import logging
+
 router = APIRouter(prefix="/courses", tags=["courses"])
+logger = logging.getLogger(__name__)
 
 
 def _get_or_404(db: Session, model, obj_id: Any, name: str):
@@ -21,10 +24,12 @@ def _commit_or_rollback(db: Session):
         db.commit()
     except IntegrityError:
         db.rollback()
+        logger.exception("Integrity error during commit")
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail="Conflict: request violates database constraints")
     except SQLAlchemyError:
         db.rollback()
+        logger.exception("Unexpected database error during commit")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail="Internal server error")
 
