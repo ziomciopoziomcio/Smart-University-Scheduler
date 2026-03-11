@@ -22,12 +22,14 @@ if config.config_file_name is not None:
 import sys
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), '..'))
 
-from src.database.base import Base
+from ..src.database.base import Base
 
-from src.academics import models as academics_models
-from src.courses import models as courses_models
-from src.users import models as users_models
-from src.facilities import models as facilities_models
+from ..src.academics import models as academics_models
+from ..src.courses import models as courses_models
+from ..src.users import models as users_models
+from ..src.facilities import models as facilities_models
+
+from ..src.database.database import SQLALCHEMY_DATABASE_URL
 
 target_metadata = Base.metadata
 
@@ -36,21 +38,7 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-"""
-Loading environment variables from .env file.
-author: ziomciopoziomcio
-"""
-
-load_dotenv()
-user = os.getenv("DB_USER")
-password = os.getenv("DB_PASSWORD")
-host = os.getenv("DB_HOST")
-port = os.getenv("DB_PORT")
-database = os.getenv("DB_NAME")
-
-DATABASE_URL = f"postgresql://{user}:{password}@{host}:{port}/{database}"
-
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
+config.set_main_option("sqlalchemy.url", SQLALCHEMY_DATABASE_URL)
 
 
 def run_migrations_offline() -> None:
