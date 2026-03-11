@@ -216,14 +216,14 @@ def list_courses(db: Session = Depends(get_db)):
     return db.query(models.Courses).all()
 
 
-@router.get("/{course_id}", response_model=schemas.CourseRead)
-def get_course(course_id: int, db: Session = Depends(get_db)):
-    return _get_or_404(db, models.Courses, course_id, "Course")
+@router.get("/{course_code}", response_model=schemas.CourseRead)
+def get_course(course_code: str, db: Session = Depends(get_db)):
+    return _get_or_404(db, models.Courses, course_code, "Course")
 
 
-@router.patch("/{course_id}", response_model=schemas.CourseRead)
-def update_course(course_id: int, payload: schemas.CourseUpdate, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.Courses, course_id, "Course")
+@router.patch("/{course_code}", response_model=schemas.CourseRead)
+def update_course(course_code: str, payload: schemas.CourseUpdate, db: Session = Depends(get_db)):
+    obj = _get_or_404(db, models.Courses, course_code, "Course")
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"major", "elective_block"})
     db.add(obj)
     _commit_or_rollback(db)
@@ -231,9 +231,9 @@ def update_course(course_id: int, payload: schemas.CourseUpdate, db: Session = D
     return obj
 
 
-@router.delete("/{course_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_course(course_id: int, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.Courses, course_id, "Course")
+@router.delete("/{course_code}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_course(course_code: str, db: Session = Depends(get_db)):
+    obj = _get_or_404(db, models.Courses, course_code, "Course")
     db.delete(obj)
     _commit_or_rollback(db)
     return None
