@@ -1,9 +1,8 @@
 alembic
 python-dotenv
-psycopg2
-fastapi==0.95.2
-pydantic<2,>=1.10.7
+psycopg2-binary
+fastapi>=0.100.0
+pydantic>=2.0.0
 email-validator
 passlib[bcrypt]
-SQLAlchemy>=1.4,<3
-fastapi
+SQLAlchemy>=2.0.0
