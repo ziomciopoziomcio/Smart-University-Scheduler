@@ -194,7 +194,6 @@ class ProgramsParser():
             self.logger.warning(f"Error while parsing URL parameters: {e}")
             kierunek = {"semestry": [], "nazwa": "Błąd", "od": "Błąd"}
 
-        self.logger.info(f"Trying to parse: {kierunek['nazwa']} { f"- {specialty_name}" if specialty_name else ""} ({kierunek['od']}) ({"stac." if kierunek['stacjonarne'] else "nstac."})")
 
         # 2. YEAR
         header = soup_page.find("h1")
@@ -202,6 +201,8 @@ class ProgramsParser():
             for word in header.text.split():
                 if "/" in word:
                     kierunek["od"] = word
+
+        self.logger.info(f"Trying to parse: {kierunek['nazwa']} { f"- {specialty_name}" if specialty_name else ""} ({kierunek['od']}) ({"stac." if kierunek['stacjonarne'] else "nstac."})")
 
         # 3. SEMESTERS
         semester_tables = soup_page.find_all("div", class_="iform")
@@ -263,17 +264,19 @@ class ProgramsParser():
                             przedmiot.update({
                                 "jednostka": detale.get("Jednostka prowadząca", "Brak danych"),
                                 "kierownik": detale.get("Kierownik przedmiotu", "Brak danych"),
-                                "realizatorzy": realizatorzy
+                                "realizatorzy": realizatorzy,
+                                "jezyk": detale.get("Język prowadzenia zajęć", "Brak danych")
                             })
                         except Exception as e:
                             self.logger.error(f"Error in course page {przedmiot.get('Kod przedmiotu', '???')}: {e}")
+                            # TODO zapis do pliku linku 1
 
                 semestr["przedmioty"].append(przedmiot)
 
             kierunek["semestry"].append(semestr)
 
         self.logger.info(
-            f"Finished parsing: {kierunek['nazwa']} ({kierunek['od']}) ({"stac." if kierunek['stacjonarne'] else "nstac."})")
+            f"Finished parsing: {kierunek['nazwa']} { f"- {specialty_name}" if specialty_name else ""} ({kierunek['od']}) ({"stac." if kierunek['stacjonarne'] else "nstac."})")
         return kierunek
     
     def get_majors_specialties(self, url: str) -> dict:
@@ -347,9 +350,9 @@ class ProgramsParser():
                             
                         
                             
-        with open(self.output_filename, "w", encoding="utf-8") as f:
-            json.dump(kierunki, f, ensure_ascii=False, indent=4)
-        self.logger.info(f"Data saved to {self.output_filename}")
+        # with open(self.output_filename, "w", encoding="utf-8") as f:
+        #     json.dump(kierunki, f, ensure_ascii=False, indent=4)
+        # self.logger.info(f"Data saved to {self.output_filename}")
 
     def clean(self) -> None:
         """
@@ -375,6 +378,7 @@ class ProgramsParser():
         """
         
         self.session = requests.Session()
+        self.session.headers.update(self.headers)
         self.session.mount("https://", self.adapter)
         
         self.get_majors_list()
