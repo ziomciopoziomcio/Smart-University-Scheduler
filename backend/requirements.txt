@@ -5,3 +5,4 @@ fastapi==0.95.2
 pydantic<2,>=1.10.7
 email-validator
 passlib[bcrypt]
+SQLAlchemy>=1.4,<3
