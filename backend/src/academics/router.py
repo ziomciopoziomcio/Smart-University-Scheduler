@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from . import models, schemas
 from ..database.database import get_db
-from ..common.router_utils import _get_or_404, _commit_or_rollback, _apply_patch_or_reject_nulls
+from src.common.router_utils import _get_or_404, _commit_or_rollback, _apply_patch_or_reject_nulls
 
 router = APIRouter(prefix="/academics", tags=["academics"])
 
