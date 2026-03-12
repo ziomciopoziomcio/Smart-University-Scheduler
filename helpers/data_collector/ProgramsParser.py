@@ -513,3 +513,6 @@ class ProgramsParser():
                 writer.writeheader()
                 writer.writerows(still_missed)
             self.logger.info(f"Retry finished. {len(still_missed)} subjects still missing.")
+            
+    
+    # TODO add filtering the empty fos feature (sylabus links etc)
