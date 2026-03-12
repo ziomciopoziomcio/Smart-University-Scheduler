@@ -38,4 +38,4 @@ RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
 COPY --chown=appservice:appservice . .
 
 USER appservice
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3000"]
