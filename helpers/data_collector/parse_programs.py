@@ -13,5 +13,6 @@ if __name__ == "__main__":
                     faculties=["Wydział Elektrotechniki, Elektroniki, Informatyki i Automatyki"], 
                     get_details=True, 
                     clean=False,
-                    overwrite=False)
+                    overwrite=False,
+                    time_between_fos_sec=10)
     

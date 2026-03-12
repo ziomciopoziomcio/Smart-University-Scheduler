@@ -13,7 +13,7 @@ from time import sleep
 
 class ProgramsParser():
     
-    def __init__(self, module_dir: str, plans_dir: str, majors_filename: str, output: str):
+    def __init__(self, module_dir: str, plans_dir: str, majors_filename: str, output: str, missed_filename:str = "missed.csv"):
         
         self.module_dir = module_dir
         self.plans_dir = os.path.join(module_dir, plans_dir)
@@ -21,6 +21,7 @@ class ProgramsParser():
         self.output_filename = os.path.join(module_dir, output)
         self.get_details = False
         self.session = None
+        self.missed_filename = os.path.join(module_dir, missed_filename)
         
         self.main_url = "https://programy.p.lodz.pl/ectslabel-web/?l=pl&wersja202526=true"
         
@@ -270,7 +271,23 @@ class ProgramsParser():
                             })
                         except Exception as e:
                             self.logger.error(f"Error in course page {przedmiot.get('Kod przedmiotu', '???')}: {e}")
-                            # TODO zapis do pliku linku 1
+                            
+                            file_exists = os.path.isfile(self.missed_filename)
+                            with open(self.missed_filename, "a", newline="", encoding="utf-8") as m_file:
+                                m_writer = csv.writer(m_file)
+                                if not file_exists:
+                                    m_writer.writerow(["nazwa_kierunku", "wydzial", "stopien", "specjalizacja", "od", "nazwa_semestru", "link_do_przedmiotu", "kod_przedmiotu"])
+                                
+                                m_writer.writerow([
+                                    kierunek["nazwa"],
+                                    kierunek["wydzial"],
+                                    kierunek["stopien"],
+                                    kierunek["specjalizacja"],
+                                    kierunek["od"],
+                                    semestr["nazwa"],
+                                    przedmiot["Kod przedmiotu"]
+                                    
+                                ])
 
                 semestr["przedmioty"].append(przedmiot)
 
@@ -340,7 +357,7 @@ class ProgramsParser():
                         
                         # p[4] link, p[1] wydzial
                         spec_dict = self.get_majors_specialties(p[4])
-                        self.pretty_wait(20)
+                        if self.time_between_fos_sec > 0: self.pretty_wait(self.time_between_fos_sec)
                         
                         if not spec_dict:
                             data = self.parse_major(self.parse_link(p[4]), p[1])
@@ -366,7 +383,7 @@ class ProgramsParser():
         except Exception as e:
             self.logger.warning(f"Failed to fully clean up: {e}")
 
-    def get_programs(self, faculties: list[str] = None, clean: bool = True, get_details: bool = False, overwrite: bool = True) -> None:
+    def get_programs(self, faculties: list[str] = None, clean: bool = True, get_details: bool = False, overwrite: bool = True, time_between_fos_sec: int = 0) -> None:
         """
         Main function. Using sub-funcs set with given parameters fetches all the necessary data into a single JSON file. 
 
@@ -375,11 +392,16 @@ class ProgramsParser():
             clean (bool, optional): If the temp files should be deleted after fetching. Defaults to True.
             get_details (bool, optional): If should fetch details about majors (requires requesting additional subpages - might take longer). Defaults to False.
         """
+        
+        if time_between_fos_sec < 0:
+            self.logger.fatal("Incorrect function args!")
+            return 
+        
         self.overwrite = overwrite
         self.session = requests.Session()
         self.session.headers.update(self.headers)
         self.session.mount("https://", self.adapter)
-        
+        self.time_between_fos_sec = time_between_fos_sec
         self.get_majors_list()
         self.get_details = get_details
         
@@ -406,3 +428,88 @@ class ProgramsParser():
         with open(self.output_filename, "w", encoding="utf-8") as f:
             json.dump(fos_dict, f, ensure_ascii=False, indent=4)
         self.logger.info(f"Data saved to {self.output_filename}")
+        
+    def retry_missed_subjects(self) -> None:
+        """
+        Reads missed.csv and tries to fetch details for those subjects again,
+        updating the main JSON output file.
+        """
+        if not os.path.exists(self.missed_filename):
+            self.logger.info("No missed.csv file found. Nothing to retry.")
+            return
+
+        if not os.path.exists(self.output_filename):
+            self.logger.error(f"Main output file {self.output_filename} not found!")
+            return
+
+        with open(self.output_filename, "r", encoding="utf-8") as f:
+            kierunki = json.load(f)
+
+        still_missed = []
+        
+        with open(self.missed_filename, "r", encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile)
+            rows = list(reader)
+
+        if not rows: return
+
+        self.logger.info(f"Retrying fetching {len(rows)} missed subjects...")
+
+        for row in rows:
+            link = row['link_do_przedmiotu']
+            success = False
+            
+            try:
+                resp_card = self.session.get(link, timeout=15)
+                resp_card.raise_for_status()
+                karta = BeautifulSoup(resp_card.text, "html.parser")
+
+                detale = {}
+                for tr in karta.find_all('tr'):
+                    param = tr.find('td', class_='parametr')
+                    val = tr.find('td', class_='wartosc')
+                    if param and val:
+                        detale[param.get_text(strip=True)] = val.get_text(" ", strip=True)
+
+                new_data = {
+                    "jednostka": detale.get("Jednostka prowadząca", "Brak danych"),
+                    "kierownik": detale.get("Kierownik przedmiotu", "Brak danych"),
+                    "realizatorzy": [r.strip() for r in detale.get("Realizatorzy przedmiotu", "").split(',') if r.strip()],
+                    "jezyk": detale.get("Język prowadzenia zajęć", "Brak danych")
+                }
+
+                for k in kierunki:
+                    if (k['nazwa'] == row['nazwa_kierunku'] and 
+                        k['wydzial'] == row['wydzial'] and 
+                        str(k['stopien']) == str(row['stopien']) and 
+                        str(k['specjalizacja']) == str(row['specjalizacja']) and 
+                        k['od'] == row['od']):
+                        
+                        for sem in k['semestry']:
+                            if sem['nazwa'] == row['nazwa_semestru']:
+                                for przedmiot in sem['przedmioty']:
+                                    if przedmiot["Kod przedmiotu"] == row["kod_przedmiotu"]:
+                                         przedmiot.update(new_data)
+                                         success = True
+                
+                if success:
+                    self.logger.info(f"Successfully recovered subject from: {link}")
+                else:
+                    self.logger.warning(f"Fetched data but couldn't find matching entry in JSON for: {link}")
+                    still_missed.append(row)
+
+            except Exception as e:
+                self.logger.error(f"Retry failed for {link}: {e}")
+                still_missed.append(row)
+
+        self.save_to_json(kierunki)
+
+        if not still_missed:
+            os.remove(self.missed_filename)
+            self.logger.info("All missed subjects recovered. missed.csv removed.")
+        else:
+            with open(self.missed_filename, "w", newline="", encoding="utf-8") as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=rows[0].keys())
+                writer.writeheader()
+                writer.writerows(still_missed)
+            self.logger.info(f"Retry finished. {len(still_missed)} subjects still missing.")
