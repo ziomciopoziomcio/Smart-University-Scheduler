@@ -5,7 +5,7 @@ from passlib.context import CryptContext
 
 from . import models, schemas
 from ..database.database import get_db
-from src.common.router_utils import _get_or_404, _commit_or_rollback, _apply_patch_or_reject_nulls
+from ..common.router_utils import _get_or_404, _commit_or_rollback, _apply_patch_or_reject_nulls
 
 router = APIRouter(prefix="/users", tags=["users"])
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -75,7 +75,7 @@ def update_user(user_id: int, payload: schemas.UserUpdate, db: Session = Depends
             )
         obj.password_hash = pwd_ctx.hash(payload.password)
 
-    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"phone_number", "grade"}, exclude={"password"})
+    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"phone_number", "degree"}, exclude={"password"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
