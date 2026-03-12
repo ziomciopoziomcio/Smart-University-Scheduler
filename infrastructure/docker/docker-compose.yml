@@ -91,10 +91,10 @@ services:
     depends_on:
       - postgres
     ports:
-      - "8000:8000"
+      - "3000:3000"
     volumes:
       - ../../backend:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn main:app --host 0.0.0.0 --port 3000 --reload
 
 volumes:
   postgres_data:
