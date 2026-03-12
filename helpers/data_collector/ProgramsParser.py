@@ -9,6 +9,7 @@ import json
 import logging
 from urllib.parse import urlparse, parse_qs, urljoin
 import shutil
+from time import sleep
 
 class ProgramsParser():
     
@@ -27,7 +28,7 @@ class ProgramsParser():
                         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                         }
         retry_strategy = Retry(
-                                    total=5,
+                                    total=10,
                                     backoff_factor=2,
                                     status_forcelist=[500, 502, 503, 504]
                                 )
@@ -339,6 +340,7 @@ class ProgramsParser():
                         
                         # p[4] link, p[1] wydzial
                         spec_dict = self.get_majors_specialties(p[4])
+                        self.pretty_wait(20)
                         
                         if not spec_dict:
                             data = self.parse_major(self.parse_link(p[4]), p[1])
@@ -347,13 +349,10 @@ class ProgramsParser():
                             for spec_id, spec_name in spec_dict.items():
                                 data = self.parse_major(self.parse_link(f"{p[4]}&sp={spec_id}"), p[1], specialty_name=spec_name)
                                 if data: kierunki.append(data)
-                            
-                        
-                            
-        # with open(self.output_filename, "w", encoding="utf-8") as f:
-        #     json.dump(kierunki, f, ensure_ascii=False, indent=4)
-        # self.logger.info(f"Data saved to {self.output_filename}")
-
+                               
+        
+        if self.overwrite: self.save_to_json()
+        
     def clean(self) -> None:
         """
         Deletes the temporary files generated in the process of fetching the data.
@@ -367,7 +366,7 @@ class ProgramsParser():
         except Exception as e:
             self.logger.warning(f"Failed to fully clean up: {e}")
 
-    def get_programs(self, faculties: list[str] = None, clean: bool = True, get_details: bool = False) -> None:
+    def get_programs(self, faculties: list[str] = None, clean: bool = True, get_details: bool = False, overwrite: bool = True) -> None:
         """
         Main function. Using sub-funcs set with given parameters fetches all the necessary data into a single JSON file. 
 
@@ -376,7 +375,7 @@ class ProgramsParser():
             clean (bool, optional): If the temp files should be deleted after fetching. Defaults to True.
             get_details (bool, optional): If should fetch details about majors (requires requesting additional subpages - might take longer). Defaults to False.
         """
-        
+        self.overwrite = overwrite
         self.session = requests.Session()
         self.session.headers.update(self.headers)
         self.session.mount("https://", self.adapter)
@@ -393,3 +392,17 @@ class ProgramsParser():
         
         if clean:
             self.clean()
+
+    def pretty_wait(self, time_sec, bars=10):
+        
+        interval = time_sec // bars
+        self.logger.info(f"Waiting {time_sec}s to avoid detection...")
+        for _ in range(bars):
+            sleep(interval)
+            print("|", end='', flush=True)
+        print()
+        
+    def save_to_json(self, fos_dict: dict):
+        with open(self.output_filename, "w", encoding="utf-8") as f:
+            json.dump(fos_dict, f, ensure_ascii=False, indent=4)
+        self.logger.info(f"Data saved to {self.output_filename}")
