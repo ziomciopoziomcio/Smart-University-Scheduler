@@ -87,7 +87,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
       #NEO4J_HOST: ${NEO4J_HOST}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      CORS_ORIGINS: ${CORS_ORIGINS}
     depends_on:
       - postgres
     ports:
