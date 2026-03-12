@@ -76,6 +76,28 @@ services:
     ports:
       - "8080:8080"
 
+  # backend service for the application API
+  backend:
+    build:
+      context: ../../backend
+    container_name: smart_scheduler_backend_API
+    restart: unless-stopped
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      #NEO4J_HOST: ${NEO4J_HOST}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../../backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
 volumes:
   postgres_data:
   neo4j_data:
