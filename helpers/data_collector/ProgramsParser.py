@@ -190,7 +190,8 @@ class ProgramsParser():
                 "stacjonarne": "studia stacjonarne" in args_dict.get("tryb", [""])[0],
                 "specjalizacja": specialty_name,
                 "semestry": [],
-                "od": "Nieznany"
+                "od": "Nieznany",
+                "url": url
             }
         except Exception as e:
             self.logger.warning(f"Error while parsing URL parameters: {e}")
@@ -368,7 +369,7 @@ class ProgramsParser():
                                 if data: kierunki.append(data)
                                
         
-        if self.overwrite: self.save_to_json()
+        if self.overwrite: self.save_to_json(data=kierunki, filename=self.output_filename, label="Preliminary")
         
     def clean(self) -> None:
         """
@@ -411,6 +412,9 @@ class ProgramsParser():
             self.get_plans_from_faculties(faculties)
         
         self.parse_programs_to_json()
+        self.retry_missed_subjects()
+        self.raport_and_clean_programs()
+        
         
         if clean:
             self.clean()
@@ -424,10 +428,10 @@ class ProgramsParser():
             print("|", end='', flush=True)
         print()
         
-    def save_to_json(self, fos_dict: dict):
-        with open(self.output_filename, "w", encoding="utf-8") as f:
-            json.dump(fos_dict, f, ensure_ascii=False, indent=4)
-        self.logger.info(f"Data saved to {self.output_filename}")
+    def save_to_json(self , data, filename, label):
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+        self.logger.info(f"{label} data saved to {filename}")
         
     def retry_missed_subjects(self) -> None:
         """
@@ -502,7 +506,7 @@ class ProgramsParser():
                 self.logger.error(f"Retry failed for {link}: {e}")
                 still_missed.append(row)
 
-        self.save_to_json(kierunki)
+        self.save_to_json(data=kierunki, filename=self.output_filename, label="Filled-in")
 
         if not still_missed:
             os.remove(self.missed_filename)
@@ -515,4 +519,45 @@ class ProgramsParser():
             self.logger.info(f"Retry finished. {len(still_missed)} subjects still missing.")
             
     
-    # TODO add filtering the empty fos feature (sylabus links etc)
+    def raport_and_clean_programs(self):
+        self.logger.info("Reporting and cleaning empty programs...")
+        
+        if not os.path.exists(self.output_filename):
+            self.logger.error("Output file not found for reporting.")
+            return
+
+        try:
+            with open(self.output_filename, "r", encoding='utf-8') as f: 
+                fields_of_study = json.load(f)
+        except json.JSONDecodeError:
+            self.logger.error("Failed to decode JSON. File might be corrupted.")
+            return
+
+        def get_stats(data_list):
+            m = len(data_list)
+            s = sum(len(fos.get("semestry", [])) for fos in data_list)
+            sub = sum(len(sem.get("przedmioty", [])) for fos in data_list for sem in fos.get("semestry", []))
+            return m, s, sub
+
+        m_pre, s_pre, sub_pre = get_stats(fields_of_study)
+        self.logger.info(f"BEFORE: {m_pre} Majors, {s_pre} Semesters, {sub_pre} Subjects")
+
+        cleaned_fos = [fos for fos in fields_of_study if any(len(s.get("przedmioty", [])) > 0 for s in fos.get("semestry", []))]
+        
+        removed_fos = [[fos.get("nazwa"), fos.get("url")] for fos in fields_of_study if fos not in cleaned_fos]
+
+        if removed_fos:
+            removed_path = os.path.join(self.module_dir, "removed_empty_programs.csv")
+            with open(removed_path, "w", newline="", encoding="utf-8") as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(["Nazwa Kierunku", "Link"])
+                writer.writerows(removed_fos)
+
+        m_post, s_post, sub_post = get_stats(cleaned_fos)
+        self.logger.info(f"AFTER: {m_post} Majors, {s_post} Semesters, {sub_post} Subjects")
+        
+        dir_name = os.path.dirname(self.output_filename)
+        base_name = os.path.basename(self.output_filename)
+        final_path = os.path.join(dir_name, f"final-{base_name}")
+        
+        self.save_to_json(data=cleaned_fos, filename=final_path, label="Final")

@@ -12,7 +12,7 @@ if __name__ == "__main__":
     pp.get_programs(
                     faculties=["Wydział Elektrotechniki, Elektroniki, Informatyki i Automatyki"], 
                     get_details=True, 
-                    clean=False,
-                    overwrite=False,
+                    clean=True,
+                    overwrite=True,
                     time_between_fos_sec=10)
     
