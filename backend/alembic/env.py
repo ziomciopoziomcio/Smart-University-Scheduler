@@ -20,16 +20,17 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 import sys
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), '..'))
 
-from ..src.database.base import Base
+sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), '..')))
 
-from ..src.academics import models as academics_models
-from ..src.courses import models as courses_models
-from ..src.users import models as users_models
-from ..src.facilities import models as facilities_models
+from src.database.base import Base
 
-from ..src.database.database import SQLALCHEMY_DATABASE_URL
+from src.academics import models as academics_models
+from src.courses import models as courses_models
+from src.users import models as users_models
+from src.facilities import models as facilities_models
+
+from src.database.database import SQLALCHEMY_DATABASE_URL
 
 target_metadata = Base.metadata
 

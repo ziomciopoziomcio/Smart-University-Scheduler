@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # postgres service for the database
   postgres:
@@ -7,9 +5,9 @@ services:
     container_name: smart_scheduler_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
@@ -75,6 +73,28 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
     ports:
       - "8080:8080"
+
+  # backend service for the application API
+  backend:
+    build:
+      context: ../../backend
+    container_name: smart_scheduler_backend_API
+    restart: unless-stopped
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      #NEO4J_HOST: ${NEO4J_HOST}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+    depends_on:
+      - postgres
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../../backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 3000 --reload
 
 volumes:
   postgres_data:
