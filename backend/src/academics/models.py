@@ -35,7 +35,6 @@ class Employees(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
     faculty_id: Mapped[int] = mapped_column(Integer, ForeignKey('faculty.id'))
     unit_id: Mapped[int] = mapped_column(Integer, ForeignKey('units.id'))
-    workload: Mapped[float] = mapped_column(Float, default=80)
 
     __table_args__ = (
         UniqueConstraint('user_id', 'unit_id', 'faculty_id', name='uq_employees_user_id'),

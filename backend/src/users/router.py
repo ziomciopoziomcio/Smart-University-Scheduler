@@ -75,7 +75,7 @@ def update_user(user_id: int, payload: schemas.UserUpdate, db: Session = Depends
             )
         obj.password_hash = pwd_ctx.hash(payload.password)
 
-    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"phone_number", "grade"}, exclude={"password"})
+    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"phone_number", "degree"}, exclude={"password"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)

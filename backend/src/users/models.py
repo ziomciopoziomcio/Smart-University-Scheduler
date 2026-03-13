@@ -31,7 +31,7 @@ class Users(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
     name: Mapped[str] = mapped_column(String(255))
     surname: Mapped[str] = mapped_column(String(255))
-    grade: Mapped[str | None] = mapped_column(String(255))
+    degree: Mapped[str | None] = mapped_column(String(255))
 
     roles: Mapped[list['Roles']] = relationship(
         secondary=user_roles,

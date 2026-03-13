@@ -29,7 +29,6 @@ class EmployeesBase(BaseSchema):
     user_id: int
     faculty_id: int
     unit_id: int
-    workload: Annotated[float, Field(ge=0)] = 80.0
 
 class EmployeeCreate(EmployeesBase):
     pass
@@ -40,7 +39,6 @@ class EmployeeRead(EmployeesBase):
 class EmployeeUpdate(BaseModel):
     faculty_id: Optional[int] = None
     unit_id: Optional[int] = None
-    workload: Optional[Annotated[float, Field(ge=0)]] = None
 
 
 class UnitsBase(BaseSchema):

@@ -15,7 +15,7 @@ class UserBase(BaseSchema):
     phone_number: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
     name: Annotated[str, StringConstraints(max_length=255)]
     surname: Annotated[str, StringConstraints(max_length=255)]
-    grade: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    degree: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
 class UserCreate(UserBase):
     password: Annotated[str, StringConstraints(max_length=255)]
@@ -29,7 +29,7 @@ class UserUpdate(BaseModel):
     phone_number: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
     name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     surname: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    grade: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    degree: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     password: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
 class RoleBase(BaseSchema):
