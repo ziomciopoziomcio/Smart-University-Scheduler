@@ -1,4 +1,5 @@
-.vscode
-.idea
+\.vscode
 __pycache__
-/helpers/data_collector/helpers/data_collector
+/.idea
+*.pyc
+backend/.env
