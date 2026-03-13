@@ -156,17 +156,7 @@ class ProgramsParser():
                     self.logger.warning(f"Skipped {row[0]} due to an error: {e}")
                     
     def parse_major(self, url: str, faculty: str, specialty_name: str = None) -> dict:
-        """
-        Parses a single major into a dictionary
-
-        Args:
-            url (str): URL to major's site.
-            faculty (str): Name of faculty.
-            specialty_name (str, optional): Name of specialty. Defaults to None.
-
-        Returns:
-            dict: description of a single major in form of a dictionary
-        """
+        """Parses a single major's webpage and extracts its curriculum into a dictionary."""
 
         try:
             response = self.session.get(url, timeout=15)
@@ -205,7 +195,7 @@ class ProgramsParser():
                 if "/" in word:
                     kierunek["od"] = word
 
-        self.logger.info(f"Trying to parse: {kierunek['nazwa']} { f"- {specialty_name}" if specialty_name else ""} ({kierunek['od']}) ({"stac." if kierunek['stacjonarne'] else "nstac."})")
+        self.logger.info(f"Trying to parse: ({kierunek["stopien"] * "I"} st.) {kierunek['nazwa']} { f"- {specialty_name}" if specialty_name else ""} ({kierunek['od']}) ({"stac." if kierunek['stacjonarne'] else "nstac."})")
 
         # 3. SEMESTERS
         semester_tables = soup_page.find_all("div", class_="iform")
@@ -295,19 +285,11 @@ class ProgramsParser():
             kierunek["semestry"].append(semestr)
 
         self.logger.info(
-            f"Finished parsing: {kierunek['nazwa']} { f"- {specialty_name}" if specialty_name else ""} ({kierunek['od']}) ({"stac." if kierunek['stacjonarne'] else "nstac."})")
+            f"Finished parsing: ({kierunek["stopien"] * "I"} st.) {kierunek['nazwa']} { f"- {specialty_name}" if specialty_name else ""} ({kierunek['od']}) ({"stac." if kierunek['stacjonarne'] else "nstac."})")
         return kierunek
     
     def get_majors_specialties(self, url: str) -> dict:
-        """
-        Fetches all specialties from a given major's URL into a dict.
-
-        Args:
-            url (str): URL to major's site
-
-        Returns:
-            dict: list of all specialties of a major. {"id" : "name"}
-        """
+        """Fetches all specialties available for a major from its page."""
         
         try:
             response = self.session.get(url, timeout=15)
@@ -338,9 +320,8 @@ class ProgramsParser():
         return url.replace(" ", "%20", -1)
     
     def parse_programs_to_json(self) -> None:
-        """
-        From the list of majors fetches the details using get_majors_specialties() and parse_major(). Then saves to JSON file.
-        """
+        """Iterates through all CSV plan files and compiles the curricula into a JSON file."""
+        
         self.logger.info("Generating final JSON file...")
         kierunki = []
         
@@ -353,10 +334,7 @@ class ProgramsParser():
                 with open(e.path, "r", encoding="utf-8") as f:
                     plans = list(csv.reader(f))[1:]
                     for p in plans:
-                        
-                        
-                        
-                        # p[4] link, p[1] wydzial
+
                         spec_dict = self.get_majors_specialties(p[4])
                         if self.time_between_fos_sec > 0: self.pretty_wait(self.time_between_fos_sec)
                         
@@ -372,9 +350,8 @@ class ProgramsParser():
         if self.overwrite: self.save_to_json(data=kierunki, filename=self.output_filename, label="Preliminary")
         
     def clean(self) -> None:
-        """
-        Deletes the temporary files generated in the process of fetching the data.
-        """
+        """Removes temporary files and directories created during scraping."""
+        
         self.logger.info("Cleaning up temporary files...")
         try:
             if os.path.exists(self.plans_dir):
@@ -385,14 +362,7 @@ class ProgramsParser():
             self.logger.warning(f"Failed to fully clean up: {e}")
 
     def get_programs(self, faculties: list[str] = None, clean: bool = True, get_details: bool = False, overwrite: bool = True, time_between_fos_sec: int = 0) -> None:
-        """
-        Main function. Using sub-funcs set with given parameters fetches all the necessary data into a single JSON file. 
-
-        Args:
-            faculties (list[str], optional): List of faculties' names, from which the data is fetched. Defaults to None. If None or ["all"] - fetches all data without considering faculties.
-            clean (bool, optional): If the temp files should be deleted after fetching. Defaults to True.
-            get_details (bool, optional): If should fetch details about majors (requires requesting additional subpages - might take longer). Defaults to False.
-        """
+        """Main method that orchestrates the entire scraping process and saves data to a JSON file."""
         
         if time_between_fos_sec < 0:
             self.logger.fatal("Incorrect function args!")
@@ -420,6 +390,7 @@ class ProgramsParser():
             self.clean()
 
     def pretty_wait(self, time_sec, bars=10):
+        """Displays a simple progress bar while waiting to avoid rate-limiting."""
         
         interval = time_sec // bars
         self.logger.info(f"Waiting {time_sec}s to avoid detection...")
@@ -429,15 +400,15 @@ class ProgramsParser():
         print()
         
     def save_to_json(self , data, filename, label):
+        """Saves data to a JSON file with utf-8 encoding."""
+        
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
         self.logger.info(f"{label} data saved to {filename}")
         
     def retry_missed_subjects(self) -> None:
-        """
-        Reads missed.csv and tries to fetch details for those subjects again,
-        updating the main JSON output file.
-        """
+        """Retries fetching details for subjects that failed during the initial run."""
+        
         if not os.path.exists(self.missed_filename):
             self.logger.info("No missed.csv file found. Nothing to retry.")
             return
@@ -518,8 +489,9 @@ class ProgramsParser():
                 writer.writerows(still_missed)
             self.logger.info(f"Retry finished. {len(still_missed)} subjects still missing.")
             
-    
     def raport_and_clean_programs(self):
+        """Cleans empty majors from the dataset and outputs final statistics."""
+        
         self.logger.info("Reporting and cleaning empty programs...")
         
         if not os.path.exists(self.output_filename):

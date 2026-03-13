@@ -6,7 +6,7 @@ if __name__ == "__main__":
                     module_dir="helpers\\data_collector\\",
                     plans_dir="plany\\",
                     majors_filename="kierunki.csv",
-                    output="programy.json"
+                    output="programs.json"
     )
     
     pp.get_programs(
