@@ -29,19 +29,16 @@ jobs:
   test-and-build:
     runs-on: ubuntu-latest
     needs: lint
+    env:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: smart_scheduler_db
+      CORS_ORIGINS: http://localhost:3000
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Create .env file
-        run: |
-          echo "DB_HOST=postgres" >> .env
-          echo "DB_PORT=5432" >> .env
-          echo "DB_USER=postgres" >> .env
-          echo "DB_PASSWORD=postgres" >> .env
-          echo "DB_NAME=smart_scheduler_db" >> .env
-          #echo "NEO4J_HOST=neo4j" >> .env
-          echo "CORS_ORIGINS=http://localhost:3000" >> .env
 
       - name: Build docker containers
         run: |
