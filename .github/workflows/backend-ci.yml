@@ -1,9 +1,9 @@
 name: Backend CI
 on:
-    push:
-        branches: ["main"]
-    pull_request:
-        branches: ["main"]
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
@@ -15,7 +15,7 @@ jobs:
         run: |
           cd infrastructure/docker
           docker compose build backend
-          
+
       # Place for backend tests here - Pytest, etc.
 
       - name: End of CI workflow
