@@ -107,7 +107,6 @@ class Courses_instructors(Base):
 
     min_hours: Mapped[int | None] = mapped_column(Integer)
     max_hours: Mapped[int | None] = mapped_column(Integer)
-    priority: Mapped[bool | None] = mapped_column(Boolean)
 
     __table_args__ = (
         UniqueConstraint('course_type_details', 'employee',

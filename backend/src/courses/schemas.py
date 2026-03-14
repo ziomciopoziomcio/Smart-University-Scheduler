@@ -146,7 +146,6 @@ class CourseInstructorBase(BaseSchema):
     course_type_details: int
     min_hours: Optional[Annotated[int, Field(ge=0)]] = None
     max_hours: Optional[Annotated[int, Field(ge=0)]] = None
-    priority: Optional[bool] = None
 
 
 class CourseInstructorCreate(CourseInstructorBase):
@@ -162,4 +161,3 @@ class CourseInstructorUpdate(BaseModel):
     course_type_details: Optional[int] = None
     min_hours: Optional[Annotated[int, Field(ge=0)]] = None
     max_hours: Optional[Annotated[int, Field(ge=0)]] = None
-    priority: Optional[bool] = None
