@@ -25,11 +25,11 @@ class Students(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
-    study_field: Mapped[int] = mapped_column(Integer, ForeignKey("study_fields.id"))
+    study_program: Mapped[int] = mapped_column(Integer, ForeignKey("study_programs.id"))
     major: Mapped[int | None] = mapped_column(Integer, ForeignKey("major.id"))
 
     __table_args__ = (
-        UniqueConstraint("user_id", "study_field", name="uq_students_user_id"),
+        UniqueConstraint("user_id", "study_program", name="uq_students_user_id"),
     )
 
 
@@ -68,7 +68,7 @@ class Groups(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     group_name: Mapped[str] = mapped_column(String(255), unique=True)
-    study_field: Mapped[int] = mapped_column(Integer, ForeignKey("study_fields.id"))
+    study_program: Mapped[int] = mapped_column(Integer, ForeignKey("study_programs.id"))
     major: Mapped[int | None] = mapped_column(Integer, ForeignKey("major.id"))
     elective_block: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("elective_block.id")
