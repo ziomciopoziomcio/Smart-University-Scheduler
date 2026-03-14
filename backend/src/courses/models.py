@@ -105,8 +105,7 @@ class Courses_instructors(Base):
     employee: Mapped[int] = mapped_column(Integer, ForeignKey('employees.id'))
     course_type_details: Mapped[int] = mapped_column(Integer, ForeignKey('course_type_details.id'))
 
-    min_hours: Mapped[int | None] = mapped_column(Integer)
-    max_hours: Mapped[int | None] = mapped_column(Integer)
+    hours: Mapped[int | None] = mapped_column(Integer)
 
     __table_args__ = (
         UniqueConstraint('course_type_details', 'employee',

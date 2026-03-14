@@ -144,8 +144,7 @@ class CourseTypeDetailsUpdate(BaseModel):
 class CourseInstructorBase(BaseSchema):
     employee: int
     course_type_details: int
-    min_hours: Optional[Annotated[int, Field(ge=0)]] = None
-    max_hours: Optional[Annotated[int, Field(ge=0)]] = None
+    hours: Optional[Annotated[int, Field(ge=0)]] = None
 
 
 class CourseInstructorCreate(CourseInstructorBase):
@@ -159,5 +158,4 @@ class CourseInstructorRead(CourseInstructorBase):
 class CourseInstructorUpdate(BaseModel):
     employee: Optional[int] = None
     course_type_details: Optional[int] = None
-    min_hours: Optional[Annotated[int, Field(ge=0)]] = None
-    max_hours: Optional[Annotated[int, Field(ge=0)]] = None
+    hours: Optional[Annotated[int, Field(ge=0)]] = None
