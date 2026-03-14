@@ -5,6 +5,27 @@ on:
   pull_request:
     branches: [ "main" ]
 jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Install linters
+        run: pip install black ruff
+
+      - name: Run Black
+        run: black backend/ --check
+
+      - name: Run Ruff
+        run: ruff check backend/
+
   test-and-build:
     runs-on: ubuntu-latest
     steps:
