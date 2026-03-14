@@ -6,7 +6,7 @@ db-upgrade:
 	cd infrastructure/docker && docker compose exec backend alembic upgrade head
 lint:
 	pre-commit run --all-files
-db-format:
+db-reset:
 	cd infrastructure/docker && docker compose down -v
 	cd infrastructure/docker && docker compose up -d postgres
 	sleep 3
