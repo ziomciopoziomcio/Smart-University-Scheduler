@@ -33,10 +33,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create .env file
+        run: |
+          echo "DB_HOST=postgres" >> .env
+          echo "DB_PORT=5432" >> .env
+          echo "DB_USER=postgres" >> .env
+          echo "DB_PASSWORD=postgres" >> .env
+          echo "DB_NAME=smart_scheduler_db" >> .env
+          #echo "NEO4J_HOST=neo4j" >> .env
+          echo "CORS_ORIGINS=http://localhost:3000" >> .env
+
       - name: Build docker containers
         run: |
           cd infrastructure/docker
           docker compose build backend
+
+      - name: Start test database
+        run: |
+          cd infrastructure/docker
+          docker compose up -d postgres
+          sleep 5
+
+      - name: Run Alembic migrations
+        run: |
+          cd infrastructure/docker
+          docker compose run --rm backend alembic upgrade head
 
       # Place for backend tests here - Pytest, etc.
 
