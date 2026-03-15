@@ -1,6 +1,7 @@
 """
 Data validation schemas
 """
+
 from typing import Optional, Annotated
 from pydantic import BaseModel, model_validator, Field, StringConstraints, ConfigDict
 from .models import CourseLanguage, ClassType
@@ -64,8 +65,9 @@ class ElectiveBlockRead(ElectiveBlockBase):
 
 class ElectiveBlockUpdate(BaseModel):
     study_field: Optional[int] = None
-    elective_block_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-
+    elective_block_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = (
+        None
+    )
 
 
 # Courses
@@ -118,7 +120,6 @@ class CourseTypeDetailsUpdate(BaseModel):
     pc_needed: Optional[bool] = None
     projector_needed: Optional[bool] = None
     max_group_participants_number: Optional[Annotated[int, Field(gt=0)]] = None
-
 
 
 # Courses Instructors
