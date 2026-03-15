@@ -305,7 +305,7 @@ def delete_course(course_code: str, db: Session = Depends(get_db)):
 def create_study_program(
     payload: schemas.StudyProgramCreate, db: Session = Depends(get_db)
 ):
-    obj = models.StudyProgram(**payload.model_dump())
+    obj = models.Study_programs(**payload.model_dump())
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -314,7 +314,7 @@ def create_study_program(
 
 @router.get("/study-programs", response_model=List[schemas.StudyProgramRead])
 def list_study_programs(db: Session = Depends(get_db)):
-    return db.query(models.StudyProgram).all()
+    return db.query(models.Study_programs).all()
 
 
 @router.get("/study-programs/{program_id}", response_model=schemas.StudyProgramRead)
