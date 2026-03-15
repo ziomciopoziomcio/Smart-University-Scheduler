@@ -5,41 +5,51 @@ Data validation schemas
 from typing import Optional, Annotated
 from pydantic import BaseModel, Field, StringConstraints, ConfigDict
 
+
 class BaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+
 
 class CampusBase(BaseSchema):
     campus_short: Annotated[str, StringConstraints(max_length=255)]
     campus_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
+
 class CampusCreate(CampusBase):
     pass
 
+
 class CampusRead(CampusBase):
     id: int
+
 
 class CampusUpdate(BaseModel):
     campus_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     campus_short: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
-#Buildings
+
+# Buildings
 class BuildingBase(BaseSchema):
     building_number: Annotated[str, StringConstraints(max_length=255)]
     campus_id: int
     building_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
+
 class BuildingCreate(BuildingBase):
     pass
 
+
 class BuildingRead(BuildingBase):
     id: int
+
 
 class BuildingUpdate(BaseModel):
     building_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     building_number: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     campus_id: Optional[int] = None
 
-#Rooms
+
+# Rooms
 class RoomBase(BaseSchema):
     room_name: Annotated[str, StringConstraints(max_length=255)]
     building_id: int
@@ -48,11 +58,14 @@ class RoomBase(BaseSchema):
     unit_id: Optional[int] = None
     projector_availability: bool = False
 
+
 class RoomCreate(RoomBase):
     pass
 
+
 class RoomRead(RoomBase):
     id: int
+
 
 class RoomUpdate(BaseModel):
     room_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
@@ -62,16 +75,20 @@ class RoomUpdate(BaseModel):
     building_id: Optional[int] = None
     unit_id: Optional[int] = None
 
-#Faculty
+
+# Faculty
 class FacultyBase(BaseSchema):
     faculty_name: Annotated[str, StringConstraints(max_length=255)]
     faculty_short: Annotated[str, StringConstraints(max_length=255)]
 
+
 class FacultyCreate(FacultyBase):
     pass
 
+
 class FacultyRead(FacultyBase):
     id: int
+
 
 class FacultyUpdate(BaseModel):
     faculty_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None

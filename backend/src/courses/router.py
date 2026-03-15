@@ -280,7 +280,9 @@ def update_course(
     course_code: str, payload: schemas.CourseUpdate, db: Session = Depends(get_db)
 ):
     obj = _get_or_404(db, models.Courses, course_code, "Course")
-    _apply_patch_or_reject_nulls(obj, payload)
+    _apply_patch_or_reject_nulls(
+        obj, payload, nullable_fields={"major", "elective_block"}
+    )
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
