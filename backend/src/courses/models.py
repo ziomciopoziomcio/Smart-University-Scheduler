@@ -13,7 +13,6 @@ from sqlalchemy import (
     Integer,
     ForeignKey,
     UniqueConstraint,
-    Boolean,
     CheckConstraint,
     Enum,
 )
@@ -69,44 +68,6 @@ class Elective_block(Base):
     elective_block_name: Mapped[str] = mapped_column(String(255))
 
 
-class Study_programs(Base):
-    """Study_programs model representing a specific curriculum cycle"""
-
-    __tablename__ = "study_programs"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    study_field: Mapped[int] = mapped_column(Integer, ForeignKey("study_fields.id"))
-    start_year: Mapped[str] = mapped_column(String(20))
-    program_name: Mapped[str | None] = mapped_column(String(255))
-
-
-class Curriculum_courses(Base):
-    """Curriculum_courses model representing a course placement in a specific study program."""
-
-    __tablename__ = "curriculum_courses"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    study_program: Mapped[int] = mapped_column(Integer, ForeignKey("study_programs.id"))
-    course: Mapped[int] = mapped_column(Integer, ForeignKey("courses.course_code"))
-
-    semester: Mapped[int] = mapped_column(Integer)
-
-    major: Mapped[int | None] = mapped_column(Integer, ForeignKey("major.id"))
-    elective_block: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("elective_block.id")
-    )
-
-    __table_args__ = (
-        CheckConstraint(
-            "(major IS NULL) OR (elective_block IS NULL)",
-            name="chk_curriculum_major_elective",
-        ),
-        UniqueConstraint(
-            "study_program", "course", "semester", name="uq_program_course_semester"
-        ),
-    )
-
-
 class Courses(Base):
     """Courses model representing a course in the system."""
 
@@ -118,6 +79,18 @@ class Courses(Base):
     course_language: Mapped[CourseLanguage] = mapped_column(Enum(CourseLanguage))
     leading_unit: Mapped[int] = mapped_column(Integer, ForeignKey("units.id"))
     course_coordinator: Mapped[int] = mapped_column(Integer, ForeignKey("employees.id"))
+    study_field: Mapped[int] = mapped_column(Integer, ForeignKey("study_fields.id"))
+    major: Mapped[int | None] = mapped_column(Integer, ForeignKey("major.id"))
+    elective_block: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("elective_block.id")
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "(major IS NULL) OR (elective_block IS NULL)",
+            name="chk_courses_major_elective",
+        ),
+    )
 
 
 class Course_type_details(Base):
@@ -149,9 +122,7 @@ class Courses_instructors(Base):
         Integer, ForeignKey("course_type_details.id")
     )
 
-    min_hours: Mapped[int | None] = mapped_column(Integer)
-    max_hours: Mapped[int | None] = mapped_column(Integer)
-    priority: Mapped[bool | None] = mapped_column(Boolean)
+    hours: Mapped[int | None] = mapped_column(Integer)
 
     __table_args__ = (
         UniqueConstraint(

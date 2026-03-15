@@ -234,9 +234,7 @@ def update_course_instructor(
     obj = _get_or_404(
         db, models.Courses_instructors, instructor_id, "Course Instructor"
     )
-    _apply_patch_or_reject_nulls(
-        obj, payload, nullable_fields={"min_hours", "max_hours", "priority"}
-    )
+    _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
