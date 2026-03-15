@@ -9,7 +9,7 @@ Tables:
 """
 
 from sqlalchemy import String, Integer, ForeignKey, \
-    UniqueConstraint, Boolean, CheckConstraint, Enum
+    UniqueConstraint, CheckConstraint, Enum
 from sqlalchemy.orm import Mapped, mapped_column
 from ..database.base import Base
 import enum
