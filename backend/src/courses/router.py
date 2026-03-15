@@ -358,7 +358,7 @@ def create_curriculum_course(
     return obj
 
 
-@router.get("/curriculum", response_model=schemas.CurriculumCourseRead)
+@router.get("/curriculum", response_model=List[schemas.CurriculumCourseRead])
 def list_curriculum(db: Session = Depends(get_db)):
     return db.query(models.Curriculum_courses).all()
 
