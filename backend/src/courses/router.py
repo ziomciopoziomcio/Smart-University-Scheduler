@@ -319,7 +319,7 @@ def list_study_programs(db: Session = Depends(get_db)):
 
 @router.get("/study-programs/{program_id}", response_model=schemas.StudyProgramRead)
 def get_study_program(program_id: int, db: Session = Depends(get_db)):
-    return _get_or_404(db, models.StudyPrograms, program_id, "StudyProgram")
+    return _get_or_404(db, models.Study_programs, program_id, "StudyProgram")
 
 
 @router.patch("/study-programs/{program_id}", response_model=schemas.StudyProgramRead)
