@@ -1,6 +1,7 @@
 """
 Data validation schemas
 """
+
 from typing import Optional, Annotated
 from pydantic import BaseModel, model_validator, Field, StringConstraints, ConfigDict
 from .models import CourseLanguage, ClassType
@@ -64,8 +65,9 @@ class ElectiveBlockRead(ElectiveBlockBase):
 
 class ElectiveBlockUpdate(BaseModel):
     study_field: Optional[int] = None
-    elective_block_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-
+    elective_block_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = (
+        None
+    )
 
 
 # Courses
@@ -82,7 +84,9 @@ class CourseBase(BaseSchema):
     @model_validator(mode="after")
     def check_major_or_elective(self):
         if self.major is not None and self.elective_block is not None:
-            raise ValueError("`major` and `elective_block` cannot be set at the same time")
+            raise ValueError(
+                "`major` and `elective_block` cannot be set at the same time"
+            )
         return self
 
 
@@ -104,11 +108,12 @@ class CourseUpdate(BaseModel):
     major: Optional[int] = None
     elective_block: Optional[int] = None
 
-
     @model_validator(mode="after")
     def check_major_or_elective(self):
         if self.major is not None and self.elective_block is not None:
-            raise ValueError("`major` and `elective_block` cannot be set at the same time")
+            raise ValueError(
+                "`major` and `elective_block` cannot be set at the same time"
+            )
         return self
 
 
@@ -139,12 +144,11 @@ class CourseTypeDetailsUpdate(BaseModel):
     max_group_participants_number: Optional[Annotated[int, Field(gt=0)]] = None
 
 
-
 # Courses Instructors
 class CourseInstructorBase(BaseSchema):
     employee: int
     course_type_details: int
-    hours: Optional[Annotated[int, Field(ge=0)]] = None
+    hours: Annotated[int, Field(ge=0)]
 
 
 class CourseInstructorCreate(CourseInstructorBase):
