@@ -9,4 +9,5 @@ class Base(DeclarativeBase):
     """
     Base class for all models in the database.
     """
+
     pass
