@@ -43,7 +43,7 @@ class Study_fields(Base):
     __tablename__ = "study_fields"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    faculty: Mapped[int] = mapped_column(Integer, ForeignKey("faculty.id"))
+    faculty: Mapped[int] = mapped_column(Integer, ForeignKey("faculties.id"))
     field_name: Mapped[str] = mapped_column(String(255), unique=True)
 
 
