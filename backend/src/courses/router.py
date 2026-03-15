@@ -327,7 +327,7 @@ def update_study_program(
     program_id: int, payload: schemas.StudyProgramUpdate, db: Session = Depends(get_db)
 ):
     obj = _get_or_404(db, models.Study_programs, program_id, "Study Program")
-    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"program+name"})
+    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"program_name"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
