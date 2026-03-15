@@ -77,17 +77,6 @@ class CourseBase(BaseSchema):
     course_language: CourseLanguage
     leading_unit: int
     course_coordinator: int
-    study_field: int
-    major: Optional[int] = None
-    elective_block: Optional[int] = None
-
-    @model_validator(mode="after")
-    def check_major_or_elective(self):
-        if self.major is not None and self.elective_block is not None:
-            raise ValueError(
-                "`major` and `elective_block` cannot be set at the same time"
-            )
-        return self
 
 
 class CourseCreate(CourseBase):
@@ -104,17 +93,6 @@ class CourseUpdate(BaseModel):
     course_language: Optional[CourseLanguage] = None
     leading_unit: Optional[int] = None
     course_coordinator: Optional[int] = None
-    study_field: Optional[int] = None
-    major: Optional[int] = None
-    elective_block: Optional[int] = None
-
-    @model_validator(mode="after")
-    def check_major_or_elective(self):
-        if self.major is not None and self.elective_block is not None:
-            raise ValueError(
-                "`major` and `elective_block` cannot be set at the same time"
-            )
-        return self
 
 
 # Course Type Details
@@ -167,3 +145,65 @@ class CourseInstructorUpdate(BaseModel):
     min_hours: Optional[Annotated[int, Field(ge=0)]] = None
     max_hours: Optional[Annotated[int, Field(ge=0)]] = None
     priority: Optional[bool] = None
+
+
+# Study Programs
+class StudyProgramBase(BaseSchema):
+    study_field: int
+    start_year: Annotated[str, StringConstraints(max_length=20)]
+    program_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+
+
+class StudyProgramCreate(StudyProgramBase):
+    pass
+
+
+class StudyProgramRead(StudyProgramBase):
+    id: int
+
+
+class StudyProgramUpdate(StudyProgramBase):
+    study_field: Optional[int] = None
+    start_year: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
+    program_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+
+
+# Curriculum Courses
+class CurriculumCourseBase(BaseSchema):
+    study_program: int
+    course: int
+    semester: Annotated[int, Field(gt=0)]
+    major: Optional[int] = None
+    elective_block: Optional[int] = None
+
+    @model_validator(mode="after")
+    def check_major_and_elective(self):
+        if self.major is not None and self.elective_block is not None:
+            raise ValueError(
+                "Course cannot belong to both a major and an elective block"
+            )
+        return self
+
+
+class CurriculumCourseCreate(CurriculumCourseBase):
+    pass
+
+
+class CurriculumCourseRead(CurriculumCourseBase):
+    id: int
+
+
+class CurriculumCourseUpdate(CurriculumCourseBase):
+    study_program: Optional[int] = None
+    course: Optional[int] = None
+    semester: Optional[Annotated[int, Field(gt=0)]] = None
+    major: Optional[int] = None
+    elective_block: Optional[int] = None
+
+    @model_validator(mode="after")
+    def check_major_and_elective(self):
+        if self.major is not None and self.elective_block is not None:
+            raise ValueError(
+                "Course cannot belong to both a major and an elective block"
+            )
+        return self
