@@ -1,0 +1,19 @@
+[tool.black]
+line-length = 88
+exclude = '''
+/(
+    alembic/versions
+  | \.git
+  | \.venv
+  | venv
+)/
+'''
+
+[tool.ruff]
+line-length = 88
+exclude = [
+    "alembic/versions",
+    ".git",
+    ".venv",
+    "venv",
+]
