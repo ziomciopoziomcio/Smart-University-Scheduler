@@ -53,6 +53,7 @@ class BuildingUpdate(BaseModel):
 class RoomBase(BaseSchema):
     room_name: Annotated[str, StringConstraints(max_length=255)]
     building_id: int
+    faculty_id: int
     pc_amount: Annotated[int, Field(ge=0)] = 0
     room_capacity: Annotated[int, Field(gt=0)] = 15
     unit_id: Optional[int] = None
@@ -74,6 +75,7 @@ class RoomUpdate(BaseModel):
     room_capacity: Optional[Annotated[int, Field(gt=0)]] = None
     building_id: Optional[int] = None
     unit_id: Optional[int] = None
+    faculty_id: int | None = None
 
 
 # Faculty
