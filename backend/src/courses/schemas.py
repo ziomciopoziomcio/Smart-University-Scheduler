@@ -194,6 +194,8 @@ class CurriculumCourseRead(CurriculumCourseBase):
 
 
 class CurriculumCourseUpdate(CurriculumCourseBase):
+    study_program: Optional[int] = None
+    course: Optional[int] = None
     semester: Optional[Annotated[int, Field(gt=0)]] = None
     major: Optional[int] = None
     elective_block: Optional[int] = None
