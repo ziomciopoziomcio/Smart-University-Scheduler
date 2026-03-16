@@ -69,7 +69,7 @@ class Elective_block(Base):
     elective_block_name: Mapped[str] = mapped_column(String(255))
 
 
-class Study_programs(Base):
+class Study_program(Base):
     """Study_programs model representing a specific curriculum cycle"""
 
     __tablename__ = "study_programs"
@@ -80,7 +80,7 @@ class Study_programs(Base):
     program_name: Mapped[str | None] = mapped_column(String(255))
 
 
-class Curriculum_courses(Base):
+class Curriculum_course(Base):
     """Curriculum_courses model representing a course placement in a specific study program."""
 
     __tablename__ = "curriculum_courses"

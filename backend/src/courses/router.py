@@ -305,7 +305,7 @@ def delete_course(course_code: str, db: Session = Depends(get_db)):
 def create_study_program(
     payload: schemas.StudyProgramCreate, db: Session = Depends(get_db)
 ):
-    obj = models.Study_programs(**payload.model_dump())
+    obj = models.Study_program(**payload.model_dump())
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -314,19 +314,19 @@ def create_study_program(
 
 @router.get("/study-programs", response_model=List[schemas.StudyProgramRead])
 def list_study_programs(db: Session = Depends(get_db)):
-    return db.query(models.Study_programs).all()
+    return db.query(models.Study_program).all()
 
 
 @router.get("/study-programs/{program_id}", response_model=schemas.StudyProgramRead)
 def get_study_program(program_id: int, db: Session = Depends(get_db)):
-    return _get_or_404(db, models.Study_programs, program_id, "StudyProgram")
+    return _get_or_404(db, models.Study_program, program_id, "StudyProgram")
 
 
 @router.patch("/study-programs/{program_id}", response_model=schemas.StudyProgramRead)
 def update_study_program(
     program_id: int, payload: schemas.StudyProgramUpdate, db: Session = Depends(get_db)
 ):
-    obj = _get_or_404(db, models.Study_programs, program_id, "Study Program")
+    obj = _get_or_404(db, models.Study_program, program_id, "Study Program")
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"program_name"})
     db.add(obj)
     _commit_or_rollback(db)
@@ -336,7 +336,7 @@ def update_study_program(
 
 @router.delete("/study-programs/{program_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_study_program(program_id: int, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.Study_programs, program_id, "Study Program")
+    obj = _get_or_404(db, models.Study_program, program_id, "Study Program")
     db.delete(obj)
     _commit_or_rollback(db)
     return None
@@ -351,7 +351,7 @@ def create_curriculum_course(
     payload: schemas.CurriculumCourseCreate,
     db: Session = Depends(get_db),
 ):
-    obj = models.Curriculum_courses(**payload.model_dump())
+    obj = models.Curriculum_course(**payload.model_dump())
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -360,14 +360,12 @@ def create_curriculum_course(
 
 @router.get("/curriculum", response_model=List[schemas.CurriculumCourseRead])
 def list_curriculum(db: Session = Depends(get_db)):
-    return db.query(models.Curriculum_courses).all()
+    return db.query(models.Curriculum_course).all()
 
 
 @router.get("/curriculum/{curriculum_id}", response_model=schemas.CurriculumCourseRead)
 def get_curriculum_course(curriculum_id: int, db: Session = Depends(get_db)):
-    return _get_or_404(
-        db, models.Curriculum_courses, curriculum_id, "Curriculum Course"
-    )
+    return _get_or_404(db, models.Curriculum_course, curriculum_id, "Curriculum Course")
 
 
 @router.patch(
@@ -378,7 +376,7 @@ def update_curriculum_course(
     payload: schemas.CurriculumCourseUpdate,
     db: Session = Depends(get_db),
 ):
-    obj = _get_or_404(db, models.Curriculum_courses, curriculum_id, "Curriculum Course")
+    obj = _get_or_404(db, models.Curriculum_course, curriculum_id, "Curriculum Course")
     _apply_patch_or_reject_nulls(
         obj, payload, nullable_fields={"major", "elective_block"}
     )
@@ -390,7 +388,7 @@ def update_curriculum_course(
 
 @router.delete("/curriculum/{curriculum_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_curriculum(curriculum_id: int, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.Curriculum_courses, curriculum_id, "Curriculum Course")
+    obj = _get_or_404(db, models.Curriculum_course, curriculum_id, "Curriculum Course")
     db.delete(obj)
     _commit_or_rollback(db)
     return None
