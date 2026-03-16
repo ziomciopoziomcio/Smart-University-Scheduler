@@ -3,8 +3,8 @@ Tables:
 - Study_fields
 - Major
 - Elective_block
-- Courses
-- course_type_details
+- Course
+- course_type_detail
 - Courses instructors
 """
 
@@ -13,7 +13,6 @@ from sqlalchemy import (
     Integer,
     ForeignKey,
     UniqueConstraint,
-    Boolean,
     CheckConstraint,
     Enum,
 )
@@ -69,28 +68,18 @@ class Elective_block(Base):
     elective_block_name: Mapped[str] = mapped_column(String(255))
 
 
-class Study_programs(Base):
-    """Study_programs model representing a specific curriculum cycle"""
+class Course(Base):
+    """Courses model representing a course in the system."""
 
-    __tablename__ = "study_programs"
+    __tablename__ = "course"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    course_code: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    ects_points: Mapped[int] = mapped_column(Integer)
+    course_name: Mapped[str] = mapped_column(String(255))
+    course_language: Mapped[CourseLanguage] = mapped_column(Enum(CourseLanguage))
+    leading_unit: Mapped[int] = mapped_column(Integer, ForeignKey("units.id"))
+    course_coordinator: Mapped[int] = mapped_column(Integer, ForeignKey("employees.id"))
     study_field: Mapped[int] = mapped_column(Integer, ForeignKey("study_fields.id"))
-    start_year: Mapped[str] = mapped_column(String(20))
-    program_name: Mapped[str | None] = mapped_column(String(255))
-
-
-class Curriculum_courses(Base):
-    """Curriculum_courses model representing a course placement in a specific study program."""
-
-    __tablename__ = "curriculum_courses"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    study_program: Mapped[int] = mapped_column(Integer, ForeignKey("study_programs.id"))
-    course: Mapped[int] = mapped_column(Integer, ForeignKey("courses.course_code"))
-
-    semester: Mapped[int] = mapped_column(Integer)
-
     major: Mapped[int | None] = mapped_column(Integer, ForeignKey("major.id"))
     elective_block: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("elective_block.id")
@@ -99,34 +88,18 @@ class Curriculum_courses(Base):
     __table_args__ = (
         CheckConstraint(
             "(major IS NULL) OR (elective_block IS NULL)",
-            name="chk_curriculum_major_elective",
-        ),
-        UniqueConstraint(
-            "study_program", "course", "semester", name="uq_program_course_semester"
+            name="chk_courses_major_elective",
         ),
     )
 
 
-class Courses(Base):
-    """Courses model representing a course in the system."""
+class Course_type_detail(Base):
+    """Course_type_detail model representing details of a course type in the system."""
 
-    __tablename__ = "courses"
-
-    course_code: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    ects_points: Mapped[int] = mapped_column(Integer)
-    course_name: Mapped[str] = mapped_column(String(255))
-    course_language: Mapped[CourseLanguage] = mapped_column(Enum(CourseLanguage))
-    leading_unit: Mapped[int] = mapped_column(Integer, ForeignKey("units.id"))
-    course_coordinator: Mapped[int] = mapped_column(Integer, ForeignKey("employees.id"))
-
-
-class Course_type_details(Base):
-    """Course_type_details model representing details of a course type in the system."""
-
-    __tablename__ = "course_type_details"
+    __tablename__ = "course_type_detail"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    course: Mapped[int] = mapped_column(Integer, ForeignKey("courses.course_code"))
+    course: Mapped[int] = mapped_column(Integer, ForeignKey("course.course_code"))
     class_type: Mapped[ClassType] = mapped_column(Enum(ClassType))
     class_hours: Mapped[int] = mapped_column(Integer, default=0)
     pc_needed: Mapped[bool] = mapped_column(default=False)
@@ -145,16 +118,14 @@ class Courses_instructors(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     employee: Mapped[int] = mapped_column(Integer, ForeignKey("employees.id"))
-    course_type_details: Mapped[int] = mapped_column(
-        Integer, ForeignKey("course_type_details.id")
+    course_type_detail: Mapped[int] = mapped_column(
+        Integer, ForeignKey("course_type_detail.id")
     )
 
-    min_hours: Mapped[int | None] = mapped_column(Integer)
-    max_hours: Mapped[int | None] = mapped_column(Integer)
-    priority: Mapped[bool | None] = mapped_column(Boolean)
+    hours: Mapped[int] = mapped_column(Integer)
 
     __table_args__ = (
         UniqueConstraint(
-            "course_type_details", "employee", name="uq_course_type_details_employee"
+            "course_type_detail", "employee", name="uq_course_type_details_employee"
         ),
     )

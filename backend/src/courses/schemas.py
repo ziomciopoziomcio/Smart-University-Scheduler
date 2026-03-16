@@ -70,7 +70,7 @@ class ElectiveBlockUpdate(BaseModel):
     )
 
 
-# Courses
+# Course
 class CourseBase(BaseSchema):
     ects_points: Annotated[int, Field(ge=0)]
     course_name: Annotated[str, StringConstraints(max_length=255)]
@@ -117,8 +117,8 @@ class CourseUpdate(BaseModel):
         return self
 
 
-# Course Type Details
-class CourseTypeDetailsBase(BaseSchema):
+# Course Type Detail
+class CourseTypeDetailBase(BaseSchema):
     course: int
     class_type: ClassType
     class_hours: Annotated[int, Field(ge=0)] = 0
@@ -127,15 +127,15 @@ class CourseTypeDetailsBase(BaseSchema):
     max_group_participants_number: Annotated[int, Field(gt=0)] = 15
 
 
-class CourseTypeDetailsCreate(CourseTypeDetailsBase):
+class CourseTypeDetailCreate(CourseTypeDetailBase):
     pass
 
 
-class CourseTypeDetailsRead(CourseTypeDetailsBase):
+class CourseTypeDetailRead(CourseTypeDetailBase):
     id: int
 
 
-class CourseTypeDetailsUpdate(BaseModel):
+class CourseTypeDetailUpdate(BaseModel):
     course: Optional[int] = None
     class_type: Optional[ClassType] = None
     class_hours: Optional[Annotated[int, Field(ge=0)]] = None
@@ -147,10 +147,8 @@ class CourseTypeDetailsUpdate(BaseModel):
 # Courses Instructors
 class CourseInstructorBase(BaseSchema):
     employee: int
-    course_type_details: int
-    min_hours: Optional[Annotated[int, Field(ge=0)]] = None
-    max_hours: Optional[Annotated[int, Field(ge=0)]] = None
-    priority: Optional[bool] = None
+    course_type_detail: int
+    hours: Annotated[int, Field(ge=0)]
 
 
 class CourseInstructorCreate(CourseInstructorBase):
@@ -163,7 +161,5 @@ class CourseInstructorRead(CourseInstructorBase):
 
 class CourseInstructorUpdate(BaseModel):
     employee: Optional[int] = None
-    course_type_details: Optional[int] = None
-    min_hours: Optional[Annotated[int, Field(ge=0)]] = None
-    max_hours: Optional[Annotated[int, Field(ge=0)]] = None
-    priority: Optional[bool] = None
+    course_type_detail: Optional[int] = None
+    hours: Optional[Annotated[int, Field(ge=0)]] = None
