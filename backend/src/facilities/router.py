@@ -13,7 +13,7 @@ from src.common.router_utils import (
 router = APIRouter(prefix="/facilities", tags=["facilities"])
 
 
-# Campus
+# Campuses
 @router.post(
     "/campuses", response_model=schemas.CampusRead, status_code=status.HTTP_201_CREATED
 )
@@ -26,7 +26,7 @@ def create_campus(payload: schemas.CampusCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/campuses", response_model=List[schemas.CampusRead])
-def list_campus(db: Session = Depends(get_db)):
+def list_campuses(db: Session = Depends(get_db)):
     return db.query(models.Campus).all()
 
 
@@ -62,7 +62,7 @@ def delete_campus(campus_id: int, db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
 )
 def create_building(payload: schemas.BuildingCreate, db: Session = Depends(get_db)):
-    new_building = models.Buildings(**payload.model_dump())
+    new_building = models.Building(**payload.model_dump())
     db.add(new_building)
     _commit_or_rollback(db)
     db.refresh(new_building)
@@ -71,19 +71,19 @@ def create_building(payload: schemas.BuildingCreate, db: Session = Depends(get_d
 
 @router.get("/buildings", response_model=List[schemas.BuildingRead])
 def list_buildings(db: Session = Depends(get_db)):
-    return db.query(models.Buildings).all()
+    return db.query(models.Building).all()
 
 
 @router.get("/buildings/{building_id}", response_model=schemas.BuildingRead)
 def get_building(building_id: int, db: Session = Depends(get_db)):
-    return _get_or_404(db, models.Buildings, building_id, "Building")
+    return _get_or_404(db, models.Building, building_id, "Building")
 
 
 @router.patch("/buildings/{building_id}", response_model=schemas.BuildingRead)
 def update_building(
     building_id: int, payload: schemas.BuildingUpdate, db: Session = Depends(get_db)
 ):
-    obj = _get_or_404(db, models.Buildings, building_id, "Building")
+    obj = _get_or_404(db, models.Building, building_id, "Building")
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields=["building_name"])
     db.add(obj)
     _commit_or_rollback(db)
@@ -93,7 +93,7 @@ def update_building(
 
 @router.delete("/buildings/{building_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_building(building_id: int, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.Buildings, building_id, "Building")
+    obj = _get_or_404(db, models.Building, building_id, "Building")
     db.delete(obj)
     _commit_or_rollback(db)
     return None
@@ -104,7 +104,7 @@ def delete_building(building_id: int, db: Session = Depends(get_db)):
     "/rooms", response_model=schemas.RoomRead, status_code=status.HTTP_201_CREATED
 )
 def create_room(payload: schemas.RoomCreate, db: Session = Depends(get_db)):
-    new_room = models.Rooms(**payload.model_dump())
+    new_room = models.Room(**payload.model_dump())
     db.add(new_room)
     _commit_or_rollback(db)
     db.refresh(new_room)
@@ -113,19 +113,19 @@ def create_room(payload: schemas.RoomCreate, db: Session = Depends(get_db)):
 
 @router.get("/rooms", response_model=List[schemas.RoomRead])
 def list_rooms(db: Session = Depends(get_db)):
-    return db.query(models.Rooms).all()
+    return db.query(models.Room).all()
 
 
 @router.get("/rooms/{room_id}", response_model=schemas.RoomRead)
 def get_room(room_id: int, db: Session = Depends(get_db)):
-    return _get_or_404(db, models.Rooms, room_id, "Room")
+    return _get_or_404(db, models.Room, room_id, "Room")
 
 
 @router.patch("/rooms/{room_id}", response_model=schemas.RoomRead)
 def update_room(
     room_id: int, payload: schemas.RoomUpdate, db: Session = Depends(get_db)
 ):
-    obj = _get_or_404(db, models.Rooms, room_id, "Room")
+    obj = _get_or_404(db, models.Room, room_id, "Room")
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields=["unit_id"])
     db.add(obj)
     _commit_or_rollback(db)
@@ -135,13 +135,13 @@ def update_room(
 
 @router.delete("/rooms/{room_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_room(room_id: int, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.Rooms, room_id, "Room")
+    obj = _get_or_404(db, models.Room, room_id, "Room")
     db.delete(obj)
     _commit_or_rollback(db)
     return None
 
 
-# Faculty
+# Faculties
 @router.post(
     "/faculties",
     response_model=schemas.FacultyRead,
@@ -156,7 +156,7 @@ def create_faculty(payload: schemas.FacultyCreate, db: Session = Depends(get_db)
 
 
 @router.get("/faculties", response_model=List[schemas.FacultyRead])
-def list_faculty(db: Session = Depends(get_db)):
+def list_faculties(db: Session = Depends(get_db)):
     return db.query(models.Faculty).all()
 
 
