@@ -10,7 +10,7 @@ from src.common.router_utils import (
     _apply_patch_or_reject_nulls,
 )
 
-router = APIRouter(prefix="/courses", tags=["courses"])
+router = APIRouter(prefix="/course", tags=["course"])
 
 
 # Study Fields

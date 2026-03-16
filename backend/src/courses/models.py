@@ -3,7 +3,7 @@ Tables:
 - Study_fields
 - Major
 - Elective_block
-- Courses
+- Course
 - course_type_detail
 - Courses instructors
 """
@@ -71,7 +71,7 @@ class Elective_block(Base):
 class Course(Base):
     """Courses model representing a course in the system."""
 
-    __tablename__ = "courses"
+    __tablename__ = "course"
 
     course_code: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     ects_points: Mapped[int] = mapped_column(Integer)
@@ -99,7 +99,7 @@ class Course_type_detail(Base):
     __tablename__ = "course_type_detail"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    course: Mapped[int] = mapped_column(Integer, ForeignKey("courses.course_code"))
+    course: Mapped[int] = mapped_column(Integer, ForeignKey("course.course_code"))
     class_type: Mapped[ClassType] = mapped_column(Enum(ClassType))
     class_hours: Mapped[int] = mapped_column(Integer, default=0)
     pc_needed: Mapped[bool] = mapped_column(default=False)
