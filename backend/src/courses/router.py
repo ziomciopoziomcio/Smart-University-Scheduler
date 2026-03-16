@@ -147,39 +147,39 @@ def delete_elective_block(block_id: int, db: Session = Depends(get_db)):
     return None
 
 
-# Course Type Details
+# Course Type Detail
 @router.post(
     "/types",
-    response_model=schemas.CourseTypeDetailsRead,
+    response_model=schemas.CourseTypeDetailRead,
     status_code=status.HTTP_201_CREATED,
 )
 def create_course_type(
-    payload: schemas.CourseTypeDetailsCreate, db: Session = Depends(get_db)
+    payload: schemas.CourseTypeDetailCreate, db: Session = Depends(get_db)
 ):
-    obj = models.Course_type_details(**payload.model_dump())
+    obj = models.Course_type_detail(**payload.model_dump())
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
     return obj
 
 
-@router.get("/types", response_model=List[schemas.CourseTypeDetailsRead])
+@router.get("/types", response_model=List[schemas.CourseTypeDetailRead])
 def list_course_types(db: Session = Depends(get_db)):
-    return db.query(models.Course_type_details).all()
+    return db.query(models.Course_type_detail).all()
 
 
-@router.get("/types/{type_id}", response_model=schemas.CourseTypeDetailsRead)
+@router.get("/types/{type_id}", response_model=schemas.CourseTypeDetailRead)
 def get_course_type(type_id: int, db: Session = Depends(get_db)):
-    return _get_or_404(db, models.Course_type_details, type_id, "Course Type")
+    return _get_or_404(db, models.Course_type_detail, type_id, "Course Type")
 
 
-@router.patch("/types/{type_id}", response_model=schemas.CourseTypeDetailsRead)
+@router.patch("/types/{type_id}", response_model=schemas.CourseTypeDetailRead)
 def update_course_type(
     type_id: int,
-    payload: schemas.CourseTypeDetailsUpdate,
+    payload: schemas.CourseTypeDetailUpdate,
     db: Session = Depends(get_db),
 ):
-    obj = _get_or_404(db, models.Course_type_details, type_id, "Course Type")
+    obj = _get_or_404(db, models.Course_type_detail, type_id, "Course Type")
     _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
     _commit_or_rollback(db)
@@ -189,7 +189,7 @@ def update_course_type(
 
 @router.delete("/types/{type_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_course_type(type_id: int, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.Course_type_details, type_id, "Course Type")
+    obj = _get_or_404(db, models.Course_type_detail, type_id, "Course Type")
     db.delete(obj)
     _commit_or_rollback(db)
     return None

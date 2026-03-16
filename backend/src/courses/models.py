@@ -4,7 +4,7 @@ Tables:
 - Major
 - Elective_block
 - Courses
-- course_type_details
+- course_type_detail
 - Courses instructors
 """
 
@@ -93,10 +93,10 @@ class Course(Base):
     )
 
 
-class Course_type_details(Base):
-    """Course_type_details model representing details of a course type in the system."""
+class Course_type_detail(Base):
+    """Course_type_detail model representing details of a course type in the system."""
 
-    __tablename__ = "course_type_details"
+    __tablename__ = "course_type_detail"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     course: Mapped[int] = mapped_column(Integer, ForeignKey("courses.course_code"))
@@ -118,14 +118,14 @@ class Courses_instructors(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     employee: Mapped[int] = mapped_column(Integer, ForeignKey("employees.id"))
-    course_type_details: Mapped[int] = mapped_column(
-        Integer, ForeignKey("course_type_details.id")
+    course_type_detail: Mapped[int] = mapped_column(
+        Integer, ForeignKey("course_type_detail.id")
     )
 
     hours: Mapped[int] = mapped_column(Integer)
 
     __table_args__ = (
         UniqueConstraint(
-            "course_type_details", "employee", name="uq_course_type_details_employee"
+            "course_type_detail", "employee", name="uq_course_type_details_employee"
         ),
     )
