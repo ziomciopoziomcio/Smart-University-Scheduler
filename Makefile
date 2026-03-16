@@ -12,3 +12,5 @@ db-reset:
 	sleep 3
 	cd infrastructure/docker && docker compose up -d backend
 	cd infrastructure/docker && docker compose exec backend alembic upgrade head
+makemigrations:
+	cd infrastructure/docker && docker compose exec backend alembic revision --autogenerate -m "$(msg)"
