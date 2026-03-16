@@ -40,7 +40,7 @@ class Employees(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
-    faculty_id: Mapped[int] = mapped_column(Integer, ForeignKey("faculty.id"))
+    faculty_id: Mapped[int] = mapped_column(Integer, ForeignKey("faculties.id"))
     unit_id: Mapped[int] = mapped_column(Integer, ForeignKey("units.id"))
 
     __table_args__ = (
@@ -57,7 +57,7 @@ class Units(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     unit_name: Mapped[str] = mapped_column(String(255), unique=True)
-    faculty_id: Mapped[int] = mapped_column(Integer, ForeignKey("faculty.id"))
+    faculty_id: Mapped[int] = mapped_column(Integer, ForeignKey("faculties.id"))
     unit_short: Mapped[str] = mapped_column(String(255), unique=True)
 
 
