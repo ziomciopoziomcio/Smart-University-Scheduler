@@ -8,6 +8,8 @@ Tables:
 - Courses instructors
 """
 
+import enum
+
 from sqlalchemy import (
     String,
     Integer,
@@ -17,8 +19,8 @@ from sqlalchemy import (
     Enum,
 )
 from sqlalchemy.orm import Mapped, mapped_column
+
 from ..database.base import Base
-import enum
 
 
 class CourseLanguage(str, enum.Enum):
@@ -67,6 +69,7 @@ class Elective_block(Base):
     study_field: Mapped[int] = mapped_column(Integer, ForeignKey("study_fields.id"))
     elective_block_name: Mapped[str] = mapped_column(String(255))
 
+
 class Course(Base):
     """Courses model representing a course in the system."""
 
@@ -79,16 +82,18 @@ class Course(Base):
     leading_unit: Mapped[int] = mapped_column(Integer, ForeignKey("units.id"))
     course_coordinator: Mapped[int] = mapped_column(Integer, ForeignKey("employees.id"))
 
+
 class Study_program(Base):
     """Study_programs model representing a specific curriculum cycle"""
+
     __tablename__ = "study_programs"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     study_field: Mapped[int] = mapped_column(Integer, ForeignKey("study_fields.id"))
     start_year: Mapped[str] = mapped_column(String(20))
     program_name: Mapped[str | None] = mapped_column(String(255))
-      
-      
+
+
 class Curriculum_course(Base):
     """Curriculum_courses model representing a course placement in a specific study program."""
 

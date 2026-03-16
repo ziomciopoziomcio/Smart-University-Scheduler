@@ -3,7 +3,9 @@ Data validation schemas
 """
 
 from typing import Optional, Annotated
+
 from pydantic import BaseModel, model_validator, Field, StringConstraints, ConfigDict
+
 from .models import CourseLanguage, ClassType
 
 
