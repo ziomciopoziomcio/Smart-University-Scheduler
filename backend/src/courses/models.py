@@ -68,7 +68,7 @@ class Elective_block(Base):
     elective_block_name: Mapped[str] = mapped_column(String(255))
 
 
-class Courses(Base):
+class Course(Base):
     """Courses model representing a course in the system."""
 
     __tablename__ = "courses"

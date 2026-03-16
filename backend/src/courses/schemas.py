@@ -70,7 +70,7 @@ class ElectiveBlockUpdate(BaseModel):
     )
 
 
-# Courses
+# Course
 class CourseBase(BaseSchema):
     ects_points: Annotated[int, Field(ge=0)]
     course_name: Annotated[str, StringConstraints(max_length=255)]
