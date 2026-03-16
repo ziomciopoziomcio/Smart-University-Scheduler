@@ -115,6 +115,9 @@ class Curriculum_course(Base):
             "(major IS NULL) OR (elective_block IS NULL)",
             name="chk_courses_major_elective",
         ),
+        UniqueConstraint(
+            "study_program", "course", "semester", name="uq_program_course_semester"
+        ),
     )
 
 
