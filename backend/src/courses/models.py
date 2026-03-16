@@ -101,7 +101,7 @@ class Curriculum_course(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     study_program: Mapped[int] = mapped_column(Integer, ForeignKey("study_programs.id"))
-    course: Mapped[int] = mapped_column(Integer, ForeignKey("courses.course_code"))
+    course: Mapped[int] = mapped_column(Integer, ForeignKey("course.course_code"))
 
     semester: Mapped[int] = mapped_column(Integer)
 
