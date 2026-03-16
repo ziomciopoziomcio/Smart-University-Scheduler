@@ -122,7 +122,7 @@ class Courses_instructors(Base):
         Integer, ForeignKey("course_type_details.id")
     )
 
-    hours: Mapped[int | None] = mapped_column(Integer)
+    hours: Mapped[int] = mapped_column(Integer)
 
     __table_args__ = (
         UniqueConstraint(
