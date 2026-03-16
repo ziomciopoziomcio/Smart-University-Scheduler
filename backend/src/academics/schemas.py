@@ -12,7 +12,7 @@ class BaseSchema(BaseModel):
 
 class StudentBase(BaseSchema):
     user_id: int
-    study_field: int
+    study_program: int
     major: Optional[int] = None
 
 
@@ -25,7 +25,7 @@ class StudentRead(StudentBase):
 
 
 class StudentUpdate(BaseModel):
-    study_field: Optional[int] = None
+    study_program: Optional[int] = None
     major: Optional[int] = None
 
 
@@ -70,7 +70,7 @@ class UnitsUpdate(BaseModel):
 
 class GroupsBase(BaseSchema):
     group_name: Annotated[str, StringConstraints(max_length=255)]
-    study_field: int
+    study_program: int
     major: Optional[int] = None
     elective_block: Optional[int] = None
 
@@ -93,7 +93,7 @@ class GroupsRead(GroupsBase):
 
 class GroupsUpdate(BaseModel):
     group_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    study_field: Optional[int] = None
+    study_program: Optional[int] = None
     major: Optional[int] = None
     elective_block: Optional[int] = None
 

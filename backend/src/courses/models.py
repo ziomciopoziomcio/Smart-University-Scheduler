@@ -8,6 +8,8 @@ Tables:
 - Courses instructors
 """
 
+import enum
+
 from sqlalchemy import (
     String,
     Integer,
@@ -17,8 +19,8 @@ from sqlalchemy import (
     Enum,
 )
 from sqlalchemy.orm import Mapped, mapped_column
+
 from ..database.base import Base
-import enum
 
 
 class CourseLanguage(str, enum.Enum):
@@ -71,7 +73,7 @@ class Elective_block(Base):
 class Course(Base):
     """Courses model representing a course in the system."""
 
-    __tablename__ = "course"
+    __tablename__ = "courses"
 
     course_code: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     ects_points: Mapped[int] = mapped_column(Integer)
@@ -79,7 +81,30 @@ class Course(Base):
     course_language: Mapped[CourseLanguage] = mapped_column(Enum(CourseLanguage))
     leading_unit: Mapped[int] = mapped_column(Integer, ForeignKey("units.id"))
     course_coordinator: Mapped[int] = mapped_column(Integer, ForeignKey("employees.id"))
+
+
+class Study_program(Base):
+    """Study_programs model representing a specific curriculum cycle"""
+
+    __tablename__ = "study_programs"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     study_field: Mapped[int] = mapped_column(Integer, ForeignKey("study_fields.id"))
+    start_year: Mapped[str] = mapped_column(String(20))
+    program_name: Mapped[str | None] = mapped_column(String(255))
+
+
+class Curriculum_course(Base):
+    """Curriculum_courses model representing a course placement in a specific study program."""
+
+    __tablename__ = "curriculum_courses"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    study_program: Mapped[int] = mapped_column(Integer, ForeignKey("study_programs.id"))
+    course: Mapped[int] = mapped_column(Integer, ForeignKey("courses.course_code"))
+
+    semester: Mapped[int] = mapped_column(Integer)
+
     major: Mapped[int | None] = mapped_column(Integer, ForeignKey("major.id"))
     elective_block: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("elective_block.id")
@@ -90,6 +115,9 @@ class Course(Base):
             "(major IS NULL) OR (elective_block IS NULL)",
             name="chk_courses_major_elective",
         ),
+        UniqueConstraint(
+            "study_program", "course", "semester", name="uq_program_course_semester"
+        ),
     )
 
 
@@ -99,7 +127,7 @@ class Course_type_detail(Base):
     __tablename__ = "course_type_detail"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    course: Mapped[int] = mapped_column(Integer, ForeignKey("course.course_code"))
+    course: Mapped[int] = mapped_column(Integer, ForeignKey("courses.course_code"))
     class_type: Mapped[ClassType] = mapped_column(Enum(ClassType))
     class_hours: Mapped[int] = mapped_column(Integer, default=0)
     pc_needed: Mapped[bool] = mapped_column(default=False)
