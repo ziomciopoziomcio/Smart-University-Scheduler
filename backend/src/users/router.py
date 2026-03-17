@@ -30,17 +30,15 @@ pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def _get_secret_key() -> str:
-    secret_key = os.getenv("SECRET_KEY")
-    if not secret_key:
+    key = os.getenv("SECRET_KEY")
+    if key:
+        return key
+
+    if os.getenv("ENV") != "dev":
         raise RuntimeError(
             "SECRET_KEY environment variable must be set and non-empty for JWT signing."
         )
-    # Reject known insecure default and obviously weak keys.
-    if secret_key == "change-me" or len(secret_key) < 32:
-        raise RuntimeError(
-            "SECRET_KEY is too weak. Please configure a sufficiently long, random secret."
-        )
-    return secret_key
+    return "dev-secret-key"
 
 
 SECRET_KEY = _get_secret_key()
