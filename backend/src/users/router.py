@@ -1,5 +1,10 @@
+import os
+from datetime import datetime, timedelta, timezone
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
+
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 
@@ -13,6 +18,77 @@ from src.common.router_utils import (
 
 router = APIRouter(prefix="/users", tags=["users"])
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_ctx.verify(plain_password, hashed_password)
+
+
+def authenticate_user(db: Session, email: str, password: str) -> models.Users | None:
+    user = db.query(models.Users).filter(models.Users.email == email).first()
+    if not user:
+        return None
+    if not verify_password(password, user.password_hash):
+        return None
+    return user
+
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (
+        expires_delta
+        if expires_delta is not None
+        else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    to_encode.update({"exp": int(expire.replace(tzinfo=timezone.utc).timestamp())})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def get_current_user(
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+) -> models.Users:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = _get_or_404(db, models.Users, int(user_id), "User")
+    return user
+
+
+@router.post("/login", response_model=schemas.Token)
+def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+):
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+# for tests
+@router.get("/me", response_model=schemas.UserRead)
+def read_own_user(current_user: models.Users = Depends(get_current_user)):
+    return current_user
 
 
 # Roles
