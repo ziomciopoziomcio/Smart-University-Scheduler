@@ -210,15 +210,21 @@ def twofa_verify(
 
     if not ok and user.backup_codes:
         try:
-            hashed_list = json.loads(user.backup_codes)
+            locked_user = (
+                db.query(models.Users)
+                .filter(models.Users.id == user.id)
+                .with_for_update()
+                .one()
+            )
+            hashed_list = json.loads(locked_user.backup_codes or "[]")
             if not isinstance(hashed_list, list):
                 raise ValueError("backup_codes not a list")
             code_hash = _hash_code(payload.code)
             if code_hash in hashed_list:
                 ok = True
                 hashed_list.remove(code_hash)
-                user.backup_codes = json.dumps(hashed_list)
-                db.add(user)
+                locked_user.backup_codes = json.dumps(hashed_list)
+                db.add(locked_user)
                 _commit_or_rollback(db)
         except (json.JSONDecodeError, TypeError, ValueError) as exc:
             logger.exception(
