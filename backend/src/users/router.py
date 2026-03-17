@@ -125,7 +125,7 @@ def read_own_user(current_user: models.Users = Depends(get_current_user)):
     return current_user
 
 
-@router.post("/2fa/setup", response_model=schemas.TwoFactorSetup)
+@router.post("/2fa/setup", response_model=dict)
 def twofa_setup(
     current_user: models.Users = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -140,7 +140,7 @@ def twofa_setup(
     _commit_or_rollback(db)
     db.refresh(current_user)
 
-    return {"provisioning_uri": provisioning_uri, "secret": secret}
+    return {"provisioning_uri": provisioning_uri}
 
 
 @router.post("/2fa/confirm", response_model=schemas.BackupCodesResponse)
