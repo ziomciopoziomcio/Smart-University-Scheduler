@@ -260,29 +260,6 @@ def twofa_verify(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post("/2fa/verify", response_model=schemas.Token)
-def twofa_verify(
-    payload: schemas.TwoFactorVerifyRequest, db: Session = Depends(get_db)
-):
-
-    user_id = _get_user_id_from_pre_token(payload.pre_auth_token)
-
-    user = db.query(models.Users).filter(models.Users.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    ok = _verify_totp(user, payload.code)
-
-    if not ok:
-        ok = _verify_backup_code(db, user, payload.code)
-
-    if not ok:
-        raise HTTPException(status_code=400, detail="Invalid 2FA code")
-
-    access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer"}
-
-
 # Roles
 @router.post(
     "/roles", response_model=schemas.RoleRead, status_code=status.HTTP_201_CREATED
