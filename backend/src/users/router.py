@@ -184,70 +184,100 @@ def twofa_confirm(
     return {"backup_codes": plaintext_codes}
 
 
+# helpers for twofa_verify:
+def _get_user_id_from_pre_token(token: str) -> int:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        if not payload.get("pre_2fa"):
+            raise ValueError("Not a pre-auth token")
+
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise ValueError("Missing sub")
+
+        return int(user_id)
+
+    except (JWTError, ValueError, TypeError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid pre_auth_token",
+        )
+
+
+def _verify_totp(user: models.Users, code: str) -> bool:
+    if not user.two_factor_secret:
+        return False
+
+    totp = pyotp.TOTP(user.two_factor_secret)
+    return bool(totp.verify(code, valid_window=1))
+
+
+def _verify_backup_code(db: Session, user: models.Users, code: str) -> bool:
+    if not user.backup_codes:
+        return False
+
+    locked_user = (
+        db.query(models.Users)
+        .filter(models.Users.id == user.id)
+        .with_for_update()
+        .one()
+    )
+
+    hashed_list = json.loads(locked_user.backup_codes or "[]")
+    code_hash = _hash_code(code)
+
+    if code_hash in hashed_list:
+        hashed_list.remove(code_hash)
+        locked_user.backup_codes = json.dumps(hashed_list)
+        db.add(locked_user)
+        _commit_or_rollback(db)
+        return True
+
+    return False
+
+
 @router.post("/2fa/verify", response_model=schemas.Token)
 def twofa_verify(
     payload: schemas.TwoFactorVerifyRequest, db: Session = Depends(get_db)
 ):
-    try:
-        token_payload = jwt.decode(
-            payload.pre_auth_token, SECRET_KEY, algorithms=[ALGORITHM]
-        )
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid pre_auth_token"
-        )
 
-    if not token_payload.get("pre_2fa"):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token is not a pre-auth token",
-        )
+    user_id = _get_user_id_from_pre_token(payload.pre_auth_token)
 
-    user_id = token_payload.get("sub")
-    if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
-        )
+    user = db.query(models.Users).filter(models.Users.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    user = _get_or_404(db, models.Users, int(user_id), "User")
-
-    ok = False
-
-    if user.two_factor_secret:
-        totp = pyotp.TOTP(user.two_factor_secret)
-        ok = bool(totp.verify(payload.code, valid_window=1))
-
-    if not ok and user.backup_codes:
-        try:
-            locked_user = (
-                db.query(models.Users)
-                .filter(models.Users.id == user.id)
-                .with_for_update()
-                .one()
-            )
-            hashed_list = json.loads(locked_user.backup_codes or "[]")
-            if not isinstance(hashed_list, list):
-                raise ValueError("backup_codes not a list")
-            code_hash = _hash_code(payload.code)
-            if code_hash in hashed_list:
-                ok = True
-                hashed_list.remove(code_hash)
-                locked_user.backup_codes = json.dumps(hashed_list)
-                db.add(locked_user)
-                _commit_or_rollback(db)
-        except (json.JSONDecodeError, TypeError, ValueError) as exc:
-            logger.exception(
-                "Failed to parse/process backup_codes for user id=%s: %s", user.id, exc
-            )
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Error processing 2FA backup codes",
-            )
+    ok = _verify_totp(user, payload.code)
 
     if not ok:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid 2FA code"
-        )
+        ok = _verify_backup_code(db, user, payload.code)
+
+    if not ok:
+        raise HTTPException(status_code=400, detail="Invalid 2FA code")
+
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/2fa/verify", response_model=schemas.Token)
+def twofa_verify(
+    payload: schemas.TwoFactorVerifyRequest, db: Session = Depends(get_db)
+):
+
+    user_id = _get_user_id_from_pre_token(payload.pre_auth_token)
+
+    user = db.query(models.Users).filter(models.Users.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    ok = _verify_totp(user, payload.code)
+
+    if not ok:
+        ok = _verify_backup_code(db, user, payload.code)
+
+    if not ok:
+        raise HTTPException(status_code=400, detail="Invalid 2FA code")
 
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
