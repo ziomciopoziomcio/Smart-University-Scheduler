@@ -2,8 +2,9 @@
 Data validation schemas
 """
 
-from typing import Optional, Annotated
+from typing import Optional, Annotated, List
 from datetime import datetime
+import json
 from pydantic import BaseModel, StringConstraints, ConfigDict, EmailStr
 
 
@@ -69,4 +70,27 @@ class LoginRequest(BaseModel):
     email: Annotated[EmailStr, StringConstraints(max_length=255)]
     password: Annotated[str, StringConstraints(max_length=255)]
 
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TwoFactorSetup(BaseSchema):
+    provisioning_uri: str
+    secret: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TwoFactorConfirmRequest(BaseModel):
+    code: Annotated[str, StringConstraints(max_length=20)]
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TwoFactorVerifyRequest(BaseModel):
+    pre_auth_token: str
+    code: Annotated[str, StringConstraints(max_length=20)]
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BackupCodesResponse(BaseModel):
+    backup_codes: List[str]
     model_config = ConfigDict(from_attributes=True)
