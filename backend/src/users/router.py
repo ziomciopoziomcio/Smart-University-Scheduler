@@ -30,7 +30,15 @@ pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+_raw_access_token_expire = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
+try:
+    ACCESS_TOKEN_EXPIRE_MINUTES = int(_raw_access_token_expire)
+except ValueError:
+    logger.error(
+        "Invalid ACCESS_TOKEN_EXPIRE_MINUTES value %r; falling back to default of 60 minutes",
+        _raw_access_token_expire,
+    )
+    ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
