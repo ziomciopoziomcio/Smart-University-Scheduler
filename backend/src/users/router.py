@@ -8,6 +8,12 @@ from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 
+import pyotp
+import secrets
+import hashlib
+import json
+
+
 from . import models, schemas
 from ..database.database import get_db
 from src.common.router_utils import (
@@ -41,7 +47,7 @@ def authenticate_user(db: Session, email: str, password: str) -> models.Users | 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + (
+    expire = datetime.now(timezone.utc) + (
         expires_delta
         if expires_delta is not None
         else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -61,6 +67,8 @@ def get_current_user(
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
+        if payload.get("pre_2fa"):
+            raise credentials_exception
         if user_id is None:
             raise credentials_exception
     except JWTError:
@@ -68,6 +76,24 @@ def get_current_user(
 
     user = _get_or_404(db, models.Users, int(user_id), "User")
     return user
+
+
+def create_pre_auth_token(user_id: int, expires_minutes: int = 5) -> str:
+    data = {"sub": str(user_id), "pre_2fa": True}
+    expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
+    data.update({"exp": int(expire.replace(tzinfo=timezone.utc).timestamp())})
+    return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def _generate_backup_codes(n: int = 8, length: int = 10) -> list[str]:
+    codes: list[str] = []
+    for _ in range(n):
+        codes.append(secrets.token_urlsafe(length)[:length])
+    return codes
+
+
+def _hash_code(code: str) -> str:
+    return hashlib.sha256(code.encode("utf-8")).hexdigest()
 
 
 @router.post("/login", response_model=schemas.Token)
@@ -78,9 +104,13 @@ def login_for_access_token(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    if getattr(user, "two_factor_enabled", False):
+        pre_token = create_pre_auth_token(user.id)
+        return {"access_token": pre_token, "token_type": "pre_auth"}
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -89,6 +119,108 @@ def login_for_access_token(
 @router.get("/me", response_model=schemas.UserRead)
 def read_own_user(current_user: models.Users = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/2fa/setup", response_model=schemas.TwoFactorSetup)
+def twofa_setup(
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    secret = pyotp.random_base32()
+    provisioning_uri = pyotp.totp.TOTP(secret).provisioning_uri(
+        name=current_user.email, issuer_name="Smart University Scheduler"
+    )
+    current_user.two_factor_secret = secret
+    current_user.two_factor_enabled = False
+    db.add(current_user)
+    _commit_or_rollback(db)
+    db.refresh(current_user)
+
+    return {"provisioning_uri": provisioning_uri, "secret": secret}
+
+
+@router.post("/2fa/confirm", response_model=schemas.BackupCodesResponse)
+def twofa_confirm(
+    payload: schemas.TwoFactorConfirmRequest,
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not current_user.two_factor_secret:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="2FA not initialized"
+        )
+
+    totp = pyotp.TOTP(current_user.two_factor_secret)
+    if not totp.verify(payload.code, valid_window=1):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid 2FA code"
+        )
+
+    current_user.two_factor_enabled = True
+    plaintext_codes = _generate_backup_codes(n=8, length=10)
+    hashed = [_hash_code(c) for c in plaintext_codes]
+    current_user.backup_codes = json.dumps(hashed)
+
+    db.add(current_user)
+    _commit_or_rollback(db)
+    db.refresh(current_user)
+
+    return {"backup_codes": plaintext_codes}
+
+
+@router.post("/2fa/verify", response_model=schemas.Token)
+def twofa_verify(
+    payload: schemas.TwoFactorVerifyRequest, db: Session = Depends(get_db)
+):
+    try:
+        token_payload = jwt.decode(
+            payload.pre_auth_token, SECRET_KEY, algorithms=[ALGORITHM]
+        )
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid pre_auth_token"
+        )
+
+    if not token_payload.get("pre_2fa"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token is not a pre-auth token",
+        )
+
+    user_id = token_payload.get("sub")
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
+        )
+
+    user = _get_or_404(db, models.Users, int(user_id), "User")
+
+    ok = False
+
+    if user.two_factor_secret:
+        totp = pyotp.TOTP(user.two_factor_secret)
+        ok = bool(totp.verify(payload.code, valid_window=1))
+
+    if not ok and user.backup_codes:
+        try:
+            hashed_list = json.loads(user.backup_codes)
+            code_hash = _hash_code(payload.code)
+            if code_hash in hashed_list:
+                ok = True
+                hashed_list.remove(code_hash)
+                user.backup_codes = json.dumps(hashed_list)
+                db.add(user)
+                _commit_or_rollback(db)
+        except Exception:
+            pass
+
+    if not ok:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid 2FA code"
+        )
+
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 # Roles
