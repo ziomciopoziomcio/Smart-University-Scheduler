@@ -138,6 +138,7 @@ def twofa_setup(
     )
     current_user.two_factor_secret = secret
     current_user.two_factor_enabled = False
+    current_user.backup_codes = None
     db.add(current_user)
     _commit_or_rollback(db)
     db.refresh(current_user)
