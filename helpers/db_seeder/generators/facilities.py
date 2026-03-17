@@ -1,14 +1,15 @@
+from sqlalchemy.orm import Session
 from backend.src.facilities.models import Campus
 
 
-def generate_campuses(session):
+def generate_campuses(session: Session) -> dict[str, Campus]:
     campuses = [
         {"campus_short": "A", "campus_name": "Kampus A"},
         {"campus_short": "B", "campus_name": "Kampus B"},
         {"campus_short": "C", "campus_name": "Kampus C"},
     ]
 
-    db_campuses = {}
+    db_campuses: dict[str, Campus] = {}
 
     for campus in campuses:
         campus_data = Campus(**campus)
