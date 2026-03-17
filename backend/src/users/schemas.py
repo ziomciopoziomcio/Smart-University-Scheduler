@@ -94,3 +94,7 @@ class TwoFactorVerifyRequest(BaseModel):
 class BackupCodesResponse(BaseModel):
     backup_codes: List[str]
     model_config = ConfigDict(from_attributes=True)
+
+
+class TwoFactorSetupResponse(BaseModel):
+    provisioning_uri: str

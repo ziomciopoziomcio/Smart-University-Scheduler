@@ -136,7 +136,7 @@ def read_own_user(current_user: models.Users = Depends(get_current_user)):
     return current_user
 
 
-@router.post("/2fa/setup", response_model=dict)
+@router.post("/2fa/setup", response_model=schemas.TwoFactorSetupResponse)
 def twofa_setup(
     current_user: models.Users = Depends(get_current_user),
     db: Session = Depends(get_db),
