@@ -3,6 +3,11 @@ from backend.src.facilities.models import Campus, Building
 
 
 def generate_campuses(session: Session) -> dict[str, Campus]:
+    """
+    Generates campuses and adds them to the database session.
+    :param session: database session
+    :return: a dictionary mapping campus short names to Campus objects
+    """
     campuses = [
         {"campus_short": "A", "campus_name": "Kampus A"},
         {"campus_short": "B", "campus_name": "Kampus B"},
@@ -24,6 +29,13 @@ def generate_campuses(session: Session) -> dict[str, Campus]:
 def generate_buildings(
     session: Session, campuses: dict[str, Campus]
 ) -> dict[str, Building]:
+    """
+    Generates buildings and adds them to the database session.
+    NOTE! REMEMBER TO ADD FACULTIES
+    :param session: database session
+    :param campuses: campuses
+    :return: a dictionary mapping campus short names to Building objects
+    """
     buildings_map: dict[str, list[str]] = {
         "A": ["A10", "A11", "A12a", "A12b", "A15"],
         "B": ["B9", "B18", "B19"],
