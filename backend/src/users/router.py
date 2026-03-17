@@ -22,6 +22,8 @@ from src.common.router_utils import (
     _apply_patch_or_reject_nulls,
 )
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/users", tags=["users"])
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -204,6 +206,8 @@ def twofa_verify(
     if not ok and user.backup_codes:
         try:
             hashed_list = json.loads(user.backup_codes)
+            if not isinstance(hashed_list, list):
+                raise ValueError("backup_codes not a list")
             code_hash = _hash_code(payload.code)
             if code_hash in hashed_list:
                 ok = True
@@ -211,8 +215,14 @@ def twofa_verify(
                 user.backup_codes = json.dumps(hashed_list)
                 db.add(user)
                 _commit_or_rollback(db)
-        except Exception:
-            pass
+        except (json.JSONDecodeError, TypeError, ValueError) as exc:
+            logger.exception(
+                "Failed to parse/process backup_codes for user id=%s: %s", user.id, exc
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error processing 2FA backup codes",
+            )
 
     if not ok:
         raise HTTPException(
