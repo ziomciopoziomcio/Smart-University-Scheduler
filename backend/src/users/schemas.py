@@ -61,7 +61,7 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    sub: Optional[int] = None
+    sub: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
 
