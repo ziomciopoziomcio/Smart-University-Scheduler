@@ -15,6 +15,8 @@ from sqlalchemy import (
     Column,
     Integer,
     ForeignKey,
+    Boolean,
+    Text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database.base import Base
@@ -42,6 +44,12 @@ class Users(Base):
     name: Mapped[str] = mapped_column(String(255))
     surname: Mapped[str] = mapped_column(String(255))
     degree: Mapped[str | None] = mapped_column(String(255))
+
+    two_factor_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
+    two_factor_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    backup_codes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     roles: Mapped[list["Roles"]] = relationship(
         secondary=user_roles, back_populates="users"
