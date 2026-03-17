@@ -82,10 +82,11 @@ def get_current_user(
             raise credentials_exception
         if user_id is None:
             raise credentials_exception
-    except JWTError:
+        user_id_int = int(user_id)
+    except (JWTError, ValueError, TypeError):
         raise credentials_exception
 
-    user = db.query(models.Users).filter(models.Users.id == int(user_id)).first()
+    user = db.query(models.Users).filter(models.Users.id == user_id_int).first()
     if user is None:
         raise credentials_exception
     return user
