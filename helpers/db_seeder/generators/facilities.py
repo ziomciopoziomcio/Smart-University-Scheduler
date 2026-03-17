@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
-from backend.src.facilities.models import Campus, Building
+
+from backend.src.facilities.models import Campus, Building, Faculty
 
 
 def generate_campuses(session: Session) -> dict[str, Campus]:
@@ -24,6 +25,28 @@ def generate_campuses(session: Session) -> dict[str, Campus]:
     session.flush()
 
     return db_campuses
+
+
+def generate_faculties(session: Session) -> dict[str, Faculty]:
+    """
+    Generates faculties and adds them to the database session.
+    :param session: database session
+    :return: a dictionary mapping faculty short names to Faculty objects
+    """
+    faculties_data: list[dict[str, str]] = [
+        {
+            "faculty_name": "Wydział Elektrotechniki, Elektroniki, Informatyki i Automatyki",
+            "faculty_short": "WEEIA",
+        }
+    ]
+    db_faculties: dict[str, Faculty] = {}
+    for faculty in faculties_data:
+        faculty_data = Faculty(**faculty)
+        session.add(faculty_data)
+        db_faculties[faculty_data.faculty_short] = faculty_data
+
+    session.flush()
+    return db_faculties
 
 
 def generate_buildings(
