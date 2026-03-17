@@ -51,3 +51,22 @@ class RoleRead(RoleBase):
 
 class RoleUpdate(BaseModel):
     role_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TokenData(BaseModel):
+    sub: Optional[int] = None
+    model_config = ConfigDict(from_attributes=True)
+
+
+class LoginRequest(BaseModel):
+    email: Annotated[EmailStr, StringConstraints(max_length=255)]
+    password: Annotated[str, StringConstraints(max_length=255)]
+
+    model_config = ConfigDict(from_attributes=True)
