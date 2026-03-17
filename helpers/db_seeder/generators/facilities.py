@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from backend.src.facilities.models import Campus
+from backend.src.facilities.models import Campus, Building
 
 
 def generate_campuses(session: Session) -> dict[str, Campus]:
@@ -19,3 +19,26 @@ def generate_campuses(session: Session) -> dict[str, Campus]:
     session.flush()
 
     return db_campuses
+
+
+def generate_buildings(
+    session: Session, campuses: dict[str, Campus]
+) -> dict[str, Building]:
+    buildings_map: dict[str, list[str]] = {
+        "A": ["A10", "A11", "A12a", "A12b", "A15"],
+        "B": ["B9", "B18", "B19"],
+        "C": ["C3", "C6", "C8"],
+    }
+
+    db_buildings: dict[str, Building] = {}
+
+    for campus in campuses.values():
+        target_buildings = buildings_map.get(campus.campus_short, [])
+
+        for building_number in target_buildings:
+            building = Building(building_number=building_number, campus_id=campus.id)
+            session.add(building)
+            db_buildings[building_number] = building
+
+    session.flush()
+    return db_buildings
