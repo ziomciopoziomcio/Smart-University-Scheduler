@@ -113,9 +113,10 @@ def login_for_access_token(
 
     if getattr(user, "two_factor_enabled", False):
         pre_token = create_pre_auth_token(user.id)
-        return {"access_token": pre_token, "token_type": "pre_auth"}
+        return {"access_token": pre_token, "token_type": "bearer", "requires_2fa": True}
+
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "requires_2fa": False}
 
 
 # for tests

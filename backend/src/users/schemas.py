@@ -56,6 +56,7 @@ class RoleUpdate(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    requires_2fa: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
