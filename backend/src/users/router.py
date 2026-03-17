@@ -28,7 +28,22 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/users", tags=["users"])
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
+
+def _get_secret_key() -> str:
+    secret_key = os.getenv("SECRET_KEY")
+    if not secret_key:
+        raise RuntimeError(
+            "SECRET_KEY environment variable must be set and non-empty for JWT signing."
+        )
+    # Reject known insecure default and obviously weak keys.
+    if secret_key == "change-me" or len(secret_key) < 32:
+        raise RuntimeError(
+            "SECRET_KEY is too weak. Please configure a sufficiently long, random secret."
+        )
+    return secret_key
+
+
+SECRET_KEY = _get_secret_key()
 ALGORITHM = "HS256"
 _raw_access_token_expire = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 try:
