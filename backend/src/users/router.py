@@ -29,19 +29,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def _get_secret_key() -> str:
-    key = os.getenv("SECRET_KEY")
-    if key:
-        return key
-
-    if os.getenv("ENV") != "dev":
-        raise RuntimeError(
-            "SECRET_KEY environment variable must be set and non-empty for JWT signing."
-        )
-    return "dev-secret-key"
-
-
-SECRET_KEY = _get_secret_key()
+SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
 ALGORITHM = "HS256"
 _raw_access_token_expire = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 try:
