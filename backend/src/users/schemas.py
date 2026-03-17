@@ -4,7 +4,6 @@ Data validation schemas
 
 from typing import Optional, Annotated, List
 from datetime import datetime
-import json
 from pydantic import BaseModel, StringConstraints, ConfigDict, EmailStr
 
 
