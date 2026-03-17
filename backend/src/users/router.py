@@ -77,7 +77,9 @@ def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user = _get_or_404(db, models.Users, int(user_id), "User")
+    user = db.query(models.Users).filter(models.Users.id == int(user_id)).first()
+    if user is None:
+        raise credentials_exception
     return user
 
 
