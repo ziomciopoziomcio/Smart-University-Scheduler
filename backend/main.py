@@ -17,13 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI):
-    get_secret_key()
-    yield
-
-
-@asynccontextmanager
 async def lifespan(app: FastAPI):
+    get_secret_key()
     max_retries = 5
     producer_started = False
     for _ in range(max_retries):
