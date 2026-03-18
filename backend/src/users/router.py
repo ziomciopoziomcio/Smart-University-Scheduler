@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 
 import pyotp
 import json
-import logging
 
 
 from . import models, schemas
@@ -30,9 +29,8 @@ from .auth import (
     hash_password,
 )
 
-logger = logging.getLogger(__name__)
-
 router = APIRouter(prefix="/users", tags=["users"])
+
 
 
 @router.post("/login", response_model=schemas.Token)
