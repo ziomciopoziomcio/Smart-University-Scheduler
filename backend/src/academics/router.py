@@ -1,5 +1,4 @@
-from typing import List
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -10,9 +9,16 @@ from src.common.router_utils import (
     _apply_patch_or_reject_nulls,
     _get_by_fields_or_404,
 )
+from src.common.pagination.pagination import paginate
+from src.common.pagination.pagination_model import PaginatedResponse
 
 router = APIRouter(prefix="/academics", tags=["academics"])
 
+STUDENT_LIMIT = 100
+EMPLOYEE_LIMIT = 100
+UNIT_LIMIT = 100
+GROUP_LIMIT = 100
+GROUP_MEMBER_LIMIT = 100
 
 # Students
 @router.post(
@@ -26,9 +32,14 @@ def create_student(payload: schemas.StudentCreate, db: Session = Depends(get_db)
     return obj
 
 
-@router.get("/students", response_model=List[schemas.StudentRead])
-def list_students(db: Session = Depends(get_db)):
-    return db.query(models.Students).all()
+@router.get("/students", response_model=PaginatedResponse[schemas.StudentRead])
+def list_students(
+    limit: int | None = Query(STUDENT_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Students)
+    return paginate(query, limit, offset, models.Students.id)
 
 
 @router.get("/students/{student_id}", response_model=schemas.StudentRead)
@@ -70,9 +81,14 @@ def create_employee(payload: schemas.EmployeeCreate, db: Session = Depends(get_d
     return obj
 
 
-@router.get("/employees", response_model=List[schemas.EmployeeRead])
-def list_employees(db: Session = Depends(get_db)):
-    return db.query(models.Employees).all()
+@router.get("/employees", response_model=PaginatedResponse[schemas.EmployeeRead])
+def list_employees(
+    limit: int | None = Query(EMPLOYEE_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Employees)
+    return paginate(query, limit, offset, models.Employees.id)
 
 
 @router.get("/employees/{employee_id}", response_model=schemas.EmployeeRead)
@@ -112,9 +128,14 @@ def create_unit(payload: schemas.UnitsCreate, db: Session = Depends(get_db)):
     return obj
 
 
-@router.get("/units", response_model=List[schemas.UnitsRead])
-def list_units(db: Session = Depends(get_db)):
-    return db.query(models.Units).all()
+@router.get("/units", response_model=PaginatedResponse[schemas.UnitsRead])
+def list_units(
+    limit: int | None = Query(UNIT_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Units)
+    return paginate(query, limit, offset, models.Units.id)
 
 
 @router.get("/units/{unit_id}", response_model=schemas.UnitsRead)
@@ -154,9 +175,14 @@ def create_group(payload: schemas.GroupsCreate, db: Session = Depends(get_db)):
     return obj
 
 
-@router.get("/groups", response_model=List[schemas.GroupsRead])
-def list_groups(db: Session = Depends(get_db)):
-    return db.query(models.Groups).all()
+@router.get("/groups", response_model=PaginatedResponse[schemas.GroupsRead])
+def list_groups(
+    limit: int | None = Query(GROUP_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Groups)
+    return paginate(query, limit, offset, models.Groups.id)
 
 
 @router.get("/groups/{group_id}", response_model=schemas.GroupsRead)
@@ -202,9 +228,17 @@ def create_group_member(
     return obj
 
 
-@router.get("/group-members", response_model=List[schemas.GroupMembersRead])
-def list_group_members(db: Session = Depends(get_db)):
-    return db.query(models.Group_members).all()
+@router.get(
+    "/group-members",
+    response_model=PaginatedResponse[schemas.GroupMembersRead],
+)
+def list_group_members(
+    limit: int | None = Query(GROUP_MEMBER_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Group_members)
+    return paginate(query, limit, offset, models.Group_members.id)
 
 
 @router.get(

@@ -1,5 +1,4 @@
-from typing import List
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -9,9 +8,15 @@ from src.common.router_utils import (
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
 )
+from src.common.pagination.pagination import paginate
+from src.common.pagination.pagination_model import PaginatedResponse
 
 router = APIRouter(prefix="/facilities", tags=["facilities"])
 
+CAMPUS_LIMIT = 100
+BUILDING_LIMIT = 100
+ROOM_LIMIT = 100
+FACULTY_LIMIT = 100
 
 # Campuses
 @router.post(
@@ -25,9 +30,14 @@ def create_campus(payload: schemas.CampusCreate, db: Session = Depends(get_db)):
     return new_campus
 
 
-@router.get("/campuses", response_model=List[schemas.CampusRead])
-def list_campuses(db: Session = Depends(get_db)):
-    return db.query(models.Campus).all()
+@router.get("/campuses", response_model=PaginatedResponse[schemas.CampusRead])
+def list_campuses(
+    limit: int | None = Query(CAMPUS_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Campus)
+    return paginate(query, limit, offset, models.Campus.id)
 
 
 @router.get("/campuses/{campus_id}", response_model=schemas.CampusRead)
@@ -69,9 +79,14 @@ def create_building(payload: schemas.BuildingCreate, db: Session = Depends(get_d
     return new_building
 
 
-@router.get("/buildings", response_model=List[schemas.BuildingRead])
-def list_buildings(db: Session = Depends(get_db)):
-    return db.query(models.Building).all()
+@router.get("/buildings", response_model=PaginatedResponse[schemas.BuildingRead])
+def list_buildings(
+    limit: int | None = Query(BUILDING_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Building)
+    return paginate(query, limit, offset, models.Building.id)
 
 
 @router.get("/buildings/{building_id}", response_model=schemas.BuildingRead)
@@ -111,9 +126,14 @@ def create_room(payload: schemas.RoomCreate, db: Session = Depends(get_db)):
     return new_room
 
 
-@router.get("/rooms", response_model=List[schemas.RoomRead])
-def list_rooms(db: Session = Depends(get_db)):
-    return db.query(models.Room).all()
+@router.get("/rooms", response_model=PaginatedResponse[schemas.RoomRead])
+def list_rooms(
+    limit: int | None = Query(ROOM_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Room)
+    return paginate(query, limit, offset, models.Room.id)
 
 
 @router.get("/rooms/{room_id}", response_model=schemas.RoomRead)
@@ -155,9 +175,14 @@ def create_faculty(payload: schemas.FacultyCreate, db: Session = Depends(get_db)
     return new_faculty
 
 
-@router.get("/faculties", response_model=List[schemas.FacultyRead])
-def list_faculties(db: Session = Depends(get_db)):
-    return db.query(models.Faculty).all()
+@router.get("/faculties", response_model=PaginatedResponse[schemas.FacultyRead])
+def list_faculties(
+    limit: int | None = Query(FACULTY_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Faculty)
+    return paginate(query, limit, offset, models.Faculty.id)
 
 
 @router.get("/faculties/{faculty_id}", response_model=schemas.FacultyRead)

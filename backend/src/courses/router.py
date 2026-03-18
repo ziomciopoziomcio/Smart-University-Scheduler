@@ -1,5 +1,4 @@
-from typing import List
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -10,9 +9,19 @@ from src.common.router_utils import (
     _apply_patch_or_reject_nulls,
     _get_by_fields_or_404,
 )
+from src.common.pagination.pagination import paginate
+from src.common.pagination.pagination_model import PaginatedResponse
 
 router = APIRouter(prefix="/course", tags=["course"])
 
+STUDY_FIELD_LIMIT = 100
+MAJOR_LIMIT = 100
+ELECTIVE_BLOCK_LIMIT = 100
+COURSE_TYPE_LIMIT = 100
+COURSE_INSTRUCTOR_LIMIT = 100
+COURSE_LIMIT = 100
+STUDY_PROGRAM_LIMIT = 100
+CURRICULUM_LIMIT = 100
 
 # Study Fields
 @router.post(
@@ -30,9 +39,14 @@ def create_study_field(
     return obj
 
 
-@router.get("/study-fields", response_model=List[schemas.StudyFieldRead])
-def list_study_fields(db: Session = Depends(get_db)):
-    return db.query(models.Study_fields).all()
+@router.get("/study-fields", response_model=PaginatedResponse[schemas.StudyFieldRead])
+def list_study_fields(
+    limit: int | None = Query(STUDY_FIELD_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Study_fields)
+    return paginate(query, limit, offset, models.Study_fields.id)
 
 
 @router.get("/study-fields/{field_id}", response_model=schemas.StudyFieldRead)
@@ -72,9 +86,14 @@ def create_major(payload: schemas.MajorCreate, db: Session = Depends(get_db)):
     return obj
 
 
-@router.get("/majors", response_model=List[schemas.MajorRead])
-def list_majors(db: Session = Depends(get_db)):
-    return db.query(models.Major).all()
+@router.get("/majors", response_model=PaginatedResponse[schemas.MajorRead])
+def list_majors(
+    limit: int | None = Query(MAJOR_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Major)
+    return paginate(query, limit, offset, models.Major.id)
 
 
 @router.get("/majors/{major_id}", response_model=schemas.MajorRead)
@@ -118,9 +137,17 @@ def create_elective_block(
     return obj
 
 
-@router.get("/elective-blocks", response_model=List[schemas.ElectiveBlockRead])
-def list_elective_blocks(db: Session = Depends(get_db)):
-    return db.query(models.Elective_block).all()
+@router.get(
+    "/elective-blocks",
+    response_model=PaginatedResponse[schemas.ElectiveBlockRead],
+)
+def list_elective_blocks(
+    limit: int | None = Query(ELECTIVE_BLOCK_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Elective_block)
+    return paginate(query, limit, offset, models.Elective_block.id)
 
 
 @router.get("/elective-blocks/{block_id}", response_model=schemas.ElectiveBlockRead)
@@ -164,9 +191,14 @@ def create_course_type(
     return obj
 
 
-@router.get("/types", response_model=List[schemas.CourseTypeDetailRead])
-def list_course_types(db: Session = Depends(get_db)):
-    return db.query(models.Course_type_detail).all()
+@router.get("/types", response_model=PaginatedResponse[schemas.CourseTypeDetailRead])
+def list_course_types(
+    limit: int | None = Query(COURSE_TYPE_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Course_type_detail)
+    return paginate(query, limit, offset, models.Course_type_detail.id)
 
 
 @router.get("/types/{course}/{class_type}", response_model=schemas.CourseTypeDetailRead)
@@ -237,9 +269,17 @@ def create_course_instructor(
     return obj
 
 
-@router.get("/instructors", response_model=List[schemas.CourseInstructorRead])
-def list_course_instructors(db: Session = Depends(get_db)):
-    return db.query(models.Courses_instructors).all()
+@router.get(
+    "/instructors",
+    response_model=PaginatedResponse[schemas.CourseInstructorRead],
+)
+def list_course_instructors(
+    limit: int | None = Query(COURSE_INSTRUCTOR_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Courses_instructors)
+    return paginate(query, limit, offset, models.Courses_instructors.id)
 
 
 @router.get(
@@ -323,9 +363,14 @@ def create_course(payload: schemas.CourseCreate, db: Session = Depends(get_db)):
     return obj
 
 
-@router.get("/", response_model=List[schemas.CourseRead])
-def list_courses(db: Session = Depends(get_db)):
-    return db.query(models.Course).all()
+@router.get("/", response_model=PaginatedResponse[schemas.CourseRead])
+def list_courses(
+    limit: int | None = Query(COURSE_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Course)
+    return paginate(query, limit, offset, models.Course.course_code)
 
 
 @router.get("/{course_code}", response_model=schemas.CourseRead)
@@ -355,6 +400,7 @@ def delete_course(course_code: int, db: Session = Depends(get_db)):
     return None
 
 
+# Study Programs
 @router.post(
     "/study-programs",
     response_model=schemas.StudyProgramRead,
@@ -370,9 +416,17 @@ def create_study_program(
     return obj
 
 
-@router.get("/study-programs", response_model=List[schemas.StudyProgramRead])
-def list_study_programs(db: Session = Depends(get_db)):
-    return db.query(models.Study_program).all()
+@router.get(
+    "/study-programs",
+    response_model=PaginatedResponse[schemas.StudyProgramRead],
+)
+def list_study_programs(
+    limit: int | None = Query(STUDY_PROGRAM_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Study_program)
+    return paginate(query, limit, offset, models.Study_program.id)
 
 
 @router.get("/study-programs/{program_id}", response_model=schemas.StudyProgramRead)
@@ -416,9 +470,16 @@ def create_curriculum_course(
     return obj
 
 
-@router.get("/curriculum", response_model=List[schemas.CurriculumCourseRead])
-def list_curriculum(db: Session = Depends(get_db)):
-    return db.query(models.Curriculum_course).all()
+@router.get(
+    "/curriculum", response_model=PaginatedResponse[schemas.CurriculumCourseRead]
+)
+def list_curriculum(
+    limit: int | None = Query(CURRICULUM_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Curriculum_course)
+    return paginate(query, limit, offset, models.Curriculum_course.id)
 
 
 @router.get(
