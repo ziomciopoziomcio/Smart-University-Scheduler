@@ -161,11 +161,16 @@ def create_role(payload: schemas.RoleCreate, db: Session = Depends(get_db)):
 
 @router.get("/roles", response_model=PaginatedResponse[schemas.RoleRead])
 def list_roles(
+    role_name: str | None = Query(None, min_length=1),
     limit: int | None = Query(ROLE_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Roles)
+
+    if role_name is not None:
+        query = query.filter(models.Roles.role_name.ilike(f"%{role_name}%"))
+
     return paginate(query, limit, offset, models.Roles.id)
 
 
@@ -208,11 +213,28 @@ def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
 
 @router.get("/", response_model=PaginatedResponse[schemas.UserRead])
 def list_users(
+    email: str | None = Query(None, min_length=1),
+    phone_number: str | None = Query(None, min_length=1),
+    name: str | None = Query(None, min_length=1),
+    surname: str | None = Query(None, min_length=1),
+    degree: str | None = Query(None, min_length=1),
     limit: int | None = Query(USER_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Users)
+
+    if email is not None:
+        query = query.filter(models.Users.email.ilike(f"%{email}%"))
+    if phone_number is not None:
+        query = query.filter(models.Users.phone_number.ilike(f"%{phone_number}%"))
+    if name is not None:
+        query = query.filter(models.Users.name.ilike(f"%{name}%"))
+    if surname is not None:
+        query = query.filter(models.Users.surname.ilike(f"%{surname}%"))
+    if degree is not None:
+        query = query.filter(models.Users.degree.ilike(f"%{degree}%"))
+
     return paginate(query, limit, offset, models.Users.id)
 
 

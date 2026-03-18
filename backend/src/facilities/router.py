@@ -33,11 +33,19 @@ def create_campus(payload: schemas.CampusCreate, db: Session = Depends(get_db)):
 
 @router.get("/campuses", response_model=PaginatedResponse[schemas.CampusRead])
 def list_campuses(
+    campus_name: str | None = Query(None, min_length=1),
+    campus_short: str | None = Query(None, min_length=1),
     limit: int | None = Query(CAMPUS_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Campus)
+
+    if campus_name is not None:
+        query = query.filter(models.Campus.campus_name.ilike(f"%{campus_name}%"))
+    if campus_short is not None:
+        query = query.filter(models.Campus.campus_short.ilike(f"%{campus_short}%"))
+
     return paginate(query, limit, offset, models.Campus.id)
 
 
@@ -82,11 +90,24 @@ def create_building(payload: schemas.BuildingCreate, db: Session = Depends(get_d
 
 @router.get("/buildings", response_model=PaginatedResponse[schemas.BuildingRead])
 def list_buildings(
+    campus_id: int | None = Query(None),
+    building_name: str | None = Query(None, min_length=1),
+    building_number: str | None = Query(None, min_length=1),
     limit: int | None = Query(BUILDING_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Building)
+
+    if campus_id is not None:
+        query = query.filter(models.Building.campus_id == campus_id)
+    if building_name is not None:
+        query = query.filter(models.Building.building_name.ilike(f"%{building_name}%"))
+    if building_number is not None:
+        query = query.filter(
+            models.Building.building_number.ilike(f"%{building_number}%")
+        )
+
     return paginate(query, limit, offset, models.Building.id)
 
 
@@ -129,11 +150,42 @@ def create_room(payload: schemas.RoomCreate, db: Session = Depends(get_db)):
 
 @router.get("/rooms", response_model=PaginatedResponse[schemas.RoomRead])
 def list_rooms(
+    building_id: int | None = Query(None),
+    faculty_id: int | None = Query(None),
+    unit_id: int | None = Query(None),
+    room_name: str | None = Query(None, min_length=1),
+    projector_availability: bool | None = Query(None),
+    min_pc_amount: int | None = Query(None, ge=0),
+    max_pc_amount: int | None = Query(None, ge=0),
+    min_room_capacity: int | None = Query(None, gt=0),
+    max_room_capacity: int | None = Query(None, gt=0),
     limit: int | None = Query(ROOM_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Room)
+
+    if building_id is not None:
+        query = query.filter(models.Room.building_id == building_id)
+    if faculty_id is not None:
+        query = query.filter(models.Room.faculty_id == faculty_id)
+    if unit_id is not None:
+        query = query.filter(models.Room.unit_id == unit_id)
+    if room_name is not None:
+        query = query.filter(models.Room.room_name.ilike(f"%{room_name}%"))
+    if projector_availability is not None:
+        query = query.filter(
+            models.Room.projector_availability == projector_availability
+        )
+    if min_pc_amount is not None:
+        query = query.filter(models.Room.pc_amount >= min_pc_amount)
+    if max_pc_amount is not None:
+        query = query.filter(models.Room.pc_amount <= max_pc_amount)
+    if min_room_capacity is not None:
+        query = query.filter(models.Room.room_capacity >= min_room_capacity)
+    if max_room_capacity is not None:
+        query = query.filter(models.Room.room_capacity <= max_room_capacity)
+
     return paginate(query, limit, offset, models.Room.id)
 
 
@@ -178,11 +230,19 @@ def create_faculty(payload: schemas.FacultyCreate, db: Session = Depends(get_db)
 
 @router.get("/faculties", response_model=PaginatedResponse[schemas.FacultyRead])
 def list_faculties(
+    faculty_name: str | None = Query(None, min_length=1),
+    faculty_short: str | None = Query(None, min_length=1),
     limit: int | None = Query(FACULTY_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Faculty)
+
+    if faculty_name is not None:
+        query = query.filter(models.Faculty.faculty_name.ilike(f"%{faculty_name}%"))
+    if faculty_short is not None:
+        query = query.filter(models.Faculty.faculty_short.ilike(f"%{faculty_short}%"))
+
     return paginate(query, limit, offset, models.Faculty.id)
 
 

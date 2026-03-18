@@ -35,11 +35,22 @@ def create_student(payload: schemas.StudentCreate, db: Session = Depends(get_db)
 
 @router.get("/students", response_model=PaginatedResponse[schemas.StudentRead])
 def list_students(
+    user_id: int | None = Query(None),
+    study_program: int | None = Query(None),
+    major: int | None = Query(None),
     limit: int | None = Query(STUDENT_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Students)
+
+    if user_id is not None:
+        query = query.filter(models.Students.user_id == user_id)
+    if study_program is not None:
+        query = query.filter(models.Students.study_program == study_program)
+    if major is not None:
+        query = query.filter(models.Students.major == major)
+
     return paginate(query, limit, offset, models.Students.id)
 
 
@@ -84,11 +95,22 @@ def create_employee(payload: schemas.EmployeeCreate, db: Session = Depends(get_d
 
 @router.get("/employees", response_model=PaginatedResponse[schemas.EmployeeRead])
 def list_employees(
+    user_id: int | None = Query(None),
+    faculty_id: int | None = Query(None),
+    unit_id: int | None = Query(None),
     limit: int | None = Query(EMPLOYEE_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Employees)
+
+    if user_id is not None:
+        query = query.filter(models.Employees.user_id == user_id)
+    if faculty_id is not None:
+        query = query.filter(models.Employees.faculty_id == faculty_id)
+    if unit_id is not None:
+        query = query.filter(models.Employees.unit_id == unit_id)
+
     return paginate(query, limit, offset, models.Employees.id)
 
 
@@ -131,11 +153,22 @@ def create_unit(payload: schemas.UnitsCreate, db: Session = Depends(get_db)):
 
 @router.get("/units", response_model=PaginatedResponse[schemas.UnitsRead])
 def list_units(
+    faculty_id: int | None = Query(None),
+    unit_name: str | None = Query(None, min_length=1),
+    unit_short: str | None = Query(None, min_length=1),
     limit: int | None = Query(UNIT_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Units)
+
+    if faculty_id is not None:
+        query = query.filter(models.Units.faculty_id == faculty_id)
+    if unit_name is not None:
+        query = query.filter(models.Units.unit_name.ilike(f"%{unit_name}%"))
+    if unit_short is not None:
+        query = query.filter(models.Units.unit_short.ilike(f"%{unit_short}%"))
+
     return paginate(query, limit, offset, models.Units.id)
 
 
@@ -178,11 +211,25 @@ def create_group(payload: schemas.GroupsCreate, db: Session = Depends(get_db)):
 
 @router.get("/groups", response_model=PaginatedResponse[schemas.GroupsRead])
 def list_groups(
+    study_program: int | None = Query(None),
+    major: int | None = Query(None),
+    elective_block: int | None = Query(None),
+    group_name: str | None = Query(None, min_length=1),
     limit: int | None = Query(GROUP_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Groups)
+
+    if study_program is not None:
+        query = query.filter(models.Groups.study_program == study_program)
+    if major is not None:
+        query = query.filter(models.Groups.major == major)
+    if elective_block is not None:
+        query = query.filter(models.Groups.elective_block == elective_block)
+    if group_name is not None:
+        query = query.filter(models.Groups.group_name.ilike(f"%{group_name}%"))
+
     return paginate(query, limit, offset, models.Groups.id)
 
 
@@ -234,11 +281,19 @@ def create_group_member(
     response_model=PaginatedResponse[schemas.GroupMembersRead],
 )
 def list_group_members(
+    group: int | None = Query(None),
+    student: int | None = Query(None),
     limit: int | None = Query(GROUP_MEMBER_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Group_members)
+
+    if group is not None:
+        query = query.filter(models.Group_members.group == group)
+    if student is not None:
+        query = query.filter(models.Group_members.student == student)
+
     return paginate(query, limit, offset, models.Group_members.id)
 
 
