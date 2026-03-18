@@ -15,10 +15,12 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     get_secret_key()
     yield
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -44,6 +46,7 @@ async def lifespan(app: FastAPI):
             await kafka_manager.producer.stop()
     except Exception as e:
         logger.exception(f"Error during Kafka producer stop: {e}")
+
 
 app = FastAPI(
     title="Smart University Scheduler API",
