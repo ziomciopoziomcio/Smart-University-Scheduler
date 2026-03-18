@@ -27,7 +27,7 @@ from .auth import (
     _verify_totp,
     _verify_backup_code,
     hash_password,
-    verify_2fa_code
+    verify_2fa_code,
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -123,6 +123,9 @@ def twofa_verify(
     user = db.query(models.Users).filter(models.Users.id == user_id).first()
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not user.two_factor_enabled or not user.two_factor_secret:
+        raise HTTPException(status_code=400, detail="2FA is not enabled for this user")
 
     ok = verify_2fa_code(db, user, payload.code)
 
