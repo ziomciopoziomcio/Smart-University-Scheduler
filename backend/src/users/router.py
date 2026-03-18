@@ -1,16 +1,10 @@
-import os
-from datetime import datetime, timedelta, timezone
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import jwt, JWTError
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
 
 import pyotp
-import secrets
-import hashlib
 import json
 import logging
 
@@ -23,92 +17,22 @@ from src.common.router_utils import (
     _apply_patch_or_reject_nulls,
 )
 
+from .auth import (
+    authenticate_user,
+    create_access_token,
+    create_pre_auth_token,
+    get_current_user,
+    _generate_backup_codes,
+    _hash_code,
+    _get_user_id_from_pre_token,
+    _verify_totp,
+    _verify_backup_code,
+    hash_password,
+)
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/users", tags=["users"])
-pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
-ALGORITHM = "HS256"
-_raw_access_token_expire = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
-try:
-    ACCESS_TOKEN_EXPIRE_MINUTES = int(_raw_access_token_expire)
-except ValueError:
-    logger.error(
-        "Invalid ACCESS_TOKEN_EXPIRE_MINUTES value %r; falling back to default of 60 minutes",
-        _raw_access_token_expire,
-    )
-    ACCESS_TOKEN_EXPIRE_MINUTES = 60
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_ctx.verify(plain_password, hashed_password)
-
-
-def authenticate_user(db: Session, email: str, password: str) -> models.Users | None:
-    user = db.query(models.Users).filter(models.Users.email == email).first()
-    if not user:
-        return None
-    if not verify_password(password, user.password_hash):
-        return None
-    return user
-
-
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (
-        expires_delta
-        if expires_delta is not None
-        else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
-    to_encode.update({"exp": int(expire.replace(tzinfo=timezone.utc).timestamp())})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-
-def get_current_user(
-    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
-) -> models.Users:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("sub")
-        if payload.get("pre_2fa"):
-            raise credentials_exception
-        if user_id is None:
-            raise credentials_exception
-        user_id_int = int(user_id)
-    except (JWTError, ValueError, TypeError):
-        raise credentials_exception
-
-    user = db.query(models.Users).filter(models.Users.id == user_id_int).first()
-    if user is None:
-        raise credentials_exception
-    return user
-
-
-def create_pre_auth_token(user_id: int, expires_minutes: int = 5) -> str:
-    data = {"sub": str(user_id), "pre_2fa": True}
-    expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
-    data.update({"exp": int(expire.replace(tzinfo=timezone.utc).timestamp())})
-    return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
-
-
-def _generate_backup_codes(n: int = 8, length: int = 10) -> list[str]:
-    codes: list[str] = []
-    for _ in range(n):
-        codes.append(secrets.token_urlsafe(length)[:length])
-    return codes
-
-
-def _hash_code(code: str) -> str:
-    return hashlib.sha256(code.encode("utf-8")).hexdigest()
 
 
 @router.post("/login", response_model=schemas.Token)
@@ -185,59 +109,6 @@ def twofa_confirm(
     return {"backup_codes": plaintext_codes}
 
 
-# helpers for twofa_verify:
-def _get_user_id_from_pre_token(token: str) -> int:
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-
-        if not payload.get("pre_2fa"):
-            raise ValueError("Not a pre-auth token")
-
-        user_id = payload.get("sub")
-        if user_id is None:
-            raise ValueError("Missing sub")
-
-        return int(user_id)
-
-    except (JWTError, ValueError, TypeError):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid pre_auth_token",
-        )
-
-
-def _verify_totp(user: models.Users, code: str) -> bool:
-    if not user.two_factor_secret:
-        return False
-
-    totp = pyotp.TOTP(user.two_factor_secret)
-    return bool(totp.verify(code, valid_window=1))
-
-
-def _verify_backup_code(db: Session, user: models.Users, code: str) -> bool:
-    if not user.backup_codes:
-        return False
-
-    locked_user = (
-        db.query(models.Users)
-        .filter(models.Users.id == user.id)
-        .with_for_update()
-        .one()
-    )
-
-    hashed_list = json.loads(locked_user.backup_codes or "[]")
-    code_hash = _hash_code(code)
-
-    if code_hash in hashed_list:
-        hashed_list.remove(code_hash)
-        locked_user.backup_codes = json.dumps(hashed_list)
-        db.add(locked_user)
-        _commit_or_rollback(db)
-        return True
-
-    return False
-
-
 @router.post("/2fa/verify", response_model=schemas.Token)
 def twofa_verify(
     payload: schemas.TwoFactorVerifyRequest, db: Session = Depends(get_db)
@@ -307,7 +178,7 @@ def delete_role(role_id: int, db: Session = Depends(get_db)):
 @router.post("/", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED)
 def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
     data = payload.model_dump()
-    data["password_hash"] = pwd_ctx.hash(data.pop("password"))
+    data["password_hash"] = hash_password(data.pop("password"))
     obj = models.Users(**data)
     db.add(obj)
     _commit_or_rollback(db)
@@ -337,7 +208,7 @@ def update_user(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="`password` cannot be set to null when provided",
             )
-        obj.password_hash = pwd_ctx.hash(payload.password)
+        obj.password_hash = hash_password(payload.password)
 
     _apply_patch_or_reject_nulls(
         obj, payload, nullable_fields={"phone_number", "degree"}, exclude={"password"}
