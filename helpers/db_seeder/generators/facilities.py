@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
-from backend.src.facilities.models import Campus, Building, Faculty
+from backend.src.academics.models import Units
+from backend.src.facilities.models import Campus, Building, Faculty, Room
 
 
 def generate_campuses(session: Session) -> dict[str, Campus]:
@@ -77,3 +78,57 @@ def generate_buildings(
 
     session.flush()
     return db_buildings
+
+
+def generate_rooms(
+    session: Session,
+    faculties: dict[str, Faculty],
+    units: dict[str, Units],
+    buildings: dict[str, Building],
+) -> dict[str, Room]:
+    """
+    Generates rooms and adds them to the database session.
+    :param session: database session
+    :param faculties: faculties
+    :param units: units
+    :param buildings: buildings
+    :return: a dictionary mapping rooms short names to Room objects
+    """
+    room_map: list[dict[str, any]] = [
+        {
+            "room_name": "",
+            "projector_availability": False,
+            "pc_amount": 0,
+            "room_capacity": 15,
+            "building_short": "",
+            "faculty_short": "WEEIA",
+            "unit_short": "",
+        },  # Currently, it's just a template
+    ]
+    db_rooms: dict[str, Room] = {}
+
+    for room in room_map:
+        target_faculty = faculties.get(room.get("faculty_short"))
+        if not target_faculty:
+            print("Wrong faculty short")
+            continue
+        target_building = buildings.get(room.get("building_short"))
+        if not target_building:
+            print("Wrong building short")
+            continue
+        target_unit = None
+        unit_short = room.get("unit_short")
+        if unit_short:
+            target_unit = units.get(unit_short)
+
+        new_room = Room(
+            room_name=room.get("room_name"),
+            projector_availability=room.get("projector_availability"),
+            pc_amount=room.get("pc_amount"),
+            room_capacity=room.get("room_capacity"),
+            building_id=target_building.id,
+            faculty_id=target_faculty.id,
+            unit_id=target_unit.id if target_unit else None,
+        )
+        session.add(new_room)
+        db_rooms[room["room_name"]] = new_room
