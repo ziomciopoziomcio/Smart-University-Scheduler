@@ -79,7 +79,10 @@ def twofa_setup(
     _commit_or_rollback(db)
     db.refresh(current_user)
 
-    return {"provisioning_uri": provisioning_uri}
+    return {
+        "provisioning_uri": provisioning_uri,
+        "secret": secret,
+    }
 
 
 @router.post("/2fa/confirm", response_model=schemas.BackupCodesResponse)

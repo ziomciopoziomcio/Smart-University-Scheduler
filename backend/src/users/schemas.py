@@ -98,3 +98,4 @@ class BackupCodesResponse(BaseModel):
 
 class TwoFactorSetupResponse(BaseModel):
     provisioning_uri: str
+    secret: str
