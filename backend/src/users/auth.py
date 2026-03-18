@@ -49,7 +49,7 @@ def get_secret_key() -> str:
         raise RuntimeError(
             "SECRET_KEY environment variable must be set and non-empty for JWT signing."
         )
-    if secret_key == "change-me" or len(secret_key) < 32:
+    if len(secret_key) < 32:
         raise RuntimeError(
             "SECRET_KEY is too weak. Please configure a sufficiently long, random secret."
         )
