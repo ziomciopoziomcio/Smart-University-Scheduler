@@ -88,8 +88,10 @@ services:
       DB_NAME: ${DB_NAME}
       #NEO4J_HOST: ${NEO4J_HOST}
       CORS_ORIGINS: ${CORS_ORIGINS}
+      KAFKA_URL: "kafka:29092"
     depends_on:
       - postgres
+      - kafka
     ports:
       - "3000:3000"
     volumes:
