@@ -42,6 +42,7 @@ def authenticate_user(db: Session, email: str, password: str) -> models.Users | 
 # --- JWT config ---
 ALGORITHM = "HS256"
 
+
 def get_secret_key() -> str:
     secret_key = os.getenv("SECRET_KEY")
     if not secret_key:

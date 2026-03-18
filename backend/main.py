@@ -15,9 +15,11 @@ app = FastAPI(
     version="v.0.0.1-alpha",
 )
 
+
 @app.on_event("startup")
 def validate_security_settings() -> None:
     get_secret_key()
+
 
 origins = [
     origin.strip()
