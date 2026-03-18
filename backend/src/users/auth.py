@@ -40,8 +40,20 @@ def authenticate_user(db: Session, email: str, password: str) -> models.Users | 
 
 
 # --- JWT config ---
-SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
 ALGORITHM = "HS256"
+
+def get_secret_key() -> str:
+    secret_key = os.getenv("SECRET_KEY")
+    if not secret_key:
+        raise RuntimeError(
+            "SECRET_KEY environment variable must be set and non-empty for JWT signing."
+        )
+    if secret_key == "change-me" or len(secret_key) < 32:
+        raise RuntimeError(
+            "SECRET_KEY is too weak. Please configure a sufficiently long, random secret."
+        )
+    return secret_key
+
 
 _raw_access_token_expire = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
 try:
@@ -66,14 +78,14 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
         else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     to_encode.update({"exp": int(expire.replace(tzinfo=timezone.utc).timestamp())})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(to_encode, get_secret_key(), algorithm=ALGORITHM)
 
 
 def create_pre_auth_token(user_id: int, expires_minutes: int = 5) -> str:
     data = {"sub": str(user_id), "pre_2fa": True}
     expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
     data.update({"exp": int(expire.replace(tzinfo=timezone.utc).timestamp())})
-    return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(data, get_secret_key(), algorithm=ALGORITHM)
 
 
 def get_current_user(
@@ -85,7 +97,7 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, get_secret_key(), algorithms=[ALGORITHM])
         user_id = payload.get("sub")
         if payload.get("pre_2fa"):
             raise credentials_exception
@@ -115,7 +127,7 @@ def _hash_code(code: str) -> str:
 
 def _get_user_id_from_pre_token(token: str) -> int:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, get_secret_key(), algorithms=[ALGORITHM])
 
         if not payload.get("pre_2fa"):
             raise ValueError("Not a pre-auth token")
