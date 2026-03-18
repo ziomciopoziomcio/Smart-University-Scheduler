@@ -8,6 +8,7 @@ from src.common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
+    _get_by_fields_or_404,
 )
 
 router = APIRouter(prefix="/course", tags=["course"])
@@ -168,18 +169,35 @@ def list_course_types(db: Session = Depends(get_db)):
     return db.query(models.Course_type_detail).all()
 
 
-@router.get("/types/{type_id}", response_model=schemas.CourseTypeDetailRead)
-def get_course_type(type_id: int, db: Session = Depends(get_db)):
-    return _get_or_404(db, models.Course_type_detail, type_id, "Course Type")
+@router.get("/types/{course}/{class_type}", response_model=schemas.CourseTypeDetailRead)
+def get_course_type(
+    course: int, class_type: schemas.ClassType, db: Session = Depends(get_db)
+):
+    return _get_by_fields_or_404(
+        db,
+        models.Course_type_detail,
+        "Course Type",
+        course=course,
+        class_type=class_type,
+    )
 
 
-@router.patch("/types/{type_id}", response_model=schemas.CourseTypeDetailRead)
+@router.patch(
+    "/types/{course}/{class_type}", response_model=schemas.CourseTypeDetailRead
+)
 def update_course_type(
-    type_id: int,
+    course: int,
+    class_type: schemas.ClassType,
     payload: schemas.CourseTypeDetailUpdate,
     db: Session = Depends(get_db),
 ):
-    obj = _get_or_404(db, models.Course_type_detail, type_id, "Course Type")
+    obj = _get_by_fields_or_404(
+        db,
+        models.Course_type_detail,
+        "Course Type",
+        course=course,
+        class_type=class_type,
+    )
     _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
     _commit_or_rollback(db)
@@ -187,9 +205,17 @@ def update_course_type(
     return obj
 
 
-@router.delete("/types/{type_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_course_type(type_id: int, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.Course_type_detail, type_id, "Course Type")
+@router.delete("/types/{course}/{class_type}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_course_type(
+    course: int, class_type: schemas.ClassType, db: Session = Depends(get_db)
+):
+    obj = _get_by_fields_or_404(
+        db,
+        models.Course_type_detail,
+        "Course Type",
+        course=course,
+        class_type=class_type,
+    )
     db.delete(obj)
     _commit_or_rollback(db)
     return None
@@ -216,23 +242,44 @@ def list_course_instructors(db: Session = Depends(get_db)):
     return db.query(models.Courses_instructors).all()
 
 
-@router.get("/instructors/{instructor_id}", response_model=schemas.CourseInstructorRead)
-def get_course_instructor(instructor_id: int, db: Session = Depends(get_db)):
-    return _get_or_404(
-        db, models.Courses_instructors, instructor_id, "Course Instructor"
+@router.get(
+    "/instructors/{employee}/{course}/{class_type}",
+    response_model=schemas.CourseInstructorRead,
+)
+def get_course_instructor(
+    employee: int,
+    course: int,
+    class_type: schemas.ClassType,
+    db: Session = Depends(get_db),
+):
+    return _get_by_fields_or_404(
+        db,
+        models.Courses_instructors,
+        "Course Instructor",
+        employee=employee,
+        course=course,
+        class_type=class_type,
     )
 
 
 @router.patch(
-    "/instructors/{instructor_id}", response_model=schemas.CourseInstructorRead
+    "/instructors/{employee}/{course}/{class_type}",
+    response_model=schemas.CourseInstructorRead,
 )
 def update_course_instructor(
-    instructor_id: int,
+    employee: int,
+    course: int,
+    class_type: schemas.ClassType,
     payload: schemas.CourseInstructorUpdate,
     db: Session = Depends(get_db),
 ):
-    obj = _get_or_404(
-        db, models.Courses_instructors, instructor_id, "Course Instructor"
+    obj = _get_by_fields_or_404(
+        db,
+        models.Courses_instructors,
+        "Course Instructor",
+        employee=employee,
+        course=course,
+        class_type=class_type,
     )
     _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
@@ -241,10 +288,23 @@ def update_course_instructor(
     return obj
 
 
-@router.delete("/instructors/{instructor_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_course_instructor(instructor_id: int, db: Session = Depends(get_db)):
-    obj = _get_or_404(
-        db, models.Courses_instructors, instructor_id, "Course Instructor"
+@router.delete(
+    "/instructors/{employee}/{course}/{class_type}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_course_instructor(
+    employee: int,
+    course: int,
+    class_type: schemas.ClassType,
+    db: Session = Depends(get_db),
+):
+    obj = _get_by_fields_or_404(
+        db,
+        models.Courses_instructors,
+        "Course Instructor",
+        employee=employee,
+        course=course,
+        class_type=class_type,
     )
     db.delete(obj)
     _commit_or_rollback(db)
@@ -269,13 +329,13 @@ def list_courses(db: Session = Depends(get_db)):
 
 
 @router.get("/{course_code}", response_model=schemas.CourseRead)
-def get_course(course_code: str, db: Session = Depends(get_db)):
+def get_course(course_code: int, db: Session = Depends(get_db)):
     return _get_or_404(db, models.Course, course_code, "Course")
 
 
 @router.patch("/{course_code}", response_model=schemas.CourseRead)
 def update_course(
-    course_code: str, payload: schemas.CourseUpdate, db: Session = Depends(get_db)
+    course_code: int, payload: schemas.CourseUpdate, db: Session = Depends(get_db)
 ):
     obj = _get_or_404(db, models.Course, course_code, "Course")
     _apply_patch_or_reject_nulls(
@@ -288,7 +348,7 @@ def update_course(
 
 
 @router.delete("/{course_code}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_course(course_code: str, db: Session = Depends(get_db)):
+def delete_course(course_code: int, db: Session = Depends(get_db)):
     obj = _get_or_404(db, models.Course, course_code, "Course")
     db.delete(obj)
     _commit_or_rollback(db)
@@ -361,20 +421,42 @@ def list_curriculum(db: Session = Depends(get_db)):
     return db.query(models.Curriculum_course).all()
 
 
-@router.get("/curriculum/{curriculum_id}", response_model=schemas.CurriculumCourseRead)
-def get_curriculum_course(curriculum_id: int, db: Session = Depends(get_db)):
-    return _get_or_404(db, models.Curriculum_course, curriculum_id, "Curriculum Course")
+@router.get(
+    "/curriculum/{study_program}/{course}/{semester}",
+    response_model=schemas.CurriculumCourseRead,
+)
+def get_curriculum_course(
+    study_program: int, course: int, semester: int, db: Session = Depends(get_db)
+):
+    return _get_by_fields_or_404(
+        db,
+        models.Curriculum_course,
+        "Curriculum Course",
+        study_program=study_program,
+        course=course,
+        semester=semester,
+    )
 
 
 @router.patch(
-    "/curriculum/{curriculum_id}", response_model=schemas.CurriculumCourseRead
+    "/curriculum/{study_program}/{course}/{semester}",
+    response_model=schemas.CurriculumCourseRead,
 )
 def update_curriculum_course(
-    curriculum_id: int,
+    study_program: int,
+    course: int,
+    semester: int,
     payload: schemas.CurriculumCourseUpdate,
     db: Session = Depends(get_db),
 ):
-    obj = _get_or_404(db, models.Curriculum_course, curriculum_id, "Curriculum Course")
+    obj = _get_by_fields_or_404(
+        db,
+        models.Curriculum_course,
+        "Curriculum Course",
+        study_program=study_program,
+        course=course,
+        semester=semester,
+    )
     _apply_patch_or_reject_nulls(
         obj, payload, nullable_fields={"major", "elective_block"}
     )
@@ -384,9 +466,21 @@ def update_curriculum_course(
     return obj
 
 
-@router.delete("/curriculum/{curriculum_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_curriculum(curriculum_id: int, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.Curriculum_course, curriculum_id, "Curriculum Course")
+@router.delete(
+    "/curriculum/{study_program}/{course}/{semester}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_curriculum(
+    study_program: int, course: int, semester: int, db: Session = Depends(get_db)
+):
+    obj = _get_by_fields_or_404(
+        db,
+        models.Curriculum_course,
+        "Curriculum Course",
+        study_program=study_program,
+        course=course,
+        semester=semester,
+    )
     db.delete(obj)
     _commit_or_rollback(db)
     return None

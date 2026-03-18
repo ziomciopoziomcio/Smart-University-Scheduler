@@ -112,12 +112,10 @@ class CourseTypeDetailCreate(CourseTypeDetailBase):
 
 
 class CourseTypeDetailRead(CourseTypeDetailBase):
-    id: int
+    pass
 
 
 class CourseTypeDetailUpdate(BaseModel):
-    course: Optional[int] = None
-    class_type: Optional[ClassType] = None
     class_hours: Optional[Annotated[int, Field(ge=0)]] = None
     pc_needed: Optional[bool] = None
     projector_needed: Optional[bool] = None
@@ -127,7 +125,8 @@ class CourseTypeDetailUpdate(BaseModel):
 # Courses Instructors
 class CourseInstructorBase(BaseSchema):
     employee: int
-    course_type_detail: int
+    course: int
+    class_type: ClassType
     hours: Annotated[int, Field(ge=0)]
 
 
@@ -136,13 +135,11 @@ class CourseInstructorCreate(CourseInstructorBase):
 
 
 class CourseInstructorRead(CourseInstructorBase):
-    id: int
+    pass
 
 
 class CourseInstructorUpdate(BaseModel):
-    employee: Optional[int] = None
-    course_type_detail: Optional[int] = None
-    hours: Optional[Annotated[int, Field(ge=0)]] = None
+    hours: Optional[Annotated[int, Field(ge=0)]] = 0
 
 
 # Study Programs
@@ -188,13 +185,10 @@ class CurriculumCourseCreate(CurriculumCourseBase):
 
 
 class CurriculumCourseRead(CurriculumCourseBase):
-    id: int
+    pass
 
 
-class CurriculumCourseUpdate(CurriculumCourseBase):
-    study_program: Optional[int] = None
-    course: Optional[int] = None
-    semester: Optional[Annotated[int, Field(gt=0)]] = None
+class CurriculumCourseUpdate(BaseModel):
     major: Optional[int] = None
     elective_block: Optional[int] = None
 
