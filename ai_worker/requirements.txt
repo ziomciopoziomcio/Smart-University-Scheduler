@@ -1,0 +1,4 @@
+aiokafka
+asyncio
+numpy
+pandas
