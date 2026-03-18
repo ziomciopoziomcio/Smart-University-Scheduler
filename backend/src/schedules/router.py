@@ -1,4 +1,5 @@
 import uuid
+import logging
 
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
@@ -8,6 +9,8 @@ from ..common.kafka_client import send_event
 from ..database.database import get_db
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
+
+logger = logging.getLogger(__name__)
 
 
 @router.post("/generate", status_code=status.HTTP_202_ACCEPTED)
@@ -34,11 +37,13 @@ async def generate_schedule(
             msg=event_message,
         )
         if not success:
+            logger.exception(f"Event sending error for task_id {task_id}")
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Failed to queue schedule optimization request",
             )
     except Exception:
+        logger.exception(f"Event sending error for task_id {task_id}")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Failed to queue schedule optimization request",
