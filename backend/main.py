@@ -1,5 +1,6 @@
 import asyncio
 import os
+import logging
 from contextlib import asynccontextmanager
 
 from aiokafka import AIOKafkaProducer
@@ -11,6 +12,8 @@ from src import api_routers
 from src.common.kafka_client import kafka_manager
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -24,7 +27,7 @@ async def lifespan(app: FastAPI):
             await kafka_manager.producer.start()
             break
         except Exception as e:
-            print(f"Error: {e}")
+            logger.exception(f"Error during Kafka producer start: {e}")
             await asyncio.sleep(5)
     yield
 
@@ -32,7 +35,7 @@ async def lifespan(app: FastAPI):
         if kafka_manager.producer:
             await kafka_manager.producer.stop()
     except Exception as e:
-        print(f"Error during Kafka producer shutdown: {e}")
+        logger.exception(f"Error during Kafka producer stop: {e}")
 
 
 app = FastAPI(
