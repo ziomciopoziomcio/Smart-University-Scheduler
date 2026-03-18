@@ -19,16 +19,20 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     max_retries = 5
+    producer_started = False
     for _ in range(max_retries):
         try:
             kafka_manager.producer = AIOKafkaProducer(
                 bootstrap_servers=os.getenv("KAFKA_URL", "localhost:9092"),
             )
             await kafka_manager.producer.start()
+            producer_started = True
             break
         except Exception as e:
             logger.exception(f"Error during Kafka producer start: {e}")
             await asyncio.sleep(5)
+    if not producer_started:
+        raise RuntimeError("Error during Kafka producer start")
     yield
 
     try:
