@@ -16,7 +16,7 @@ load_dotenv()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     max_retries = 5
-    for attempt in range(max_retries):
+    for _ in range(max_retries):
         try:
             kafka_manager.producer = AIOKafkaProducer(
                 bootstrap_servers=os.getenv("KAFKA_URL", "localhost:9092"),
