@@ -116,7 +116,7 @@ class GroupMembersCreate(GroupMembersBase):
 
 
 class GroupMembersRead(GroupMembersBase):
-    id: int
+    pass
 
 
 class GroupMembersUpdate(BaseModel):
