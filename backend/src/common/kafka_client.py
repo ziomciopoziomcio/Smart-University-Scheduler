@@ -31,5 +31,5 @@ async def send_event(topic: str, msg: dict) -> bool:
         return True
 
     except Exception as e:
-        logger.error(f"Event sending error: {e}")
+        logger.exception(f"Event sending error: {e}")
         return False
