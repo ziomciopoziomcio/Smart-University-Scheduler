@@ -32,7 +32,6 @@ from .auth import (
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-
 @router.post("/login", response_model=schemas.Token)
 def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
