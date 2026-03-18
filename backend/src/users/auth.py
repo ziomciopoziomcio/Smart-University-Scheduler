@@ -21,6 +21,10 @@ logger = logging.getLogger(__name__)
 # --- Password hashing ---
 pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# --- standard TOTP/backup codes lengths ---
+TOTP_LENGTH = 6
+BACKUP_CODE_LENGTH = 10
+
 
 def hash_password(password: str) -> str:
     return pwd_ctx.hash(password)
@@ -115,7 +119,7 @@ def get_current_user(
 
 
 # --- 2FA helpers (logic only) ---
-def _generate_backup_codes(n: int = 8, length: int = 10) -> list[str]:
+def _generate_backup_codes(n: int = 8, length: int = BACKUP_CODE_LENGTH) -> list[str]:
     codes: list[str] = []
     for _ in range(n):
         codes.append(secrets.token_urlsafe(length)[:length])
@@ -174,5 +178,19 @@ def _verify_backup_code(db: Session, user: models.Users, code: str) -> bool:
         db.add(locked_user)
         _commit_or_rollback(db)
         return True
+
+    return False
+
+
+def verify_2fa_code(db: Session, user: models.Users, code: str) -> bool:
+    code = code.strip()
+
+    # TOTP
+    if len(code) == TOTP_LENGTH and code.isdigit():
+        return _verify_totp(user, code)
+
+    # Backup code
+    if len(code) == BACKUP_CODE_LENGTH:
+        return _verify_backup_code(db, user, code)
 
     return False
