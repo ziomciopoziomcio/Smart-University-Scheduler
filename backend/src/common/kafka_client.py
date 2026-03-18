@@ -12,22 +12,24 @@ class KafkaManager:
 kafka_manager = KafkaManager()
 
 
-async def send_event(topic: str, msg: dict):
+async def send_event(topic: str, msg: dict) -> bool:
     """
     send a message to kafka topic
     :param topic: kafka topic
     :param msg: kafka message
-    :return: None
+    :return: True if the message was sent successfully, False otherwise
     """
     if not kafka_manager.producer:
         logger.error("Kafka producer not initialized")
-        return
+        return False
 
     try:
         value = json.dumps(msg).encode("utf-8")
 
         await kafka_manager.producer.send_and_wait(topic, value=value)
         logger.info("Event sent to kafka")
+        return True
 
     except Exception as e:
         logger.error(f"Event sending error: {e}")
+        return False
