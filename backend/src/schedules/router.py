@@ -1,10 +1,11 @@
 import uuid
-from fastapi import APIRouter, Depends, status
+
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 
-from ..database.database import get_db
-from ..common.kafka_client import send_event
 from . import schemas
+from ..common.kafka_client import send_event
+from ..database.database import get_db
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
 
@@ -27,10 +28,16 @@ async def generate_schedule(
         "requested_by": mock_user_id,
     }
 
-    await send_event(
-        topic="schedule.optimization.requests",
-        msg=event_message,
-    )
+    try:
+        await send_event(
+            topic="schedule.optimization.requests",
+            msg=event_message,
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Failed to queue schedule optimization request",
+        )
 
     return {
         "message": "Event sent successfully (TEST MODE)",
