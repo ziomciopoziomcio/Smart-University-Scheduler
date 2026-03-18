@@ -1,3 +1,5 @@
 aiokafka
 numpy
 pandas
+sqlalchemy
+psycopg2
