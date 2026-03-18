@@ -63,6 +63,12 @@ def twofa_setup(
     current_user: models.Users = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if getattr(current_user, "two_factor_enabled", False):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2FA already enabled; use the disable/reset 2FA flow instead",
+        )
+
     secret = pyotp.random_base32()
     provisioning_uri = pyotp.totp.TOTP(secret).provisioning_uri(
         name=current_user.email, issuer_name="Smart University Scheduler"
