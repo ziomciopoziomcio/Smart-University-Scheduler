@@ -29,10 +29,15 @@ async def generate_schedule(
     }
 
     try:
-        await send_event(
+        success = await send_event(
             topic="schedule.optimization.requests",
             msg=event_message,
         )
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Failed to queue schedule optimization request",
+            )
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
