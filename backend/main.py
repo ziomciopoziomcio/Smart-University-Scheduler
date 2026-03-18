@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -9,16 +10,19 @@ from src.users.auth import get_secret_key
 
 load_dotenv()
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    get_secret_key()
+    yield
+
+
 app = FastAPI(
     title="Smart University Scheduler API",
     description="API for managing SUS system",
     version="v.0.0.1-alpha",
+    lifespan=lifespan,
 )
-
-
-@app.on_event("startup")
-def validate_security_settings() -> None:
-    get_secret_key()
 
 
 origins = [
