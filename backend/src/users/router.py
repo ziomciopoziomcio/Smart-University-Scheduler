@@ -24,8 +24,6 @@ from .auth import (
     _generate_backup_codes,
     _hash_code,
     _get_user_id_from_pre_token,
-    _verify_totp,
-    _verify_backup_code,
     hash_password,
     verify_2fa_code,
 )
