@@ -10,3 +10,4 @@ uvicorn[standard]
 python-jose[cryptography]
 python-multipart
 pyotp
+aiokafka
