@@ -20,6 +20,7 @@ UNIT_LIMIT = 100
 GROUP_LIMIT = 100
 GROUP_MEMBER_LIMIT = 100
 
+
 # Students
 @router.post(
     "/students", response_model=schemas.StudentRead, status_code=status.HTTP_201_CREATED

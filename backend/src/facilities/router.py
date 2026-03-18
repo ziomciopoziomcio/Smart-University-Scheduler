@@ -18,6 +18,7 @@ BUILDING_LIMIT = 100
 ROOM_LIMIT = 100
 FACULTY_LIMIT = 100
 
+
 # Campuses
 @router.post(
     "/campuses", response_model=schemas.CampusRead, status_code=status.HTTP_201_CREATED

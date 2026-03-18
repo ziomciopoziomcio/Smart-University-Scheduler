@@ -23,6 +23,7 @@ COURSE_LIMIT = 100
 STUDY_PROGRAM_LIMIT = 100
 CURRICULUM_LIMIT = 100
 
+
 # Study Fields
 @router.post(
     "/study-fields",
