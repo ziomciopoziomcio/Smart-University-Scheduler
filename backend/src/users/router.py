@@ -348,7 +348,6 @@ def password_forgot(
     try:
         send_email(user.email, subject, body)
     except Exception:
-        logger.exception("Failed to send password reset email to %s", user.email)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send reset email",
