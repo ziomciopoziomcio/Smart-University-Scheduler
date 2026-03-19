@@ -263,7 +263,6 @@ def signup(payload: schemas.SignupRequest, db: Session = Depends(get_db)):
         )
     except Exception:
         db.rollback()
-        logger.exception("Failed to send verification email to %s", user.email)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send verification email",
@@ -318,7 +317,6 @@ def password_forgot(
         user.password_reset_token_hash = None
         user.password_reset_expires_at = None
         db.rollback()
-        logger.exception("Failed to send password reset email to %s", user.email)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send reset email",
