@@ -242,10 +242,12 @@ def password_forgot(
         user.password_reset_token_hash = None
         user.password_reset_expires_at = None
         db.rollback()
+        user_id = getattr(user, "id", "unknown")
+        masked = mask_email(getattr(user, "email", None))
         logger.exception(
-            "Failed to send password reset email (user_id=%s, email=%s)",
-            getattr(user, "id", "unknown"),
-            mask_email(getattr(user, "email", None)),
+            "Failed to send password reset email for user_id=%s",
+            user_id,
+            extra={"masked_email": masked},
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
