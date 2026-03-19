@@ -1,5 +1,6 @@
 import os
 import smtplib
+import ssl
 from email.message import EmailMessage
 
 
@@ -26,14 +27,17 @@ def send_email(to_email: str, subject: str, body_text: str) -> None:
     msg["Subject"] = subject
     msg.set_content(body_text)
 
+    timeout = 10
+
     if port == 465:
-        with smtplib.SMTP_SSL(host, port) as smtp:
+        with smtplib.SMTP_SSL(host, port, timeout=timeout) as smtp:
             smtp.login(user, password)
             smtp.send_message(msg)
     else:
-        with smtplib.SMTP(host, port) as smtp:
+        context = ssl.create_default_context()
+        with smtplib.SMTP(host, port, timeout=timeout) as smtp:
             smtp.ehlo()
-            smtp.starttls()
+            smtp.starttls(context=context)
             smtp.ehlo()
             smtp.login(user, password)
             smtp.send_message(msg)
