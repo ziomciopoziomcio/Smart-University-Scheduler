@@ -10,6 +10,7 @@ import pyotp
 import json
 import logging
 
+from src.common.user_service import register_user
 from src.common.email_client import send_email
 from . import models, schemas
 from ..database.database import get_db
@@ -208,74 +209,7 @@ def list_users(db: Session = Depends(get_db)):
     "/signup", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED
 )
 def signup(payload: schemas.SignupRequest, db: Session = Depends(get_db)):
-    existing = (
-        db.query(models.Users).filter(models.Users.email == payload.email).first()
-    )
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="User with this email already exists",
-        )
-    if payload.password != payload.password2:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match"
-        )
-
-    user = models.Users(
-        email=payload.email,
-        password_hash=hash_password(payload.password),
-        name=payload.name,
-        surname=payload.surname,
-        phone_number=payload.phone_number,
-        degree=payload.degree,
-    )
-
-    token = create_email_verification_token()
-    user.email_verified = False
-    user.email_verification_token_hash = _hash_token(token)
-    user.email_verification_expires_at = datetime.now(timezone.utc) + timedelta(
-        hours=24
-    )
-
-    db.add(user)
-    db.flush()
-
-    try:
-        from src.common.notifications import send_verification_email
-        from src.common.logging_utils import mask_email
-    except Exception:
-        db.rollback()
-        logger.error("Failed to import notifications or logging helpers", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
-
-    try:
-        send_verification_email(user.email, token)
-    except RuntimeError as e:
-        db.rollback()
-        logger.error("Configuration error sending verification email: %s", str(e))
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
-    except Exception as e:
-        db.rollback()
-        logger.error(
-            "Failed to send verification email (email=%s, user_id=%s, err=%s)",
-            mask_email(user.email),
-            getattr(user, "id", "unknown"),
-            type(e).__name__,
-        )
-        logger.debug("Full exception sending verification email", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to send verification email",
-        )
-
-    _commit_or_rollback(db)
-    db.refresh(user)
-    return user
+    return register_user(payload, db)
 
 
 @router.post("/password/forgot", response_model=schemas.MessageResponse)
