@@ -1,5 +1,6 @@
 from typing import Optional
 
+
 def mask_email(email: Optional[str]) -> str:
     """
     Mask email for safe logging.
