@@ -250,13 +250,11 @@ def list_course_types(
         query = query.filter(models.Course_type_detail.class_hours <= max_class_hours)
     if min_group_size is not None:
         query = query.filter(
-            models.Course_type_detail.max_group_participants_number
-            >= min_group_size
+            models.Course_type_detail.max_group_participants_number >= min_group_size
         )
     if max_group_size is not None:
         query = query.filter(
-            models.Course_type_detail.max_group_participants_number
-            <= max_group_size
+            models.Course_type_detail.max_group_participants_number <= max_group_size
         )
 
     return paginate(query, limit, offset, models.Course_type_detail.id)

@@ -146,7 +146,6 @@ def twofa_verify(
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
 
-
 # Roles
 @router.post(
     "/roles", response_model=schemas.RoleRead, status_code=status.HTTP_201_CREATED

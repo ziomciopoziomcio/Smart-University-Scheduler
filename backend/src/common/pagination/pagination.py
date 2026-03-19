@@ -2,7 +2,6 @@ from typing import Any, Generic, Optional, Sequence, TypeVar
 
 from pydantic.generics import GenericModel
 
-
 T = TypeVar("T")
 
 
@@ -13,7 +12,9 @@ class PaginatedResponse(GenericModel, Generic[T]):
     offset: int
 
 
-def paginate(query, limit: int | None, offset: int = 0, order_by=None) -> PaginatedResponse[Any]:
+def paginate(
+    query, limit: int | None, offset: int = 0, order_by=None
+) -> PaginatedResponse[Any]:
     if order_by is not None:
         query = query.order_by(order_by)
 
