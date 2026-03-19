@@ -129,3 +129,7 @@ class PasswordChangeRequest(BaseModel):
     old_password: Annotated[str, StringConstraints(max_length=255)]
     password: Annotated[str, StringConstraints(min_length=8, max_length=255)]
     password2: Annotated[str, StringConstraints(min_length=8, max_length=255)]
+
+
+class VerifyEmailResponse(BaseModel):
+    detail: str

@@ -40,6 +40,8 @@ def authenticate_user(db: Session, email: str, password: str) -> models.Users | 
         return None
     if not verify_password(password, user.password_hash):
         return None
+    if not getattr(user, "email_verified", False):
+        return None
     return user
 
 
@@ -201,5 +203,8 @@ def _hash_token(token: str) -> str:
 
 
 def create_password_reset_token() -> str:
-    # plaintext token, send via email (in dev can be logged/returned)
+    return secrets.token_urlsafe(32)
+
+
+def create_email_verification_token() -> str:
     return secrets.token_urlsafe(32)
