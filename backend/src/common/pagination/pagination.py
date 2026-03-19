@@ -1,4 +1,19 @@
-def paginate(query, limit: int | None, offset: int = 0, order_by=None):
+from typing import Any, Generic, Optional, Sequence, TypeVar
+
+from pydantic.generics import GenericModel
+
+
+T = TypeVar("T")
+
+
+class PaginatedResponse(GenericModel, Generic[T]):
+    items: Sequence[T]
+    total: int
+    limit: Optional[int]
+    offset: int
+
+
+def paginate(query, limit: int | None, offset: int = 0, order_by=None) -> PaginatedResponse[Any]:
     if order_by is not None:
         query = query.order_by(order_by)
 
@@ -10,9 +25,9 @@ def paginate(query, limit: int | None, offset: int = 0, order_by=None):
 
     items = paginated_query.all()
 
-    return {
-        "items": items,
-        "total": total,
-        "limit": limit,
-        "offset": offset,
-    }
+    return PaginatedResponse[Any](
+        items=items,
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
