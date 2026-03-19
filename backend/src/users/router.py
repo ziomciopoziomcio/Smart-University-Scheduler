@@ -1,4 +1,3 @@
-import os
 from datetime import datetime, timezone, timedelta
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -8,10 +7,13 @@ from sqlalchemy.orm import Session
 
 import pyotp
 import json
+import logging
 
+from src.common.notifications import send_password_reset_email
 from src.common.user_service import register_user
 from src.common.email_client import send_email
 from . import models, schemas
+from ..common.logging_utils import mask_email
 from ..database.database import get_db
 from src.common.router_utils import (
     _get_or_404,
@@ -35,6 +37,7 @@ from .auth import (
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
+logger = logging.getLogger(__name__)
 
 
 @router.post("/login", response_model=schemas.Token)
@@ -227,31 +230,24 @@ def password_forgot(
     db.add(user)
     db.flush()
 
-    base_url = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
-    if not base_url:
+    try:
+        send_password_reset_email(user.email, token)
+    except RuntimeError as e:
         user.password_reset_token_hash = None
         user.password_reset_expires_at = None
         db.rollback()
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="PUBLIC_BASE_URL is not configured",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
-
-    reset_link = f"{base_url}/reset-password?token={token}"
-
-    subject = "Password reset"
-    body = (
-        "You requested a password reset.\n\n"
-        f"Use this link to reset your password:\n{reset_link}\n\n"
-        "If you did not request this, you can ignore this email."
-    )
-
-    try:
-        send_email(user.email, subject, body)
     except Exception:
         user.password_reset_token_hash = None
         user.password_reset_expires_at = None
         db.rollback()
+        logger.exception(
+            "Failed to send password reset email (user_id=%s, email=%s)",
+            getattr(user, "id", "unknown"),
+            mask_email(getattr(user, "email", None)),
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send reset email",
