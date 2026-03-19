@@ -230,3 +230,37 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     db.delete(obj)
     _commit_or_rollback(db)
     return None
+
+
+@router.post(
+    "/signup", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED
+)
+def signup(payload: schemas.SignupRequest, db: Session = Depends(get_db)):
+    existing = (
+        db.query(models.Users).filter(models.Users.email == payload.email).first()
+    )
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="User with this email already exists",
+        )
+
+    if payload.password != payload.password2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Passwords do not match",
+        )
+
+    user = models.Users(
+        email=payload.email,
+        password_hash=hash_password(payload.password),
+        name=payload.name,
+        surname=payload.surname,
+        phone_number=payload.phone_number,
+        degree=payload.degree
+    )
+
+    db.add(user)
+    _commit_or_rollback(db)
+    db.refresh(user)
+    return user

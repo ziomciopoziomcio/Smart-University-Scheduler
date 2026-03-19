@@ -99,3 +99,14 @@ class BackupCodesResponse(BaseModel):
 class TwoFactorSetupResponse(BaseModel):
     provisioning_uri: str
     secret: str
+
+
+class SignupRequest(BaseModel):
+    email: Annotated[EmailStr, StringConstraints(max_length=255)]
+    password: Annotated[str, StringConstraints(min_length=8, max_length=255)]
+    password2: Annotated[str, StringConstraints(min_length=8, max_length=255)]
+    name: Annotated[str, StringConstraints(max_length=255)]
+    surname: Annotated[str, StringConstraints(max_length=255)]
+    phone_number: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
+    degree: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+
