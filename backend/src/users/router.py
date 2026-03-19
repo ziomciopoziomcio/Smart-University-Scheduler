@@ -279,35 +279,34 @@ def signup(payload: schemas.SignupRequest, db: Session = Depends(get_db)):
 
     db.flush()
 
-    base_url = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
-    if not base_url:
+    try:
+        from src.common.notifications import send_verification_email
+    except Exception:
         db.rollback()
+        logger.exception("Failed to import notifications helper")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="PUBLIC_BASE_URL is not configured",
+            detail="Internal server error",
         )
 
-    verify_link = f"{base_url}/verify-email?token={token}"
-
-    subject = "Confirm your email"
-    body = (
-        "Welcome!\n\n"
-        "Confirm your email by clicking this link:\n"
-        f"{verify_link}\n\n"
-        "If you did not create this account, ignore this email."
-    )
-
     try:
-        send_email(user.email, subject, body)
-    except Exception:
-        logger.exception("Failed to send verification email to %s", user.email)
+        send_verification_email(user.email, token)
+    except RuntimeError as e:
         db.rollback()
+        logger.exception("Configuration error when sending verification email: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
+    except Exception:
+        db.rollback()
+        logger.exception("Failed to send verification email to %s", user.email)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send verification email",
         )
 
     _commit_or_rollback(db)
+
     db.refresh(user)
     return user
 
