@@ -241,9 +241,7 @@ def password_forgot(
         user.password_reset_token_hash = None
         user.password_reset_expires_at = None
         db.rollback()
-        logger.exception(
-            "Failed to send password reset email"
-        )
+        logger.exception("Failed to send password reset email")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send reset email",
