@@ -33,7 +33,6 @@ from .auth import (
     create_password_reset_token,
     _hash_token,
     verify_password,
-    create_email_verification_token,
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
