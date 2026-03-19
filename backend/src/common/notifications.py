@@ -1,12 +1,9 @@
 import os
-import logging
 from typing import Optional
 
 from .email_client import (
     send_email,
 )
-
-logger = logging.getLogger(__name__)
 
 
 def _build_verify_link(token: str, base_url: Optional[str] = None) -> str:
