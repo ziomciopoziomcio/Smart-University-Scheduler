@@ -291,10 +291,13 @@ def password_forgot(
     user.password_reset_expires_at = datetime.now(timezone.utc) + timedelta(minutes=30)
 
     db.add(user)
-    _commit_or_rollback(db)
+    db.flush()
 
     base_url = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
     if not base_url:
+        user.password_reset_token_hash = None
+        user.password_reset_expires_at = None
+        db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="PUBLIC_BASE_URL is not configured",
@@ -312,12 +315,18 @@ def password_forgot(
     try:
         send_email(user.email, subject, body)
     except Exception:
+        user.password_reset_token_hash = None
+        user.password_reset_expires_at = None
+        db.rollback()
+        logger.exception("Failed to send password reset email to %s", user.email)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send reset email",
         )
 
+    _commit_or_rollback(db)
     return response
+
 
 
 @router.post("/password/reset", response_model=schemas.MessageResponse)
