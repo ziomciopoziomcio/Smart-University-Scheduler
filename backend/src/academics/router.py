@@ -38,7 +38,7 @@ def list_students(
     user_id: int | None = Query(None),
     study_program: int | None = Query(None),
     major: int | None = Query(None),
-    limit: int | None = Query(STUDENT_LIMIT, ge=1, le=200),
+    limit: int = Query(STUDENT_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):

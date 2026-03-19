@@ -44,7 +44,7 @@ def create_study_field(
 def list_study_fields(
     faculty: int | None = Query(None),
     field_name: str | None = Query(None, min_length=1),
-    limit: int | None = Query(STUDY_FIELD_LIMIT, ge=1, le=200),
+    limit: int = Query(STUDY_FIELD_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):

@@ -35,7 +35,7 @@ def create_campus(payload: schemas.CampusCreate, db: Session = Depends(get_db)):
 def list_campuses(
     campus_name: str | None = Query(None, min_length=1),
     campus_short: str | None = Query(None, min_length=1),
-    limit: int | None = Query(CAMPUS_LIMIT, ge=1, le=200),
+    limit: int = Query(CAMPUS_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
@@ -93,7 +93,7 @@ def list_buildings(
     campus_id: int | None = Query(None),
     building_name: str | None = Query(None, min_length=1),
     building_number: str | None = Query(None, min_length=1),
-    limit: int | None = Query(BUILDING_LIMIT, ge=1, le=200),
+    limit: int = Query(BUILDING_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
@@ -159,7 +159,7 @@ def list_rooms(
     max_pc_amount: int | None = Query(None, ge=0),
     min_room_capacity: int | None = Query(None, gt=0),
     max_room_capacity: int | None = Query(None, gt=0),
-    limit: int | None = Query(ROOM_LIMIT, ge=1, le=200),
+    limit: int = Query(ROOM_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
@@ -232,7 +232,7 @@ def create_faculty(payload: schemas.FacultyCreate, db: Session = Depends(get_db)
 def list_faculties(
     faculty_name: str | None = Query(None, min_length=1),
     faculty_short: str | None = Query(None, min_length=1),
-    limit: int | None = Query(FACULTY_LIMIT, ge=1, le=200),
+    limit: int = Query(FACULTY_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
