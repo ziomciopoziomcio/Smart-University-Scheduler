@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timezone, timedelta
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -32,6 +32,7 @@ from .auth import (
     create_password_reset_token,
     _hash_token,
     verify_password,
+    create_email_verification_token,
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -267,7 +268,45 @@ def signup(payload: schemas.SignupRequest, db: Session = Depends(get_db)):
         degree=payload.degree,
     )
 
+    token = create_email_verification_token()
+    user.email_verified = False
+    user.email_verification_token_hash = _hash_token(token)
+    user.email_verification_expires_at = datetime.now(timezone.utc) + timedelta(
+        hours=24
+    )
+
     db.add(user)
+
+    db.flush()
+
+    base_url = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
+    if not base_url:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="PUBLIC_BASE_URL is not configured",
+        )
+
+    verify_link = f"{base_url}/verify-email?token={token}"
+
+    subject = "Confirm your email"
+    body = (
+        "Welcome!\n\n"
+        "Confirm your email by clicking this link:\n"
+        f"{verify_link}\n\n"
+        "If you did not create this account, ignore this email."
+    )
+
+    try:
+        send_email(user.email, subject, body)
+    except Exception:
+        logger.exception("Failed to send verification email to %s", user.email)
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to send verification email",
+        )
+
     _commit_or_rollback(db)
     db.refresh(user)
     return user
@@ -375,3 +414,31 @@ def password_change(
     db.add(current_user)
     _commit_or_rollback(db)
     return {"detail": "Password changed"}
+
+
+@router.get("/verify-email", response_model=schemas.VerifyEmailResponse)
+def verify_email(token: str = Query(...), db: Session = Depends(get_db)):
+    token_hash = _hash_token(token)
+
+    user = (
+        db.query(models.Users)
+        .filter(models.Users.email_verification_token_hash == token_hash)
+        .first()
+    )
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+
+    if (
+        not user.email_verification_expires_at
+        or user.email_verification_expires_at < datetime.now(timezone.utc)
+    ):
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+
+    user.email_verified = True
+    user.email_verification_token_hash = None
+    user.email_verification_expires_at = None
+
+    db.add(user)
+    _commit_or_rollback(db)
+
+    return {"detail": "Email verified"}
