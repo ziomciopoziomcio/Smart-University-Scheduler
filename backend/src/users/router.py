@@ -204,42 +204,6 @@ def list_users(db: Session = Depends(get_db)):
     return db.query(models.Users).all()
 
 
-@router.get("/{user_id}", response_model=schemas.UserRead)
-def get_user(user_id: int, db: Session = Depends(get_db)):
-    return _get_or_404(db, models.Users, user_id, "User")
-
-
-@router.patch("/{user_id}", response_model=schemas.UserRead)
-def update_user(
-    user_id: int, payload: schemas.UserUpdate, db: Session = Depends(get_db)
-):
-    obj = _get_or_404(db, models.Users, user_id, "User")
-
-    if "password" in payload.model_fields_set:
-        if payload.password is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="`password` cannot be set to null when provided",
-            )
-        obj.password_hash = hash_password(payload.password)
-
-    _apply_patch_or_reject_nulls(
-        obj, payload, nullable_fields={"phone_number", "degree"}, exclude={"password"}
-    )
-    db.add(obj)
-    _commit_or_rollback(db)
-    db.refresh(obj)
-    return obj
-
-
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.Users, user_id, "User")
-    db.delete(obj)
-    _commit_or_rollback(db)
-    return None
-
-
 @router.post(
     "/signup", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED
 )
@@ -440,3 +404,39 @@ def verify_email(token: str = Query(...), db: Session = Depends(get_db)):
     _commit_or_rollback(db)
 
     return {"detail": "Email verified"}
+
+
+@router.get("/{user_id}", response_model=schemas.UserRead)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    return _get_or_404(db, models.Users, user_id, "User")
+
+
+@router.patch("/{user_id}", response_model=schemas.UserRead)
+def update_user(
+    user_id: int, payload: schemas.UserUpdate, db: Session = Depends(get_db)
+):
+    obj = _get_or_404(db, models.Users, user_id, "User")
+
+    if "password" in payload.model_fields_set:
+        if payload.password is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="`password` cannot be set to null when provided",
+            )
+        obj.password_hash = hash_password(payload.password)
+
+    _apply_patch_or_reject_nulls(
+        obj, payload, nullable_fields={"phone_number", "degree"}, exclude={"password"}
+    )
+    db.add(obj)
+    _commit_or_rollback(db)
+    db.refresh(obj)
+    return obj
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    obj = _get_or_404(db, models.Users, user_id, "User")
+    db.delete(obj)
+    _commit_or_rollback(db)
+    return None
