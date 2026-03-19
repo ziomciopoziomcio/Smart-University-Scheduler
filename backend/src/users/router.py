@@ -1,3 +1,5 @@
+import os
+from datetime import datetime, timezone, timedelta
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -6,8 +8,9 @@ from sqlalchemy.orm import Session
 
 import pyotp
 import json
+import logging
 
-
+from src.common.email_client import send_email
 from . import models, schemas
 from ..database.database import get_db
 from src.common.router_utils import (
@@ -26,9 +29,13 @@ from .auth import (
     _get_user_id_from_pre_token,
     hash_password,
     verify_2fa_code,
+    create_password_reset_token,
+    _hash_token,
+    verify_password,
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
+logger = logging.getLogger(__name__)
 
 
 @router.post("/login", response_model=schemas.Token)
@@ -257,10 +264,114 @@ def signup(payload: schemas.SignupRequest, db: Session = Depends(get_db)):
         name=payload.name,
         surname=payload.surname,
         phone_number=payload.phone_number,
-        degree=payload.degree
+        degree=payload.degree,
     )
 
     db.add(user)
     _commit_or_rollback(db)
     db.refresh(user)
     return user
+
+
+@router.post("/password/forgot", response_model=schemas.MessageResponse)
+def password_forgot(
+    payload: schemas.PasswordForgotRequest, db: Session = Depends(get_db)
+):
+    user = db.query(models.Users).filter(models.Users.email == payload.email).first()
+
+    response = {"detail": "If the account exists, a reset link has been sent."}
+
+    if not user:
+        return response
+
+    token = create_password_reset_token()
+    user.password_reset_token_hash = _hash_token(token)
+    user.password_reset_expires_at = datetime.now(timezone.utc) + timedelta(minutes=30)
+
+    db.add(user)
+    _commit_or_rollback(db)
+
+    base_url = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
+    if not base_url:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="PUBLIC_BASE_URL is not configured",
+        )
+
+    reset_link = f"{base_url}/reset-password?token={token}"
+
+    subject = "Password reset"
+    body = (
+        "You requested a password reset.\n\n"
+        f"Use this link to reset your password:\n{reset_link}\n\n"
+        "If you did not request this, you can ignore this email."
+    )
+
+    try:
+        send_email(user.email, subject, body)
+    except Exception:
+        logger.exception("Failed to send password reset email to %s", user.email)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to send reset email",
+        )
+
+    return response
+
+
+@router.post("/password/reset", response_model=schemas.MessageResponse)
+def password_reset(
+    payload: schemas.PasswordResetRequest, db: Session = Depends(get_db)
+):
+    if payload.password != payload.password2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Passwords do not match",
+        )
+
+    token_hash = _hash_token(payload.token)
+
+    user = (
+        db.query(models.Users)
+        .filter(models.Users.password_reset_token_hash == token_hash)
+        .first()
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token"
+        )
+
+    if (
+        not user.password_reset_expires_at
+        or user.password_reset_expires_at < datetime.now(timezone.utc)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token"
+        )
+
+    user.password_hash = hash_password(payload.password)
+    user.password_reset_token_hash = None
+    user.password_reset_expires_at = None
+
+    db.add(user)
+    _commit_or_rollback(db)
+
+    return {"detail": "Password has been reset"}
+
+
+@router.post("/password/change", response_model=schemas.MessageResponse)
+def password_change(
+    payload: schemas.PasswordChangeRequest,
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if payload.password != payload.password2:
+        raise HTTPException(status_code=400, detail="Passwords do not match")
+
+    if not verify_password(payload.old_password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="Old password is incorrect")
+
+    current_user.password_hash = hash_password(payload.password)
+    db.add(current_user)
+    _commit_or_rollback(db)
+    return {"detail": "Password changed"}

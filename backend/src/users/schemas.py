@@ -110,3 +110,22 @@ class SignupRequest(BaseModel):
     phone_number: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
     degree: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
 
+
+class PasswordForgotRequest(BaseModel):
+    email: Annotated[EmailStr, StringConstraints(max_length=255)]
+
+
+class PasswordResetRequest(BaseModel):
+    token: Annotated[str, StringConstraints(min_length=10, max_length=500)]
+    password: Annotated[str, StringConstraints(min_length=8, max_length=255)]
+    password2: Annotated[str, StringConstraints(min_length=8, max_length=255)]
+
+
+class MessageResponse(BaseModel):
+    detail: str
+
+
+class PasswordChangeRequest(BaseModel):
+    old_password: Annotated[str, StringConstraints(max_length=255)]
+    password: Annotated[str, StringConstraints(min_length=8, max_length=255)]
+    password2: Annotated[str, StringConstraints(min_length=8, max_length=255)]

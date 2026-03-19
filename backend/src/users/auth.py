@@ -194,3 +194,12 @@ def verify_2fa_code(db: Session, user: models.Users, code: str) -> bool:
         return _verify_backup_code(db, user, code)
 
     return False
+
+
+def _hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def create_password_reset_token() -> str:
+    # plaintext token, send via email (in dev can be logged/returned)
+    return secrets.token_urlsafe(32)
