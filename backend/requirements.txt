@@ -7,4 +7,7 @@ email-validator
 passlib[bcrypt]
 SQLAlchemy>=2.0.0,<3.0.0
 uvicorn[standard]
+python-jose[cryptography]
+python-multipart
+pyotp
 aiokafka

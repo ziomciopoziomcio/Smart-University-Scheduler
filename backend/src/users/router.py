@@ -1,7 +1,12 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
+
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
+
+import pyotp
+import json
+
 
 from . import models, schemas
 from ..database.database import get_db
@@ -11,8 +16,125 @@ from src.common.router_utils import (
     _apply_patch_or_reject_nulls,
 )
 
+from .auth import (
+    authenticate_user,
+    create_access_token,
+    create_pre_auth_token,
+    get_current_user,
+    _generate_backup_codes,
+    _hash_code,
+    _get_user_id_from_pre_token,
+    hash_password,
+    verify_2fa_code,
+)
+
 router = APIRouter(prefix="/users", tags=["users"])
-pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+@router.post("/login", response_model=schemas.Token)
+def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+):
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if getattr(user, "two_factor_enabled", False):
+        pre_token = create_pre_auth_token(user.id)
+        return {"access_token": pre_token, "token_type": "bearer", "requires_2fa": True}
+
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer", "requires_2fa": False}
+
+
+# for tests
+@router.get("/me", response_model=schemas.UserRead)
+def read_own_user(current_user: models.Users = Depends(get_current_user)):
+    return current_user
+
+
+@router.post("/2fa/setup", response_model=schemas.TwoFactorSetupResponse)
+def twofa_setup(
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if getattr(current_user, "two_factor_enabled", False):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2FA already enabled; use the disable/reset 2FA flow instead",
+        )
+
+    secret = pyotp.random_base32()
+    provisioning_uri = pyotp.totp.TOTP(secret).provisioning_uri(
+        name=current_user.email, issuer_name="Smart University Scheduler"
+    )
+    current_user.two_factor_secret = secret
+    current_user.two_factor_enabled = False
+    current_user.backup_codes = None
+    db.add(current_user)
+    _commit_or_rollback(db)
+    db.refresh(current_user)
+
+    return {
+        "provisioning_uri": provisioning_uri,
+        "secret": secret,
+    }
+
+
+@router.post("/2fa/confirm", response_model=schemas.BackupCodesResponse)
+def twofa_confirm(
+    payload: schemas.TwoFactorConfirmRequest,
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not current_user.two_factor_secret:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="2FA not initialized"
+        )
+
+    totp = pyotp.TOTP(current_user.two_factor_secret)
+    if not totp.verify(payload.code, valid_window=1):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid 2FA code"
+        )
+
+    current_user.two_factor_enabled = True
+    plaintext_codes = _generate_backup_codes(n=8, length=10)
+    hashed = [_hash_code(c) for c in plaintext_codes]
+    current_user.backup_codes = json.dumps(hashed)
+
+    db.add(current_user)
+    _commit_or_rollback(db)
+    db.refresh(current_user)
+
+    return {"backup_codes": plaintext_codes}
+
+
+@router.post("/2fa/verify", response_model=schemas.Token)
+def twofa_verify(
+    payload: schemas.TwoFactorVerifyRequest, db: Session = Depends(get_db)
+):
+
+    user_id = _get_user_id_from_pre_token(payload.pre_auth_token)
+
+    user = db.query(models.Users).filter(models.Users.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not user.two_factor_enabled or not user.two_factor_secret:
+        raise HTTPException(status_code=400, detail="2FA is not enabled for this user")
+
+    ok = verify_2fa_code(db, user, payload.code)
+
+    if not ok:
+        raise HTTPException(status_code=400, detail="Invalid 2FA code")
+
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 # Roles
@@ -61,7 +183,7 @@ def delete_role(role_id: int, db: Session = Depends(get_db)):
 @router.post("/", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED)
 def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
     data = payload.model_dump()
-    data["password_hash"] = pwd_ctx.hash(data.pop("password"))
+    data["password_hash"] = hash_password(data.pop("password"))
     obj = models.Users(**data)
     db.add(obj)
     _commit_or_rollback(db)
@@ -91,7 +213,7 @@ def update_user(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="`password` cannot be set to null when provided",
             )
-        obj.password_hash = pwd_ctx.hash(payload.password)
+        obj.password_hash = hash_password(payload.password)
 
     _apply_patch_or_reject_nulls(
         obj, payload, nullable_fields={"phone_number", "degree"}, exclude={"password"}
