@@ -88,7 +88,8 @@ services:
       DB_NAME: ${DB_NAME}
       #NEO4J_HOST: ${NEO4J_HOST}
       CORS_ORIGINS: ${CORS_ORIGINS}
-      KAFKA_URL: "kafka:29092"
+      KAFKA_URL: "kafka:9092"
+      SECRET_KEY: ${SECRET_KEY}
     depends_on:
       - postgres
       - kafka
