@@ -139,7 +139,7 @@ class CourseInstructorRead(CourseInstructorBase):
 
 
 class CourseInstructorUpdate(BaseModel):
-    hours: Optional[Annotated[int, Field(ge=0)]] = 0
+    hours: Optional[Annotated[int, Field(ge=0)]] = None
 
 
 # Study Programs
