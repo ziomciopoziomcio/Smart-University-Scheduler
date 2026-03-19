@@ -226,8 +226,8 @@ def list_course_types(
     projector_needed: bool | None = Query(None),
     min_class_hours: int | None = Query(None, ge=0),
     max_class_hours: int | None = Query(None, ge=0),
-    min_max_group_participants_number: int | None = Query(None, gt=0),
-    max_max_group_participants_number: int | None = Query(None, gt=0),
+    min_group_size: int | None = Query(None, gt=0),
+    max_group_size: int | None = Query(None, gt=0),
     limit: int | None = Query(COURSE_TYPE_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
@@ -248,15 +248,15 @@ def list_course_types(
         query = query.filter(models.Course_type_detail.class_hours >= min_class_hours)
     if max_class_hours is not None:
         query = query.filter(models.Course_type_detail.class_hours <= max_class_hours)
-    if min_max_group_participants_number is not None:
+    if min_group_size is not None:
         query = query.filter(
             models.Course_type_detail.max_group_participants_number
-            >= min_max_group_participants_number
+            >= min_group_size
         )
-    if max_max_group_participants_number is not None:
+    if max_group_size is not None:
         query = query.filter(
             models.Course_type_detail.max_group_participants_number
-            <= max_max_group_participants_number
+            <= max_group_size
         )
 
     return paginate(query, limit, offset, models.Course_type_detail.id)
