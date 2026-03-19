@@ -11,7 +11,6 @@ import logging
 
 from src.common.notifications import send_password_reset_email
 from src.common.user_service import register_user
-from src.common.email_client import send_email
 from . import models, schemas
 from ..common.logging_utils import mask_email
 from ..database.database import get_db
