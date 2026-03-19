@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 
 import pyotp
 import json
-import logging
 
 from src.common.user_service import register_user
 from src.common.email_client import send_email
@@ -36,7 +35,6 @@ from .auth import (
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
-logger = logging.getLogger(__name__)
 
 
 @router.post("/login", response_model=schemas.Token)
