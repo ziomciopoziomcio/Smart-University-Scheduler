@@ -4,7 +4,7 @@ Data validation schemas
 
 from typing import Optional, Annotated, List
 from datetime import datetime
-from pydantic import BaseModel, StringConstraints, ConfigDict, EmailStr
+from pydantic import BaseModel, StringConstraints, ConfigDict, EmailStr, model_validator
 
 
 class BaseSchema(BaseModel):
@@ -109,6 +109,12 @@ class SignupRequest(BaseModel):
     surname: Annotated[str, StringConstraints(max_length=255)]
     phone_number: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
     degree: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+
+    @model_validator(mode="after")
+    def passwords_match(self):
+        if getattr(self, "password", None) != getattr(self, "password2", None):
+            raise ValueError("Passwords do not match")
+        return self
 
 
 class PasswordForgotRequest(BaseModel):
