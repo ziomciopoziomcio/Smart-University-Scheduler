@@ -1,6 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
 
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -212,7 +212,9 @@ def signup(payload: schemas.SignupRequest, db: Session = Depends(get_db)):
 
 @router.post("/password/forgot", response_model=schemas.MessageResponse)
 def password_forgot(
-    payload: schemas.PasswordForgotRequest, db: Session = Depends(get_db)
+    payload: schemas.PasswordForgotRequest,
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = Depends(),
 ):
     user = db.query(models.Users).filter(models.Users.email == payload.email).first()
 
@@ -229,15 +231,13 @@ def password_forgot(
     db.flush()
 
     try:
-        send_password_reset_email(user.email, token)
+        background_tasks.add_task(send_password_reset_email, user.email, token)
     except RuntimeError as e:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
     except Exception:
-        user.password_reset_token_hash = None
-        user.password_reset_expires_at = None
         db.rollback()
         logger.exception("Failed to send password reset email")
         raise HTTPException(
