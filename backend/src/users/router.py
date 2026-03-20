@@ -213,8 +213,8 @@ def signup(payload: schemas.SignupRequest, db: Session = Depends(get_db)):
 @router.post("/password/forgot", response_model=schemas.MessageResponse)
 def password_forgot(
     payload: schemas.PasswordForgotRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    background_tasks: BackgroundTasks = Depends(),
 ):
     user = db.query(models.Users).filter(models.Users.email == payload.email).first()
 
