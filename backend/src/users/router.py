@@ -231,8 +231,6 @@ def password_forgot(
     try:
         send_password_reset_email(user.email, token)
     except RuntimeError as e:
-        user.password_reset_token_hash = None
-        user.password_reset_expires_at = None
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
