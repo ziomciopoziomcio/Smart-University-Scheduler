@@ -22,10 +22,6 @@ def _validate_signup(payload, db: Session) -> None:
             status_code=status.HTTP_409_CONFLICT,
             detail="User with this email already exists",
         )
-    if payload.password != payload.password2:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match"
-        )
 
 
 def _prepare_user_and_token(payload):

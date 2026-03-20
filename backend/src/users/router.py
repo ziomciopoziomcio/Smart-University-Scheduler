@@ -253,11 +253,6 @@ def password_forgot(
 def password_reset(
     payload: schemas.PasswordResetRequest, db: Session = Depends(get_db)
 ):
-    if payload.password != payload.password2:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Passwords do not match",
-        )
 
     token_hash = _hash_token(payload.token)
 
@@ -295,8 +290,6 @@ def password_change(
     current_user: models.Users = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if payload.password != payload.password2:
-        raise HTTPException(status_code=400, detail="Passwords do not match")
 
     if not verify_password(payload.old_password, current_user.password_hash):
         raise HTTPException(status_code=400, detail="Old password is incorrect")
