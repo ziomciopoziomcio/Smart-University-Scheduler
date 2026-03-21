@@ -7,7 +7,6 @@ from src.common.router_utils import _commit_or_rollback
 from src.users import models
 from src.users.auth import hash_password, create_email_verification_token, _hash_token
 from src.common.notifications import send_verification_email
-from src.common.logging_utils import mask_email
 
 logger = logging.getLogger(__name__)
 
