@@ -4,7 +4,14 @@ Data validation schemas
 
 from typing import Optional, Annotated, List
 from datetime import datetime
-from pydantic import BaseModel, StringConstraints, ConfigDict, EmailStr, model_validator
+from pydantic import (
+    BaseModel,
+    StringConstraints,
+    ConfigDict,
+    EmailStr,
+    model_validator,
+    Field,
+)
 
 
 class BaseSchema(BaseModel):
@@ -50,7 +57,7 @@ class RoleBase(BaseSchema):
 
 
 class RoleCreate(RoleBase):
-    pass
+    permissions: List[int] = Field(default_factory=list)
 
 
 class RoleRead(RoleBase):
@@ -60,6 +67,7 @@ class RoleRead(RoleBase):
 
 class RoleUpdate(BaseModel):
     role_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    permissions: Optional[List[int]] = None
 
 
 class Token(BaseModel):

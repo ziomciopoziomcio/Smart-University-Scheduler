@@ -213,7 +213,22 @@ def delete_permission_from_role(
     "/roles", response_model=schemas.RoleRead, status_code=status.HTTP_201_CREATED
 )
 def create_role(payload: schemas.RoleCreate, db: Session = Depends(get_db)):
+    """
+    Creates a new role
+    """
     obj = models.Roles(**payload.model_dump())
+    if payload.permissions:
+        perms = (
+            db.query(models.Permissions)
+            .filter(models.Permissions.id.in_(payload.permissions))
+            .all()
+        )
+        if len(perms) != len(payload.permissions):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Some permission IDs are invalid",
+            )
+        obj.permissions = perms
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -244,7 +259,22 @@ def get_role(role_id: int, db: Session = Depends(get_db)):
 def update_role(
     role_id: int, payload: schemas.RoleUpdate, db: Session = Depends(get_db)
 ):
+    """
+    Update roles
+    """
     obj = _get_or_404(db, models.Roles, role_id, "Role")
+    if payload.permissions:
+        perms = (
+            db.query(models.Permissions)
+            .filter(models.Permissions.id.in_(payload.permissions))
+            .all()
+        )
+        if len(perms) != len(payload.permissions):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Some permission IDs are invalid",
+            )
+        obj.permissions = perms
     _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
     _commit_or_rollback(db)
