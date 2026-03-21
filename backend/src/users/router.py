@@ -288,7 +288,7 @@ def update_role(
                 detail="Duplicate permission IDs are not allowed",
             )
         obj.permissions = perms
-    _apply_patch_or_reject_nulls(obj, payload, {"permissions"})
+    _apply_patch_or_reject_nulls(obj, payload, exclude={"permissions"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
