@@ -190,7 +190,7 @@ def add_permission_to_role(
 
 
 @router.delete(
-    "/{role_id}/permissions/{permission_id}", response_model=schemas.RoleRead
+    "/roles/{role_id}/permissions/{permission_id}", response_model=schemas.RoleRead
 )
 def delete_permission_from_role(
     role_id: int, permission_id: int, db: Session = Depends(get_db)
