@@ -206,8 +206,12 @@ def list_users(db: Session = Depends(get_db)):
 @router.post(
     "/signup", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED
 )
-def signup(payload: schemas.SignupRequest, db: Session = Depends(get_db)):
-    return register_user(payload, db)
+def signup(
+    payload: schemas.SignupRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    return register_user(payload, background_tasks, db)
 
 
 @router.post("/password/forgot", response_model=schemas.MessageResponse)
@@ -230,20 +234,7 @@ def password_forgot(
     db.add(user)
     db.flush()
 
-    try:
-        background_tasks.add_task(send_password_reset_email, user.email, token)
-    except RuntimeError as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
-    except Exception:
-        db.rollback()
-        logger.exception("Failed to send password reset email")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to send reset email",
-        )
+    background_tasks.add_task(send_password_reset_email, user.email, token)
 
     _commit_or_rollback(db)
     return response
