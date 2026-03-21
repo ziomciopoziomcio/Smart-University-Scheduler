@@ -223,7 +223,7 @@ def create_role(payload: schemas.RoleCreate, db: Session = Depends(get_db)):
             .filter(models.Permissions.id.in_(payload.permissions))
             .all()
         )
-        if len(perms) != len(payload.permissions):
+        if len(perms) != len(set(payload.permissions)):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Some permission IDs are invalid",
@@ -269,7 +269,7 @@ def update_role(
             .filter(models.Permissions.id.in_(payload.permissions))
             .all()
         )
-        if len(perms) != len(payload.permissions):
+        if len(perms) != len(set(payload.permissions)):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Some permission IDs are invalid",
