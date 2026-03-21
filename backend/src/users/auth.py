@@ -40,6 +40,8 @@ def authenticate_user(db: Session, email: str, password: str) -> models.Users | 
         return None
     if not verify_password(password, user.password_hash):
         return None
+    if not getattr(user, "email_verified", False):
+        return None
     return user
 
 
@@ -194,3 +196,15 @@ def verify_2fa_code(db: Session, user: models.Users, code: str) -> bool:
         return _verify_backup_code(db, user, code)
 
     return False
+
+
+def _hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def create_password_reset_token() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def create_email_verification_token() -> str:
+    return secrets.token_urlsafe(32)

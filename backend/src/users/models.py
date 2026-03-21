@@ -51,6 +51,22 @@ class Users(Base):
     two_factor_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
     backup_codes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    password_reset_token_hash: Mapped[str | None] = mapped_column(
+        String(64), nullable=True
+    )
+    password_reset_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    email_verified: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
+    email_verification_token_hash: Mapped[str | None] = mapped_column(
+        String(64), nullable=True
+    )
+    email_verification_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     roles: Mapped[list["Roles"]] = relationship(
         secondary=user_roles, back_populates="users"
     )

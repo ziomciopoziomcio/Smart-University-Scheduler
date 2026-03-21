@@ -1,13 +1,16 @@
+from datetime import datetime, timezone, timedelta
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
 
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 import pyotp
 import json
+import logging
 
-
+from src.common.notifications import send_password_reset_email
+from src.common.user_service import register_user
 from . import models, schemas
 from ..database.database import get_db
 from src.common.router_utils import (
@@ -26,9 +29,13 @@ from .auth import (
     _get_user_id_from_pre_token,
     hash_password,
     verify_2fa_code,
+    create_password_reset_token,
+    _hash_token,
+    verify_password,
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
+logger = logging.getLogger(__name__)
 
 
 @router.post("/login", response_model=schemas.Token)
@@ -194,6 +201,123 @@ def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
 @router.get("/", response_model=List[schemas.UserRead])
 def list_users(db: Session = Depends(get_db)):
     return db.query(models.Users).all()
+
+
+@router.post(
+    "/signup", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED
+)
+def signup(
+    payload: schemas.SignupRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    return register_user(payload, background_tasks, db)
+
+
+@router.post("/password/forgot", response_model=schemas.MessageResponse)
+def password_forgot(
+    payload: schemas.PasswordForgotRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    user = db.query(models.Users).filter(models.Users.email == payload.email).first()
+
+    response = {"detail": "If the account exists, a reset link has been sent."}
+
+    if not user:
+        return response
+
+    token = create_password_reset_token()
+    user.password_reset_token_hash = _hash_token(token)
+    user.password_reset_expires_at = datetime.now(timezone.utc) + timedelta(minutes=30)
+
+    db.add(user)
+    db.flush()
+
+    _commit_or_rollback(db)
+
+    background_tasks.add_task(send_password_reset_email, user.email, token)
+
+    return response
+
+
+@router.post("/password/reset", response_model=schemas.MessageResponse)
+def password_reset(
+    payload: schemas.PasswordResetRequest, db: Session = Depends(get_db)
+):
+
+    token_hash = _hash_token(payload.token)
+
+    user = (
+        db.query(models.Users)
+        .filter(models.Users.password_reset_token_hash == token_hash)
+        .first()
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token"
+        )
+
+    if (
+        not user.password_reset_expires_at
+        or user.password_reset_expires_at < datetime.now(timezone.utc)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token"
+        )
+
+    user.password_hash = hash_password(payload.password)
+    user.password_reset_token_hash = None
+    user.password_reset_expires_at = None
+
+    db.add(user)
+    _commit_or_rollback(db)
+
+    return {"detail": "Password has been reset"}
+
+
+@router.post("/password/change", response_model=schemas.MessageResponse)
+def password_change(
+    payload: schemas.PasswordChangeRequest,
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+
+    if not verify_password(payload.old_password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="Old password is incorrect")
+
+    current_user.password_hash = hash_password(payload.password)
+    db.add(current_user)
+    _commit_or_rollback(db)
+    return {"detail": "Password changed"}
+
+
+@router.get("/verify-email", response_model=schemas.VerifyEmailResponse)
+def verify_email(token: str = Query(...), db: Session = Depends(get_db)):
+    token_hash = _hash_token(token)
+
+    user = (
+        db.query(models.Users)
+        .filter(models.Users.email_verification_token_hash == token_hash)
+        .first()
+    )
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+
+    if (
+        not user.email_verification_expires_at
+        or user.email_verification_expires_at < datetime.now(timezone.utc)
+    ):
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+
+    user.email_verified = True
+    user.email_verification_token_hash = None
+    user.email_verification_expires_at = None
+
+    db.add(user)
+    _commit_or_rollback(db)
+
+    return {"detail": "Email verified"}
 
 
 @router.get("/{user_id}", response_model=schemas.UserRead)

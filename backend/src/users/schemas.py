@@ -4,7 +4,7 @@ Data validation schemas
 
 from typing import Optional, Annotated, List
 from datetime import datetime
-from pydantic import BaseModel, StringConstraints, ConfigDict, EmailStr
+from pydantic import BaseModel, StringConstraints, ConfigDict, EmailStr, model_validator
 
 
 class BaseSchema(BaseModel):
@@ -99,3 +99,43 @@ class BackupCodesResponse(BaseModel):
 class TwoFactorSetupResponse(BaseModel):
     provisioning_uri: str
     secret: str
+
+
+class SignupRequest(BaseModel):
+    email: Annotated[EmailStr, StringConstraints(max_length=255)]
+    password: Annotated[str, StringConstraints(min_length=8, max_length=255)]
+    password2: Annotated[str, StringConstraints(min_length=8, max_length=255)]
+    name: Annotated[str, StringConstraints(max_length=255)]
+    surname: Annotated[str, StringConstraints(max_length=255)]
+    phone_number: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
+    degree: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+
+    @model_validator(mode="after")
+    def passwords_match(self):
+        if getattr(self, "password", None) != getattr(self, "password2", None):
+            raise ValueError("Passwords do not match")
+        return self
+
+
+class PasswordForgotRequest(BaseModel):
+    email: Annotated[EmailStr, StringConstraints(max_length=255)]
+
+
+class PasswordResetRequest(BaseModel):
+    token: Annotated[str, StringConstraints(min_length=10, max_length=500)]
+    password: Annotated[str, StringConstraints(min_length=8, max_length=255)]
+    password2: Annotated[str, StringConstraints(min_length=8, max_length=255)]
+
+
+class MessageResponse(BaseModel):
+    detail: str
+
+
+class PasswordChangeRequest(BaseModel):
+    old_password: Annotated[str, StringConstraints(max_length=255)]
+    password: Annotated[str, StringConstraints(min_length=8, max_length=255)]
+    password2: Annotated[str, StringConstraints(min_length=8, max_length=255)]
+
+
+class VerifyEmailResponse(BaseModel):
+    detail: str
