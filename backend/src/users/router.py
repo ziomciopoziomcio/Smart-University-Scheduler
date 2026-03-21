@@ -221,6 +221,7 @@ def create_role(payload: schemas.RoleCreate, db: Session = Depends(get_db)):
     """
     obj = models.Roles(**payload.model_dump(exclude={"permissions"}))
     if payload.permissions:
+        unique_permission_ids = set(payload.permissions)
         perms = (
             db.query(models.Permissions)
             .filter(models.Permissions.id.in_(payload.permissions))
@@ -230,6 +231,11 @@ def create_role(payload: schemas.RoleCreate, db: Session = Depends(get_db)):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Some permission IDs are invalid",
+            )
+        if len(unique_permission_ids) != len(payload.permissions):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Duplicate permission IDs are not allowed",
             )
         obj.permissions = perms
     db.add(obj)
