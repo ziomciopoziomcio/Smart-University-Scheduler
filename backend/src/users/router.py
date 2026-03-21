@@ -275,7 +275,7 @@ def update_role(
                 detail="Some permission IDs are invalid",
             )
         obj.permissions = perms
-    _apply_patch_or_reject_nulls(obj, payload)
+    _apply_patch_or_reject_nulls(obj, payload, {"permissions"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
