@@ -15,7 +15,7 @@ class ChatCreate(BaseModel):
 
 
 class ChatUpdate(BaseModel):
-    title: Optional[str] = None
+    title: Optional[str] = Field(None, max_length=255)
 
 
 class ChatRead(BaseSchema):
