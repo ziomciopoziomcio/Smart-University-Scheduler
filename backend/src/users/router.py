@@ -263,7 +263,7 @@ def update_role(
     Update roles
     """
     obj = _get_or_404(db, models.Roles, role_id, "Role")
-    if payload.permissions:
+    if payload.permissions is not None:
         perms = (
             db.query(models.Permissions)
             .filter(models.Permissions.id.in_(payload.permissions))
