@@ -8,6 +8,7 @@ from src.common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
+    _get_by_fields_or_404,
 )
 
 router = APIRouter(prefix="/academics", tags=["academics"])
@@ -206,20 +207,35 @@ def list_group_members(db: Session = Depends(get_db)):
     return db.query(models.Group_members).all()
 
 
-@router.get("/group-members/{group_member_id}", response_model=schemas.GroupMembersRead)
-def get_group_member(group_member_id: int, db: Session = Depends(get_db)):
-    return _get_or_404(db, models.Group_members, group_member_id, "Group Member")
+@router.get(
+    "/group-members/{group_id}/{student_id}", response_model=schemas.GroupMembersRead
+)
+def get_group_member(group_id: int, student_id: int, db: Session = Depends(get_db)):
+    return _get_by_fields_or_404(
+        db,
+        models.Group_members,
+        "Group Member",
+        group=group_id,
+        student=student_id,
+    )
 
 
 @router.patch(
-    "/group-members/{group_member_id}", response_model=schemas.GroupMembersRead
+    "/group-members/{group_id}/{student_id}", response_model=schemas.GroupMembersRead
 )
 def update_group_member(
-    group_member_id: int,
+    group_id: int,
+    student_id: int,
     payload: schemas.GroupMembersUpdate,
     db: Session = Depends(get_db),
 ):
-    obj = _get_or_404(db, models.Group_members, group_member_id, "Group Member")
+    obj = _get_by_fields_or_404(
+        db,
+        models.Group_members,
+        "Group Member",
+        group=group_id,
+        student=student_id,
+    )
     _apply_patch_or_reject_nulls(obj, payload)
     db.add(obj)
     _commit_or_rollback(db)
@@ -228,10 +244,16 @@ def update_group_member(
 
 
 @router.delete(
-    "/group-members/{group_member_id}", status_code=status.HTTP_204_NO_CONTENT
+    "/group-members/{group_id}/{student_id}", status_code=status.HTTP_204_NO_CONTENT
 )
-def delete_group_member(group_member_id: int, db: Session = Depends(get_db)):
-    obj = _get_or_404(db, models.Group_members, group_member_id, "Group Member")
+def delete_group_member(group_id: int, student_id: int, db: Session = Depends(get_db)):
+    obj = _get_by_fields_or_404(
+        db,
+        models.Group_members,
+        "Group Member",
+        group=group_id,
+        student=student_id,
+    )
     db.delete(obj)
     _commit_or_rollback(db)
     return None

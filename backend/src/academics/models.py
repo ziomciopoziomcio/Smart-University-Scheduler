@@ -87,10 +87,9 @@ class Group_members(Base):
 
     __tablename__ = "group_members"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    group: Mapped[int] = mapped_column(Integer, ForeignKey("groups.id"))
-    student: Mapped[int] = mapped_column(Integer, ForeignKey("students.id"))
-
-    __table_args__ = (
-        UniqueConstraint("group", "student", name="uq_group_members_group_id"),
+    group: Mapped[int] = mapped_column(
+        Integer, ForeignKey("groups.id"), primary_key=True
+    )
+    student: Mapped[int] = mapped_column(
+        Integer, ForeignKey("students.id"), primary_key=True
     )
