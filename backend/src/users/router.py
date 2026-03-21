@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 
 ROLE_LIMIT = 50
 USER_LIMIT = 100
+PERMISSION_LIMIT = 100
 
 
 @router.post("/login", response_model=schemas.Token)
@@ -144,6 +145,67 @@ def twofa_verify(
 
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+# Permissions
+@router.get("/permissions", response_model=PaginatedResponse[schemas.PermissionRead])
+def get_permissions(
+    group: str | None = Query(None),
+    db: Session = Depends(get_db),
+    limit: int | None = Query(PERMISSION_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """
+    Return all permissions for the current user
+    """
+    query = db.query(models.Roles)
+
+    if group:
+        query = query.filter(models.Permissions.group == group)
+
+    return paginate(query, limit, offset, models.Permissions.id)
+
+
+@router.post("/{role_id}/permissions/{permission_id}", response_model=schemas.RoleRead)
+def add_permission_to_role(
+    role_id: int, permission_id: int, db: Session = Depends(get_db)
+):
+    """
+    Add permission to role
+    """
+    obj_role = _get_or_404(db, models.Roles, role_id, "Role")
+    obj_perm = _get_or_404(db, models.Permissions, permission_id, "Permissions")
+    if obj_perm in obj_role.permissions:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Permission already assigned",
+        )
+    obj_role.permissions.append(obj_perm)
+    _commit_or_rollback(db)
+    db.refresh(obj_role)
+    return obj_role
+
+
+@router.delete(
+    "/{role_id}/permissions/{permission_id}", response_model=schemas.RoleRead
+)
+def delete_permission_from_role(
+    role_id: int, permission_id: int, db: Session = Depends(get_db)
+):
+    """
+    Delete permission from role
+    """
+    obj_role = _get_or_404(db, models.Roles, role_id, "Role")
+    obj_perm = _get_or_404(db, models.Permissions, permission_id, "Permissions")
+    if obj_perm not in obj_role.permissions:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Permission not assigned",
+        )
+    obj_role.permissions.remove(obj_perm)
+    _commit_or_rollback(db)
+    db.refresh(obj_role)
+    return obj_role
 
 
 # Roles
