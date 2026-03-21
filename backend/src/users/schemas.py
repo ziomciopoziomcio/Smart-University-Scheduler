@@ -4,11 +4,26 @@ Data validation schemas
 
 from typing import Optional, Annotated, List
 from datetime import datetime
-from pydantic import BaseModel, StringConstraints, ConfigDict, EmailStr, model_validator
+from pydantic import (
+    BaseModel,
+    StringConstraints,
+    ConfigDict,
+    EmailStr,
+    model_validator,
+    Field,
+)
 
 
 class BaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+
+
+class PermissionRead(BaseSchema):
+    id: int
+    code: Annotated[str, StringConstraints(max_length=100)]
+    name: Optional[Annotated[str, StringConstraints(max_length=100)]]
+    description: Optional[Annotated[str, StringConstraints(max_length=200)]]
+    group: Optional[Annotated[str, StringConstraints(max_length=50)]]
 
 
 class UserBase(BaseSchema):
@@ -42,15 +57,17 @@ class RoleBase(BaseSchema):
 
 
 class RoleCreate(RoleBase):
-    pass
+    permissions: List[int] = Field(default_factory=list)
 
 
 class RoleRead(RoleBase):
     id: int
+    permissions: List[PermissionRead] = Field(default_factory=list)
 
 
 class RoleUpdate(BaseModel):
     role_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    permissions: Optional[List[int]] = None
 
 
 class Token(BaseModel):

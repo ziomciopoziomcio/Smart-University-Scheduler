@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 
 ROLE_LIMIT = 50
 USER_LIMIT = 100
+PERMISSION_LIMIT = 100
 
 
 @router.post("/login", response_model=schemas.Token)
@@ -146,12 +147,97 @@ def twofa_verify(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+# Permissions
+@router.get("/permissions", response_model=PaginatedResponse[schemas.PermissionRead])
+def get_permissions(
+    group: str | None = Query(None),
+    db: Session = Depends(get_db),
+    limit: int | None = Query(PERMISSION_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    """
+    Return all permissions, optionally filtered by group
+    """
+    query = db.query(models.Permissions)
+
+    if group:
+        query = query.filter(models.Permissions.group == group)
+
+    return paginate(query, limit, offset, models.Permissions.id)
+
+
+@router.post(
+    "/roles/{role_id}/permissions/{permission_id}",
+    response_model=schemas.RoleRead,
+)
+def add_permission_to_role(
+    role_id: int, permission_id: int, db: Session = Depends(get_db)
+):
+    """
+    Add permission to role
+    """
+    obj_role = _get_or_404(db, models.Roles, role_id, "Role")
+    obj_perm = _get_or_404(db, models.Permissions, permission_id, "Permissions")
+    if obj_perm in obj_role.permissions:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Permission already assigned",
+        )
+    obj_role.permissions.append(obj_perm)
+    _commit_or_rollback(db)
+    db.refresh(obj_role)
+    return obj_role
+
+
+@router.delete(
+    "/roles/{role_id}/permissions/{permission_id}", response_model=schemas.RoleRead
+)
+def delete_permission_from_role(
+    role_id: int, permission_id: int, db: Session = Depends(get_db)
+):
+    """
+    Delete permission from role
+    """
+    obj_role = _get_or_404(db, models.Roles, role_id, "Role")
+    obj_perm = _get_or_404(db, models.Permissions, permission_id, "Permissions")
+    if obj_perm not in obj_role.permissions:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Permission not assigned",
+        )
+    obj_role.permissions.remove(obj_perm)
+    _commit_or_rollback(db)
+    db.refresh(obj_role)
+    return obj_role
+
+
 # Roles
 @router.post(
     "/roles", response_model=schemas.RoleRead, status_code=status.HTTP_201_CREATED
 )
 def create_role(payload: schemas.RoleCreate, db: Session = Depends(get_db)):
-    obj = models.Roles(**payload.model_dump())
+    """
+    Creates a new role
+    """
+    obj = models.Roles(**payload.model_dump(exclude={"permissions"}))
+    if payload.permissions:
+        unique_permission_ids = set(payload.permissions)
+        perms = (
+            db.query(models.Permissions)
+            .filter(models.Permissions.id.in_(payload.permissions))
+            .all()
+        )
+        if len(perms) != len(set(payload.permissions)):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Some permission IDs are invalid",
+            )
+        if len(unique_permission_ids) != len(payload.permissions):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Duplicate permission IDs are not allowed",
+            )
+        obj.permissions = perms
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
@@ -182,8 +268,33 @@ def get_role(role_id: int, db: Session = Depends(get_db)):
 def update_role(
     role_id: int, payload: schemas.RoleUpdate, db: Session = Depends(get_db)
 ):
+    """
+    Update roles
+    """
     obj = _get_or_404(db, models.Roles, role_id, "Role")
-    _apply_patch_or_reject_nulls(obj, payload)
+    if payload.permissions is not None:
+        # Use unique IDs for validation, and detect duplicates explicitly so
+        # error messages distinguish between invalid IDs and duplicates.
+        unique_permission_ids = set(payload.permissions)
+        perms = (
+            db.query(models.Permissions)
+            .filter(models.Permissions.id.in_(unique_permission_ids))
+            .all()
+        )
+        # If we didn't get back one row per unique ID, some IDs are invalid.
+        if len(perms) != len(unique_permission_ids):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Some permission IDs are invalid",
+            )
+        # If there are fewer unique IDs than provided IDs, there were duplicates.
+        if len(unique_permission_ids) != len(payload.permissions):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Duplicate permission IDs are not allowed",
+            )
+        obj.permissions = perms
+    _apply_patch_or_reject_nulls(obj, payload, exclude={"permissions"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
