@@ -1,10 +1,7 @@
-from datetime import datetime, timezone, timedelta
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
-
 from fastapi.security import OAuth2PasswordRequestForm
+from datetime import datetime, timezone, timedelta
+from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
 from sqlalchemy.orm import Session
-
 import pyotp
 import json
 import logging
@@ -18,6 +15,8 @@ from src.common.router_utils import (
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
 )
+from src.common.pagination.pagination import paginate
+from src.common.pagination.pagination_model import PaginatedResponse
 
 from .auth import (
     authenticate_user,
@@ -36,6 +35,9 @@ from .auth import (
 
 router = APIRouter(prefix="/users", tags=["users"])
 logger = logging.getLogger(__name__)
+
+ROLE_LIMIT = 50
+USER_LIMIT = 100
 
 
 @router.post("/login", response_model=schemas.Token)
@@ -156,9 +158,19 @@ def create_role(payload: schemas.RoleCreate, db: Session = Depends(get_db)):
     return obj
 
 
-@router.get("/roles", response_model=List[schemas.RoleRead])
-def list_roles(db: Session = Depends(get_db)):
-    return db.query(models.Roles).all()
+@router.get("/roles", response_model=PaginatedResponse[schemas.RoleRead])
+def list_roles(
+    role_name: str | None = Query(None, min_length=1),
+    limit: int = Query(ROLE_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Roles)
+
+    if role_name is not None:
+        query = query.filter(models.Roles.role_name.ilike(f"%{role_name}%"))
+
+    return paginate(query, limit, offset, models.Roles.id)
 
 
 @router.get("/roles/{role_id}", response_model=schemas.RoleRead)
@@ -198,9 +210,31 @@ def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
     return obj
 
 
-@router.get("/", response_model=List[schemas.UserRead])
-def list_users(db: Session = Depends(get_db)):
-    return db.query(models.Users).all()
+@router.get("/", response_model=PaginatedResponse[schemas.UserRead])
+def list_users(
+    email: str | None = Query(None, min_length=1),
+    phone_number: str | None = Query(None, min_length=1),
+    name: str | None = Query(None, min_length=1),
+    surname: str | None = Query(None, min_length=1),
+    degree: str | None = Query(None, min_length=1),
+    limit: int | None = Query(USER_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.Users)
+
+    if email is not None:
+        query = query.filter(models.Users.email.ilike(f"%{email}%"))
+    if phone_number is not None:
+        query = query.filter(models.Users.phone_number.ilike(f"%{phone_number}%"))
+    if name is not None:
+        query = query.filter(models.Users.name.ilike(f"%{name}%"))
+    if surname is not None:
+        query = query.filter(models.Users.surname.ilike(f"%{surname}%"))
+    if degree is not None:
+        query = query.filter(models.Users.degree.ilike(f"%{degree}%"))
+
+    return paginate(query, limit, offset, models.Users.id)
 
 
 @router.post(
