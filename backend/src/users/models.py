@@ -72,6 +72,14 @@ class Users(Base):
     )
 
 
+role_permissions = Table(
+    "role_permissions",
+    Base.metadata,
+    Column("role_id", Integer, ForeignKey("roles.id"), primary_key=True),
+    Column("permission_id", Integer, ForeignKey("permissions.id"), primary_key=True),
+)
+
+
 class Roles(Base):
     """Roles model representing a role in the system."""
 
@@ -84,13 +92,11 @@ class Roles(Base):
         secondary=user_roles, back_populates="roles"
     )
 
-
-role_permissions = Table(
-    "role_permissions",
-    Base.metadata,
-    Column("role_id", Integer, ForeignKey("roles.id"), primary_key=True),
-    Column("permission_id", Integer, ForeignKey("permissions.id"), primary_key=True),
-)
+    permissions: Mapped[list["Permissions"]] = relationship(
+        "Permissions",
+        secondary=role_permissions,
+        back_populates="roles",
+    )
 
 
 class Permissions(Base):
@@ -105,11 +111,7 @@ class Permissions(Base):
     group: Mapped[str | None] = mapped_column(String(50))
 
     roles: Mapped[list["Roles"]] = relationship(
-        "Roles", secondary=role_permissions, back_populates="permissions"
-    )
-
-    permissions: Mapped[list["Permissions"]] = relationship(
-        "Permissions",
+        "Roles",
         secondary=role_permissions,
-        back_populates="roles",
+        back_populates="permissions",
     )
