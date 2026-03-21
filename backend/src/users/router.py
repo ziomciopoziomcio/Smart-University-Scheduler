@@ -1,6 +1,5 @@
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timezone, timedelta
-from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 import pyotp
