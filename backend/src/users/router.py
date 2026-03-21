@@ -156,7 +156,7 @@ def get_permissions(
     offset: int = Query(0, ge=0),
 ):
     """
-    Return all permissions for the current user
+    Return all permissions, optionally filtered by group
     """
     query = db.query(models.Permissions)
 
