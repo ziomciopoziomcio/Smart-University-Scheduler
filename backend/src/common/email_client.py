@@ -7,6 +7,24 @@ from email.message import EmailMessage
 logger = logging.getLogger(__name__)
 
 
+def _smtp_send_message(
+    host: str, port: int, user: str, password: str, msg: EmailMessage, timeout: int
+) -> None:
+    if port == 465:
+        with smtplib.SMTP_SSL(host, port, timeout=timeout) as smtp:
+            smtp.login(user, password)
+            smtp.send_message(msg)
+        return
+
+    context = ssl.create_default_context()
+    with smtplib.SMTP(host, port, timeout=timeout) as smtp:
+        smtp.ehlo()
+        smtp.starttls(context=context)
+        smtp.ehlo()
+        smtp.login(user, password)
+        smtp.send_message(msg)
+
+
 def send_email(to_email: str, subject: str, body_text: str) -> None:
     host = os.getenv("SMTP_HOST")
     port_raw = os.getenv("SMTP_PORT", "587")
@@ -37,18 +55,7 @@ def send_email(to_email: str, subject: str, body_text: str) -> None:
     timeout = 10
 
     try:
-        if port == 465:
-            with smtplib.SMTP_SSL(host, port, timeout=timeout) as smtp:
-                smtp.login(user, password)
-                smtp.send_message(msg)
-        else:
-            context = ssl.create_default_context()
-            with smtplib.SMTP(host, port, timeout=timeout) as smtp:
-                smtp.ehlo()
-                smtp.starttls(context=context)
-                smtp.ehlo()
-                smtp.login(user, password)
-                smtp.send_message(msg)
+        _smtp_send_message(host, port, user, password, msg, timeout)
     except Exception:
         logger.exception(
             "SMTP send failed (to=%s, subject=%r, host=%s, port=%s)",
