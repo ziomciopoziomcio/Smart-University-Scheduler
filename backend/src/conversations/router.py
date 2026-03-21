@@ -42,7 +42,7 @@ def list_chats(
     query = db.query(models.Chats)
     query = query.filter(
         models.Chats.user_id == current_user.id,
-        models.Chats.visible == True,  # noqa: E712
+        models.Chats.visible.is_(True),
     )
 
     return paginate(query, limit, offset, models.Chats.created_at.desc())
