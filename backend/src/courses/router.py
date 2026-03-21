@@ -257,7 +257,12 @@ def list_course_types(
             models.Course_type_detail.max_group_participants_number <= max_group_size
         )
 
-    return paginate(query, limit, offset, models.Course_type_detail.id)
+    query = query.order_by(
+        models.Course_type_detail.course,
+        models.Course_type_detail.class_type,
+    )
+
+    return paginate(query, limit, offset)
 
 
 @router.get("/types/{course}/{class_type}", response_model=schemas.CourseTypeDetailRead)
@@ -334,7 +339,8 @@ def create_course_instructor(
 )
 def list_course_instructors(
     employee: int | None = Query(None),
-    course_type_detail: int | None = Query(None),
+    course: int | None = Query(None),
+    class_type: schemas.ClassType | None = Query(None),
     min_hours: int | None = Query(None, ge=0),
     max_hours: int | None = Query(None, ge=0),
     limit: int | None = Query(COURSE_INSTRUCTOR_LIMIT, ge=1, le=200),
@@ -345,16 +351,22 @@ def list_course_instructors(
 
     if employee is not None:
         query = query.filter(models.Courses_instructors.employee == employee)
-    if course_type_detail is not None:
-        query = query.filter(
-            models.Courses_instructors.course_type_detail == course_type_detail
-        )
+    if course is not None:
+        query = query.filter(models.Courses_instructors.course == course)
+    if class_type is not None:
+        query = query.filter(models.Courses_instructors.class_type == class_type)
     if min_hours is not None:
         query = query.filter(models.Courses_instructors.hours >= min_hours)
     if max_hours is not None:
         query = query.filter(models.Courses_instructors.hours <= max_hours)
 
-    return paginate(query, limit, offset, models.Courses_instructors.id)
+    query = query.order_by(
+        models.Courses_instructors.employee,
+        models.Courses_instructors.course,
+        models.Courses_instructors.class_type,
+    )
+
+    return paginate(query, limit, offset)
 
 
 @router.get(
@@ -604,7 +616,13 @@ def list_curriculum(
     if elective_block is not None:
         query = query.filter(models.Curriculum_course.elective_block == elective_block)
 
-    return paginate(query, limit, offset, models.Curriculum_course.id)
+    query = query.order_by(
+        models.Curriculum_course.study_program,
+        models.Curriculum_course.course,
+        models.Curriculum_course.semester,
+    )
+
+    return paginate(query, limit, offset)
 
 
 @router.get(

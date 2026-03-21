@@ -294,7 +294,12 @@ def list_group_members(
     if student is not None:
         query = query.filter(models.Group_members.student == student)
 
-    return paginate(query, limit, offset, models.Group_members.id)
+    query = query.order_by(
+        models.Group_members.group,
+        models.Group_members.student,
+    )
+
+    return paginate(query, limit, offset)
 
 
 @router.get(

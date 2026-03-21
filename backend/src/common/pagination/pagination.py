@@ -1,22 +1,12 @@
-from typing import Any, Generic, Optional, Sequence, TypeVar
-
-from pydantic import BaseModel
-
-T = TypeVar("T")
+from src.common.pagination.pagination_model import PaginatedResponse
 
 
-class PaginatedResponse(BaseModel, Generic[T]):
-    items: Sequence[T]
-    total: int
-    limit: Optional[int]
-    offset: int
-
-
-def paginate(
-    query, limit: int | None, offset: int = 0, order_by=None
-) -> PaginatedResponse[Any]:
+def paginate(query, limit: int | None, offset: int = 0, order_by=None):
     if order_by is not None:
-        query = query.order_by(order_by)
+        if isinstance(order_by, (list, tuple)):
+            query = query.order_by(*order_by)
+        else:
+            query = query.order_by(order_by)
 
     total = query.order_by(None).count()
 
@@ -24,10 +14,8 @@ def paginate(
     if limit is not None:
         paginated_query = paginated_query.limit(limit)
 
-    items = paginated_query.all()
-
-    return PaginatedResponse[Any](
-        items=items,
+    return PaginatedResponse(
+        items=paginated_query.all(),
         total=total,
         limit=limit,
         offset=offset,
