@@ -14,6 +14,10 @@ class ChatCreate(BaseModel):
     title: Optional[str] = Field(None, max_length=255)
 
 
+class ChatUpdate(BaseModel):
+    title: Optional[str] = None
+
+
 class ChatRead(BaseSchema):
     id: int
     user_id: int
