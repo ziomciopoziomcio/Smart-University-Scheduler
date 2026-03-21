@@ -158,7 +158,7 @@ def get_permissions(
     """
     Return all permissions for the current user
     """
-    query = db.query(models.Roles)
+    query = db.query(models.Permissions)
 
     if group:
         query = query.filter(models.Permissions.group == group)
