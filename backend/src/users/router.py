@@ -166,7 +166,10 @@ def get_permissions(
     return paginate(query, limit, offset, models.Permissions.id)
 
 
-@router.post("/{role_id}/permissions/{permission_id}", response_model=schemas.RoleRead)
+@router.post(
+    "/users/roles/{role_id}/permissions/{permission_id}",
+    response_model=schemas.RoleRead,
+)
 def add_permission_to_role(
     role_id: int, permission_id: int, db: Session = Depends(get_db)
 ):
