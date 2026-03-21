@@ -267,15 +267,25 @@ def update_role(
     """
     obj = _get_or_404(db, models.Roles, role_id, "Role")
     if payload.permissions is not None:
+        # Use unique IDs for validation, and detect duplicates explicitly so
+        # error messages distinguish between invalid IDs and duplicates.
+        unique_permission_ids = set(payload.permissions)
         perms = (
             db.query(models.Permissions)
-            .filter(models.Permissions.id.in_(payload.permissions))
+            .filter(models.Permissions.id.in_(unique_permission_ids))
             .all()
         )
-        if len(perms) != len(set(payload.permissions)):
+        # If we didn't get back one row per unique ID, some IDs are invalid.
+        if len(perms) != len(unique_permission_ids):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Some permission IDs are invalid",
+            )
+        # If there are fewer unique IDs than provided IDs, there were duplicates.
+        if len(unique_permission_ids) != len(payload.permissions):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Duplicate permission IDs are not allowed",
             )
         obj.permissions = perms
     _apply_patch_or_reject_nulls(obj, payload, {"permissions"})
