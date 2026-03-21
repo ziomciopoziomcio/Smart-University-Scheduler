@@ -299,7 +299,12 @@ def list_group_members(
         models.Group_members.student,
     )
 
-    return paginate(query, limit, offset)
+    return paginate(
+        query,
+        limit,
+        offset,
+        order_by=[models.Group_members.group, models.Group_members.student],
+    )
 
 
 @router.get(

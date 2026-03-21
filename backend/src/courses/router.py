@@ -262,7 +262,15 @@ def list_course_types(
         models.Course_type_detail.class_type,
     )
 
-    return paginate(query, limit, offset)
+    return paginate(
+        query,
+        limit,
+        offset,
+        order_by=[
+            models.Course_type_detail.course,
+            models.Course_type_detail.class_type,
+        ],
+    )
 
 
 @router.get("/types/{course}/{class_type}", response_model=schemas.CourseTypeDetailRead)
@@ -366,7 +374,16 @@ def list_course_instructors(
         models.Courses_instructors.class_type,
     )
 
-    return paginate(query, limit, offset)
+    return paginate(
+        query,
+        limit,
+        offset,
+        order_by=[
+            models.Courses_instructors.employee,
+            models.Courses_instructors.course,
+            models.Courses_instructors.class_type,
+        ],
+    )
 
 
 @router.get(
@@ -622,7 +639,16 @@ def list_curriculum(
         models.Curriculum_course.semester,
     )
 
-    return paginate(query, limit, offset)
+    return paginate(
+        query,
+        limit,
+        offset,
+        order_by=[
+            models.Curriculum_course.study_program,
+            models.Curriculum_course.course,
+            models.Curriculum_course.semester,
+        ],
+    )
 
 
 @router.get(
