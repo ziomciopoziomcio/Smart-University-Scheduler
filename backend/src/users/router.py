@@ -167,7 +167,7 @@ def get_permissions(
 
 
 @router.post(
-    "/users/roles/{role_id}/permissions/{permission_id}",
+    "/roles/{role_id}/permissions/{permission_id}",
     response_model=schemas.RoleRead,
 )
 def add_permission_to_role(
