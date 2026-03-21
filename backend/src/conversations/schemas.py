@@ -14,7 +14,7 @@ class ChatCreate(BaseModel):
     title: Optional[str] = Field(None, max_length=255)
 
 
-class ChatRead(BaseModel):
+class ChatRead(BaseSchema):
     id: int
     user_id: int
     title: Optional[str] = None
@@ -26,7 +26,7 @@ class MessageCreate(BaseModel):
     content: str = Field(..., min_length=1)
 
 
-class MessageRead(BaseModel):
+class MessageRead(BaseSchema):
     id: int
     chat_id: int
     role: MessageRole
