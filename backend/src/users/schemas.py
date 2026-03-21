@@ -11,6 +11,14 @@ class BaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PermissionRead(BaseSchema):
+    id: int
+    code: Annotated[str, StringConstraints(max_length=100)]
+    name: Optional[Annotated[str, StringConstraints(max_length=100)]]
+    description: Optional[Annotated[str, StringConstraints(max_length=200)]]
+    group: Optional[Annotated[str, StringConstraints(max_length=50)]]
+
+
 class UserBase(BaseSchema):
     email: Annotated[EmailStr, StringConstraints(max_length=255)]
     phone_number: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
@@ -47,6 +55,7 @@ class RoleCreate(RoleBase):
 
 class RoleRead(RoleBase):
     id: int
+    permissions: List[PermissionRead] = []
 
 
 class RoleUpdate(BaseModel):
