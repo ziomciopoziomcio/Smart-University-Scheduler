@@ -61,10 +61,11 @@ def _send_verification_and_commit(
     BackgroundTasks runs after the HTTP response is returned,
     so SMTP errors can't be caught here (they will be logged in send_email()).
     """
-    background_tasks.add_task(send_verification_email, user.email, token)
-
     _commit_or_rollback(db)
     db.refresh(user)
+
+    background_tasks.add_task(send_verification_email, user.email, token)
+
     return user
 
 
