@@ -216,7 +216,7 @@ def create_role(payload: schemas.RoleCreate, db: Session = Depends(get_db)):
     """
     Creates a new role
     """
-    obj = models.Roles(**payload.model_dump())
+    obj = models.Roles(**payload.model_dump(exclude={"permissions"}))
     if payload.permissions:
         perms = (
             db.query(models.Permissions)
