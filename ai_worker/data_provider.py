@@ -19,29 +19,31 @@ class DataProvider:
         """
 
         rooms_df = pd.read_sql(
-            f"""
+            """
             SELECT r.id, r.room_name, r.room_capacity, r.projector_availability, r.pc_amount,
                    b.building_number, c.campus_short
             FROM rooms r
             JOIN buildings b ON r.building_id = b.id
             JOIN campuses c ON b.campus_id = c.id
-            WHERE r.faculty_id = {faculty_id}
+            WHERE r.faculty_id = %(faculty_id)s
         """,
             self.engine,
+            params={"faculty_id": faculty_id},
         )
 
         employees_df = pd.read_sql(
-            f"""
+            """
             SELECT e.id, u.name, u.surname, u.degree, e.unit_id
             FROM employees e
             JOIN users u ON e.user_id = u.id
-            WHERE e.faculty_id = {faculty_id}
+            WHERE e.faculty_id = %(faculty_id)s
         """,
             self.engine,
+            params={"faculty_id": faculty_id},
         )
 
         requirements_df = pd.read_sql(
-            f"""
+            """
             SELECT
                 ctd.id AS detail_id,
                 c.course_name,
@@ -59,11 +61,12 @@ class DataProvider:
             JOIN courses c ON cc.course = c.course_code
             JOIN course_type_detail ctd ON ctd.course = c.course_code
             JOIN groups g ON g.study_program = sp.id
-            WHERE sf.faculty = {faculty_id}
+            WHERE ctd.faculty_id = %(faculty_id)s
               AND (cc.major IS NULL OR cc.major = g.major)
               AND (cc.elective_block IS NULL OR cc.elective_block = g.elective_block)
         """,
             self.engine,
+            params={"faculty_id": faculty_id},
         )
 
         competencies_df = pd.read_sql(
