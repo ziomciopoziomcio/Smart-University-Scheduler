@@ -250,6 +250,12 @@ def update_group(
     _apply_patch_or_reject_nulls(
         obj, payload, nullable_fields={"major", "elective_block"}
     )
+
+    if obj.major is not None and obj.elective_block is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="`major` and `elective_block` cannot both be set",
+        )
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
