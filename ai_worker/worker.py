@@ -11,10 +11,18 @@ logger = logging.getLogger(__name__)
 
 async def process_task(task_data: dict, provider: DataProvider) -> None:
     """
-    Task handler
-    :param task_data: dictionary with task data, expected keys:
-    :param provider: DataProvider object
-    :return: Currently None
+    Task handler for schedule optimization requests.
+
+    :param task_data: Dictionary with task data. Expected keys:
+        - task_id (str | int, required): Unique identifier of the task/message.
+        - faculty_id (str | int, required): Identifier of the faculty for which
+          data should be fetched and the schedule optimized.
+        - academic_year (str | int, optional): Academic year context for the
+          optimization (e.g. "2024/2025" or 2024).
+        - additional fields (dict, optional): Backend-specific parameters that
+          may be present but are not used directly by this worker.
+    :param provider: DataProvider object used to retrieve all required data.
+    :return: None
     """
     try:
         faculty_id = task_data.get("faculty_id")
