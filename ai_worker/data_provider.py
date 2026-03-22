@@ -75,8 +75,11 @@ class DataProvider:
             FROM courses_instructors ci
             JOIN course_type_detail ctd ON ci.course_type_detail = ctd.id
             JOIN units u ON ctd.course = (SELECT course FROM course_type_detail WHERE id = ci.course_type_detail)
+            JOIN employees e ON ci.employee = e.id
+            WHERE e.faculty_id = %(faculty_id)s
         """,
             self.engine,
+            params={"faculty_id": faculty_id},
         )
 
         return {
