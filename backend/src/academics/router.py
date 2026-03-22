@@ -506,3 +506,20 @@ def update_calendar_day(
     _commit_or_rollback(db)
     db.refresh(obj)
     return obj
+
+
+@router.delete("/calendar/{calendar_date}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_calendar_day(
+    calendar_date: date,
+    db: Session = Depends(get_db),
+):
+    """
+    Deletes calendar day.
+    :param calendar_date: Date of the calendar day to delete.
+    :param db: Database session.
+    :return: None
+    """
+    obj = _get_or_404(db, models.Academic_calendar, calendar_date, "Calendar day")
+    db.delete(obj)
+    _commit_or_rollback(db)
+    return None
