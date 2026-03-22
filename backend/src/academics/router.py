@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, status, Query
+from typing import List
+
+from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -357,3 +359,42 @@ def delete_group_member(group_id: int, student_id: int, db: Session = Depends(ge
     db.delete(obj)
     _commit_or_rollback(db)
     return None
+
+
+@router.post(
+    "/calendar/bulk",
+    response_model=List[schemas.AcademicCalendarRead],
+    status_code=status.HTTP_201_CREATED,
+)
+def create_bulk_calendar_days(
+    payload: list[schemas.AcademicCalendarCreate], db: Session = Depends(get_db)
+):
+    """
+    Creates multiple calendar days in bulk.
+    :param payload: List of calendar day creation payloads.
+    :param db: database session.
+    :return: created calendar days.
+    """
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Payload list cannot be empty.",
+        )
+    dates_to_insert = [item.calendar_date for item in payload]
+    existing_dates = (
+        db.query(models.Academic_calendar.calendar_date)
+        .filter(models.Academic_calendar.calendar_date.in_(dates_to_insert))
+        .all()
+    )
+    if existing_dates:
+        existing_str = ", ".join([str(d[0]) for d in existing_dates])
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Calendar date {existing_str} already exists.",
+        )
+
+    new_days = [models.Academic_calendar(**item.model_dump()) for item in payload]
+    db.add_all(new_days)
+    _commit_or_rollback(db)
+
+    return new_days
