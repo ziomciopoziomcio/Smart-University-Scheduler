@@ -383,6 +383,15 @@ def create_bulk_calendar_days(
             detail="Payload list cannot be empty.",
         )
     dates_to_insert = [item.calendar_date for item in payload]
+
+    if len(dates_to_insert) != len(set(dates_to_insert)):
+        seen = set()
+        duplicated = {str(d) for d in dates_to_insert if d in seen or seen.add(d)}
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Payload contains duplicate dates {', '.join(duplicated)}.",
+        )
+
     existing_dates = (
         db.query(models.Academic_calendar.calendar_date)
         .filter(models.Academic_calendar.calendar_date.in_(dates_to_insert))
