@@ -11,6 +11,6 @@ class GenerateScheduleRequest(BaseModel):  # TODO: Verify schema
 
     @field_validator("academic_year")
     def academic_year_validator(cls, v):
-        if not re.match(r"^\d{4}/\d{4}$", v):
+        if not re.fullmatch(r"\d{4}/\d{4}", v):
             raise ValueError("academic_year must be in format YYYY/YYYY")
         return v
