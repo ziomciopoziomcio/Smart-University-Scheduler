@@ -1,8 +1,6 @@
 import logging
 import uuid
-
 from datetime import timezone, datetime, date
-
 
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -167,8 +165,9 @@ def delete_schedule_suggestion(suggestion_id: int, db: Session = Depends(get_db)
     )
     db.delete(obj)
     _commit_or_rollback(db)
-    
+
     return None
+
 
 @router.post(
     "/absences",
@@ -252,5 +251,5 @@ def delete_employee_absence(absence_id: int, db: Session = Depends(get_db)):
     _commit_or_rollback(db)
 
     # TODO: KAFKA
-    
+
     return None

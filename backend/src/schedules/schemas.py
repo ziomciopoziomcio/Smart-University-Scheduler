@@ -1,14 +1,7 @@
-
+import re
 import uuid
 from datetime import datetime, date
 from typing import Annotated, Dict, Any, Optional
-
-
-from .models import SuggestionStatus
-
-import re
-
-
 
 from pydantic import (
     BaseModel,
@@ -20,13 +13,13 @@ from pydantic import (
 )
 
 from .models import AbsenceStatus
+from .models import SuggestionStatus
 from ..academics.models import SemesterType
-
 
 
 class BaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
 
 class ScheduleSuggestionBase(BaseSchema):
     source: Annotated[str, StringConstraints(max_length=50)]

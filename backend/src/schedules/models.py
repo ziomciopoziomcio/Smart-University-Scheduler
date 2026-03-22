@@ -1,6 +1,5 @@
 import enum
 import uuid
-
 from datetime import date, datetime
 
 from sqlalchemy import (
@@ -11,8 +10,7 @@ from sqlalchemy import (
     Enum,
     JSON,
     Uuid,
-    CheckConstraint
-
+    CheckConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
@@ -45,12 +43,14 @@ class ScheduleSuggestion(Base):
 
     status: Mapped[SuggestionStatus] = mapped_column(
         Enum(SuggestionStatus), default=SuggestionStatus.PENDING
-      
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
-      
+
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
 
 class AbsenceStatus(str, enum.Enum):
     REPORTED = "REPORTED"
@@ -81,7 +81,7 @@ class Employee_absences(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
-      
+
     updated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), onupdate=func.now()
     )
