@@ -2,6 +2,6 @@
 exclude_paths:
   - "backend/alembic/**"
   - "backend/alembic.ini"
-  - "frontend/App.tsx"
+  - "frontend/src/App.tsx"
   - "frontend/vite.config.ts"
-  - "frontend/App.css"
+  - "frontend/src/App.css"
