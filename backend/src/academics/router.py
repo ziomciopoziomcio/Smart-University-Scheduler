@@ -471,3 +471,17 @@ def list_calendar_days(
     return paginate(
         query, limit, offset, order_by=models.Academic_calendar.calendar_date.asc()
     )
+
+
+@router.get("/calendar/{calendar_date}", response_model=schemas.AcademicCalendarRead)
+def get_calendar_day(
+    calendar_date: date,
+    db: Session = Depends(get_db),
+):
+    """
+    Gets calendar day.
+    :param calendar_date: Date of the calendar day to retrieve.
+    :param db: Database session.
+    :return: Calendar day matching the provided date.
+    """
+    return _get_or_404(db, models.Academic_calendar, calendar_date, "Calendar day")
