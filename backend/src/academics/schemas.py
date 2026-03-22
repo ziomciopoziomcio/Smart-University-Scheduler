@@ -4,6 +4,7 @@ Data validation schemas
 
 from datetime import date
 from typing import Optional, Annotated
+
 from pydantic import BaseModel, model_validator, StringConstraints, ConfigDict, Field
 
 from .models import SemesterType
