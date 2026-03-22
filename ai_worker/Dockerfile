@@ -38,4 +38,4 @@ RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
 COPY --chown=ai_worker:ai_worker . .
 
 USER ai_worker
-CMD ["python", "main.py"]
+CMD ["python", "worker.py"]
