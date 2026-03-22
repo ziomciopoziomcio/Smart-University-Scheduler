@@ -4,7 +4,10 @@ import os
 
 
 class DataProvider:
+    """Class responsible for providing data from DB to AI worker. It uses SQLAlchemy to connect to the database and pandas to handle dataframes."""
+
     def __init__(self):
+        """Constructor for DataProvider."""
         self.engine = create_engine(os.getenv("DATABASE_URL"))
 
     def get_all_data(self, faculty_id: int) -> dict:
