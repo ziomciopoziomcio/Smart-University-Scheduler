@@ -250,7 +250,7 @@ def update_group(
     if obj.major is not None and obj.elective_block is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Major and elective_block cannot be both set",
+            detail="`major` and `elective_block` cannot both be set",
         )
     db.add(obj)
     _commit_or_rollback(db)
