@@ -52,7 +52,7 @@ async def main() -> None:
 
     try:
         async for msg in consumer:
-            asyncio.create_task(process_task(msg.value))
+            await process_task(msg.value)
     finally:
         await consumer.stop()
 
