@@ -115,7 +115,7 @@ def list_schedule_suggestions(
 
 
 @router.get(
-    "/suggestions/{suggestion_id", response_model=schemas.ScheduleSuggestionRead
+    "/suggestions/{suggestion_id}", response_model=schemas.ScheduleSuggestionRead
 )
 def get_schedule_suggestion(suggestion_id: int, db: Session = Depends(get_db)):
     return _get_or_404(
