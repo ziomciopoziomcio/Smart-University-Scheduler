@@ -9,7 +9,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def process_task(task_data: dict):
+async def process_task(task_data: dict) -> None:
+    """
+    Task handler
+    :param task_data: dictionary with task data, expected keys:
+    :return: Currently None
+    """
     try:
         faculty_id = task_data.get("faculty_id")
         if not faculty_id:
@@ -23,7 +28,11 @@ async def process_task(task_data: dict):
         logger.exception(f"Critical error: {e}")
 
 
-async def main():
+async def main() -> None:
+    """
+    Main function
+    :return: None
+    """
     kafka_url = os.getenv("KAFKA_URL", "kafka:29092")
     consumer = AIOKafkaConsumer(
         "schedule.optimization.requests",
