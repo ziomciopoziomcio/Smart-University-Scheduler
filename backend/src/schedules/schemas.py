@@ -1,9 +1,8 @@
 import uuid
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, Annotated
 
 from pydantic import BaseModel, Field, ConfigDict, StringConstraints, model_validator
-from sqlalchemy.sql.annotation import Annotated
 
 from .models import AbsenceStatus
 
