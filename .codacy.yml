@@ -5,3 +5,4 @@ exclude_paths:
   - "frontend/src/App.tsx"
   - "frontend/vite.config.ts"
   - "frontend/src/App.css"
+  - "frontend/package-lock.json"
