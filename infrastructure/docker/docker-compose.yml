@@ -112,7 +112,7 @@ services:
       DB_NAME: ${DB_NAME}
       DATABASE_URL: "postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
       NEO4J_HOST: ${NEO4J_HOST}
-      KAFKA_URL: "kafka:9092"
+      KAFKA_URL: "kafka:29092"
     depends_on:
       - postgres
       - neo4j
