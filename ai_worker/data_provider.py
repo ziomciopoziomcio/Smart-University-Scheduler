@@ -65,9 +65,9 @@ class DataProvider:
         :return: dictionary with dataframes:
         - rooms: id, room_name, room_capacity, projector_availability, pc_amount, building_number, campus_short
         - employees: id, name, surname, degree, unit_id
-        - requirements: detail_id, course_name, class_type, class_hours, pc_needed,
+        - requirements: course_code, class_type, course_name, class_hours, pc_needed,
         projector_needed, max_group_participants_number, group_id, group_name, program_name
-        - competencies: employee_id, detail_id, hours
+        - competencies: employee_id, course_code, class_type, hours
         """
 
         rooms_df = pd.read_sql(
