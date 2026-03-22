@@ -124,7 +124,7 @@ def update_employee_absence(
     db: Session = Depends(get_db),
 ):
     obj = _get_or_404(db, models.Employee_absences, absence_id, "Employee Absence")
-    _apply_patch_or_reject_nulls(obj, payload)
+    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"reason"})
 
     if obj.start_date > obj.end_date:
         raise HTTPException(
