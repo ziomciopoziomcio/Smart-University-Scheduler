@@ -363,6 +363,32 @@ def delete_group_member(group_id: int, student_id: int, db: Session = Depends(ge
     return None
 
 
+def _check_for_payload_duplicates(dates: list[date]) -> None:
+    """Helper to check if the incoming payload has duplicate dates."""
+    if len(dates) != len(set(dates)):
+        seen = set()
+        duplicated = {str(d) for d in dates if d in seen or seen.add(d)}
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Payload contains duplicate dates {', '.join(duplicated)}.",
+        )
+
+
+def _check_for_existing_dates_in_db(db: Session, dates: list[date]) -> None:
+    """Helper to check if any of the dates already exist in the database."""
+    existing_dates = (
+        db.query(models.Academic_calendar.calendar_date)
+        .filter(models.Academic_calendar.calendar_date.in_(dates))
+        .all()
+    )
+    if existing_dates:
+        existing_str = ", ".join([str(d[0]) for d in existing_dates])
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Calendar date {existing_str} already exists.",
+        )
+
+
 @router.post(
     "/calendar/bulk",
     response_model=List[schemas.AcademicCalendarRead],
@@ -384,25 +410,8 @@ def create_bulk_calendar_days(
         )
     dates_to_insert = [item.calendar_date for item in payload]
 
-    if len(dates_to_insert) != len(set(dates_to_insert)):
-        seen = set()
-        duplicated = {str(d) for d in dates_to_insert if d in seen or seen.add(d)}
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Payload contains duplicate dates {', '.join(duplicated)}.",
-        )
-
-    existing_dates = (
-        db.query(models.Academic_calendar.calendar_date)
-        .filter(models.Academic_calendar.calendar_date.in_(dates_to_insert))
-        .all()
-    )
-    if existing_dates:
-        existing_str = ", ".join([str(d[0]) for d in existing_dates])
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Calendar date {existing_str} already exists.",
-        )
+    _check_for_payload_duplicates(dates_to_insert)
+    _check_for_existing_dates_in_db(db, dates_to_insert)
 
     new_days = [models.Academic_calendar(**item.model_dump()) for item in payload]
     db.add_all(new_days)
