@@ -1,8 +1,10 @@
-from datetime import date
+import uuid
+from datetime import date, datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field, ConfigDict, StringConstraints, model_validator
 from sqlalchemy.sql.annotation import Annotated
+from .models import AbsenceStatus
 
 
 class BaseSchema(BaseModel):
@@ -28,3 +30,11 @@ class EmployeeAbsenceCreate(EmployeeAbsenceBase):
         if self.start_date > self.end_date:
             raise ValueError("Start date must be before end date.")
         return self
+
+
+class EmployeeAbsenceRead(EmployeeAbsenceBase):
+    id: int
+    event_id: uuid.UUID
+    status: AbsenceStatus
+    created_at: datetime
+    updated_at: Optional[datetime] = None
