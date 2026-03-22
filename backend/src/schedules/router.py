@@ -5,9 +5,9 @@ from datetime import date
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from . import models
 from . import schemas
 from ..academics import models as ac_mod
-from . import models
 from ..common.kafka_client import send_event
 from ..common.pagination.pagination import paginate
 from ..common.pagination.pagination_model import PaginatedResponse

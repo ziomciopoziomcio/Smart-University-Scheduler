@@ -1,19 +1,23 @@
 import re
-
-from ..academics.models import SemesterType
-
 import uuid
 from datetime import date, datetime
 from typing import Optional, Annotated
 
-from pydantic import BaseModel, Field, ConfigDict, StringConstraints, model_validator, field_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    ConfigDict,
+    StringConstraints,
+    model_validator,
+    field_validator,
+)
 
 from .models import AbsenceStatus
+from ..academics.models import SemesterType
 
 
 class BaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-
 
 
 class GenerateScheduleRequest(BaseModel):  # TODO: Verify schema
@@ -64,4 +68,3 @@ class EmployeeAbsenceUpdate(BaseModel):
             if self.start_date > self.end_date:
                 raise ValueError("Start date must be before end date.")
         return self
-
