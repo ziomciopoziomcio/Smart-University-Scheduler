@@ -1,6 +1,7 @@
+import os
+
 import pandas as pd
 from sqlalchemy import create_engine
-import os
 
 
 class DataProvider:
@@ -17,7 +18,8 @@ class DataProvider:
         :return: dictionary with dataframes:
         - rooms: id, room_name, room_capacity, projector_availability, pc_amount, building_number, campus_short
         - employees: id, name, surname, degree, unit_id
-        - requirements: detail_id, course_name, class_type, class_hours, pc_needed, projector_needed, max_group_participants_number, group_id, group_name, program_name
+        - requirements: detail_id, course_name, class_type, class_hours, pc_needed,
+        projector_needed, max_group_participants_number, group_id, group_name, program_name
         - competencies: employee_id, detail_id, hours
         """
 
