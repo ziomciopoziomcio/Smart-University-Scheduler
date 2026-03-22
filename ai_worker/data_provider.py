@@ -17,26 +17,28 @@ EMPLOYEES_QUERY = """
             JOIN users u ON e.user_id = u.id
             WHERE e.faculty_id = %(faculty_id)s
         """
-REQUIREMENTS_QUERY = """SELECT ctd.id AS detail_id,
-                               c.course_name,
-                               ctd.class_type,
-                               ctd.class_hours,
-                               ctd.pc_needed,
-                               ctd.projector_needed,
-                               ctd.max_group_participants_number,
-                               g.id   AS group_id,
-                               g.group_name,
-                               sp.program_name
-                        FROM study_programs sp
-                                 JOIN study_fields sf ON sp.study_field = sf.id
-                                 JOIN curriculum_courses cc ON cc.study_program = sp.id
-                                 JOIN courses c ON cc.course = c.course_code
-                                 JOIN course_type_detail ctd ON ctd.course = c.course_code
-                                 JOIN groups g ON g.study_program = sp.id
-                        WHERE ctd.faculty_id = %(faculty_id)s
-                          AND (cc.major IS NULL OR cc.major = g.major)
-                          AND (cc.elective_block IS NULL OR cc.elective_block = g.elective_block) \
-                     """
+REQUIREMENTS_QUERY = """
+    SELECT
+        ctd.course AS course_code,
+        ctd.class_type,
+        c.course_name,
+        ctd.class_hours,
+        ctd.pc_needed,
+        ctd.projector_needed,
+        ctd.max_group_participants_number,
+        g.id AS group_id,
+        g.group_name,
+        sp.program_name
+    FROM study_programs sp
+    JOIN study_fields sf ON sp.study_field = sf.id
+    JOIN curriculum_courses cc ON cc.study_program = sp.id
+    JOIN courses c ON cc.course = c.course_code
+    JOIN course_type_detail ctd ON ctd.course = c.course_code
+    JOIN groups g ON g.study_program = sp.id
+    WHERE sf.faculty = %(faculty_id)s
+      AND (cc.major IS NULL OR cc.major = g.major)
+      AND (cc.elective_block IS NULL OR cc.elective_block = g.elective_block)
+"""
 COMPETENCIES_QUERY = """
             SELECT ci.employee AS employee_id, ci.course_type_detail AS detail_id, ci.hours
             FROM courses_instructors ci
