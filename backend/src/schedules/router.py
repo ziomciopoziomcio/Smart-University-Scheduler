@@ -27,7 +27,7 @@ async def generate_schedule(
         "task_id": task_id,
         "faculty_id": payload.faculty_id,
         "academic_year": payload.academic_year,
-        "semester": payload.semester,
+        "semester_type": payload.semester_type.value,
         "requested_by": mock_user_id,
     }
 
