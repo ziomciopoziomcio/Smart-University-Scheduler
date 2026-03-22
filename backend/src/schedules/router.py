@@ -142,13 +142,21 @@ def resolve_schedule_suggestion(
             detail=f"Suggestion already resolved with status: {obj.status}",
         )
 
-    obj.status = payload.status
-
-    if payload.status in [
+    allowed_terminal_states = {
         models.SuggestionStatus.ACCEPTED,
         models.SuggestionStatus.REJECTED,
-    ]:
-        obj.resolved_at = datetime.now(timezone.utc)
+        models.SuggestionStatus.FAILED,
+    }
+
+    if payload.status not in allowed_terminal_states:
+        allowed_str = ", ".join([s.value for s in allowed_terminal_states])
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid target status. Suggestion status must be one of {allowed_str}",
+        )
+
+    obj.status = payload.status
+    obj.resolved_at = datetime.now(timezone.utc)
 
     # TODO: Neo4j implementation
 
