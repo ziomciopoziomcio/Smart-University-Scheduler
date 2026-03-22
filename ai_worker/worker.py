@@ -10,14 +10,17 @@ logger = logging.getLogger(__name__)
 
 
 async def process_task(task_data: dict):
-    faculty_id = task_data.get("faculty_id")
-    if not faculty_id:
-        logger.error("Faculty id not provided")
-        return
+    try:
+        faculty_id = task_data.get("faculty_id")
+        if not faculty_id:
+            logger.error("Faculty id not provided")
+            return
 
-    provider = DataProvider()
+        provider = DataProvider()
 
-    data = await asyncio.to_thread(provider.get_all_data, faculty_id)  # noqa: F841
+        data = await asyncio.to_thread(provider.get_all_data, faculty_id)  # noqa: F841
+    except Exception as e:
+        logger.exception(f"Critical error: {e}")
 
 
 async def main():
