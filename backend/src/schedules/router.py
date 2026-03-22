@@ -5,9 +5,9 @@ from datetime import date
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from . import models
 from . import schemas
 from ..academics import models as ac_mod
-from . import models
 from ..common.kafka_client import send_event
 from ..common.pagination.pagination import paginate
 from ..common.pagination.pagination_model import PaginatedResponse
@@ -40,7 +40,7 @@ async def generate_schedule(
         "task_id": task_id,
         "faculty_id": payload.faculty_id,
         "academic_year": payload.academic_year,
-        "semester": payload.semester,
+        "semester_type": payload.semester_type.value,
         "requested_by": mock_user_id,
     }
 
