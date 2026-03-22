@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Optional
 
-from pydantic import BaseModel, Field, ConfigDict, StringConstraints
+from pydantic import BaseModel, Field, ConfigDict, StringConstraints, model_validator
 from sqlalchemy.sql.annotation import Annotated
 
 
@@ -20,3 +20,11 @@ class EmployeeAbsenceBase(BaseSchema):
     start_date: date
     end_date: date
     reason: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+
+
+class EmployeeAbsenceCreate(EmployeeAbsenceBase):
+    @model_validator(mode="after")
+    def validate_dates(self):
+        if self.start_date > self.end_date:
+            raise ValueError("Start date must be before end date.")
+        return self
