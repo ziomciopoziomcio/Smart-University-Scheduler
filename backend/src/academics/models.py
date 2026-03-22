@@ -130,10 +130,10 @@ class Academic_calendar(Base):
         ),
         CheckConstraint(
             "week_number >= 1 AND week_number <= 20",  # TODO: Make it dynamic (Planner settings)
-            name="chk_academic_calendar_week_day",
+            name="chk_academic_calendar_week_number",
         ),
         CheckConstraint(
             "academic_day_of_week >= 1 AND academic_day_of_week <= 7",
-            name="chk_academic_calendar_week_day",
+            name="chk_academic_calendar_day_of_week",
         ),
     )
