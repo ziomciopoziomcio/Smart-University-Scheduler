@@ -9,10 +9,11 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def process_task(task_data: dict) -> None:
+async def process_task(task_data: dict, provider: DataProvider) -> None:
     """
     Task handler
     :param task_data: dictionary with task data, expected keys:
+    :param provider: DataProvider object
     :return: Currently None
     """
     try:
@@ -20,8 +21,6 @@ async def process_task(task_data: dict) -> None:
         if not faculty_id:
             logger.error("Faculty id not provided")
             return
-
-        provider = DataProvider()
 
         data = await asyncio.to_thread(provider.get_all_data, faculty_id)  # noqa: F841
     except Exception as e:
@@ -42,6 +41,8 @@ async def main() -> None:
         auto_offset_reset="earliest",
     )
 
+    provider = DataProvider()
+
     connected = False
     while not connected:
         try:
@@ -53,7 +54,7 @@ async def main() -> None:
 
     try:
         async for msg in consumer:
-            await process_task(msg.value)
+            await process_task(msg.value, provider)
     finally:
         await consumer.stop()
 
