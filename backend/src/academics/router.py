@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
@@ -21,6 +22,7 @@ EMPLOYEE_LIMIT = 100
 UNIT_LIMIT = 100
 GROUP_LIMIT = 100
 GROUP_MEMBER_LIMIT = 100
+ACADEMIC_CALENDAR_LIMIT = 100
 
 
 # Students
@@ -430,3 +432,42 @@ def create_calendar_day(
     _commit_or_rollback(db)
     db.refresh(obj)
     return obj
+
+
+@router.get(
+    "/calendar",
+    response_model=PaginatedResponse[schemas.AcademicCalendarRead],
+)
+def list_calendar_days(
+    academic_year: str | None = Query(None, min_length=1),
+    semester_type: models.SemesterType | None = Query(None),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
+    limit: int | None = Query(ACADEMIC_CALENDAR_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    """
+    Lists calendar days with optional filtering by academic year, semester type, and date range.
+    :param academic_year: Filter by academic year (e.g., "2025/2026").
+    :param semester_type: Filter by semester type (e.g., "Winter" or "Summer").
+    :param start_date: Filter for calendar days on or after this date.
+    :param end_date: Filter for calendar days on or before this date.
+    :param limit: Maximum number of calendar days to return (default: 100, max: 200).
+    :param offset: Number of calendar days to skip for pagination (default: 0).
+    :param db: Database session.
+    :return: Paginated list of calendar days matching the filters.
+    """
+    query = db.query(models.Academic_calendar)
+    if academic_year:
+        query = query.filter(models.Academic_calendar.academic_year == academic_year)
+    if semester_type:
+        query = query.filter(models.Academic_calendar.semester_type == semester_type)
+    if start_date:
+        query = query.filter(models.Academic_calendar.calendar_date >= start_date)
+    if end_date:
+        query = query.filter(models.Academic_calendar.calendar_date <= end_date)
+
+    return paginate(
+        query, limit, offset, order_by=models.Academic_calendar.calendar_date.asc()
+    )
