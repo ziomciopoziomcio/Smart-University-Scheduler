@@ -28,6 +28,7 @@ async def main():
     consumer = AIOKafkaConsumer(
         "schedule.optimization.requests",
         bootstrap_servers=kafka_url,
+        group_id="smart_scheduler_ai_group",
         value_deserializer=lambda m: json.loads(m.decode("utf-8")),
     )
 
