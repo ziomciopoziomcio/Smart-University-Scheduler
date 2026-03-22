@@ -99,6 +99,28 @@ services:
       - ../../backend:/app
     command: uvicorn main:app --host 0.0.0.0 --port 3000 --reload
 
+  ai_worker:
+    build:
+      context: ../../ai_worker
+    container_name: smart_scheduler_ai_worker
+    restart: unless-stopped
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DATABASE_URL: "postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
+      NEO4J_HOST: ${NEO4J_HOST}
+      KAFKA_URL: "kafka:9092"
+    depends_on:
+      - postgres
+      - neo4j
+      - kafka
+    volumes:
+      - ../../ai_worker:/app
+    command: python worker.py
+
 volumes:
   postgres_data:
   neo4j_data:
