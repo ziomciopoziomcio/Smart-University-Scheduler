@@ -1,16 +1,16 @@
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy.orm import Session
 
-from . import models, schemas
-from ..database.database import get_db
+from src.common.pagination.pagination import paginate
+from src.common.pagination.pagination_model import PaginatedResponse
 from src.common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
     _get_by_fields_or_404,
 )
-from src.common.pagination.pagination import paginate
-from src.common.pagination.pagination_model import PaginatedResponse
+from . import models, schemas
+from ..database.database import get_db
 
 router = APIRouter(prefix="/academics", tags=["academics"])
 
@@ -246,6 +246,12 @@ def update_group(
     _apply_patch_or_reject_nulls(
         obj, payload, nullable_fields={"major", "elective_block"}
     )
+
+    if obj.major is not None and obj.elective_block is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="`major` and `elective_block` cannot both be set",
+        )
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
