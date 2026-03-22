@@ -92,7 +92,9 @@ def create_schedule_suggestion(
 )
 def list_schedule_suggestions(
     status_filter: models.SuggestionStatus | None = Query(None, alias="status"),
-    source: str | None = Query(None, description="np. RAG"),
+    source: str | None = Query(
+        None, description='Filter by suggestion source (e.g. "RAG")'
+    ),
     target_class_session_id: uuid.UUID | None = Query(None),
     limit: int = Query(SUGGESTION_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
