@@ -8,6 +8,7 @@ Tables:
 """
 
 import enum
+from datetime import date
 
 from sqlalchemy import (
     String,
@@ -15,6 +16,7 @@ from sqlalchemy import (
     ForeignKey,
     UniqueConstraint,
     CheckConstraint,
+    Enum,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 from ..database.base import Base
@@ -102,3 +104,36 @@ class SemesterType(str, enum.Enum):
 
     WINTER = "Winter"
     SUMMER = "Summer"
+
+
+class Academic_calendar(Base):
+    """
+    Academic_calendar model representing a calendar in the system.
+    """
+
+    __tablename__ = "academic_calendar"
+
+    calendar_date: Mapped[date] = mapped_column(primary_key=True)
+    academic_year: Mapped[str] = mapped_column(String(20))
+    semester_type: Mapped[SemesterType] = mapped_column(Enum(SemesterType))
+    week_number: Mapped[int] = mapped_column(Integer)
+    academic_day_of_week: Mapped[int] = mapped_column(Integer)
+    description: Mapped[str | None] = mapped_column(String(255))
+
+    __table_args__ = (
+        UniqueConstraint(
+            "academic_year",
+            "semester_type",
+            "week_number",
+            "academic_day_of_week",
+            name="uq_academic_calendar_week_day",
+        ),
+        CheckConstraint(
+            "week_number >= 1 AND week_number <= 20",  # TODO: Make it dynamic (Planner settings)
+            name="chk_academic_calendar_week_day",
+        ),
+        CheckConstraint(
+            "academic_day_of_week >= 1 AND academic_day_of_week <= 7",
+            name="chk_academic_calendar_week_day",
+        ),
+    )
