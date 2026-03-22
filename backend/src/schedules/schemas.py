@@ -4,6 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, ConfigDict, StringConstraints, model_validator
 from sqlalchemy.sql.annotation import Annotated
+
 from .models import AbsenceStatus
 
 
@@ -38,3 +39,17 @@ class EmployeeAbsenceRead(EmployeeAbsenceBase):
     status: AbsenceStatus
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+
+class EmployeeAbsenceUpdate(BaseModel):
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    reason: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    status: Optional[AbsenceStatus] = None
+
+    @model_validator(mode="after")
+    def validate_dates_if_both_provided(self):
+        if self.start_date is not None and self.end_date is not None:
+            if self.start_date > self.end_date:
+                raise ValueError("Start date must be before end date.")
+        return self
