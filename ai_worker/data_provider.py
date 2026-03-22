@@ -40,13 +40,15 @@ REQUIREMENTS_QUERY = """
       AND (cc.elective_block IS NULL OR cc.elective_block = g.elective_block)
 """
 COMPETENCIES_QUERY = """
-            SELECT ci.employee AS employee_id, ci.course_type_detail AS detail_id, ci.hours
-            FROM courses_instructors ci
-            JOIN course_type_detail ctd ON ci.course_type_detail = ctd.id
-            JOIN units u ON ctd.course = (SELECT course FROM course_type_detail WHERE id = ci.course_type_detail)
-            JOIN employees e ON ci.employee = e.id
-            WHERE e.faculty_id = %(faculty_id)s
-        """
+    SELECT
+        ci.employee AS employee_id,
+        ci.course AS course_code,
+        ci.class_type,
+        ci.hours
+    FROM courses_instructors ci
+    JOIN employees e ON ci.employee = e.id
+    WHERE e.faculty_id = %(faculty_id)s
+"""
 
 
 class DataProvider:
