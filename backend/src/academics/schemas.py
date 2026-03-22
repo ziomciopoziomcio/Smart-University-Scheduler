@@ -127,7 +127,7 @@ class GroupMembersUpdate(BaseModel):
     student: Optional[int] = None
 
 
-class AcademicCalendarBase(BaseModel):
+class AcademicCalendarBase(BaseSchema):
     calendar_date: date
     academic_year: str = Field(..., max_length=20, examples=["2025/2026"])
     semester_type: SemesterType
