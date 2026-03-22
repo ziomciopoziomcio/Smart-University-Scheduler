@@ -39,6 +39,7 @@ async def main() -> None:
         bootstrap_servers=kafka_url,
         group_id="smart_scheduler_ai_group",
         value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+        auto_offset_reset="earliest",
     )
 
     connected = False
