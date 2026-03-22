@@ -485,3 +485,24 @@ def get_calendar_day(
     :return: Calendar day matching the provided date.
     """
     return _get_or_404(db, models.Academic_calendar, calendar_date, "Calendar day")
+
+
+@router.patch("/calendar/{calendar_date}", response_model=schemas.AcademicCalendarRead)
+def update_calendar_day(
+    calendar_date: date,
+    payload: schemas.AcademicCalendarUpdate,
+    db: Session = Depends(get_db),
+):
+    """
+    Updates calendar day.
+    :param calendar_date: Date of the calendar day to update.
+    :param payload: Calendar day update payload.
+    :param db: Database session.
+    :return: Updated calendar day.
+    """
+    obj = _get_or_404(db, models.Academic_calendar, calendar_date, "Calendar day")
+    _apply_patch_or_reject_nulls(obj, payload)
+    db.add(obj)
+    _commit_or_rollback(db)
+    db.refresh(obj)
+    return obj
