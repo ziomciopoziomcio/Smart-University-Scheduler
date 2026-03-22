@@ -2,8 +2,8 @@ import logging
 import uuid
 from datetime import date
 
-from fastapi import APIRouter, Depends, status, HTTPException
-from sqlalchemy.orm import Session, Query
+from fastapi import APIRouter, Depends, status, HTTPException, Query
+from sqlalchemy.orm import Session
 
 from . import schemas
 from ..academics import models as ac_mod
