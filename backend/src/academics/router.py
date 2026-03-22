@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -246,6 +246,12 @@ def update_group(
     _apply_patch_or_reject_nulls(
         obj, payload, nullable_fields={"major", "elective_block"}
     )
+
+    if obj.major is not None and obj.elective_block is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Major and elective_block cannot be both set",
+        )
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
