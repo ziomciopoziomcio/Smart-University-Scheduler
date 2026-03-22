@@ -2,3 +2,4 @@
 exclude_paths:
   - "backend/alembic/**"
   - "backend/alembic.ini"
+  - "ai_worker/requirements.txt"
