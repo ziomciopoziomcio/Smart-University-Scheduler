@@ -501,7 +501,7 @@ def update_calendar_day(
     :return: Updated calendar day.
     """
     obj = _get_or_404(db, models.Academic_calendar, calendar_date, "Calendar day")
-    _apply_patch_or_reject_nulls(obj, payload)
+    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"description"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
