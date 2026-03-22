@@ -398,3 +398,35 @@ def create_bulk_calendar_days(
     _commit_or_rollback(db)
 
     return new_days
+
+
+@router.post(
+    "/calendar",
+    response_model=schemas.AcademicCalendarRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_calendar_day(
+    payload: schemas.AcademicCalendarCreate,
+    db: Session = Depends(get_db),
+):
+    """
+    Creates calendar day.
+    :param payload: Calendar day creation payload.
+    :param db: database session.
+    :return: created calendar day.
+    """
+    existing = (
+        db.query(models.Academic_calendar)
+        .filter_by(calendar_date=payload.calendar_date)
+        .first()
+    )
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Calendar date {existing.calendar_date} already exists.",
+        )
+    obj = models.Academic_calendar(**payload.model_dump())
+    db.add(obj)
+    _commit_or_rollback(db)
+    db.refresh(obj)
+    return obj
