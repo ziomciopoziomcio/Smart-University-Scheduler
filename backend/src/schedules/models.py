@@ -28,7 +28,7 @@ class SuggestionStatus(str, enum.Enum):
 class ScheduleSuggestion(Base):
     """ScheduleSuggestion model representing a schedule suggestion in the system."""
 
-    __tablename__ = "schedule_suggestion"
+    __tablename__ = "schedule_suggestions"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
