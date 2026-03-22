@@ -39,6 +39,7 @@ async def main() -> None:
         bootstrap_servers=kafka_url,
         group_id="smart_scheduler_ai_group",
         value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+        auto_offset_reset="earliest",
     )
 
     connected = False
@@ -52,7 +53,7 @@ async def main() -> None:
 
     try:
         async for msg in consumer:
-            asyncio.create_task(process_task(msg.value))
+            await process_task(msg.value)
     finally:
         await consumer.stop()
 
