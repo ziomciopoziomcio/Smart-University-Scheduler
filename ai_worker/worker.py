@@ -21,14 +21,21 @@ async def process_task(task_data: dict):
 
 
 async def main():
-    kafka_url = os.getenv("KAFKA_URL")
+    kafka_url = os.getenv("KAFKA_URL", "kafka:29092")
     consumer = AIOKafkaConsumer(
         "schedule.optimization.requests",
         bootstrap_servers=kafka_url,
         value_deserializer=lambda m: json.loads(m.decode("utf-8")),
     )
 
-    await consumer.start()
+    connected = False
+    while not connected:
+        try:
+            await consumer.start()
+            connected = True
+        except Exception as e:
+            logger.error(f"Failed to connect to Kafka: {e}")
+            await asyncio.sleep(5)
 
     try:
         async for msg in consumer:
