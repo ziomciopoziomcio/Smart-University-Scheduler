@@ -42,7 +42,7 @@ class ScheduleSuggestionRead(ScheduleSuggestionBase):
 
 
 class ScheduleSuggestionUpdate(BaseModel):
-    status: Optional[SuggestionStatus] = None
+    status: SuggestionStatus
 
 
 class GenerateScheduleRequest(BaseModel):  # TODO: Verify schema
