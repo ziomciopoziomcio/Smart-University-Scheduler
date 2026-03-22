@@ -7,6 +7,8 @@ Tables:
 - Group_members
 """
 
+import enum
+
 from sqlalchemy import (
     String,
     Integer,
@@ -93,3 +95,10 @@ class Group_members(Base):
     student: Mapped[int] = mapped_column(
         Integer, ForeignKey("students.id"), primary_key=True
     )
+
+
+class SemesterType(str, enum.Enum):
+    """Semester type enum"""
+
+    WINTER = "Winter"
+    SUMMER = "Summer"
