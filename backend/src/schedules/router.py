@@ -106,7 +106,7 @@ def list_schedule_suggestions(
         query = query.filter(models.ScheduleSuggestion.source == source)
     if target_class_session_id:
         query = query.filter(
-            models.ScheduleSuggestion.target_class_id == target_class_session_id
+            models.ScheduleSuggestion.target_class_session_id == target_class_session_id
         )
 
     return paginate(
