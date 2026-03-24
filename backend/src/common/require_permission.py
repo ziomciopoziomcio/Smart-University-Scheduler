@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 
-from backend.src.users import models
-from backend.src.users.auth import get_current_user
+from src.users import models
+from src.users.auth import get_current_user
 
 
 def require_permission(permission_code: str):
