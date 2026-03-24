@@ -402,9 +402,6 @@ def password_forgot(
     payload: schemas.PasswordForgotRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(
-        require_permission("user:password-forgot")
-    ),
 ):
     user = db.query(models.Users).filter(models.Users.email == payload.email).first()
 
