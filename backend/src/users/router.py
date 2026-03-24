@@ -134,9 +134,7 @@ def twofa_confirm(
 
 @router.post("/2fa/verify", response_model=schemas.Token)
 def twofa_verify(
-    payload: schemas.TwoFactorVerifyRequest,
-    db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(require_permission("user-2fa:verify")),
+    payload: schemas.TwoFactorVerifyRequest, db: Session = Depends(get_db)
 ):
 
     user_id = _get_user_id_from_pre_token(payload.pre_auth_token)
