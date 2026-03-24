@@ -372,8 +372,7 @@ def list_users(
     limit: int | None = Query(USER_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    _current_user: user_models.Users =
-    Depends(require_permission("users:view")),
+    _current_user: user_models.Users = Depends(require_permission("users:view")),
 ):
     query = db.query(models.Users)
 
@@ -398,8 +397,7 @@ def signup(
     payload: schemas.SignupRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    _current_user: user_models.Users =
-    Depends(require_permission("user:signup")),
+    _current_user: user_models.Users = Depends(require_permission("user:signup")),
 ):
     return register_user(payload, background_tasks, db)
 
@@ -409,8 +407,9 @@ def password_forgot(
     payload: schemas.PasswordForgotRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    _current_user: user_models.Users =
-    Depends(require_permission("user:password-forgot")),
+    _current_user: user_models.Users = Depends(
+        require_permission("user:password-forgot")
+    ),
 ):
     user = db.query(models.Users).filter(models.Users.email == payload.email).first()
 
@@ -435,9 +434,11 @@ def password_forgot(
 
 @router.post("/password/reset", response_model=schemas.MessageResponse)
 def password_reset(
-    payload: schemas.PasswordResetRequest, db: Session = Depends(get_db),
-    _current_user: user_models.Users =
-    Depends(require_permission("user:password-reset")),
+    payload: schemas.PasswordResetRequest,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("user:password-reset")
+    ),
 ):
 
     token_hash = _hash_token(payload.token)
@@ -475,8 +476,9 @@ def password_change(
     payload: schemas.PasswordChangeRequest,
     current_user: models.Users = Depends(get_current_user),
     db: Session = Depends(get_db),
-    _current_user: user_models.Users =
-    Depends(require_permission("user:password-change")),
+    _current_user: user_models.Users = Depends(
+        require_permission("user:password-change")
+    ),
 ):
 
     if not verify_password(payload.old_password, current_user.password_hash):
@@ -489,9 +491,11 @@ def password_change(
 
 
 @router.get("/verify-email", response_model=schemas.VerifyEmailResponse)
-def verify_email(token: str = Query(...), db: Session = Depends(get_db),
-    _current_user: user_models.Users =
-    Depends(require_permission("user:verify-email")),):
+def verify_email(
+    token: str = Query(...),
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("user:verify-email")),
+):
     token_hash = _hash_token(token)
 
     user = (
