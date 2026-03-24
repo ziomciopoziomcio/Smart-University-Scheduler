@@ -426,11 +426,7 @@ def password_forgot(
 
 @router.post("/password/reset", response_model=schemas.MessageResponse)
 def password_reset(
-    payload: schemas.PasswordResetRequest,
-    db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(
-        require_permission("user:password-reset")
-    ),
+    payload: schemas.PasswordResetRequest, db: Session = Depends(get_db)
 ):
 
     token_hash = _hash_token(payload.token)
