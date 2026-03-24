@@ -79,10 +79,9 @@ async def generate_schedule(
     status_code=status.HTTP_201_CREATED,
 )
 def create_employee_absence(
-    payload: schemas.EmployeeAbsenceCreate, db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(
-        require_permission("absence:create")
-    ),
+    payload: schemas.EmployeeAbsenceCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("absence:create")),
 ):
     _get_or_404(db, ac_mod.Employees, payload.employee_id, "Employee")
 
@@ -104,9 +103,7 @@ def list_employee_absences(
     limit: int | None = Query(EMPLOYEE_ABSENCE_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(
-        require_permission("absences:view")
-    ),
+    _current_user: user_models.Users = Depends(require_permission("absences:view")),
 ):
     query = db.query(models.Employee_absences)
 
@@ -123,10 +120,11 @@ def list_employee_absences(
 
 
 @router.get("/absences/{absence_id}", response_model=schemas.EmployeeAbsenceRead)
-def get_employee_absence(absence_id: int, db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(
-        require_permission("absence:view")
-    ),):
+def get_employee_absence(
+    absence_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("absence:view")),
+):
     return _get_or_404(db, models.Employee_absences, absence_id, "Employee Absence")
 
 
@@ -135,9 +133,7 @@ def update_employee_absence(
     absence_id: int,
     payload: schemas.EmployeeAbsenceUpdate,
     db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(
-        require_permission("absence:update")
-    ),
+    _current_user: user_models.Users = Depends(require_permission("absence:update")),
 ):
     obj = _get_or_404(db, models.Employee_absences, absence_id, "Employee Absence")
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"reason"})
@@ -158,10 +154,11 @@ def update_employee_absence(
 
 
 @router.delete("/absences/{absence_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_employee_absence(absence_id: int, db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(
-        require_permission("absence:delete")
-    ),):
+def delete_employee_absence(
+    absence_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("absence:delete")),
+):
     obj = _get_or_404(db, models.Employee_absences, absence_id, "Employee Absence")
 
     # deleted_event_id = str(obj.event_id)
