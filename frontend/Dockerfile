@@ -1,4 +1,5 @@
 FROM node:20-alpine
+LABEL authors="KBanaszewskaa"
 RUN mkdir -p /app && chown -R node:node /app
 WORKDIR /app
 USER node
