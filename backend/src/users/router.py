@@ -482,7 +482,6 @@ def password_change(
 def verify_email(
     token: str = Query(...),
     db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(require_permission("user:verify-email")),
 ):
     token_hash = _hash_token(token)
 
