@@ -17,6 +17,8 @@ from src.common.router_utils import (
 )
 from src.common.pagination.pagination import paginate
 from src.common.pagination.pagination_model import PaginatedResponse
+from ..common.require_permission import require_permission
+from ..users import models as user_models
 
 from .auth import (
     authenticate_user,
@@ -41,9 +43,12 @@ USER_LIMIT = 100
 PERMISSION_LIMIT = 100
 
 
+# user-utils
 @router.post("/login", response_model=schemas.Token)
 def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("user:login")),
 ):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
@@ -63,7 +68,10 @@ def login_for_access_token(
 
 # for tests
 @router.get("/me", response_model=schemas.UserRead)
-def read_own_user(current_user: models.Users = Depends(get_current_user)):
+def read_own_user(
+    current_user: models.Users = Depends(get_current_user),
+    _current_user: user_models.Users = Depends(require_permission("user:me")),
+):
     return current_user
 
 
@@ -71,6 +79,7 @@ def read_own_user(current_user: models.Users = Depends(get_current_user)):
 def twofa_setup(
     current_user: models.Users = Depends(get_current_user),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("user-2fa:setup")),
 ):
     if getattr(current_user, "two_factor_enabled", False):
         raise HTTPException(
@@ -100,6 +109,7 @@ def twofa_confirm(
     payload: schemas.TwoFactorConfirmRequest,
     current_user: models.Users = Depends(get_current_user),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("user-2fa:confirm")),
 ):
     if not current_user.two_factor_secret:
         raise HTTPException(
@@ -126,7 +136,9 @@ def twofa_confirm(
 
 @router.post("/2fa/verify", response_model=schemas.Token)
 def twofa_verify(
-    payload: schemas.TwoFactorVerifyRequest, db: Session = Depends(get_db)
+    payload: schemas.TwoFactorVerifyRequest,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("user-2fa:verify")),
 ):
 
     user_id = _get_user_id_from_pre_token(payload.pre_auth_token)
@@ -154,6 +166,7 @@ def get_permissions(
     db: Session = Depends(get_db),
     limit: int | None = Query(PERMISSION_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    _current_user: user_models.Users = Depends(require_permission("permissions:view")),
 ):
     """
     Return all permissions, optionally filtered by group
@@ -171,7 +184,12 @@ def get_permissions(
     response_model=schemas.RoleRead,
 )
 def add_permission_to_role(
-    role_id: int, permission_id: int, db: Session = Depends(get_db)
+    role_id: int,
+    permission_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("permission:add-to-role")
+    ),
 ):
     """
     Add permission to role
@@ -193,7 +211,10 @@ def add_permission_to_role(
     "/roles/{role_id}/permissions/{permission_id}", response_model=schemas.RoleRead
 )
 def delete_permission_from_role(
-    role_id: int, permission_id: int, db: Session = Depends(get_db)
+    role_id: int,
+    permission_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("permission:delete")),
 ):
     """
     Delete permission from role
@@ -215,7 +236,11 @@ def delete_permission_from_role(
 @router.post(
     "/roles", response_model=schemas.RoleRead, status_code=status.HTTP_201_CREATED
 )
-def create_role(payload: schemas.RoleCreate, db: Session = Depends(get_db)):
+def create_role(
+    payload: schemas.RoleCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("role:create")),
+):
     """
     Creates a new role
     """
@@ -250,6 +275,7 @@ def list_roles(
     limit: int = Query(ROLE_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("roles:view")),
 ):
     query = db.query(models.Roles)
 
@@ -260,13 +286,20 @@ def list_roles(
 
 
 @router.get("/roles/{role_id}", response_model=schemas.RoleRead)
-def get_role(role_id: int, db: Session = Depends(get_db)):
+def get_role(
+    role_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("role:view")),
+):
     return _get_or_404(db, models.Roles, role_id, "Role")
 
 
 @router.patch("/roles/{role_id}", response_model=schemas.RoleRead)
 def update_role(
-    role_id: int, payload: schemas.RoleUpdate, db: Session = Depends(get_db)
+    role_id: int,
+    payload: schemas.RoleUpdate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("role:update")),
 ):
     """
     Update roles
@@ -302,7 +335,11 @@ def update_role(
 
 
 @router.delete("/roles/{role_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_role(role_id: int, db: Session = Depends(get_db)):
+def delete_role(
+    role_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("role:delete")),
+):
     obj = _get_or_404(db, models.Roles, role_id, "Role")
     db.delete(obj)
     _commit_or_rollback(db)
@@ -311,7 +348,11 @@ def delete_role(role_id: int, db: Session = Depends(get_db)):
 
 # Users
 @router.post("/", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED)
-def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
+def create_user(
+    payload: schemas.UserCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("user:create")),
+):
     data = payload.model_dump()
     data["password_hash"] = hash_password(data.pop("password"))
     obj = models.Users(**data)
@@ -331,6 +372,7 @@ def list_users(
     limit: int | None = Query(USER_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("users:view")),
 ):
     query = db.query(models.Users)
 
@@ -466,13 +508,20 @@ def verify_email(token: str = Query(...), db: Session = Depends(get_db)):
 
 
 @router.get("/{user_id}", response_model=schemas.UserRead)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("user:view")),
+):
     return _get_or_404(db, models.Users, user_id, "User")
 
 
 @router.patch("/{user_id}", response_model=schemas.UserRead)
 def update_user(
-    user_id: int, payload: schemas.UserUpdate, db: Session = Depends(get_db)
+    user_id: int,
+    payload: schemas.UserUpdate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("user:update")),
 ):
     obj = _get_or_404(db, models.Users, user_id, "User")
 
@@ -494,7 +543,11 @@ def update_user(
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("user:delete")),
+):
     obj = _get_or_404(db, models.Users, user_id, "User")
     db.delete(obj)
     _commit_or_rollback(db)
