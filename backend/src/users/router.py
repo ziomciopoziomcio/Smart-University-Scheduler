@@ -393,7 +393,6 @@ def signup(
     payload: schemas.SignupRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(require_permission("user:signup")),
 ):
     return register_user(payload, background_tasks, db)
 
