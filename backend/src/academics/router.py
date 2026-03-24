@@ -499,12 +499,17 @@ def _check_for_existing_dates_in_db(db: Session, dates: list[date]) -> None:
     status_code=status.HTTP_201_CREATED,
 )
 def create_bulk_calendar_days(
-    payload: list[schemas.AcademicCalendarCreate], db: Session = Depends(get_db)
+    payload: list[schemas.AcademicCalendarCreate],
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("calendar-bulk:create")
+    ),
 ):
     """
     Creates multiple calendar days in bulk.
     :param payload: List of calendar day creation payloads.
     :param db: database session.
+    :param _current_user: Currently authenticated user.
     :return: created calendar days.
     """
     if not payload:
@@ -532,11 +537,15 @@ def create_bulk_calendar_days(
 def create_calendar_day(
     payload: schemas.AcademicCalendarCreate,
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("calendar-day:create")
+    ),
 ):
     """
     Creates calendar day.
     :param payload: Calendar day creation payload.
     :param db: database session.
+    :param _current_user: Currently authenticated user.
     :return: created calendar day.
     """
     existing = (
@@ -568,6 +577,9 @@ def list_calendar_days(
     limit: int | None = Query(ACADEMIC_CALENDAR_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("calendar-days:view")
+    ),
 ):
     """
     Lists calendar days with optional filtering by academic year, semester type, and date range.
@@ -578,6 +590,7 @@ def list_calendar_days(
     :param limit: Maximum number of calendar days to return (default: 100, max: 200).
     :param offset: Number of calendar days to skip for pagination (default: 0).
     :param db: Database session.
+    :param _current_user: Currently authenticated user.
     :return: Paginated list of calendar days matching the filters.
     """
     query = db.query(models.Academic_calendar)
@@ -599,11 +612,13 @@ def list_calendar_days(
 def get_calendar_day(
     calendar_date: date,
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("calendar-day:view")),
 ):
     """
     Gets calendar day.
     :param calendar_date: Date of the calendar day to retrieve.
     :param db: Database session.
+    :param _current_user: Currently authenticated user.
     :return: Calendar day matching the provided date.
     """
     return _get_or_404(db, models.Academic_calendar, calendar_date, "Calendar day")
@@ -614,12 +629,16 @@ def update_calendar_day(
     calendar_date: date,
     payload: schemas.AcademicCalendarUpdate,
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("calendar-day:update")
+    ),
 ):
     """
     Updates calendar day.
     :param calendar_date: Date of the calendar day to update.
     :param payload: Calendar day update payload.
     :param db: Database session.
+    :param _current_user: Currently authenticated user.
     :return: Updated calendar day.
     """
     obj = _get_or_404(db, models.Academic_calendar, calendar_date, "Calendar day")
@@ -634,11 +653,15 @@ def update_calendar_day(
 def delete_calendar_day(
     calendar_date: date,
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("calendar-day:delete")
+    ),
 ):
     """
     Deletes calendar day.
     :param calendar_date: Date of the calendar day to delete.
     :param db: Database session.
+    :param _current_user: Currently authenticated user.
     :return: None
     """
     obj = _get_or_404(db, models.Academic_calendar, calendar_date, "Calendar day")
