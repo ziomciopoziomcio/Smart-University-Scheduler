@@ -1,5 +1,6 @@
-import os
 import logging
+import os
+
 from neo4j import AsyncGraphDatabase, Query
 
 logger = logging.getLogger(__name__)
