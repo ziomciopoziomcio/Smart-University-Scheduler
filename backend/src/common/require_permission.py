@@ -13,9 +13,9 @@ def require_permission(permission_code: str):
         current_user: models.Users = Depends(get_current_user),
     ):
         has_permission = any(
-             perm.code == permission_code
-             for role in current_user.roles
-             for perm in role.permissions
+            perm.code == permission_code
+            for role in current_user.roles
+            for perm in role.permissions
         )
 
         if not has_permission:
