@@ -26,6 +26,7 @@ async def process_task(
         - additional fields (dict, optional): Backend-specific parameters that
           may be present but are not used directly by this worker.
     :param data_prov: DataProvider object used to retrieve all required data.
+    :param neo4j_prov: Neo4jProvider object.
     :return: None
     """
     try:
