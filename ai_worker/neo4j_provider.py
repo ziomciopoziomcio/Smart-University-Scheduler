@@ -59,10 +59,12 @@ class Neo4jProvider:
 
         try:
             async with self.driver.session() as session:
-                await session.run(clear_query)
+                clear_result = await session.run(clear_query)
+                await clear_result.consume()
                 logger.info("Clear existing graph")
 
-                await session.run(query, schedule_data=schedule_data)
+                init_result = await session.run(query, schedule_data=schedule_data)
+                await init_result.consume()
         except Exception as e:
             logger.exception(f"Exception occurred during Graph DB init: {e}")
 
