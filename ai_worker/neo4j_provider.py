@@ -49,8 +49,7 @@ class Neo4jProvider:
                 slots.append({"start": start_time, "end": end_time})
             schedule_data.append({"day": day, "slots": slots})
 
-        query = Query(
-            """
+        query = Query("""
         UNWIND $schedule_data AS day_data
         WITH day_data.day AS dayOfWeek, day_data.slots AS slots
 
@@ -63,8 +62,7 @@ class Neo4jProvider:
         UNWIND range(0, size(day_slots)-2) AS i
         WITH day_slots[i] AS current_slot, day_slots[i+1] AS next_slot
         MERGE (current_slot)-[:NEXT]->(next_slot)
-        """
-        )
+        """)
 
         try:
             async with self.driver.session() as session:
@@ -95,8 +93,7 @@ class Neo4jProvider:
         rooms_cleaned = rooms_df.where(pd.notnull(rooms_df), None)
         rooms_data = rooms_cleaned.to_dict(orient="records")
 
-        query = Query(
-            """
+        query = Query("""
         UNWIND $rooms_data AS row
 
         MERGE (c:Campus {campusId: row.campus_id})
@@ -116,8 +113,7 @@ class Neo4jProvider:
 
                 // 4. Spinamy salę z budynkiem
                 MERGE (r)-[:IN_BUILDING]->(b)
-                """
-        )
+                """)
 
         try:
             async with self.driver.session() as session:
@@ -140,8 +136,7 @@ class Neo4jProvider:
         instructors_cleaned = employees_df.where(pd.notnull(employees_df), None)
         instructors_data = instructors_cleaned.to_dict(orient="records")
 
-        query = Query(
-            """
+        query = Query("""
             UNWIND $instructors_data AS row
 
             MERGE (i:Instructor {instructorId: row.id})
@@ -149,9 +144,8 @@ class Neo4jProvider:
             SET i.firstName = row.name,
             i.lastName = row.surname,
             i.degree = row.degree,
-            i.unitId = row.unit_id,
-            """
-        )
+            i.unitId = row.unit_id
+            """)
 
         try:
             async with self.driver.session() as session:
@@ -173,8 +167,7 @@ class Neo4jProvider:
         requirements_cleaned = requirements_df.where(pd.notnull(requirements_df), None)
         req_data = requirements_cleaned.to_dict(orient="records")
 
-        query = Query(
-            """
+        query = Query("""
         UNWIND $req_data AS row
 
         MERGE (g:Group {groupId: row.group_id})
@@ -190,8 +183,7 @@ class Neo4jProvider:
         c.maxMembersPerClass = row.max_group_participants_number
 
         MERGE (g)-[:REQUIRES]->(c)
-        """
-        )
+        """)
 
         try:
             async with self.driver.session() as session:
@@ -214,16 +206,14 @@ class Neo4jProvider:
         comp_cleaned = competencies_df.where(pd.notnull(competencies_df), None)
         comp_data = comp_cleaned.to_dict(orient="records")
 
-        query = Query(
-            """
+        query = Query("""
             UNWIND $competencies_data AS row
             MATCH (i:Instructor {instructorId: row.employee_id})
             MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
 
             MERGE (i)-[rel:CAN_TEACH]->(c)
             SET rel.assignedHours = row.hours,
-            """
-        )
+            """)
 
         try:
             async with self.driver.session() as session:
