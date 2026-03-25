@@ -11,9 +11,17 @@ class Neo4jProvider:
 
     def __init__(self):
         uri = f"bolt://{os.getenv('NEO4J_HOST', 'neo4j')}:{os.getenv('NEO4J_PORT', '7687')}"
-        user = os.getenv("NEO4J_USER", "neo4j")
-        password = os.getenv("NEO4J_PASSWORD", "password")
+        user = os.getenv("NEO4J_USER")
+        password = os.getenv("NEO4J_PASSWORD")
 
+        if not user or not password:
+            logger.error(
+                "Neo4j credentials are not configured. Please set NEO4J_USER and "
+                "NEO4J_PASSWORD environment variables."
+            )
+            raise RuntimeError(
+                "Missing Neo4j credentials: NEO4J_USER and NEO4J_PASSWORD must be set."
+            )
         self.driver = AsyncGraphDatabase.driver(uri, auth=(user, password))
 
     async def close(self) -> None:
