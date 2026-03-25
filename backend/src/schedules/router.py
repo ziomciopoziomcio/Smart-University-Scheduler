@@ -190,6 +190,13 @@ def create_employee_absence(
     _get_or_404(db, ac_mod.Employees, payload.employee_id, "Employee")
 
     obj = models.Employee_absences(**payload.model_dump())
+
+    if obj.start_date > obj.end_date:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="start_date cannot be after end_date",
+        )
+
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
