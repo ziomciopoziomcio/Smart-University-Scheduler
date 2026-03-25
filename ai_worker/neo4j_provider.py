@@ -75,6 +75,7 @@ class Neo4jProvider:
                 await init_result.consume()
         except Exception as e:
             logger.exception(f"Exception occurred during Graph DB init: {e}")
+            raise
 
     async def save_class_session(self, session_data: dict) -> None:
         """
