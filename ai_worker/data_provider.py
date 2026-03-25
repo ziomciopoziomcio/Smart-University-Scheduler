@@ -80,7 +80,8 @@ class DataProvider:
         Downloads all necessary data from DB
         :param faculty_id: faculty id
         :return: dictionary with dataframes:
-        - rooms: room_id, room_name, room_capacity, projector_availability, pc_amount, faculty_id, unit_id, building_id, building_number, campus_id, campus_short
+        - rooms: room_id, room_name, room_capacity, projector_availability,
+        pc_amount, faculty_id, unit_id, building_id, building_number, campus_id, campus_short
         - employees: id, name, surname, degree, unit_id
         - requirements: course_code, class_type, course_name, class_hours, pc_needed,
         projector_needed, max_group_participants_number, group_id, group_name, program_name
