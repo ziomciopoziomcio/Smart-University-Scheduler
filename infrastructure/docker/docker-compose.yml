@@ -120,6 +120,22 @@ services:
     volumes:
       - ../../ai_worker:/app
     command: python worker.py
+    
+  # frontend service for the React application
+  frontend:
+    build:
+      context: ../../frontend
+    container_name: smart_scheduler_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../../frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
