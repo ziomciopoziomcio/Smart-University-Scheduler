@@ -1,5 +1,6 @@
 import logging
 import os
+import pandas as pd
 
 from neo4j import AsyncGraphDatabase, Query
 
@@ -84,3 +85,48 @@ class Neo4jProvider:
         :return: None
         """
         raise NotImplementedError("save_class_session is not implemented yet.")
+
+    async def load_infrastructure(self, rooms_df: pd.DataFrame) -> None:
+        """
+        Load infrastructure from the graph database
+        :param room_df: Room dataframe
+        :return: None
+        """
+        rooms_cleaned = rooms_df.where(pd.notnull(rooms_df), None)
+        rooms_data = rooms_cleaned.to_dict(orient="records")
+
+        query = Query(
+            """
+        UNWIND $rooms_data AS row
+
+        MERGE (c:Campus {campusId: row.campus_id})
+        ON CREATE SET c.campusShort = row.campus_short
+
+        MERGE (b:Building {buildingId: row.building_id})
+        ON CREATE SET b.buildingNumber = row.building_number
+        MERGE (b)-[:IN_CAMPUS]->(c)
+
+        MERGE (r:Room {roomId: row.room_id})
+                SET r.roomName = row.room_name,
+                    r.roomCapacity = row.room_capacity,
+                    r.pcAmount = row.pc_amount,
+                    r.projectorAvailability = row.projector_availability,
+                    r.facultyId = row.faculty_id,
+                    r.unitId = row.unit_id
+
+                // 4. Spinamy salę z budynkiem
+                MERGE (r)-[:IN_BUILDING]->(b)
+                """
+        )
+
+        try:
+            async with self.driver.session() as session:
+                result = await session.run(query, rooms_data=rooms_data)
+                await result.consume()
+                logger.info("Load infrastructure")
+
+        except Exception as e:
+            logger.exception(
+                f"Exception occurred during Graph DB init (infrastructure): {e}"
+            )
+            raise RuntimeError("Critical error: Failed to load infrastructure.")
