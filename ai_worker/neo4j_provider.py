@@ -34,7 +34,7 @@ class Neo4jProvider:
         :return: None
         """
 
-        clear_query = Query("MATCH (n) DETACH DELETE n")
+        clear_query = Query("MATCH (t:TimeSlot) DETACH DELETE t")
 
         days_of_week = ["Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays"]
         schedule_data = []
