@@ -80,8 +80,7 @@ async def main() -> None:
             await process_task(msg.value, data_provider, neo4j_provider)
     finally:
         await consumer.stop()
-        if hasattr(neo4j_provider, "session"):
-            await neo4j_provider.session.close()
+        await neo4j_provider.close()
 
 
 if __name__ == "__main__":
