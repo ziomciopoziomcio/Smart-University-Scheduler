@@ -12,6 +12,8 @@ from . import models, schemas
 from ..database.database import get_db
 from ..users.auth import get_current_user
 from ..users.models import Users
+from ..common.require_permission import require_permission
+from ..users import models as user_models
 
 router = APIRouter(prefix="/chats", tags=["chats"])
 
@@ -19,11 +21,13 @@ CHAT_LIMIT = 50
 MESSAGE_LIMIT = 100
 
 
+# Chats
 @router.post("/", response_model=schemas.ChatRead, status_code=status.HTTP_201_CREATED)
 def create_chat(
     payload: schemas.ChatCreate,
     db: Session = Depends(get_db),
     current_user: Users = Depends(get_current_user),
+    _current_user: user_models.Users = Depends(require_permission("chat:create")),
 ):
     obj = models.Chats(user_id=current_user.id, **payload.model_dump())
     db.add(obj)
@@ -38,6 +42,7 @@ def list_chats(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     current_user: Users = Depends(get_current_user),
+    _current_user: user_models.Users = Depends(require_permission("chats:view")),
 ):
     query = db.query(models.Chats)
     query = query.filter(
@@ -53,6 +58,7 @@ def get_chat(
     chat_id: int,
     db: Session = Depends(get_db),
     current_user: Users = Depends(get_current_user),
+    _current_user: user_models.Users = Depends(require_permission("chat:view")),
 ):
     obj = _get_or_404(db, models.Chats, chat_id, "Chat")
 
@@ -70,6 +76,7 @@ def update_chat(
     payload: schemas.ChatUpdate,
     db: Session = Depends(get_db),
     current_user: Users = Depends(get_current_user),
+    _current_user: user_models.Users = Depends(require_permission("chat:update")),
 ):
     obj = _get_or_404(db, models.Chats, chat_id, "Chat")
 
@@ -90,6 +97,7 @@ def delete_chat(
     chat_id: int,
     db: Session = Depends(get_db),
     current_user: Users = Depends(get_current_user),
+    _current_user: user_models.Users = Depends(require_permission("chat:delete")),
 ):
     obj = _get_or_404(db, models.Chats, chat_id, "Chat")
 
@@ -104,6 +112,7 @@ def delete_chat(
     return None
 
 
+# Messages
 @router.post(
     "/{chat_id}/messages",
     response_model=schemas.MessageRead,
@@ -114,6 +123,7 @@ def create_message(
     payload: schemas.MessageCreate,
     db: Session = Depends(get_db),
     current_user: Users = Depends(get_current_user),
+    _current_user: user_models.Users = Depends(require_permission("message:create")),
 ):
     chat = _get_or_404(db, models.Chats, chat_id, "Chat")
 
@@ -138,6 +148,7 @@ def list_messages(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     current_user: Users = Depends(get_current_user),
+    _current_user: user_models.Users = Depends(require_permission("messages:view")),
 ):
     chat = _get_or_404(db, models.Chats, chat_id, "Chat")
 
