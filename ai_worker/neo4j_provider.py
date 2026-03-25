@@ -207,12 +207,12 @@ class Neo4jProvider:
         comp_data = comp_cleaned.to_dict(orient="records")
 
         query = Query("""
-            UNWIND $competencies_data AS row
+            UNWIND $comp_data AS row
             MATCH (i:Instructor {instructorId: row.employee_id})
             MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
 
             MERGE (i)-[rel:CAN_TEACH]->(c)
-            SET rel.assignedHours = row.hours,
+            SET rel.assignedHours = row.hours
             """)
 
         try:
