@@ -1,7 +1,7 @@
 import re
 import uuid
-from datetime import date, datetime
-from typing import Optional, Annotated
+from datetime import datetime, date
+from typing import Annotated, Dict, Any, Optional
 
 from pydantic import (
     BaseModel,
@@ -13,6 +13,7 @@ from pydantic import (
 )
 
 from .models import AbsenceStatus
+from .models import SuggestionStatus
 from ..academics.models import SemesterType
 
 
@@ -20,9 +21,32 @@ class BaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ScheduleSuggestionBase(BaseSchema):
+    source: Annotated[str, StringConstraints(max_length=50)]
+    reason: Annotated[str, StringConstraints(max_length=255)]
+    target_class_session_id: uuid.UUID
+
+    state_before: Dict[str, Any]
+    state_after: Dict[str, Any]
+
+
+class ScheduleSuggestionCreate(ScheduleSuggestionBase):
+    pass
+
+
+class ScheduleSuggestionRead(ScheduleSuggestionBase):
+    id: int
+    status: SuggestionStatus
+    created_at: datetime
+    resolved_at: Optional[datetime]
+
+
+class ScheduleSuggestionUpdate(BaseModel):
+    status: SuggestionStatus
+
+
 class GenerateScheduleRequest(BaseModel):  # TODO: Verify schema
     faculty_id: int = Field(..., gt=0)
-
     academic_year: str = Field(..., examples=["2025/2026"])
     semester_type: SemesterType
 
