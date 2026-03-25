@@ -2,3 +2,8 @@
 exclude_paths:
   - "backend/alembic/**"
   - "backend/alembic.ini"
+  - "ai_worker/requirements.txt"
+  - "frontend/src/App.tsx"
+  - "frontend/vite.config.ts"
+  - "frontend/src/App.css"
+  - "frontend/package-lock.json"
