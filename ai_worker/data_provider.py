@@ -38,13 +38,20 @@ REQUIREMENTS_QUERY = """
         ctd.max_group_participants_number,
         g.id AS group_id,
         g.group_name,
-        sp.program_name
+        sp.program_name,
+        COALESCE(gm.members_amout, 0) AS members_amount
     FROM study_programs sp
     JOIN study_fields sf ON sp.study_field = sf.id
     JOIN curriculum_courses cc ON cc.study_program = sp.id
     JOIN courses c ON cc.course = c.course_code
     JOIN course_type_detail ctd ON ctd.course = c.course_code
     JOIN groups g ON g.study_program = sp.id
+    LEFT JOIN (
+        SELECT "group" AS group_id, COUNT(student) AS members_amout
+        FROM group_members
+        GROUP BY "group"
+    ) gm ON gm.group_id = g.id
+
     WHERE sf.faculty = %(faculty_id)s
       AND (cc.major IS NULL OR cc.major = g.major)
       AND (cc.elective_block IS NULL OR cc.elective_block = g.elective_block)
