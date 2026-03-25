@@ -87,7 +87,7 @@ class Neo4jProvider:
     async def load_infrastructure(self, rooms_df: pd.DataFrame) -> None:
         """
         Load infrastructure from the graph database
-        :param room_df: Room dataframe
+        :param rooms_df: Room dataframe
         :return: None
         """
         rooms_cleaned = rooms_df.where(pd.notnull(rooms_df), None)
