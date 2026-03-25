@@ -4,13 +4,23 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 ROOMS_QUERY = """
-            SELECT r.id, r.room_name, r.room_capacity, r.projector_availability, r.pc_amount,
-                   b.building_number, c.campus_short
-            FROM rooms r
-            JOIN buildings b ON r.building_id = b.id
-            JOIN campuses c ON b.campus_id = c.id
-            WHERE r.faculty_id = %(faculty_id)s
-        """
+    SELECT
+        r.id AS room_id,
+        r.room_name,
+        r.room_capacity,
+        r.projector_availability,
+        r.pc_amount,
+        r.faculty_id,
+        r.unit_id,
+        b.id AS building_id,
+        b.building_number,
+        c.id AS campus_id,
+        c.campus_short
+    FROM rooms r
+    JOIN buildings b ON r.building_id = b.id
+    JOIN campuses c ON b.campus_id = c.id
+    WHERE r.faculty_id = %(faculty_id)s
+"""
 EMPLOYEES_QUERY = """
             SELECT e.id, u.name, u.surname, u.degree, e.unit_id
             FROM employees e
