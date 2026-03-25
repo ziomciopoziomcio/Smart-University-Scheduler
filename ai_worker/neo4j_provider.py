@@ -72,4 +72,3 @@ class Neo4jProvider:
         :param session_data: A dictionary containing class session details
         :return: None
         """
-        pass
