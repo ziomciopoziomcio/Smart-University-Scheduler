@@ -39,7 +39,7 @@ REQUIREMENTS_QUERY = """
         g.id AS group_id,
         g.group_name,
         sp.program_name,
-        COALESCE(gm.members_amout, 0) AS members_amount
+        COALESCE(gm.members_amount, 0) AS members_amount
     FROM study_programs sp
     JOIN study_fields sf ON sp.study_field = sf.id
     JOIN curriculum_courses cc ON cc.study_program = sp.id
@@ -47,7 +47,7 @@ REQUIREMENTS_QUERY = """
     JOIN course_type_detail ctd ON ctd.course = c.course_code
     JOIN groups g ON g.study_program = sp.id
     LEFT JOIN (
-        SELECT "group" AS group_id, COUNT(student) AS members_amout
+        SELECT "group" AS group_id, COUNT(student) AS members_amount
         FROM group_members
         GROUP BY "group"
     ) gm ON gm.group_id = g.id
