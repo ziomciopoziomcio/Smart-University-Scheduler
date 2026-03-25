@@ -83,3 +83,4 @@ class Neo4jProvider:
         :param session_data: A dictionary containing class session details
         :return: None
         """
+        raise NotImplementedError("save_class_session is not implemented yet.")
