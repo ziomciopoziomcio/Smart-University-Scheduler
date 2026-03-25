@@ -10,6 +10,8 @@ from src.common.router_utils import (
 )
 from src.common.pagination.pagination import paginate
 from src.common.pagination.pagination_model import PaginatedResponse
+from ..common.require_permission import require_permission
+from ..users import models as user_models
 
 router = APIRouter(prefix="/facilities", tags=["facilities"])
 
@@ -23,7 +25,11 @@ FACULTY_LIMIT = 100
 @router.post(
     "/campuses", response_model=schemas.CampusRead, status_code=status.HTTP_201_CREATED
 )
-def create_campus(payload: schemas.CampusCreate, db: Session = Depends(get_db)):
+def create_campus(
+    payload: schemas.CampusCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("campus:create")),
+):
     new_campus = models.Campus(**payload.model_dump())
     db.add(new_campus)
     _commit_or_rollback(db)
@@ -38,6 +44,7 @@ def list_campuses(
     limit: int = Query(CAMPUS_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("campuses:view")),
 ):
     query = db.query(models.Campus)
 
@@ -50,13 +57,20 @@ def list_campuses(
 
 
 @router.get("/campuses/{campus_id}", response_model=schemas.CampusRead)
-def get_campus(campus_id: int, db: Session = Depends(get_db)):
+def get_campus(
+    campus_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("campus:view")),
+):
     return _get_or_404(db, models.Campus, campus_id, "Campus")
 
 
 @router.patch("/campuses/{campus_id}", response_model=schemas.CampusRead)
 def update_campus(
-    campus_id: int, payload: schemas.CampusUpdate, db: Session = Depends(get_db)
+    campus_id: int,
+    payload: schemas.CampusUpdate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("campus:update")),
 ):
     obj = _get_or_404(db, models.Campus, campus_id, "Campus")
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields=["campus_name"])
@@ -67,7 +81,11 @@ def update_campus(
 
 
 @router.delete("/campuses/{campus_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_campus(campus_id: int, db: Session = Depends(get_db)):
+def delete_campus(
+    campus_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("campus:delete")),
+):
     obj = _get_or_404(db, models.Campus, campus_id, "Campus")
     db.delete(obj)
     _commit_or_rollback(db)
@@ -80,7 +98,11 @@ def delete_campus(campus_id: int, db: Session = Depends(get_db)):
     response_model=schemas.BuildingRead,
     status_code=status.HTTP_201_CREATED,
 )
-def create_building(payload: schemas.BuildingCreate, db: Session = Depends(get_db)):
+def create_building(
+    payload: schemas.BuildingCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("building:create")),
+):
     new_building = models.Building(**payload.model_dump())
     db.add(new_building)
     _commit_or_rollback(db)
@@ -96,6 +118,7 @@ def list_buildings(
     limit: int = Query(BUILDING_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("buildings:view")),
 ):
     query = db.query(models.Building)
 
@@ -112,13 +135,20 @@ def list_buildings(
 
 
 @router.get("/buildings/{building_id}", response_model=schemas.BuildingRead)
-def get_building(building_id: int, db: Session = Depends(get_db)):
+def get_building(
+    building_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("building:view")),
+):
     return _get_or_404(db, models.Building, building_id, "Building")
 
 
 @router.patch("/buildings/{building_id}", response_model=schemas.BuildingRead)
 def update_building(
-    building_id: int, payload: schemas.BuildingUpdate, db: Session = Depends(get_db)
+    building_id: int,
+    payload: schemas.BuildingUpdate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("building:update")),
 ):
     obj = _get_or_404(db, models.Building, building_id, "Building")
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields=["building_name"])
@@ -129,7 +159,11 @@ def update_building(
 
 
 @router.delete("/buildings/{building_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_building(building_id: int, db: Session = Depends(get_db)):
+def delete_building(
+    building_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("building:delete")),
+):
     obj = _get_or_404(db, models.Building, building_id, "Building")
     db.delete(obj)
     _commit_or_rollback(db)
@@ -140,7 +174,11 @@ def delete_building(building_id: int, db: Session = Depends(get_db)):
 @router.post(
     "/rooms", response_model=schemas.RoomRead, status_code=status.HTTP_201_CREATED
 )
-def create_room(payload: schemas.RoomCreate, db: Session = Depends(get_db)):
+def create_room(
+    payload: schemas.RoomCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("room:create")),
+):
     new_room = models.Room(**payload.model_dump())
     db.add(new_room)
     _commit_or_rollback(db)
@@ -162,6 +200,7 @@ def list_rooms(
     limit: int = Query(ROOM_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("rooms:view")),
 ):
     query = db.query(models.Room)
 
@@ -190,13 +229,20 @@ def list_rooms(
 
 
 @router.get("/rooms/{room_id}", response_model=schemas.RoomRead)
-def get_room(room_id: int, db: Session = Depends(get_db)):
+def get_room(
+    room_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("room:view")),
+):
     return _get_or_404(db, models.Room, room_id, "Room")
 
 
 @router.patch("/rooms/{room_id}", response_model=schemas.RoomRead)
 def update_room(
-    room_id: int, payload: schemas.RoomUpdate, db: Session = Depends(get_db)
+    room_id: int,
+    payload: schemas.RoomUpdate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("room:update")),
 ):
     obj = _get_or_404(db, models.Room, room_id, "Room")
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields=["unit_id"])
@@ -207,7 +253,11 @@ def update_room(
 
 
 @router.delete("/rooms/{room_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_room(room_id: int, db: Session = Depends(get_db)):
+def delete_room(
+    room_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("room:delete")),
+):
     obj = _get_or_404(db, models.Room, room_id, "Room")
     db.delete(obj)
     _commit_or_rollback(db)
@@ -220,7 +270,11 @@ def delete_room(room_id: int, db: Session = Depends(get_db)):
     response_model=schemas.FacultyRead,
     status_code=status.HTTP_201_CREATED,
 )
-def create_faculty(payload: schemas.FacultyCreate, db: Session = Depends(get_db)):
+def create_faculty(
+    payload: schemas.FacultyCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("faculty:create")),
+):
     new_faculty = models.Faculty(**payload.model_dump())
     db.add(new_faculty)
     _commit_or_rollback(db)
@@ -235,6 +289,7 @@ def list_faculties(
     limit: int = Query(FACULTY_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("faculties:view")),
 ):
     query = db.query(models.Faculty)
 
@@ -247,13 +302,20 @@ def list_faculties(
 
 
 @router.get("/faculties/{faculty_id}", response_model=schemas.FacultyRead)
-def get_faculty(faculty_id: int, db: Session = Depends(get_db)):
+def get_faculty(
+    faculty_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("faculty:view")),
+):
     return _get_or_404(db, models.Faculty, faculty_id, "Faculty")
 
 
 @router.patch("/faculties/{faculty_id}", response_model=schemas.FacultyRead)
 def update_faculty(
-    faculty_id: int, payload: schemas.FacultyUpdate, db: Session = Depends(get_db)
+    faculty_id: int,
+    payload: schemas.FacultyUpdate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("faculty:update")),
 ):
     obj = _get_or_404(db, models.Faculty, faculty_id, "Faculty")
     _apply_patch_or_reject_nulls(obj, payload)
@@ -264,7 +326,11 @@ def update_faculty(
 
 
 @router.delete("/faculties/{faculty_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_faculty(faculty_id: int, db: Session = Depends(get_db)):
+def delete_faculty(
+    faculty_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("faculty:delete")),
+):
     obj = _get_or_404(db, models.Faculty, faculty_id, "Faculty")
     db.delete(obj)
     _commit_or_rollback(db)

@@ -11,6 +11,8 @@ from src.common.router_utils import (
 )
 from src.common.pagination.pagination import paginate
 from src.common.pagination.pagination_model import PaginatedResponse
+from ..common.require_permission import require_permission
+from ..users import models as user_models
 
 router = APIRouter(prefix="/course", tags=["course"])
 
@@ -31,7 +33,11 @@ CURRICULUM_LIMIT = 100
     status_code=status.HTTP_201_CREATED,
 )
 def create_study_field(
-    payload: schemas.StudyFieldCreate, db: Session = Depends(get_db)
+    payload: schemas.StudyFieldCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("study-field:create")
+    ),
 ):
     obj = models.Study_fields(**payload.model_dump())
     db.add(obj)
@@ -47,6 +53,7 @@ def list_study_fields(
     limit: int = Query(STUDY_FIELD_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("study-fields:view")),
 ):
     query = db.query(models.Study_fields)
 
@@ -59,13 +66,22 @@ def list_study_fields(
 
 
 @router.get("/study-fields/{field_id}", response_model=schemas.StudyFieldRead)
-def get_study_field(field_id: int, db: Session = Depends(get_db)):
+def get_study_field(
+    field_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("study-field:view")),
+):
     return _get_or_404(db, models.Study_fields, field_id, "Study Field")
 
 
 @router.patch("/study-fields/{field_id}", response_model=schemas.StudyFieldRead)
 def update_study_field(
-    field_id: int, payload: schemas.StudyFieldUpdate, db: Session = Depends(get_db)
+    field_id: int,
+    payload: schemas.StudyFieldUpdate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("study-field:update")
+    ),
 ):
     obj = _get_or_404(db, models.Study_fields, field_id, "Study Field")
     _apply_patch_or_reject_nulls(obj, payload)
@@ -76,7 +92,13 @@ def update_study_field(
 
 
 @router.delete("/study-fields/{field_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_study_field(field_id: int, db: Session = Depends(get_db)):
+def delete_study_field(
+    field_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("study-field:delete")
+    ),
+):
     obj = _get_or_404(db, models.Study_fields, field_id, "Study Field")
     db.delete(obj)
     _commit_or_rollback(db)
@@ -87,7 +109,11 @@ def delete_study_field(field_id: int, db: Session = Depends(get_db)):
 @router.post(
     "/majors", response_model=schemas.MajorRead, status_code=status.HTTP_201_CREATED
 )
-def create_major(payload: schemas.MajorCreate, db: Session = Depends(get_db)):
+def create_major(
+    payload: schemas.MajorCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("major:create")),
+):
     obj = models.Major(**payload.model_dump())
     db.add(obj)
     _commit_or_rollback(db)
@@ -102,6 +128,7 @@ def list_majors(
     limit: int | None = Query(MAJOR_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("majors:view")),
 ):
     query = db.query(models.Major)
 
@@ -114,13 +141,20 @@ def list_majors(
 
 
 @router.get("/majors/{major_id}", response_model=schemas.MajorRead)
-def get_major(major_id: int, db: Session = Depends(get_db)):
+def get_major(
+    major_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("major:view")),
+):
     return _get_or_404(db, models.Major, major_id, "Major")
 
 
 @router.patch("/majors/{major_id}", response_model=schemas.MajorRead)
 def update_major(
-    major_id: int, payload: schemas.MajorUpdate, db: Session = Depends(get_db)
+    major_id: int,
+    payload: schemas.MajorUpdate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("major:update")),
 ):
     obj = _get_or_404(db, models.Major, major_id, "Major")
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"study_field"})
@@ -131,7 +165,11 @@ def update_major(
 
 
 @router.delete("/majors/{major_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_major(major_id: int, db: Session = Depends(get_db)):
+def delete_major(
+    major_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("major:delete")),
+):
     obj = _get_or_404(db, models.Major, major_id, "Major")
     db.delete(obj)
     _commit_or_rollback(db)
@@ -145,7 +183,11 @@ def delete_major(major_id: int, db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
 )
 def create_elective_block(
-    payload: schemas.ElectiveBlockCreate, db: Session = Depends(get_db)
+    payload: schemas.ElectiveBlockCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("elective-block:create")
+    ),
 ):
     obj = models.Elective_block(**payload.model_dump())
     db.add(obj)
@@ -164,6 +206,9 @@ def list_elective_blocks(
     limit: int | None = Query(ELECTIVE_BLOCK_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("elective-blocks:view")
+    ),
 ):
     query = db.query(models.Elective_block)
 
@@ -178,13 +223,24 @@ def list_elective_blocks(
 
 
 @router.get("/elective-blocks/{block_id}", response_model=schemas.ElectiveBlockRead)
-def get_elective_block(block_id: int, db: Session = Depends(get_db)):
+def get_elective_block(
+    block_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("elective-block:view")
+    ),
+):
     return _get_or_404(db, models.Elective_block, block_id, "Elective Block")
 
 
 @router.patch("/elective-blocks/{block_id}", response_model=schemas.ElectiveBlockRead)
 def update_elective_block(
-    block_id: int, payload: schemas.ElectiveBlockUpdate, db: Session = Depends(get_db)
+    block_id: int,
+    payload: schemas.ElectiveBlockUpdate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("elective-block:update")
+    ),
 ):
     obj = _get_or_404(db, models.Elective_block, block_id, "Elective Block")
     _apply_patch_or_reject_nulls(obj, payload)
@@ -195,7 +251,13 @@ def update_elective_block(
 
 
 @router.delete("/elective-blocks/{block_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_elective_block(block_id: int, db: Session = Depends(get_db)):
+def delete_elective_block(
+    block_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("elective-block:delete")
+    ),
+):
     obj = _get_or_404(db, models.Elective_block, block_id, "Elective Block")
     db.delete(obj)
     _commit_or_rollback(db)
@@ -209,7 +271,11 @@ def delete_elective_block(block_id: int, db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
 )
 def create_course_type(
-    payload: schemas.CourseTypeDetailCreate, db: Session = Depends(get_db)
+    payload: schemas.CourseTypeDetailCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("course-type:create")
+    ),
 ):
     obj = models.Course_type_detail(**payload.model_dump())
     db.add(obj)
@@ -231,6 +297,7 @@ def list_course_types(
     limit: int | None = Query(COURSE_TYPE_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("course-types:view")),
 ):
     query = db.query(models.Course_type_detail)
 
@@ -275,7 +342,10 @@ def list_course_types(
 
 @router.get("/types/{course}/{class_type}", response_model=schemas.CourseTypeDetailRead)
 def get_course_type(
-    course: int, class_type: schemas.ClassType, db: Session = Depends(get_db)
+    course: int,
+    class_type: schemas.ClassType,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("course-type:view")),
 ):
     return _get_by_fields_or_404(
         db,
@@ -294,6 +364,9 @@ def update_course_type(
     class_type: schemas.ClassType,
     payload: schemas.CourseTypeDetailUpdate,
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("course-type:update")
+    ),
 ):
     obj = _get_by_fields_or_404(
         db,
@@ -311,7 +384,12 @@ def update_course_type(
 
 @router.delete("/types/{course}/{class_type}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_course_type(
-    course: int, class_type: schemas.ClassType, db: Session = Depends(get_db)
+    course: int,
+    class_type: schemas.ClassType,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("course-type:delete")
+    ),
 ):
     obj = _get_by_fields_or_404(
         db,
@@ -332,7 +410,9 @@ def delete_course_type(
     status_code=status.HTTP_201_CREATED,
 )
 def create_course_instructor(
-    payload: schemas.CourseInstructorCreate, db: Session = Depends(get_db)
+    payload: schemas.CourseInstructorCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("instructor:create")),
 ):
     obj = models.Courses_instructors(**payload.model_dump())
     db.add(obj)
@@ -354,6 +434,7 @@ def list_course_instructors(
     limit: int | None = Query(COURSE_INSTRUCTOR_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("instructors:view")),
 ):
     query = db.query(models.Courses_instructors)
 
@@ -395,6 +476,7 @@ def get_course_instructor(
     course: int,
     class_type: schemas.ClassType,
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("instructor:view")),
 ):
     return _get_by_fields_or_404(
         db,
@@ -416,6 +498,7 @@ def update_course_instructor(
     class_type: schemas.ClassType,
     payload: schemas.CourseInstructorUpdate,
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("instructor:update")),
 ):
     obj = _get_by_fields_or_404(
         db,
@@ -441,6 +524,7 @@ def delete_course_instructor(
     course: int,
     class_type: schemas.ClassType,
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("instructor:delete")),
 ):
     obj = _get_by_fields_or_404(
         db,
@@ -459,7 +543,11 @@ def delete_course_instructor(
 @router.post(
     "/", response_model=schemas.CourseRead, status_code=status.HTTP_201_CREATED
 )
-def create_course(payload: schemas.CourseCreate, db: Session = Depends(get_db)):
+def create_course(
+    payload: schemas.CourseCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("course:create")),
+):
     obj = models.Course(**payload.model_dump())
     db.add(obj)
     _commit_or_rollback(db)
@@ -478,6 +566,7 @@ def list_courses(
     limit: int | None = Query(COURSE_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("courses:view")),
 ):
     query = db.query(models.Course)
 
@@ -498,13 +587,20 @@ def list_courses(
 
 
 @router.get("/{course_code}", response_model=schemas.CourseRead)
-def get_course(course_code: int, db: Session = Depends(get_db)):
+def get_course(
+    course_code: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("course:view")),
+):
     return _get_or_404(db, models.Course, course_code, "Course")
 
 
 @router.patch("/{course_code}", response_model=schemas.CourseRead)
 def update_course(
-    course_code: int, payload: schemas.CourseUpdate, db: Session = Depends(get_db)
+    course_code: int,
+    payload: schemas.CourseUpdate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("course:update")),
 ):
     obj = _get_or_404(db, models.Course, course_code, "Course")
     _apply_patch_or_reject_nulls(
@@ -517,7 +613,11 @@ def update_course(
 
 
 @router.delete("/{course_code}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_course(course_code: int, db: Session = Depends(get_db)):
+def delete_course(
+    course_code: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("course:delete")),
+):
     obj = _get_or_404(db, models.Course, course_code, "Course")
     db.delete(obj)
     _commit_or_rollback(db)
@@ -531,7 +631,11 @@ def delete_course(course_code: int, db: Session = Depends(get_db)):
     status_code=status.HTTP_201_CREATED,
 )
 def create_study_program(
-    payload: schemas.StudyProgramCreate, db: Session = Depends(get_db)
+    payload: schemas.StudyProgramCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("study-program:create")
+    ),
 ):
     obj = models.Study_program(**payload.model_dump())
     db.add(obj)
@@ -551,6 +655,9 @@ def list_study_programs(
     limit: int | None = Query(STUDY_PROGRAM_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("study-programs:view")
+    ),
 ):
     query = db.query(models.Study_program)
 
@@ -567,13 +674,24 @@ def list_study_programs(
 
 
 @router.get("/study-programs/{program_id}", response_model=schemas.StudyProgramRead)
-def get_study_program(program_id: int, db: Session = Depends(get_db)):
+def get_study_program(
+    program_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("study-program:view")
+    ),
+):
     return _get_or_404(db, models.Study_program, program_id, "StudyProgram")
 
 
 @router.patch("/study-programs/{program_id}", response_model=schemas.StudyProgramRead)
 def update_study_program(
-    program_id: int, payload: schemas.StudyProgramUpdate, db: Session = Depends(get_db)
+    program_id: int,
+    payload: schemas.StudyProgramUpdate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("study-program:update")
+    ),
 ):
     obj = _get_or_404(db, models.Study_program, program_id, "Study Program")
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"program_name"})
@@ -584,13 +702,20 @@ def update_study_program(
 
 
 @router.delete("/study-programs/{program_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_study_program(program_id: int, db: Session = Depends(get_db)):
+def delete_study_program(
+    program_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("study-program:delete")
+    ),
+):
     obj = _get_or_404(db, models.Study_program, program_id, "Study Program")
     db.delete(obj)
     _commit_or_rollback(db)
     return None
 
 
+# Curriculum
 @router.post(
     "/curriculum",
     response_model=schemas.CurriculumCourseRead,
@@ -599,6 +724,7 @@ def delete_study_program(program_id: int, db: Session = Depends(get_db)):
 def create_curriculum_course(
     payload: schemas.CurriculumCourseCreate,
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("curriculum:create")),
 ):
     obj = models.Curriculum_course(**payload.model_dump())
     db.add(obj)
@@ -619,6 +745,7 @@ def list_curriculum(
     limit: int | None = Query(CURRICULUM_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("curriculums:view")),
 ):
     query = db.query(models.Curriculum_course)
 
@@ -656,7 +783,11 @@ def list_curriculum(
     response_model=schemas.CurriculumCourseRead,
 )
 def get_curriculum_course(
-    study_program: int, course: int, semester: int, db: Session = Depends(get_db)
+    study_program: int,
+    course: int,
+    semester: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("curriculum:view")),
 ):
     return _get_by_fields_or_404(
         db,
@@ -678,6 +809,7 @@ def update_curriculum_course(
     semester: int,
     payload: schemas.CurriculumCourseUpdate,
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("curriculum:update")),
 ):
     obj = _get_by_fields_or_404(
         db,
@@ -701,7 +833,11 @@ def update_curriculum_course(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_curriculum(
-    study_program: int, course: int, semester: int, db: Session = Depends(get_db)
+    study_program: int,
+    course: int,
+    semester: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("curriculum:delete")),
 ):
     obj = _get_by_fields_or_404(
         db,
