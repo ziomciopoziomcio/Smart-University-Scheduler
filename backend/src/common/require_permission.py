@@ -12,12 +12,13 @@ def require_permission(permission_code: str):
     def dependency(
         current_user: models.Users = Depends(get_current_user),
     ):
-        user_permissions = set()
-        for role in current_user.roles:
-            for perm in role.permissions:
-                user_permissions.add(perm.code)
+        has_permission = any(
+             perm.code == permission_code
+             for role in current_user.roles
+             for perm in role.permissions
+        )
 
-        if permission_code not in user_permissions:
+        if not has_permission:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
             )
