@@ -204,3 +204,34 @@ class Neo4jProvider:
                 f"Exception occurred during Graph DB init (requirements): {e}"
             )
             raise RuntimeError("Critical error: Failed to load requirements.")
+
+    async def load_competencies(self, competencies_df: pd.DataFrame) -> None:
+        """
+        Load competencies from the graph database
+        :param competencies_df: Competencies dataframe
+        :return: None
+        """
+        comp_cleaned = competencies_df.where(pd.notnull(competencies_df), None)
+        comp_data = comp_cleaned.to_dict(orient="records")
+
+        query = Query(
+            """
+            UNWIND $competencies_data AS row
+            MATCH (i:Instructor {instructorId: row.employee_id})
+            MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
+
+            MERGE (i)-[rel:CAN_TEACH]->(c)
+            SET rel.assignedHours = row.hours,
+            """
+        )
+
+        try:
+            async with self.driver.session() as session:
+                result = await session.run(query, comp_data=comp_data)
+                await result.consume()
+                logger.info("Load competencies")
+        except Exception as e:
+            logger.exception(
+                f"Exception occurred during Graph DB init (competencies): {e}"
+            )
+            raise RuntimeError("Critical error: Failed to load competencies.")
