@@ -144,11 +144,11 @@ def resolve_schedule_suggestion(
             detail=f"Suggestion already resolved with status: {obj.status}",
         )
 
-    allowed_terminal_states = {
+    allowed_terminal_states = (
         models.SuggestionStatus.ACCEPTED,
         models.SuggestionStatus.REJECTED,
         models.SuggestionStatus.FAILED,
-    }
+    )
 
     if payload.status not in allowed_terminal_states:
         allowed_str = ", ".join([s.value for s in allowed_terminal_states])
