@@ -112,6 +112,9 @@ services:
       DB_NAME: ${DB_NAME}
       DATABASE_URL: "postgresql+psycopg2://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
       NEO4J_HOST: ${NEO4J_HOST}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+      NEO4J_USER: ${NEO4J_USER}
+      NEO4J_PORT: ${NEO4J_PORT}
       KAFKA_URL: "kafka:29092"
     depends_on:
       - postgres
@@ -120,7 +123,7 @@ services:
     volumes:
       - ../../ai_worker:/app
     command: python worker.py
-    
+
   # frontend service for the React application
   frontend:
     build:
