@@ -130,3 +130,77 @@ class Neo4jProvider:
                 f"Exception occurred during Graph DB init (infrastructure): {e}"
             )
             raise RuntimeError("Critical error: Failed to load infrastructure.")
+
+    async def load_instructors(self, employees_df: pd.DataFrame) -> None:
+        """
+        Load instructors from the graph database
+        :param employees_df: Employees dataframe
+        :return: None
+        """
+        instructors_cleaned = employees_df.where(pd.notnull(employees_df), None)
+        instructors_data = instructors_cleaned.to_dict(orient="records")
+
+        query = Query(
+            """
+            UNWIND $instructors_data AS row
+
+            MERGE (i:Instructor {instructorId: row.id})
+
+            SET i.firstName = row.name,
+            i.lastName = row.surname,
+            i.degree = row.degree,
+            i.unitId = row.unit_id,
+            """
+        )
+
+        try:
+            async with self.driver.session() as session:
+                result = await session.run(query, instructors_data=instructors_data)
+                await result.consume()
+                logger.info("Load instructors")
+        except Exception as e:
+            logger.exception(
+                f"Exception occurred during Graph DB init (instructors): {e}"
+            )
+            raise RuntimeError("Critical error: Failed to load instructors.")
+
+    async def load_requirements(self, requirements_df: pd.DataFrame) -> None:
+        """
+        Load requirements from the graph database
+        :param requirements_df: Requirements dataframe
+        :return: None
+        """
+        requirements_cleaned = requirements_df.where(pd.notnull(requirements_df), None)
+        req_data = requirements_cleaned.to_dict(orient="records")
+
+        query = Query(
+            """
+        UNWIND $req_data AS row
+
+        MERGE (g:Group {groupId: row.group_id})
+        SET g.groupName = row.group_name,
+        g.programName = row.program_name,
+        g.membersAmount = row.members_amount
+
+        MERGE (c:Course {courseCode: row.course_code, classType: row.class_type})
+        SET c.courseName = row.course_name,
+        c.hours = row.class_hours,
+        c.pcNeeded = row.pc_needed,
+        c.projectorNeeded = row.projector_needed,
+        c.maxMembersPerClass = row.max_group_participants_number
+
+        MERGE (g)-[:REQUIRES]->(c)
+        """
+        )
+
+        try:
+            async with self.driver.session() as session:
+                result = await session.run(query, req_data=req_data)
+                await result.consume()
+                logger.info("Load requirements")
+
+        except Exception as e:
+            logger.exception(
+                f"Exception occurred during Graph DB init (requirements): {e}"
+            )
+            raise RuntimeError("Critical error: Failed to load requirements.")
