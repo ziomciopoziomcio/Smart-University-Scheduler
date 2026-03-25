@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 async def process_task(
-    task_data: dict, provider: DataProvider, neo4j_provider: Neo4jProvider
+    task_data: dict, data_prov: DataProvider, neo4j_prov: Neo4jProvider
 ) -> None:
     """
     Task handler for schedule optimization requests.
@@ -25,7 +25,7 @@ async def process_task(
           optimization (e.g. "2024/2025" or 2024).
         - additional fields (dict, optional): Backend-specific parameters that
           may be present but are not used directly by this worker.
-    :param provider: DataProvider object used to retrieve all required data.
+    :param data_prov: DataProvider object used to retrieve all required data.
     :return: None
     """
     try:
@@ -34,13 +34,13 @@ async def process_task(
             logger.error("Faculty id not provided")
             return
 
-        data = await asyncio.to_thread(provider.get_all_data, faculty_id)
-        await neo4j_provider.initialize_base_graph()
+        data = await asyncio.to_thread(data_prov.get_all_data, faculty_id)
+        await neo4j_prov.initialize_base_graph()
 
-        await neo4j_provider.load_infrastructure(data["rooms"])
-        await neo4j_provider.load_instructors(data["employees"])
-        await neo4j_provider.load_requirements(data["requirements"])
-        await neo4j_provider.load_competencies(data["competencies"])
+        await neo4j_prov.load_infrastructure(data["rooms"])
+        await neo4j_prov.load_instructors(data["employees"])
+        await neo4j_prov.load_requirements(data["requirements"])
+        await neo4j_prov.load_competencies(data["competencies"])
 
         # await run_ai_optimizer(faculty_id) TODO
 
