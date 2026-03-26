@@ -134,11 +134,12 @@ class DataProvider:
         freq = str(row["frequency"]).upper()
 
         if freq == "MANUAL":
-            if pd.isna(row["manual_weeks"]):
+            manual_weeks = row["manual_weeks"]
+            if manual_weeks is None or (isinstance(manual_weeks, float) and pd.isna(manual_weeks)):
                 return []
-            return [row["manual_weeks"]]
+            return [manual_weeks]
         elif freq == "BIWEEKLY":
-            return [[1, 3, 5, 7, 8, 11, 13, 15], [2, 4, 6, 8, 10, 12, 14]]
+            return [[1, 3, 5, 7, 9, 11, 13, 15], [2, 4, 6, 8, 10, 12, 14]]
         elif freq == "FIRST_HALF":
             return [list(range(1, 8))]
         elif freq == "SECOND_HALF":
