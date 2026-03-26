@@ -75,7 +75,7 @@ class Course(Base):
 
     __tablename__ = "courses"
 
-    course_code: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    course_code: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
     ects_points: Mapped[int] = mapped_column(Integer)
     course_name: Mapped[str] = mapped_column(String(255))
     course_language: Mapped[CourseLanguage] = mapped_column(Enum(CourseLanguage))
