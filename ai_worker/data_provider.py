@@ -38,6 +38,7 @@ REQUIREMENTS_QUERY = """
         ctd.max_group_participants_number,
         ctd.frequency,
         ctd.manual_weeks,
+        ctd.slots_per_class,
         g.id AS group_id,
         g.group_name,
         sp.program_name,
