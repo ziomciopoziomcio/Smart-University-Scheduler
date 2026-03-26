@@ -17,6 +17,7 @@ from sqlalchemy import (
     ForeignKeyConstraint,
     CheckConstraint,
     Enum,
+    JSON,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -36,6 +37,14 @@ class ClassType(str, enum.Enum):
     SEMINAR = "Seminar"
     OTHER = "Other"
     ELEARNING = "E-learning"
+
+
+class FrequencyType(str, enum.Enum):
+    EVERY_WEEK = "Every_week"
+    BIWEEKLY = "Biweekly"
+    FIRST_HALF = "First_half"
+    SECOND_HALF = "Second_half"
+    MANUAL = "Manual"
 
 
 class Study_fields(Base):
@@ -131,6 +140,10 @@ class Course_type_detail(Base):
     )
     class_type: Mapped[ClassType] = mapped_column(Enum(ClassType), primary_key=True)
     class_hours: Mapped[int] = mapped_column(Integer, default=0)
+    frequency: Mapped[FrequencyType] = mapped_column(
+        Enum(FrequencyType), default=FrequencyType.EVERY_WEEK
+    )
+    manual_weeks: Mapped[list[int] | None] = mapped_column(JSON)
     pc_needed: Mapped[bool] = mapped_column(default=False)
     projector_needed: Mapped[bool] = mapped_column(default=True)
     max_group_participants_number: Mapped[int] = mapped_column(Integer, default=15)
