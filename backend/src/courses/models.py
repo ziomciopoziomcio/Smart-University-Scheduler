@@ -140,6 +140,7 @@ class Course_type_detail(Base):
     )
     class_type: Mapped[ClassType] = mapped_column(Enum(ClassType), primary_key=True)
     class_hours: Mapped[int] = mapped_column(Integer, default=0)
+    slots_per_class: Mapped[int] = mapped_column(Integer, default=2)
     frequency: Mapped[FrequencyType] = mapped_column(
         Enum(FrequencyType), default=FrequencyType.EVERY_WEEK
     )
