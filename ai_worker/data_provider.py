@@ -134,6 +134,8 @@ class DataProvider:
         freq = str(row["frequency"]).upper()
 
         if freq == "MANUAL":
+            if pd.isna(row["manual_weeks"]):
+                return []
             return [row["manual_weeks"]]
         elif freq == "BIWEEKLY":
             return [[1, 3, 5, 7, 8, 11, 13, 15], [2, 4, 6, 8, 10, 12, 14]]
