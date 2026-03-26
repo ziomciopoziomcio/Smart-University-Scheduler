@@ -39,6 +39,7 @@ class Neo4jProvider:
 
         days_of_week = ["Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays"]
         schedule_data = []
+        slot_id_counter = 1
 
         for day in days_of_week:
             slots = []
@@ -46,7 +47,10 @@ class Neo4jProvider:
                 start_time = f"{hour:02d}:15"
                 end_time = f"{hour+1:02d}:00"
 
-                slots.append({"start": start_time, "end": end_time})
+                slots.append(
+                    {"id": slot_id_counter, "start": start_time, "end": end_time}
+                )
+                slot_id_counter += 1
             schedule_data.append({"day": day, "slots": slots})
 
         query = Query("""
@@ -54,8 +58,10 @@ class Neo4jProvider:
         WITH day_data.day AS dayOfWeek, day_data.slots AS slots
 
         UNWIND slots AS slot
-        MERGE (t:TimeSlot {dayOfWeek: dayOfWeek, startTime: slot.start})
-        SET t.endTime = slot.end
+        MERGE (t:TimeSlot {timeSlotId: slot.id})
+        SET t.dayOfWeek = dayOfWeek,
+        t.startTime = slot.start,
+        t.endTime = slot.end
 
         WITH dayOfWeek, collect(t) AS day_slots
 
