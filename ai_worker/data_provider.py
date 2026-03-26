@@ -120,3 +120,22 @@ class DataProvider:
             "requirements": requirements_df,
             "competencies": competencies_df,
         }
+
+    def generate_allowed_patterns(self, row) -> list[list[int]]:
+        """
+        Generates allowed patterns for a row
+        :param row: row of requirements dataframe
+        :return: list of allowed patterns
+        """
+        freq = row["frequency"]
+
+        if freq == "Manual":
+            return [row["manual_weeks"]]
+        elif freq == "Biweekly":
+            return [[1, 3, 5, 7, 8, 11, 13, 15], [2, 4, 6, 8, 10, 12, 14]]
+        elif freq == "First_half":
+            return [list(range(1, 8))]
+        elif freq == "Second_half":
+            return [list(range(8, 16))]
+        else:
+            return [list(range(1, 16))]
