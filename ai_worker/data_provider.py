@@ -4,13 +4,23 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 ROOMS_QUERY = """
-            SELECT r.id, r.room_name, r.room_capacity, r.projector_availability, r.pc_amount,
-                   b.building_number, c.campus_short
-            FROM rooms r
-            JOIN buildings b ON r.building_id = b.id
-            JOIN campuses c ON b.campus_id = c.id
-            WHERE r.faculty_id = %(faculty_id)s
-        """
+    SELECT
+        r.id AS room_id,
+        r.room_name,
+        r.room_capacity,
+        r.projector_availability,
+        r.pc_amount,
+        r.faculty_id,
+        r.unit_id,
+        b.id AS building_id,
+        b.building_number,
+        c.id AS campus_id,
+        c.campus_short
+    FROM rooms r
+    JOIN buildings b ON r.building_id = b.id
+    JOIN campuses c ON b.campus_id = c.id
+    WHERE r.faculty_id = %(faculty_id)s
+"""
 EMPLOYEES_QUERY = """
             SELECT e.id, u.name, u.surname, u.degree, e.unit_id
             FROM employees e
@@ -28,13 +38,20 @@ REQUIREMENTS_QUERY = """
         ctd.max_group_participants_number,
         g.id AS group_id,
         g.group_name,
-        sp.program_name
+        sp.program_name,
+        COALESCE(gm.members_amount, 0) AS members_amount
     FROM study_programs sp
     JOIN study_fields sf ON sp.study_field = sf.id
     JOIN curriculum_courses cc ON cc.study_program = sp.id
     JOIN courses c ON cc.course = c.course_code
     JOIN course_type_detail ctd ON ctd.course = c.course_code
     JOIN groups g ON g.study_program = sp.id
+    LEFT JOIN (
+        SELECT "group" AS group_id, COUNT(student) AS members_amount
+        FROM group_members
+        GROUP BY "group"
+    ) gm ON gm.group_id = g.id
+
     WHERE sf.faculty = %(faculty_id)s
       AND (cc.major IS NULL OR cc.major = g.major)
       AND (cc.elective_block IS NULL OR cc.elective_block = g.elective_block)
@@ -63,7 +80,8 @@ class DataProvider:
         Downloads all necessary data from DB
         :param faculty_id: faculty id
         :return: dictionary with dataframes:
-        - rooms: id, room_name, room_capacity, projector_availability, pc_amount, building_number, campus_short
+        - rooms: room_id, room_name, room_capacity, projector_availability,
+        pc_amount, faculty_id, unit_id, building_id, building_number, campus_id, campus_short
         - employees: id, name, surname, degree, unit_id
         - requirements: course_code, class_type, course_name, class_hours, pc_needed,
         projector_needed, max_group_participants_number, group_id, group_name, program_name

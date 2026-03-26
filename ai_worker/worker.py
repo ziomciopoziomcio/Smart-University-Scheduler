@@ -3,13 +3,17 @@ import json
 import os
 import logging
 from aiokafka import AIOKafkaConsumer
+
 from data_provider import DataProvider
+from neo4j_provider import Neo4jProvider
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def process_task(task_data: dict, provider: DataProvider) -> None:
+async def process_task(
+    task_data: dict, data_prov: DataProvider, neo4j_prov: Neo4jProvider
+) -> None:
     """
     Task handler for schedule optimization requests.
 
@@ -21,7 +25,8 @@ async def process_task(task_data: dict, provider: DataProvider) -> None:
           optimization (e.g. "2024/2025" or 2024).
         - additional fields (dict, optional): Backend-specific parameters that
           may be present but are not used directly by this worker.
-    :param provider: DataProvider object used to retrieve all required data.
+    :param data_prov: DataProvider object used to retrieve all required data.
+    :param neo4j_prov: Neo4jProvider object.
     :return: None
     """
     try:
@@ -30,7 +35,16 @@ async def process_task(task_data: dict, provider: DataProvider) -> None:
             logger.error("Faculty id not provided")
             return
 
-        data = await asyncio.to_thread(provider.get_all_data, faculty_id)  # noqa: F841
+        data = await asyncio.to_thread(data_prov.get_all_data, faculty_id)
+        await neo4j_prov.initialize_base_graph()
+
+        await neo4j_prov.load_infrastructure(data["rooms"])
+        await neo4j_prov.load_instructors(data["employees"])
+        await neo4j_prov.load_requirements(data["requirements"])
+        await neo4j_prov.load_competencies(data["competencies"])
+
+        # await run_ai_optimizer(faculty_id) TODO
+
     except Exception as e:
         logger.exception(f"Critical error: {e}")
 
@@ -49,7 +63,8 @@ async def main() -> None:
         auto_offset_reset="earliest",
     )
 
-    provider = DataProvider()
+    data_provider = DataProvider()
+    neo4j_provider = Neo4jProvider()
 
     connected = False
     while not connected:
@@ -62,9 +77,10 @@ async def main() -> None:
 
     try:
         async for msg in consumer:
-            await process_task(msg.value, provider)
+            await process_task(msg.value, data_provider, neo4j_provider)
     finally:
         await consumer.stop()
+        await neo4j_provider.close()
 
 
 if __name__ == "__main__":
