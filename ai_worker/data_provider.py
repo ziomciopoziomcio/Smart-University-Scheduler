@@ -131,15 +131,15 @@ class DataProvider:
         :param row: row of requirements dataframe
         :return: list of allowed patterns
         """
-        freq = row["frequency"]
+        freq = str(row["frequency"]).upper()
 
-        if freq == "Manual":
+        if freq == "MANUAL":
             return [row["manual_weeks"]]
-        elif freq == "Biweekly":
+        elif freq == "BIWEEKLY":
             return [[1, 3, 5, 7, 8, 11, 13, 15], [2, 4, 6, 8, 10, 12, 14]]
-        elif freq == "First_half":
+        elif freq == "FIRST_HALF":
             return [list(range(1, 8))]
-        elif freq == "Second_half":
+        elif freq == "SECOND_HALF":
             return [list(range(8, 16))]
         else:
             return [list(range(1, 16))]
