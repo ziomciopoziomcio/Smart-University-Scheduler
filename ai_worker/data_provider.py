@@ -121,7 +121,8 @@ class DataProvider:
             "competencies": competencies_df,
         }
 
-    def generate_allowed_patterns(self, row) -> list[list[int]]:
+    @staticmethod
+    def _generate_allowed_patterns(row) -> list[list[int]]:
         """
         Generates allowed patterns for a row
         :param row: row of requirements dataframe
