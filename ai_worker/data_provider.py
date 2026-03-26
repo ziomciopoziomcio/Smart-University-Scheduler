@@ -3,6 +3,8 @@ import os
 import pandas as pd
 from sqlalchemy import create_engine
 
+from optimizer.models import ClassSessionGene
+
 ROOMS_QUERY = """
     SELECT
         r.id AS room_id,
@@ -141,3 +143,34 @@ class DataProvider:
             return [list(range(8, 16))]
         else:
             return [list(range(1, 16))]
+
+    def prepare_initial_genes(self, data: dict) -> list[ClassSessionGene]:
+        """
+        Prepares initial genes for a course
+        :param data: dictionary with dataframes:
+            - requirements: course_code, class_type, course_name, class_hours, pc_needed,
+            projector_needed, max_group_participants_number
+        :return: list of ClassSessionGene
+        """
+
+        requirements_df = data["requirements"]
+        genes = []
+
+        for _, row in requirements_df.iterrows():
+            duration = int(row["slots_per_class"])
+            patterns = self._generate_allowed_patterns(row)
+
+            gene = ClassSessionGene(
+                course_code=row["course_code"],
+                class_type=row["class_type"],
+                group_id=row["group_id"],
+                duration_slots=duration,
+                pc_needed=row["pc_needed"],
+                projector_needed=row["projector_needed"],
+                group_size=row["members_amount"],
+                allowed_week_patterns=patterns,
+                selected_pattern_index=0,
+            )
+            genes.append(gene)
+
+        return genes
