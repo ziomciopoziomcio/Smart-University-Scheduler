@@ -1,18 +1,55 @@
+import asyncio
 import os
+import logging
 
+from contextlib import asynccontextmanager
+from aiokafka import AIOKafkaProducer
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from src import api_routers
+from src.users.auth import get_secret_key
+from src.common.kafka_client import kafka_manager
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    get_secret_key()
+    max_retries = 5
+    producer_started = False
+    for _ in range(max_retries):
+        try:
+            kafka_manager.producer = AIOKafkaProducer(
+                bootstrap_servers=os.getenv("KAFKA_URL", "localhost:9092"),
+            )
+            await kafka_manager.producer.start()
+            producer_started = True
+            break
+        except Exception as e:
+            logger.exception(f"Error during Kafka producer start: {e}")
+            await asyncio.sleep(5)
+    if not producer_started:
+        raise RuntimeError("Error during Kafka producer start")
+    yield
+
+    try:
+        if kafka_manager.producer:
+            await kafka_manager.producer.stop()
+    except Exception as e:
+        logger.exception(f"Error during Kafka producer stop: {e}")
+
 
 app = FastAPI(
     title="Smart University Scheduler API",
     description="API for managing SUS system",
     version="v.0.0.1-alpha",
+    lifespan=lifespan,
 )
+
 
 origins = [
     origin.strip()

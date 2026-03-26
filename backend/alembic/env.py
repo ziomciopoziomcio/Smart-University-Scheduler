@@ -29,6 +29,7 @@ from src.academics import models as academics_models  # noqa: F401, E402
 from src.courses import models as courses_models  # noqa: F401, E402
 from src.users import models as users_models  # noqa: F401, E402
 from src.facilities import models as facilities_models  # noqa: F401, E402
+from src.schedules import models as schedules_models  # noqa: F401, E402
 
 from src.database.database import SQLALCHEMY_DATABASE_URL  # noqa: E402
 

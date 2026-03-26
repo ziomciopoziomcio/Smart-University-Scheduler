@@ -14,7 +14,7 @@ from sqlalchemy import (
     String,
     Integer,
     ForeignKey,
-    UniqueConstraint,
+    ForeignKeyConstraint,
     CheckConstraint,
     Enum,
 )
@@ -99,11 +99,14 @@ class Curriculum_course(Base):
 
     __tablename__ = "curriculum_courses"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    study_program: Mapped[int] = mapped_column(Integer, ForeignKey("study_programs.id"))
-    course: Mapped[int] = mapped_column(Integer, ForeignKey("courses.course_code"))
+    study_program: Mapped[int] = mapped_column(
+        Integer, ForeignKey("study_programs.id"), primary_key=True
+    )
+    course: Mapped[int] = mapped_column(
+        Integer, ForeignKey("courses.course_code"), primary_key=True
+    )
 
-    semester: Mapped[int] = mapped_column(Integer)
+    semester: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     major: Mapped[int | None] = mapped_column(Integer, ForeignKey("major.id"))
     elective_block: Mapped[int | None] = mapped_column(
@@ -115,9 +118,6 @@ class Curriculum_course(Base):
             "(major IS NULL) OR (elective_block IS NULL)",
             name="chk_courses_major_elective",
         ),
-        UniqueConstraint(
-            "study_program", "course", "semester", name="uq_program_course_semester"
-        ),
     )
 
 
@@ -126,17 +126,14 @@ class Course_type_detail(Base):
 
     __tablename__ = "course_type_detail"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    course: Mapped[int] = mapped_column(Integer, ForeignKey("courses.course_code"))
-    class_type: Mapped[ClassType] = mapped_column(Enum(ClassType))
+    course: Mapped[int] = mapped_column(
+        Integer, ForeignKey("courses.course_code"), primary_key=True
+    )
+    class_type: Mapped[ClassType] = mapped_column(Enum(ClassType), primary_key=True)
     class_hours: Mapped[int] = mapped_column(Integer, default=0)
     pc_needed: Mapped[bool] = mapped_column(default=False)
     projector_needed: Mapped[bool] = mapped_column(default=True)
     max_group_participants_number: Mapped[int] = mapped_column(Integer, default=15)
-
-    __table_args__ = (
-        UniqueConstraint("course", "class_type", name="uq_course_class_type"),
-    )
 
 
 class Courses_instructors(Base):
@@ -144,16 +141,17 @@ class Courses_instructors(Base):
 
     __tablename__ = "courses_instructors"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    employee: Mapped[int] = mapped_column(Integer, ForeignKey("employees.id"))
-    course_type_detail: Mapped[int] = mapped_column(
-        Integer, ForeignKey("course_type_detail.id")
+    employee: Mapped[int] = mapped_column(
+        Integer, ForeignKey("employees.id"), primary_key=True
     )
-
-    hours: Mapped[int] = mapped_column(Integer)
+    course: Mapped[int] = mapped_column(Integer, primary_key=True)
+    class_type: Mapped[ClassType] = mapped_column(Enum(ClassType), primary_key=True)
+    hours: Mapped[int] = mapped_column(Integer, default=0)
 
     __table_args__ = (
-        UniqueConstraint(
-            "course_type_detail", "employee", name="uq_course_type_details_employee"
+        ForeignKeyConstraint(
+            ["course", "class_type"],
+            ["course_type_detail.course", "course_type_detail.class_type"],
+            name="fk_courses_instructors_course_type_detail",
         ),
     )

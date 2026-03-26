@@ -1,6 +1,6 @@
 from typing import Iterable, Any
 from fastapi import HTTPException, status
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError, MultipleResultsFound
 from sqlalchemy.orm import Session
 import logging
 
@@ -13,6 +13,28 @@ def _get_or_404(db: Session, model, obj_id: Any, name: str):
     if not obj:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"{name} not found"
+        )
+    return obj
+
+
+def _get_by_fields_or_404(db: Session, model, name: str, **filters):
+    """Return an object by arbitrary fields or raise HTTP 404 if it does not exist."""
+    try:
+        obj = db.query(model).filter_by(**filters).one_or_none()
+    except MultipleResultsFound:
+        logger.exception(
+            "Multiple %s records found for filters that should be unique: %s",
+            name,
+            filters,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Multiple {name} records found for provided filters",
+        )
+    if not obj:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"{name} not found",
         )
     return obj
 

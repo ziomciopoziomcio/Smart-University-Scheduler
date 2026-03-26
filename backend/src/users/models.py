@@ -15,6 +15,8 @@ from sqlalchemy import (
     Column,
     Integer,
     ForeignKey,
+    Boolean,
+    Text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database.base import Base
@@ -43,9 +45,39 @@ class Users(Base):
     surname: Mapped[str] = mapped_column(String(255))
     degree: Mapped[str | None] = mapped_column(String(255))
 
+    two_factor_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
+    two_factor_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    backup_codes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    password_reset_token_hash: Mapped[str | None] = mapped_column(
+        String(64), nullable=True
+    )
+    password_reset_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    email_verified: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
+    email_verification_token_hash: Mapped[str | None] = mapped_column(
+        String(64), nullable=True
+    )
+    email_verification_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     roles: Mapped[list["Roles"]] = relationship(
         secondary=user_roles, back_populates="users"
     )
+
+
+role_permissions = Table(
+    "role_permissions",
+    Base.metadata,
+    Column("role_id", Integer, ForeignKey("roles.id"), primary_key=True),
+    Column("permission_id", Integer, ForeignKey("permissions.id"), primary_key=True),
+)
 
 
 class Roles(Base):
@@ -58,4 +90,28 @@ class Roles(Base):
 
     users: Mapped[list["Users"]] = relationship(
         secondary=user_roles, back_populates="roles"
+    )
+
+    permissions: Mapped[list["Permissions"]] = relationship(
+        "Permissions",
+        secondary=role_permissions,
+        back_populates="roles",
+    )
+
+
+class Permissions(Base):
+    """Permissions model representing a permission in the system."""
+
+    __tablename__ = "permissions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    code: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    name: Mapped[str | None] = mapped_column(String(100), unique=True)
+    description: Mapped[str | None] = mapped_column(String(200))
+    group: Mapped[str | None] = mapped_column(String(50))
+
+    roles: Mapped[list["Roles"]] = relationship(
+        "Roles",
+        secondary=role_permissions,
+        back_populates="permissions",
     )

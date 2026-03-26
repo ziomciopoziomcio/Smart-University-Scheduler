@@ -2,8 +2,11 @@
 Data validation schemas
 """
 
+from datetime import date
 from typing import Optional, Annotated
-from pydantic import BaseModel, model_validator, StringConstraints, ConfigDict
+from pydantic import BaseModel, model_validator, StringConstraints, ConfigDict, Field
+
+from .models import SemesterType
 
 
 class BaseSchema(BaseModel):
@@ -116,9 +119,34 @@ class GroupMembersCreate(GroupMembersBase):
 
 
 class GroupMembersRead(GroupMembersBase):
-    id: int
+    pass
 
 
 class GroupMembersUpdate(BaseModel):
     group: Optional[int] = None
     student: Optional[int] = None
+
+
+class AcademicCalendarBase(BaseSchema):
+    calendar_date: date
+    academic_year: str = Field(..., max_length=20, examples=["2025/2026"])
+    semester_type: SemesterType
+    week_number: int = Field(..., ge=1, le=20)  # TODO: Make it dynamic
+    academic_day_of_week: int = Field(..., ge=1, le=7)
+    description: Optional[str] = Field(None, max_length=255)
+
+
+class AcademicCalendarCreate(AcademicCalendarBase):
+    pass
+
+
+class AcademicCalendarRead(AcademicCalendarBase):
+    pass
+
+
+class AcademicCalendarUpdate(BaseModel):
+    academic_year: Optional[str] = Field(None, max_length=20, examples=["2025/2026"])
+    semester_type: Optional[SemesterType] = None
+    week_number: Optional[int] = Field(None, ge=1, le=20)
+    academic_day_of_week: Optional[int] = Field(None, ge=1, le=7)
+    description: Optional[str] = Field(None, max_length=255)

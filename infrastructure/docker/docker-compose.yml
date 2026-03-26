@@ -88,13 +88,32 @@ services:
       DB_NAME: ${DB_NAME}
       #NEO4J_HOST: ${NEO4J_HOST}
       CORS_ORIGINS: ${CORS_ORIGINS}
+      KAFKA_URL: "kafka:9092"
+      SECRET_KEY: ${SECRET_KEY}
     depends_on:
       - postgres
+      - kafka
     ports:
       - "3000:3000"
     volumes:
       - ../../backend:/app
     command: uvicorn main:app --host 0.0.0.0 --port 3000 --reload
+
+  # frontend service for the React application
+  frontend:
+    build:
+      context: ../../frontend
+    container_name: smart_scheduler_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../../frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
