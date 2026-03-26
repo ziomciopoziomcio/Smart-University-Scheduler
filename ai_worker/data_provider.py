@@ -36,6 +36,8 @@ REQUIREMENTS_QUERY = """
         ctd.pc_needed,
         ctd.projector_needed,
         ctd.max_group_participants_number,
+        ctd.frequency,
+        ctd.manual_weeks,
         g.id AS group_id,
         g.group_name,
         sp.program_name,
