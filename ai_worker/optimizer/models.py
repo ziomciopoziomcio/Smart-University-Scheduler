@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 class ClassSessionGene:
     """Represents a gene for a class session in the genetic algorithm."""
 
-    course_id: str
+    course_code: int
     class_type: str
     group_id: int
     duration_slots: int
