@@ -24,4 +24,4 @@ class ScheduleChromosome:
 
     genes: list[ClassSessionGene] = field(default_factory=list)
 
-    fitness_score: float = 0.0
+    fitness_score: float = float("inf")
