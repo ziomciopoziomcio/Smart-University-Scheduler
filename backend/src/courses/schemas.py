@@ -74,6 +74,7 @@ class ElectiveBlockUpdate(BaseModel):
 
 # Course
 class CourseBase(BaseSchema):
+    course_code: int
     ects_points: Annotated[int, Field(ge=0)]
     course_name: Annotated[str, StringConstraints(max_length=255)]
     course_language: CourseLanguage
@@ -86,10 +87,11 @@ class CourseCreate(CourseBase):
 
 
 class CourseRead(CourseBase):
-    course_code: int
+    pass
 
 
 class CourseUpdate(BaseModel):
+    # Editing course_code is unsafe
     ects_points: Optional[Annotated[int, Field(ge=0)]] = None
     course_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     course_language: Optional[CourseLanguage] = None

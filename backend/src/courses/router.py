@@ -375,7 +375,7 @@ def update_course_type(
         course=course,
         class_type=class_type,
     )
-    _apply_patch_or_reject_nulls(obj, payload)
+    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"manual_weeks"})
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
