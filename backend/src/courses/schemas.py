@@ -6,7 +6,7 @@ from typing import Optional, Annotated
 
 from pydantic import BaseModel, model_validator, Field, StringConstraints, ConfigDict
 
-from .models import CourseLanguage, ClassType
+from .models import CourseLanguage, ClassType, FrequencyType
 
 
 class BaseSchema(BaseModel):
@@ -104,6 +104,9 @@ class CourseTypeDetailBase(BaseSchema):
     course: int
     class_type: ClassType
     class_hours: Annotated[int, Field(ge=0)] = 0
+    slots_per_class: Annotated[int, Field(ge=1, le=10)] = 2
+    frequency: FrequencyType = FrequencyType.EVERY_WEEK
+    manual_weeks: Optional[list[int]] = None
     pc_needed: bool = False
     projector_needed: bool = True
     max_group_participants_number: Annotated[int, Field(gt=0)] = 15
@@ -119,6 +122,9 @@ class CourseTypeDetailRead(CourseTypeDetailBase):
 
 class CourseTypeDetailUpdate(BaseModel):
     class_hours: Optional[Annotated[int, Field(ge=0)]] = None
+    slots_per_class: Optional[Annotated[int, Field(ge=1, le=10)]] = None
+    frequency: Optional[FrequencyType] = None
+    manual_weeks: Optional[FrequencyType] = None
     pc_needed: Optional[bool] = None
     projector_needed: Optional[bool] = None
     max_group_participants_number: Optional[Annotated[int, Field(gt=0)]] = None
