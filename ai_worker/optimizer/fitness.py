@@ -23,7 +23,7 @@ class FitnessCalculator:
         :return: fitness score (lower is better)
         """
         penalty = 0.0
-        penalty += self._check_overlaps(chromosome)
+        penalty += self._check_collisions(chromosome)
         penalty += self._evaluate_time_efficiency(chromosome)
         penalty += self._evaluate_room_usage(chromosome)
         penalty += self._evaluate_location_logic(chromosome)
@@ -39,14 +39,14 @@ class FitnessCalculator:
         """
         penalty = 0.0
         for gene in chromosome.genes:
-            if gene.room_id:
-                room_cap = self.rooms_lookup[gene.room_id].capacity
+            if gene.room_id and gene.room_id in self.rooms_lookup:
+                room_cap = self.rooms_lookup[gene.room_id]["room_capacity"]
 
                 if gene.group_size > room_cap:
                     penalty += self.W_TOO_MUCH_STUDENTS
                 else:
                     wasted = room_cap - gene.group_size
-                    penalty += self.W_GAP_SLOT * wasted
+                    penalty += self.W_ROOM_SIZE * wasted
 
         return penalty
 
@@ -62,7 +62,7 @@ class FitnessCalculator:
         for i in range(len(genes)):
             for j in range(i + 1, len(genes)):
                 g1, g2 = genes[i], genes[j]
-                if g1.timeslot_id == g2.timeslot_id:
+                if g1.timeslot_id is not None and g1.timeslot_id == g2.timeslot_id:
                     shared_weeks = set(g1.active_weeks) & set(g2.active_weeks)
                     if shared_weeks:
                         if (
