@@ -14,6 +14,8 @@ class FitnessCalculator:
         self.W_CAMPUS_CHANGE = 500  # without gap
         self.W_FATIGUE = 150  # day longer than 6 hours
         self.W_TOO_MUCH_STUDENTS = 5000
+        self.W_BUILDING_CHANGE = 20
+        self.W_ROOM_CHANGE = 10
 
         self.W_HARD_PENALTY = 100000
 
@@ -71,4 +73,96 @@ class FitnessCalculator:
                             or g1.group_id == g2.group_id
                         ):
                             penalty += self.W_HARD_PENALTY
+        return penalty
+
+    def _evaluate_location_logic(self, chromosome: ScheduleChromosome) -> float:
+        """
+        Helper function to evaluate location logic
+        :param chromosome: ScheduleChromosome to calculate fitness for
+        :return: Penalty score (lower is better)
+        """
+        penalty = 0.0
+        groups_itinerary = {}
+        for gene in chromosome.genes:
+            if gene.group_id not in groups_itinerary:
+                groups_itinerary[gene.group_id] = []
+            groups_itinerary[gene.group_id].append(gene)
+
+        for group_id, items in groups_itinerary.items():
+            sorted_genes = sorted(items, key=lambda x: x.timeslot_id)
+
+            for k in range(len(sorted_genes) - 1):
+                g1 = sorted_genes[k]
+                g2 = sorted_genes[k + 1]
+
+                day1 = (g1.timeslot_id - 1) // 12
+                day2 = (g2.timeslot_id - 1) // 12
+
+                if day1 != day2:
+                    continue
+
+                finish_slot_g1 = g1.timeslot_id + g1.duration_slots
+                gap = g2.timeslot_id - finish_slot_g1
+
+                r1 = self.rooms_lookup[g1.room_id]
+                r2 = self.rooms_lookup[g2.room_id]
+
+                if r1["campus_id"] != r2["campus_id"]:
+                    if gap == 0:
+                        penalty += self.W_CAMPUS_CHANGE * 2.0
+                    elif gap == 1:
+                        penalty += self.W_CAMPUS_CHANGE * 0.2
+                    else:
+                        penalty += self.W_CAMPUS_CHANGE * 0.5
+
+                elif r1["building_id"] != r2["building_id"]:
+                    penalty += self.W_BUILDING_CHANGE
+
+                elif g1.room_id != g2.room_id:
+                    penalty += self.W_ROOM_CHANGE
+
+    def _evaluate_time_efficiency(self, chromosome: ScheduleChromosome) -> float:
+        """
+        Helper function to evaluate time efficiency
+        :param chromosome: ScheduleChromosome to calculate fitness for
+        :return: Penalty score (lower is better)
+        """
+        penalty = 0.0
+
+        groups_itinerary = {}
+        for gene in chromosome.genes:
+            if gene.timeslot_id is not None:
+                continue
+
+            if gene.group_id not in groups_itinerary:
+                groups_itinerary[gene.group_id] = []
+            groups_itinerary[gene.group_id].append(gene)
+
+        for group_id, genes in groups_itinerary.items():
+            days_active = set((g.timeslot_id - 1) // 12 for g in genes)
+            penalty += len(days_active) * self.W_DAY_USED
+
+            for day in days_active:
+                day_genes = sorted(
+                    [g for g in genes if (g.timeslot_id - 1) // 12 == day],
+                    key=lambda x: x.timeslot_id,
+                )
+                daily_slots_count = 0
+
+                for k in range(len(day_genes)):
+                    g = day_genes[k]
+                    daily_slots_count += g.duration_slots
+
+                    if k < len(day_genes) - 1:
+                        next_g = day_genes[k + 1]
+                        finish_slot_g = g.timeslot_id + g.duration_slots
+                        gap = next_g.timeslot_id - finish_slot_g
+
+                        if gap > 0:
+                            penalty += self.W_GAP_SLOT * gap
+                            if gap > 2:
+                                penalty += self.W_MAX_GAP
+                if daily_slots_count > 6:
+                    penalty += self.W_FATIGUE * (daily_slots_count - 6)
+
         return penalty
