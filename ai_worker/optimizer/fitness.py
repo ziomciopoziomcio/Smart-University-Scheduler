@@ -7,13 +7,15 @@ class FitnessCalculator:
         rooms_lookup: dict,
         instructors_lookup: dict,
         conflicting_groups: dict,
-        group_to_students: dict,
+        group_to_profiles: dict,
+        profile_counts: dict,
     ) -> None:
         """Fitness calculator class init"""
         self.rooms_lookup = rooms_lookup
         self.instructors_lookup = instructors_lookup
         self.conflicting_groups = conflicting_groups
-        self.group_to_students = group_to_students
+        self.group_to_profiles = group_to_profiles
+        self.profile_counts = profile_counts
 
         self.W_DAY_USED = 100
         self.W_GAP_SLOT = 50
@@ -90,18 +92,19 @@ class FitnessCalculator:
     def _evaluate_location_logic(self, chromosome: ScheduleChromosome) -> float:
         """Helper function to evaluate location logic (campuses, buildings) PER STUDENT"""
         penalty = 0.0
-        student_itinerary = {}
+        profile_itinerary = {}
 
         for gene in chromosome.genes:
             if gene.timeslot_id is None:
                 continue
-            students_in_group = self.group_to_students.get(gene.group_id, [])
-            for student_id in students_in_group:
-                if student_id not in student_itinerary:
-                    student_itinerary[student_id] = []
-                student_itinerary[student_id].append(gene)
+            profiles_in_group = self.group_to_profiles.get(gene.group_id, [])
+            for profile_id in profiles_in_group:
+                if profile_id not in profile_itinerary:
+                    profile_itinerary[profile_id] = []
+                profile_itinerary[profile_id].append(gene)
 
-        for student_id, items in student_itinerary.items():
+        for profile_id, items in profile_itinerary.items():
+            multiplier = self.profile_counts.get(profile_id, 1)
             sorted_genes = sorted(items, key=lambda x: x.timeslot_id)
 
             for k in range(len(sorted_genes) - 1):
@@ -125,37 +128,38 @@ class FitnessCalculator:
 
                 if r1["campus_id"] != r2["campus_id"]:
                     if gap == 0:
-                        penalty += self.W_CAMPUS_CHANGE * 2.0
+                        penalty += self.W_CAMPUS_CHANGE * 2.0 * multiplier
                     elif gap == 1:
-                        penalty += self.W_CAMPUS_CHANGE * 0.2
+                        penalty += self.W_CAMPUS_CHANGE * 0.2 * multiplier
                     else:
-                        penalty += self.W_CAMPUS_CHANGE * 0.5
+                        penalty += self.W_CAMPUS_CHANGE * 0.5 * multiplier
 
                 elif r1["building_id"] != r2["building_id"]:
-                    penalty += self.W_BUILDING_CHANGE
+                    penalty += self.W_BUILDING_CHANGE * multiplier
 
                 elif g1.room_id != g2.room_id:
-                    penalty += self.W_ROOM_CHANGE
+                    penalty += self.W_ROOM_CHANGE * multiplier
 
         return penalty
 
     def _evaluate_time_efficiency(self, chromosome: ScheduleChromosome) -> float:
-        """Helper function to evaluate time efficiency (days, gaps, fatigue) PER STUDENT"""
+        """Helper function to evaluate time efficiency (days, gaps, fatigue) PER PROFILE"""
         penalty = 0.0
-        student_itinerary = {}
+        profile_itinerary = {}
 
         for gene in chromosome.genes:
             if gene.timeslot_id is None:
                 continue
-            students_in_group = self.group_to_students.get(gene.group_id, [])
-            for student_id in students_in_group:
-                if student_id not in student_itinerary:
-                    student_itinerary[student_id] = []
-                student_itinerary[student_id].append(gene)
+            profiles_in_group = self.group_to_profiles.get(gene.group_id, [])
+            for profile_id in profiles_in_group:
+                if profile_id not in profile_itinerary:
+                    profile_itinerary[profile_id] = []
+                profile_itinerary[profile_id].append(gene)
 
-        for student_id, genes in student_itinerary.items():
+        for profile_id, genes in profile_itinerary.items():
+            multiplier = self.profile_counts.get(profile_id, 1)
             days_active = set((g.timeslot_id - 1) // 12 for g in genes)
-            penalty += len(days_active) * self.W_DAY_USED
+            penalty += len(days_active) * self.W_DAY_USED * multiplier
 
             for day in days_active:
                 day_genes = sorted(
@@ -174,11 +178,11 @@ class FitnessCalculator:
                         gap = next_g.timeslot_id - finish_slot_g
 
                         if gap > 0:
-                            penalty += gap * self.W_GAP_SLOT
+                            penalty += gap * self.W_GAP_SLOT * multiplier
                             if gap > 2:
-                                penalty += self.W_MAX_GAP
+                                penalty += self.W_MAX_GAP * multiplier
 
                 if daily_slots_count > 6:
-                    penalty += (daily_slots_count - 6) * self.W_FATIGUE
+                    penalty += (daily_slots_count - 6) * self.W_FATIGUE * multiplier
 
         return penalty
