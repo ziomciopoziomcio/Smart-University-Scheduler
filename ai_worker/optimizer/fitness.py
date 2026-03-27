@@ -2,10 +2,18 @@ from .models import ScheduleChromosome
 
 
 class FitnessCalculator:
-    def __init__(self, rooms_lookup: dict, instructors_lookup: dict) -> None:
+    def __init__(
+        self,
+        rooms_lookup: dict,
+        instructors_lookup: dict,
+        conflicting_groups: dict,
+        group_to_students: dict,
+    ) -> None:
         """Fitness calculator class init"""
         self.rooms_lookup = rooms_lookup
         self.instructors_lookup = instructors_lookup
+        self.conflicting_groups = conflicting_groups
+        self.group_to_students = group_to_students
 
         self.W_DAY_USED = 100
         self.W_GAP_SLOT = 50
@@ -67,28 +75,33 @@ class FitnessCalculator:
                 if g1.timeslot_id is not None and g1.timeslot_id == g2.timeslot_id:
                     shared_weeks = set(g1.active_weeks) & set(g2.active_weeks)
                     if shared_weeks:
+                        is_group_conflict = (g1.group_id == g2.group_id) or (
+                            g2.group_id
+                            in self.conflicting_groups.get(g1.group_id, set())
+                        )
                         if (
                             g1.room_id == g2.room_id
                             or g1.instructor_id == g2.instructor_id
-                            or g1.group_id == g2.group_id
+                            or is_group_conflict
                         ):
                             penalty += self.W_HARD_PENALTY
         return penalty
 
     def _evaluate_location_logic(self, chromosome: ScheduleChromosome) -> float:
-        """
-        Helper function to evaluate location logic
-        :param chromosome: ScheduleChromosome to calculate fitness for
-        :return: Penalty score (lower is better)
-        """
+        """Helper function to evaluate location logic (campuses, buildings) PER STUDENT"""
         penalty = 0.0
-        groups_itinerary = {}
-        for gene in chromosome.genes:
-            if gene.group_id not in groups_itinerary:
-                groups_itinerary[gene.group_id] = []
-            groups_itinerary[gene.group_id].append(gene)
+        student_itinerary = {}
 
-        for group_id, items in groups_itinerary.items():
+        for gene in chromosome.genes:
+            if gene.timeslot_id is None:
+                continue
+            students_in_group = self.group_to_students.get(gene.group_id, [])
+            for student_id in students_in_group:
+                if student_id not in student_itinerary:
+                    student_itinerary[student_id] = []
+                student_itinerary[student_id].append(gene)
+
+        for student_id, items in student_itinerary.items():
             sorted_genes = sorted(items, key=lambda x: x.timeslot_id)
 
             for k in range(len(sorted_genes) - 1):
@@ -103,6 +116,9 @@ class FitnessCalculator:
 
                 finish_slot_g1 = g1.timeslot_id + g1.duration_slots
                 gap = g2.timeslot_id - finish_slot_g1
+
+                if not g1.room_id or not g2.room_id:
+                    continue
 
                 r1 = self.rooms_lookup[g1.room_id]
                 r2 = self.rooms_lookup[g2.room_id]
@@ -121,24 +137,23 @@ class FitnessCalculator:
                 elif g1.room_id != g2.room_id:
                     penalty += self.W_ROOM_CHANGE
 
+        return penalty
+
     def _evaluate_time_efficiency(self, chromosome: ScheduleChromosome) -> float:
-        """
-        Helper function to evaluate time efficiency
-        :param chromosome: ScheduleChromosome to calculate fitness for
-        :return: Penalty score (lower is better)
-        """
+        """Helper function to evaluate time efficiency (days, gaps, fatigue) PER STUDENT"""
         penalty = 0.0
+        student_itinerary = {}
 
-        groups_itinerary = {}
         for gene in chromosome.genes:
-            if gene.timeslot_id is not None:
+            if gene.timeslot_id is None:
                 continue
+            students_in_group = self.group_to_students.get(gene.group_id, [])
+            for student_id in students_in_group:
+                if student_id not in student_itinerary:
+                    student_itinerary[student_id] = []
+                student_itinerary[student_id].append(gene)
 
-            if gene.group_id not in groups_itinerary:
-                groups_itinerary[gene.group_id] = []
-            groups_itinerary[gene.group_id].append(gene)
-
-        for group_id, genes in groups_itinerary.items():
+        for student_id, genes in student_itinerary.items():
             days_active = set((g.timeslot_id - 1) // 12 for g in genes)
             penalty += len(days_active) * self.W_DAY_USED
 
@@ -147,8 +162,8 @@ class FitnessCalculator:
                     [g for g in genes if (g.timeslot_id - 1) // 12 == day],
                     key=lambda x: x.timeslot_id,
                 )
-                daily_slots_count = 0
 
+                daily_slots_count = 0
                 for k in range(len(day_genes)):
                     g = day_genes[k]
                     daily_slots_count += g.duration_slots
@@ -159,10 +174,11 @@ class FitnessCalculator:
                         gap = next_g.timeslot_id - finish_slot_g
 
                         if gap > 0:
-                            penalty += self.W_GAP_SLOT * gap
+                            penalty += gap * self.W_GAP_SLOT
                             if gap > 2:
                                 penalty += self.W_MAX_GAP
+
                 if daily_slots_count > 6:
-                    penalty += self.W_FATIGUE * (daily_slots_count - 6)
+                    penalty += (daily_slots_count - 6) * self.W_FATIGUE
 
         return penalty
