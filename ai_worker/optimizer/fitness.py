@@ -13,6 +13,7 @@ class FitnessCalculator:
         self.W_ROOM_SIZE = 1  # per one free seat
         self.W_CAMPUS_CHANGE = 500  # without gap
         self.W_FATIGUE = 150  # day longer than 6 hours
+        self.W_TOO_MUCH_STUDENTS = 5000
 
     def calculate_fitness(self, chromosome: ScheduleChromosome) -> float:
         """Calculates fitness score for a given schedule chromosome
@@ -26,4 +27,23 @@ class FitnessCalculator:
         penalty += self._evaluate_location_logic(chromosome)
 
         chromosome.fitness_score = penalty
+        return penalty
+
+    def _evaluate_room_usage(self, chromosome: ScheduleChromosome) -> float:
+        """
+        Helper function to evaluate room usage
+        :param chromosome: ScheduleChromosome to calculate fitness for
+        :return: Penalty score (lower is better)
+        """
+        penalty = 0.0
+        for gene in chromosome.genes:
+            if gene.room_id:
+                room_cap = self.rooms_lookup[gene.room_id].capacity
+
+                if gene.group_size > room_cap:
+                    penalty += self.W_TOO_MUCH_STUDENTS
+                else:
+                    wasted = room_cap - gene.group_size
+                    penalty += self.W_GAP_SLOT * wasted
+
         return penalty
