@@ -81,11 +81,17 @@ class FitnessCalculator:
                             g2.group_id
                             in self.conflicting_groups.get(g1.group_id, set())
                         )
-                        if (
-                            g1.room_id == g2.room_id
-                            or g1.instructor_id == g2.instructor_id
-                            or is_group_conflict
-                        ):
+                        same_room = (
+                            g1.room_id is not None
+                            and g2.room_id is not None
+                            and g1.room_id == g2.room_id
+                        )
+                        same_instructor = (
+                            g1.instructor_id is not None
+                            and g2.instructor_id is not None
+                            and g1.instructor_id == g2.instructor_id
+                        )
+                        if same_room or same_instructor or is_group_conflict:
                             penalty += self.W_HARD_PENALTY
         return penalty
 
