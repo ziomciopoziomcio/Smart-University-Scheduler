@@ -3,6 +3,8 @@ import os
 import pandas as pd
 from sqlalchemy import create_engine
 
+from optimizer.models import ClassSessionGene
+
 ROOMS_QUERY = """
     SELECT
         r.id AS room_id,
@@ -36,6 +38,9 @@ REQUIREMENTS_QUERY = """
         ctd.pc_needed,
         ctd.projector_needed,
         ctd.max_group_participants_number,
+        ctd.frequency,
+        ctd.manual_weeks,
+        ctd.slots_per_class,
         g.id AS group_id,
         g.group_name,
         sp.program_name,
@@ -118,3 +123,57 @@ class DataProvider:
             "requirements": requirements_df,
             "competencies": competencies_df,
         }
+
+    @staticmethod
+    def _generate_allowed_patterns(row) -> list[list[int]]:
+        """
+        Generates allowed patterns for a row
+        :param row: row of requirements dataframe
+        :return: list of allowed patterns
+        """
+        freq = str(row["frequency"]).upper()
+
+        if freq == "MANUAL":
+            manual_weeks = row["manual_weeks"]
+            if manual_weeks is None or (isinstance(manual_weeks, float) and pd.isna(manual_weeks)):
+                return []
+            return [manual_weeks]
+        elif freq == "BIWEEKLY":
+            return [[1, 3, 5, 7, 9, 11, 13, 15], [2, 4, 6, 8, 10, 12, 14]]
+        elif freq == "FIRST_HALF":
+            return [list(range(1, 8))]
+        elif freq == "SECOND_HALF":
+            return [list(range(8, 16))]
+        else:
+            return [list(range(1, 16))]
+
+    def prepare_initial_genes(self, data: dict) -> list[ClassSessionGene]:
+        """
+        Prepares initial genes for a course
+        :param data: dictionary with dataframes:
+            - requirements: course_code, class_type, course_name, class_hours, pc_needed,
+            projector_needed, max_group_participants_number
+        :return: list of ClassSessionGene
+        """
+
+        requirements_df = data["requirements"]
+        genes = []
+
+        for _, row in requirements_df.iterrows():
+            duration = int(row["slots_per_class"])
+            patterns = self._generate_allowed_patterns(row)
+
+            gene = ClassSessionGene(
+                course_code=row["course_code"],
+                class_type=row["class_type"],
+                group_id=row["group_id"],
+                duration_slots=duration,
+                pc_needed=row["pc_needed"],
+                projector_needed=row["projector_needed"],
+                group_size=row["members_amount"],
+                allowed_week_patterns=patterns,
+                selected_pattern_index=0,
+            )
+            genes.append(gene)
+
+        return genes
