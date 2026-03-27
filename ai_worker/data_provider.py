@@ -166,7 +166,9 @@ class DataProvider:
 
         if freq == "MANUAL":
             manual_weeks = row["manual_weeks"]
-            if manual_weeks is None or (isinstance(manual_weeks, float) and pd.isna(manual_weeks)):
+            if manual_weeks is None or (
+                isinstance(manual_weeks, float) and pd.isna(manual_weeks)
+            ):
                 return []
             return [manual_weeks]
         elif freq == "BIWEEKLY":
@@ -220,9 +222,7 @@ class DataProvider:
         """
         if group_members_df.empty:
             return {}
-        return (
-            group_members_df.groupby("group_id")["student_id"].apply(list).to_dict()
-        )
+        return group_members_df.groupby("group_id")["student_id"].apply(list).to_dict()
 
     @staticmethod
     def get_conflicting_groups_dict(
