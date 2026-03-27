@@ -80,19 +80,37 @@ class FitnessCalculator:
                         is_group_conflict = (g1.group_id == g2.group_id) or (
                             g2.group_id
                             in self.conflicting_groups.get(g1.group_id, set())
-                        )
-                        same_room = (
-                            g1.room_id is not None
-                            and g2.room_id is not None
-                            and g1.room_id == g2.room_id
-                        )
-                        same_instructor = (
-                            g1.instructor_id is not None
-                            and g2.instructor_id is not None
-                            and g1.instructor_id == g2.instructor_id
-                        )
-                        if same_room or same_instructor or is_group_conflict:
-                            penalty += self.W_HARD_PENALTY
+
+                # Skip if any gene has no timeslot assigned
+                if g1.timeslot_id is None or g2.timeslot_id is None:
+                    continue
+
+                # Only consider collisions in weeks where both genes are active
+                shared_weeks = set(g1.active_weeks) & set(g2.active_weeks)
+                if not shared_weeks:
+                    continue
+
+                # Compute occupied time intervals in slots (half-open [start, end))
+                start1 = g1.timeslot_id
+                duration1 = getattr(g1, "duration_slots", 1) or 1
+                end1 = start1 + duration1
+
+                start2 = g2.timeslot_id
+                duration2 = getattr(g2, "duration_slots", 1) or 1
+                end2 = start2 + duration2
+
+                # Check if the time intervals overlap
+                if start1 < end2 and start2 < end1:
+                    is_group_conflict = (g1.group_id == g2.group_id) or (
+                        g2.group_id
+                        in self.conflicting_groups.get(g1.group_id, set())
+                    )
+                    if (
+                        g1.room_id == g2.room_id
+                        or g1.instructor_id == g2.instructor_id
+                        or is_group_conflict
+                    ):
+                        penalty += self.W_HARD_PENALTY
         return penalty
 
     def _evaluate_location_logic(self, chromosome: ScheduleChromosome) -> float:
