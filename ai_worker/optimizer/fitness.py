@@ -123,6 +123,15 @@ class FitnessCalculator:
                 if day1 != day2:
                     continue
 
+                # Ensure we only penalize location changes between classes
+                # that can actually co-occur in at least one active week.
+                weeks1 = getattr(g1, "active_weeks", None)
+                weeks2 = getattr(g2, "active_weeks", None)
+                if weeks1 is not None and weeks2 is not None:
+                    if not set(weeks1).intersection(weeks2):
+                        # These classes never run in the same week for this profile.
+                        # Skip applying any location-change penalty between them.
+                        continue
                 finish_slot_g1 = g1.timeslot_id + g1.duration_slots
                 gap = g2.timeslot_id - finish_slot_g1
 
