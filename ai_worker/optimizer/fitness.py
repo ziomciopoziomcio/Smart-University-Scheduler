@@ -51,6 +51,8 @@ class FitnessCalculator:
             for hours in self.instructor_assignments.values()
         )
 
+        self.W_HARD_PENALTY = 100000
+
     def calculate_fitness(self, chromosome: ScheduleChromosome) -> float:
         """Calculates fitness score for a given schedule chromosome
         :param chromosome: ScheduleChromosome to calculate fitness for
@@ -625,4 +627,27 @@ class FitnessCalculator:
             penalty -= expected_slots * self.W_WORKLOAD_MISMATCH
             penalty += abs(expected_slots - actual_slots) * self.W_WORKLOAD_MISMATCH
 
+        return penalty
+
+    def _check_collisions(self, chromosome: ScheduleChromosome) -> float:
+        """
+        Helper function to check collisions
+        :param chromosome: ScheduleChromosome to calculate fitness for
+        :return: Penalty score (lower is better)
+        """
+        penalty = 0.0
+        genes = chromosome.genes
+
+        for i in range(len(genes)):
+            for j in range(i + 1, len(genes)):
+                g1, g2 = genes[i], genes[j]
+                if g1.timeslot_id == g2.timeslot_id:
+                    shared_weeks = set(g1.active_weeks) & set(g2.active_weeks)
+                    if shared_weeks:
+                        if (
+                            g1.room_id == g2.room_id
+                            or g1.instructor_id == g2.instructor_id
+                            or g1.group_id == g2.group_id
+                        ):
+                            penalty += self.W_HARD_PENALTY
         return penalty
