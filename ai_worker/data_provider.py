@@ -71,6 +71,16 @@ COMPETENCIES_QUERY = """
     JOIN employees e ON ci.employee = e.id
     WHERE e.faculty_id = %(faculty_id)s
 """
+CONFLICTING_GROUPS_QUERY = """
+    SELECT DISTINCT gm1."group" AS group_a, gm2."group" AS group_b
+    FROM group_members gm1
+    JOIN group_members gm2 ON gm1.student = gm2.student
+    JOIN groups g ON gm1."group" = g.id
+    JOIN study_programs sp ON g.study_program = sp.id
+    JOIN study_fields sf ON sp.study_field = sf.id
+    WHERE gm1."group" != gm2."group"
+        AND sf.faculty = %(faculty_id)s
+"""
 
 
 class DataProvider:
@@ -117,11 +127,18 @@ class DataProvider:
             params={"faculty_id": faculty_id},
         )
 
+        conflicts_df = pd.read_sql(
+            CONFLICTING_GROUPS_QUERY,
+            self.engine,
+            params={"faculty_id": faculty_id},
+        )
+
         return {
             "rooms": rooms_df,
             "employees": employees_df,
             "requirements": requirements_df,
             "competencies": competencies_df,
+            "conflicting_groups": conflicts_df,
         }
 
     @staticmethod
@@ -177,3 +194,21 @@ class DataProvider:
             genes.append(gene)
 
         return genes
+
+    @staticmethod
+    def get_conflicting_groups_dict(
+        conflicting_groups_df: pd.DataFrame,
+    ) -> dict[int, set[int]]:
+        """
+        Translates conflicting groups into groups
+        :param conflicting_groups_df: dataframe with group_a and group_b
+        :return: dictionary with group_id as key and set of conflicting group_ids as value
+        """
+        conflicts = {}
+        for _, row in conflicting_groups_df.iterrows():
+            g_a = row["group_a"]
+            g_b = row["group_b"]
+            if g_a not in conflicts:
+                conflicts[g_a] = set()
+            conflicts[g_a].add(g_b)
+        return conflicts
