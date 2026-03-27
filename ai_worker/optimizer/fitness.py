@@ -151,44 +151,59 @@ class FitnessCalculator:
     def _evaluate_time_efficiency(self, chromosome: ScheduleChromosome) -> float:
         """Helper function to evaluate time efficiency (days, gaps, fatigue) PER PROFILE"""
         penalty = 0.0
+        # profile_itinerary maps: profile_id -> {week_identifier -> [genes]}
         profile_itinerary = {}
 
         for gene in chromosome.genes:
             if gene.timeslot_id is None:
                 continue
             profiles_in_group = self.group_to_profiles.get(gene.group_id, [])
+            # Determine the weeks in which this gene is active. If no explicit
+            # active_weeks information is available, fall back to a single
+            # synthetic week bucket (None) to preserve existing behavior.
+            active_weeks = getattr(gene, "active_weeks", None)
+            if not active_weeks:
+                weeks = [None]
+            else:
+                weeks = active_weeks
             for profile_id in profiles_in_group:
                 if profile_id not in profile_itinerary:
-                    profile_itinerary[profile_id] = []
-                profile_itinerary[profile_id].append(gene)
+                    profile_itinerary[profile_id] = {}
+                for week in weeks:
+                    if week not in profile_itinerary[profile_id]:
+                        profile_itinerary[profile_id][week] = []
+                    profile_itinerary[profile_id][week].append(gene)
 
-        for profile_id, genes in profile_itinerary.items():
+        for profile_id, weeks_dict in profile_itinerary.items():
             multiplier = self.profile_counts.get(profile_id, 1)
-            days_active = set((g.timeslot_id - 1) // 12 for g in genes)
-            penalty += len(days_active) * self.W_DAY_USED * multiplier
+            for _week, genes in weeks_dict.items():
+                # Compute days, gaps and fatigue within this week only, so that
+                # sessions that never occur in the same week do not interact.
+                days_active = set((g.timeslot_id - 1) // 12 for g in genes)
+                penalty += len(days_active) * self.W_DAY_USED * multiplier
 
-            for day in days_active:
-                day_genes = sorted(
-                    [g for g in genes if (g.timeslot_id - 1) // 12 == day],
-                    key=lambda x: x.timeslot_id,
-                )
+                for day in days_active:
+                    day_genes = sorted(
+                        [g for g in genes if (g.timeslot_id - 1) // 12 == day],
+                        key=lambda x: x.timeslot_id,
+                    )
 
-                daily_slots_count = 0
-                for k in range(len(day_genes)):
-                    g = day_genes[k]
-                    daily_slots_count += g.duration_slots
+                    daily_slots_count = 0
+                    for k in range(len(day_genes)):
+                        g = day_genes[k]
+                        daily_slots_count += g.duration_slots
 
-                    if k < len(day_genes) - 1:
-                        next_g = day_genes[k + 1]
-                        finish_slot_g = g.timeslot_id + g.duration_slots
-                        gap = next_g.timeslot_id - finish_slot_g
+                        if k < len(day_genes) - 1:
+                            next_g = day_genes[k + 1]
+                            finish_slot_g = g.timeslot_id + g.duration_slots
+                            gap = next_g.timeslot_id - finish_slot_g
 
-                        if gap > 0:
-                            penalty += gap * self.W_GAP_SLOT * multiplier
-                            if gap > 2:
-                                penalty += self.W_MAX_GAP * multiplier
+                            if gap > 0:
+                                penalty += gap * self.W_GAP_SLOT * multiplier
+                                if gap > 2:
+                                    penalty += self.W_MAX_GAP * multiplier
 
-                if daily_slots_count > 6:
-                    penalty += (daily_slots_count - 6) * self.W_FATIGUE * multiplier
+                    if daily_slots_count > 6:
+                        penalty += (daily_slots_count - 6) * self.W_FATIGUE * multiplier
 
         return penalty
