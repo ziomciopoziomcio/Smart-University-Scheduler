@@ -81,6 +81,14 @@ CONFLICTING_GROUPS_QUERY = """
     WHERE gm1."group" != gm2."group"
         AND sf.faculty = %(faculty_id)s
 """
+GROUP_MEMBERS_QUERY = """
+    SELECT gm."group" AS group_id, gm.student AS student_id
+    FROM group_members gm
+    JOIN groups g ON gm."group" = g.id
+    JOIN study_programs sp ON g.study_program = sp.id
+    JOIN study_fields sf ON sp.study_field = sf.id
+    WHERE sf.faculty = %(faculty_id)s
+"""
 
 
 class DataProvider:
@@ -132,6 +140,11 @@ class DataProvider:
             self.engine,
             params={"faculty_id": faculty_id},
         )
+        group_members_df = pd.read_sql(
+            GROUP_MEMBERS_QUERY,
+            self.engine,
+            params={"faculty_id": faculty_id},
+        )
 
         return {
             "rooms": rooms_df,
@@ -139,6 +152,7 @@ class DataProvider:
             "requirements": requirements_df,
             "competencies": competencies_df,
             "conflicting_groups": conflicts_df,
+            "group_members": group_members_df,
         }
 
     @staticmethod
@@ -194,6 +208,21 @@ class DataProvider:
             genes.append(gene)
 
         return genes
+
+    @staticmethod
+    def get_group_to_students_dict(
+        group_members_df: pd.DataFrame,
+    ) -> dict[int, list[int]]:
+        """
+        Translates students into groups
+        :param group_members_df: dataframe with group_id and student_id
+        :return: dictionary with group_id as key and list of student_ids as value
+        """
+        if group_members_df.empty:
+            return {}
+        return (
+            group_members_df.groupby("group_id")["student_id"].apply(list).to_dict()
+        )
 
     @staticmethod
     def get_conflicting_groups_dict(
