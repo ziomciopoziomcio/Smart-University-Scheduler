@@ -75,11 +75,15 @@ CONFLICTING_GROUPS_QUERY = """
     SELECT DISTINCT gm1."group" AS group_a, gm2."group" AS group_b
     FROM group_members gm1
     JOIN group_members gm2 ON gm1.student = gm2.student
-    JOIN groups g ON gm1."group" = g.id
-    JOIN study_programs sp ON g.study_program = sp.id
-    JOIN study_fields sf ON sp.study_field = sf.id
+    JOIN groups g1 ON gm1."group" = g1.id
+    JOIN study_programs sp1 ON g1.study_program = sp1.id
+    JOIN study_fields sf1 ON sp1.study_field = sf1.id
+    JOIN groups g2 ON gm2."group" = g2.id
+    JOIN study_programs sp2 ON g2.study_program = sp2.id
+    JOIN study_fields sf2 ON sp2.study_field = sf2.id
     WHERE gm1."group" != gm2."group"
-        AND sf.faculty = %(faculty_id)s
+        AND sf1.faculty = %(faculty_id)s
+        AND sf2.faculty = %(faculty_id)s
 """
 GROUP_MEMBERS_QUERY = """
     SELECT gm."group" AS group_id, gm.student AS student_id
