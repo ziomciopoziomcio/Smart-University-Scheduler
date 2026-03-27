@@ -212,17 +212,39 @@ class DataProvider:
         return genes
 
     @staticmethod
-    def get_group_to_students_dict(
+    def get_student_profiles(
         group_members_df: pd.DataFrame,
-    ) -> dict[int, list[int]]:
+    ) -> tuple[dict[int, list[int]], dict[int, int]]:
         """
-        Translates students into groups
+        Translates student profiles into groups
         :param group_members_df: dataframe with group_id and student_id
-        :return: dictionary with group_id as key and list of student_ids as value
+        :return: Tuple of two dictionaries:
+        - group_to_profiles: {group_id: [profile_id_1, profile_id_2]}
+        - profile_counts: {profile_id: students_amount}
         """
         if group_members_df.empty:
-            return {}
-        return group_members_df.groupby("group_id")["student_id"].apply(list).to_dict()
+            return {}, {}
+        student_groups = group_members_df.groupby("student_id")["group_id"].apply(
+            frozenset
+        )
+        profile_counts_series = student_groups.value_counts()
+
+        group_to_profiles = {}
+        profile_counts = {}
+
+        for profile_id, (group_set, count) in enumerate(profile_counts_series.items()):
+
+            if not isinstance(group_set, frozenset):
+                continue
+
+            profile_counts[profile_id] = count
+
+            for g_id in group_set:
+                if g_id not in group_to_profiles:
+                    group_to_profiles[g_id] = []
+                group_to_profiles[g_id].append(profile_id)
+
+        return group_to_profiles, profile_counts
 
     @staticmethod
     def get_conflicting_groups_dict(
