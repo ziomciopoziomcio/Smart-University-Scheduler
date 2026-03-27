@@ -2,8 +2,11 @@ from .models import ScheduleChromosome
 
 
 class FitnessCalculator:
-    def __init__(self):
+    def __init__(self, rooms_lookup: dict, instructors_lookup: dict) -> None:
         """Fitness calculator class init"""
+        self.rooms_lookup = rooms_lookup
+        self.instructors_lookup = instructors_lookup
+
         self.W_DAY_USED = 100
         self.W_GAP_SLOT = 50
         self.W_MAX_GAP = 200  # gap longer than 2 slots
