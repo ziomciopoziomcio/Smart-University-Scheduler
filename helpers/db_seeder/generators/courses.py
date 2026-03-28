@@ -22,7 +22,9 @@ def generate_study_fields(
     with open(sourcefile, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    faculty_name_to_short: dict[str, str] = {} # {faculty_full_name: faculty_short_name}
+    faculty_name_to_short: dict[str, str] = (
+        {}
+    )  # {faculty_full_name: faculty_short_name}
     for short_name, faculty_obj in faculties.items():
         faculty_name_to_short[faculty_obj.faculty_name] = short_name
 
@@ -31,7 +33,9 @@ def generate_study_fields(
         new_el = (kierunek["nazwa"], kierunek["wydzial"])
         study_fields.add(new_el)
 
-    db_study_fields: dict[str, Study_fields] = {} # dict{study_field_name, Study_fields}
+    db_study_fields: dict[str, Study_fields] = (
+        {}
+    )  # dict{study_field_name, Study_fields}
 
     for sf_data in study_fields:
         study_field_name, faculty_full_name = sf_data
