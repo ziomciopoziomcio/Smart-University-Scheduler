@@ -80,6 +80,7 @@ class FitnessCalculator:
                         is_group_conflict = (g1.group_id == g2.group_id) or (
                             g2.group_id
                             in self.conflicting_groups.get(g1.group_id, set())
+                        )
 
                 # Skip if any gene has no timeslot assigned
                 if g1.timeslot_id is None or g2.timeslot_id is None:
@@ -102,8 +103,7 @@ class FitnessCalculator:
                 # Check if the time intervals overlap
                 if start1 < end2 and start2 < end1:
                     is_group_conflict = (g1.group_id == g2.group_id) or (
-                        g2.group_id
-                        in self.conflicting_groups.get(g1.group_id, set())
+                        g2.group_id in self.conflicting_groups.get(g1.group_id, set())
                     )
                     if (
                         g1.room_id == g2.room_id
