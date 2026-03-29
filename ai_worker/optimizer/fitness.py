@@ -110,7 +110,15 @@ class FitnessCalculator:
                 continue
 
             active_weeks = getattr(gene, "active_weeks", None)
-            if not active_weeks:
+            # If active_weeks is None, we have no week information; skip as before.
+            # If it's an empty list, this typically means "all weeks" in this codebase.
+            # Since we cannot expand "all weeks" here without a known week range,
+            # treat it as an invalid configuration and apply a hard penalty instead
+            # of silently skipping collision checks.
+            if active_weeks is None:
+                continue
+            if isinstance(active_weeks, list) and len(active_weeks) == 0:
+                penalty += self.W_HARD_PENALTY
                 continue
 
             start_slot = gene.timeslot_id
