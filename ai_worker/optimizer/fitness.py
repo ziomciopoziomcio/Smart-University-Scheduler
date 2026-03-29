@@ -73,25 +73,6 @@ class FitnessCalculator:
 
         return penalty
 
-    def _build_profile_itinerary(self, chromosome: ScheduleChromosome) -> dict:
-        """
-        Helper function to build profile itineraries for fitness evaluation.
-        :param chromosome: ScheduleChromosome to build itineraries for
-        :return: Dictionary with profiles
-        """
-        profile_itinerary = {}
-        for gene in chromosome.genes:
-            if gene.timeslot_id is None:
-                continue
-
-            profiles_in_group = self.group_to_profiles.get(gene.group_id, [])
-            for profile_id in profiles_in_group:
-                if profile_id not in profile_itinerary:
-                    profile_itinerary[profile_id] = []
-                profile_itinerary[profile_id].append(gene)
-
-        return profile_itinerary
-
     def _check_collisions(self, chromosome: ScheduleChromosome) -> float:
         """
         Helper function to check collisions
@@ -230,21 +211,22 @@ class FitnessCalculator:
         :return: Penalty score (lower is better)
         """
         penalty = 0.0
-        profile_itinerary = self._build_profile_itinerary(chromosome)
+        profile_itinerary = self._build_weekly_profile_itinerary(chromosome)
 
-        for profile_id, items in profile_itinerary.items():
+        for profile_id, weeks_dict in profile_itinerary.items():
             multiplier = self.profile_counts.get(profile_id, 1)
-            sorted_genes = sorted(items, key=lambda x: x.timeslot_id)
+            for _week, items in weeks_dict.items():
+                sorted_genes = sorted(items, key=lambda x: x.timeslot_id)
 
-            for k in range(len(sorted_genes) - 1):
-                penalty += self._calculate_location_penalty(
-                    sorted_genes[k],
-                    sorted_genes[k + 1],
-                    multiplier,
-                    self.W_CAMPUS_CHANGE,
-                    self.W_BUILDING_CHANGE,
-                    self.W_ROOM_CHANGE,
-                )
+                for k in range(len(sorted_genes) - 1):
+                    penalty += self._calculate_location_penalty(
+                        sorted_genes[k],
+                        sorted_genes[k + 1],
+                        multiplier,
+                        self.W_CAMPUS_CHANGE,
+                        self.W_BUILDING_CHANGE,
+                        self.W_ROOM_CHANGE,
+                    )
 
         return penalty
 
@@ -428,40 +410,22 @@ class FitnessCalculator:
         :return: Penalty score (lower is better)
         """
         penalty = 0.0
-        instructor_itinerary = self._build_instructor_itinerary(chromosome)
+        instructor_itinerary = self._build_weekly_instructor_itinerary(chromosome)
 
-        for _, items in instructor_itinerary.items():
-            sorted_genes = sorted(items, key=lambda x: x.timeslot_id)
+        for _, weeks_dict in instructor_itinerary.items():
+            for _week, items in weeks_dict.items():
+                sorted_genes = sorted(items, key=lambda x: x.timeslot_id)
 
-            for k in range(len(sorted_genes) - 1):
-                penalty += self._calculate_location_penalty(
-                    sorted_genes[k],
-                    sorted_genes[k + 1],
-                    1,
-                    self.W_INSTR_CAMPUS_CHANGE,
-                    self.W_INSTR_BUILDING_CHANGE,
-                    self.W_INSTR_ROOM_CHANGE,
-                )
+                for k in range(len(sorted_genes) - 1):
+                    penalty += self._calculate_location_penalty(
+                        sorted_genes[k],
+                        sorted_genes[k + 1],
+                        1,
+                        self.W_INSTR_CAMPUS_CHANGE,
+                        self.W_INSTR_BUILDING_CHANGE,
+                        self.W_INSTR_ROOM_CHANGE,
+                    )
         return penalty
-
-    def _build_instructor_itinerary(self, chromosome: ScheduleChromosome) -> dict:
-        """
-        Helper function to build instructor itinerary
-        :param chromosome: ScheduleChromosome to build instructor itinerary for
-        :return: Dictionary with instructor itineraries
-        """
-        instructor_itinerary = {}
-        for gene in chromosome.genes:
-            if gene.timeslot_id is None or gene.instructor_id is None:
-                continue
-
-            if gene.instructor_id not in self.instructors_lookup:
-                continue
-
-            if gene.instructor_id not in instructor_itinerary:
-                instructor_itinerary[gene.instructor_id] = []
-            instructor_itinerary[gene.instructor_id].append(gene)
-        return instructor_itinerary
 
     def _build_weekly_instructor_itinerary(
         self, chromosome: ScheduleChromosome
