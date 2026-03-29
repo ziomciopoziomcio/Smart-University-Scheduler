@@ -1,5 +1,7 @@
 from .models import ScheduleChromosome, ClassSessionGene
 
+SLOTS_PER_DAY = 12
+
 
 class FitnessCalculator:
     def __init__(
@@ -275,8 +277,8 @@ class FitnessCalculator:
         :param g2: Second Gene to check
         :return: True if genes are on different days or lack shared weeks, False otherwise
         """
-        day1 = (g1.timeslot_id - 1) // 12
-        day2 = (g2.timeslot_id - 1) // 12
+        day1 = (g1.timeslot_id - 1) // SLOTS_PER_DAY
+        day2 = (g2.timeslot_id - 1) // SLOTS_PER_DAY
 
         if day1 != day2:
             return True
@@ -394,12 +396,16 @@ class FitnessCalculator:
             multiplier = self.profile_counts.get(profile_id, 1)
 
             for _week, genes in weeks_dict.items():
-                days_active = set((g.timeslot_id - 1) // 12 for g in genes)
+                days_active = set((g.timeslot_id - 1) // SLOTS_PER_DAY for g in genes)
                 penalty += len(days_active) * self.W_DAY_USED * multiplier
 
                 for day in days_active:
                     day_genes = sorted(
-                        [g for g in genes if (g.timeslot_id - 1) // 12 == day],
+                        [
+                            g
+                            for g in genes
+                            if (g.timeslot_id - 1) // SLOTS_PER_DAY == day
+                        ],
                         key=lambda x: x.timeslot_id,
                     )
                     penalty += self._calculate_daily_penalty(
@@ -424,12 +430,16 @@ class FitnessCalculator:
 
         for _, weeks_dict in instructor_itinerary.items():
             for _week, genes in weeks_dict.items():
-                days_active = set((g.timeslot_id - 1) // 12 for g in genes)
+                days_active = set((g.timeslot_id - 1) // SLOTS_PER_DAY for g in genes)
                 penalty += len(days_active) * self.W_INSTR_DAY_USED
 
                 for day in days_active:
                     day_genes = sorted(
-                        [g for g in genes if (g.timeslot_id - 1) // 12 == day],
+                        [
+                            g
+                            for g in genes
+                            if (g.timeslot_id - 1) // SLOTS_PER_DAY == day
+                        ],
                         key=lambda x: x.timeslot_id,
                     )
                     penalty += self._calculate_daily_penalty(
