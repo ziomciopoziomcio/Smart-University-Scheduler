@@ -98,25 +98,28 @@ class FitnessCalculator:
         :param chromosome: ScheduleChromosome to calculate fitness for
         :return: Penalty score (lower is better)
         """
-        penalty = 0.0
-        genes = chromosome.genes
+        buckets, penalty = self._build_collision_buckets(chromosome.genes)
 
-        # Build buckets of genes indexed by (week, slot) to limit comparisons
-        # only to sessions that could actually overlap in time.
+        penalty += self._evaluate_bucket_collisions(buckets, chromosome.genes)
+
+        return penalty
+
+    def _build_collision_buckets(self, genes: list) -> tuple[dict, float]:
+        """
+        Builds buckets of genes indexed by (week, slot) to limit comparisons.
+        Returns the buckets dictionary and any base penalty (e.g. for invalid configs).
+        """
         buckets = {}
+        penalty = 0.0
+
         for idx, gene in enumerate(genes):
-            # Genes without a timeslot cannot overlap in time
             if gene.timeslot_id is None:
                 continue
 
             active_weeks = getattr(gene, "active_weeks", None)
-            # If active_weeks is None, we have no week information; skip as before.
-            # If it's an empty list, this typically means "all weeks" in this codebase.
-            # Since we cannot expand "all weeks" here without a known week range,
-            # treat it as an invalid configuration and apply a hard penalty instead
-            # of silently skipping collision checks.
             if active_weeks is None:
                 continue
+
             if isinstance(active_weeks, list) and len(active_weeks) == 0:
                 penalty += self.W_HARD_PENALTY
                 continue
@@ -127,19 +130,23 @@ class FitnessCalculator:
             for week in active_weeks:
                 for slot in range(start_slot, start_slot + duration):
                     key = (week, slot)
-                    if key not in buckets:
-                        buckets[key] = []
-                    buckets[key].append(idx)
+                    buckets.setdefault(key, []).append(idx)
 
-        # Now, for each time bucket, check for resource conflicts among
-        # the genes that share that (week, slot). Use a set to avoid
-        # checking the same pair multiple times across overlapping buckets.
+        return buckets, penalty
+
+    def _evaluate_bucket_collisions(self, buckets: dict, genes: list) -> float:
+        """
+        Iterates over overlapping time buckets and checks for resource conflicts.
+        """
+        penalty = 0.0
         seen_pairs = set()
+
         for indices in buckets.values():
             n = len(indices)
             for i in range(n):
                 idx1 = indices[i]
                 g1 = genes[idx1]
+
                 for j in range(i + 1, n):
                     idx2 = indices[j]
                     pair = (idx1, idx2) if idx1 < idx2 else (idx2, idx1)
@@ -150,6 +157,7 @@ class FitnessCalculator:
 
                     if self._has_resource_conflict(g1, genes[idx2]):
                         penalty += self.W_HARD_PENALTY
+
         return penalty
 
     @staticmethod
