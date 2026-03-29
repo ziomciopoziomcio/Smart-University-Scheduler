@@ -271,7 +271,7 @@ class FitnessCalculator:
         # empty active_weeks means "all weeks", so only enforce intersection
         # when both week lists are non-empty.
         if weeks1 and weeks2:
-            if not set(weeks1).isdisjoint(weeks2):
+            if set(weeks1).isdisjoint(weeks2):
                 return True
 
         return False
