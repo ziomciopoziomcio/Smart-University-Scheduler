@@ -43,6 +43,9 @@ class FitnessCalculator:
         :return: fitness score (lower is better)
         """
         penalty = 0.0
+
+        penalty += self._evaluate_completeness(chromosome)
+
         penalty += self._check_collisions(chromosome)
         penalty += self._evaluate_time_efficiency(chromosome)
         penalty += self._evaluate_room_usage(chromosome)
@@ -52,6 +55,25 @@ class FitnessCalculator:
         penalty += self._evaluate_instructor_location_logic(chromosome)
 
         chromosome.fitness_score = penalty
+        return penalty
+
+    def _evaluate_completeness(self, chromosome: ScheduleChromosome) -> float:
+        """
+        Helper function to penalize unscheduled or partially scheduled genes.
+        :param chromosome: ScheduleChromosome to evaluate
+        :return: Penalty score for missing assignments
+        """
+        penalty = 0.0
+        for gene in chromosome.genes:
+            if gene.timeslot_id is None:
+                penalty += self.W_HARD_PENALTY
+
+            if gene.room_id is None:
+                penalty += self.W_HARD_PENALTY
+
+            if gene.instructor_id is None:
+                penalty += self.W_HARD_PENALTY
+
         return penalty
 
     def _evaluate_room_usage(self, chromosome: ScheduleChromosome) -> float:
