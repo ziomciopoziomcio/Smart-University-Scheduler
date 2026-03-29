@@ -153,21 +153,53 @@ class FitnessCalculator:
 
         return penalty
 
-    def _calculate_location_penalty(self, g1, g2, multiplier: int) -> float:
-        """Calculates location penalty for a pair of consecutive genes."""
+    def _should_skip_location_check(self, g1, g2) -> bool:
+        """
+        Checks if genes are on different days, lack rooms, or don't share weeks.
+        :param g1: First Gene to check
+        :param g2: Second Gene to check
+        :return: True if genes are on different days, False otherwise
+        """
         day1 = (g1.timeslot_id - 1) // 12
         day2 = (g2.timeslot_id - 1) // 12
 
         if day1 != day2:
-            return 0.0
+            return True
+
+        if not g1.room_id or not g2.room_id:
+            return True
 
         weeks1 = getattr(g1, "active_weeks", None)
         weeks2 = getattr(g2, "active_weeks", None)
         if weeks1 is not None and weeks2 is not None:
             if not set(weeks1).intersection(weeks2):
-                return 0.0
+                return True
 
-        if not g1.room_id or not g2.room_id:
+        return False
+
+    def _get_campus_change_penalty(self, gap: int, multiplier: int) -> float:
+        """
+        Calculates penalty for changing campus based on the available gap.
+        :param gap: Gap to calculate penalty for
+        :param multiplier: multiplier to calculate penalty for
+        :return: Penalty score (lower is better)
+        """
+        if gap == 0:
+            return self.W_CAMPUS_CHANGE * 2.0 * multiplier
+        if gap == 1:
+            return self.W_CAMPUS_CHANGE * 0.2 * multiplier
+
+        return self.W_CAMPUS_CHANGE * 0.5 * multiplier
+
+    def _calculate_location_penalty(self, g1, g2, multiplier: int) -> float:
+        """
+        Calculates location penalty for a pair of consecutive genes.
+        :param g1: First Gene to calculate penalty for
+        :param g2: Second Gene to calculate penalty for
+        :param multiplier: multiplier to calculate penalty for
+        :return: Penalty score (lower is better)
+        """
+        if self._should_skip_location_check(g1, g2):
             return 0.0
 
         finish_slot_g1 = g1.timeslot_id + getattr(g1, "duration_slots", 1)
@@ -177,11 +209,7 @@ class FitnessCalculator:
         r2 = self.rooms_lookup[g2.room_id]
 
         if r1["campus_id"] != r2["campus_id"]:
-            if gap == 0:
-                return self.W_CAMPUS_CHANGE * 2.0 * multiplier
-            if gap == 1:
-                return self.W_CAMPUS_CHANGE * 0.2 * multiplier
-            return self.W_CAMPUS_CHANGE * 0.5 * multiplier
+            return self._get_campus_change_penalty(gap, multiplier)
 
         if r1["building_id"] != r2["building_id"]:
             return self.W_BUILDING_CHANGE * multiplier
