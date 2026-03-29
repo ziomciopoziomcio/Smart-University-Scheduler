@@ -113,6 +113,8 @@ class DataProvider:
         - requirements: course_code, class_type, course_name, class_hours, pc_needed,
         projector_needed, max_group_participants_number, group_id, group_name, program_name
         - competencies: employee_id, course_code, class_type, hours
+        - conflicting_groups: group_a, group_b
+        - group_members: group_id, student_id
         """
 
         rooms_df = pd.read_sql(
@@ -262,5 +264,7 @@ class DataProvider:
         if conflicting_groups_df.empty:
             return {}
 
-        grouped = conflicting_groups_df.groupby("group_a")["group_b"].agg(lambda x: set(x))
+        grouped = conflicting_groups_df.groupby("group_a")["group_b"].agg(
+            lambda x: set(x)
+        )
         return grouped.to_dict()
