@@ -1,4 +1,4 @@
-from .models import ScheduleChromosome
+from .models import ScheduleChromosome, ClassSessionGene
 
 
 class FitnessCalculator:
@@ -73,45 +73,46 @@ class FitnessCalculator:
 
         for i in range(len(genes)):
             for j in range(i + 1, len(genes)):
-                g1, g2 = genes[i], genes[j]
-                if g1.timeslot_id is not None and g1.timeslot_id == g2.timeslot_id:
-                    shared_weeks = set(g1.active_weeks) & set(g2.active_weeks)
-                    if shared_weeks:
-                        is_group_conflict = (g1.group_id == g2.group_id) or (
-                            g2.group_id
-                            in self.conflicting_groups.get(g1.group_id, set())
-                        )
+                if self._has_resource_conflict(genes[i], genes[j]):
+                    penalty += self.W_HARD_PENALTY
 
-                # Skip if any gene has no timeslot assigned
-                if g1.timeslot_id is None or g2.timeslot_id is None:
-                    continue
-
-                # Only consider collisions in weeks where both genes are active
-                shared_weeks = set(g1.active_weeks) & set(g2.active_weeks)
-                if not shared_weeks:
-                    continue
-
-                # Compute occupied time intervals in slots (half-open [start, end))
-                start1 = g1.timeslot_id
-                duration1 = getattr(g1, "duration_slots", 1) or 1
-                end1 = start1 + duration1
-
-                start2 = g2.timeslot_id
-                duration2 = getattr(g2, "duration_slots", 1) or 1
-                end2 = start2 + duration2
-
-                # Check if the time intervals overlap
-                if start1 < end2 and start2 < end1:
-                    is_group_conflict = (g1.group_id == g2.group_id) or (
-                        g2.group_id in self.conflicting_groups.get(g1.group_id, set())
-                    )
-                    if (
-                        g1.room_id == g2.room_id
-                        or g1.instructor_id == g2.instructor_id
-                        or is_group_conflict
-                    ):
-                        penalty += self.W_HARD_PENALTY
         return penalty
+
+    def _has_resource_conflict(
+        self, g1: ClassSessionGene, g2: ClassSessionGene
+    ) -> bool:
+        """
+        Helper function to check if two genes have a resource conflict (room or instructor)
+        :param g1: First Gene to check
+        :param g2: Second Gene to check
+        :return: True if there is a resource conflict, False otherwise
+        """
+        if g1.timeslot_id is None or g2.timeslot_id is None:
+            return False
+
+        shared_weeks = set(g1.active_weeks) & set(g2.active_weeks)
+        if not shared_weeks:
+            return False
+
+        start1 = g1.timeslot_id
+        end1 = start1 + g1.duration_slots
+
+        start2 = g2.timeslot_id
+        end2 = start2 + g2.duration_slots
+
+        if start1 < end2 and start2 < end1:
+            is_group_conflict = (g1.group_id == g2.group_id) or (
+                g2.group_id in self.conflicting_groups.get(g1.group_id, set())
+            )
+
+            if (
+                g1.room_id == g2.room_id
+                or g1.instructor_id == g2.instructor_id
+                or is_group_conflict
+            ):
+                return True
+
+        return False
 
     def _evaluate_location_logic(self, chromosome: ScheduleChromosome) -> float:
         """Helper function to evaluate location logic (campuses, buildings) PER STUDENT"""
