@@ -1,6 +1,8 @@
 from .models import ScheduleChromosome, ClassSessionGene
 
 SLOTS_PER_DAY = 12
+TIMETABLE_DAYS = 5
+MAX_SLOT_ID = SLOTS_PER_DAY * TIMETABLE_DAYS
 
 
 class FitnessCalculator:
@@ -144,9 +146,13 @@ class FitnessCalculator:
 
         start_slot = gene.timeslot_id
 
-        duration = getattr(gene, "duration_slots", 1)
-        if duration <= 0:
-            duration = 1
+        duration = max(1, getattr(gene, "duration_slots", 1))
+
+        if (start_slot - 1) % SLOTS_PER_DAY + duration > SLOTS_PER_DAY:
+            return self.W_HARD_PENALTY
+
+        if start_slot + duration - 1 > MAX_SLOT_ID:
+            return self.W_HARD_PENALTY
 
         for week in active_weeks:
             for slot in range(start_slot, start_slot + duration):
