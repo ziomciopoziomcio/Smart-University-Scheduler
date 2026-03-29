@@ -167,10 +167,14 @@ class FitnessCalculator:
         if g1.timeslot_id is None or g2.timeslot_id is None:
             return False
 
-        # Only apply week intersection logic when both genes specify active weeks.
-        # If either list is empty, treat it as "all weeks" for overlap purposes.
-        if g1.active_weeks and g2.active_weeks:
-            if not (set(g1.active_weeks) & set(g2.active_weeks)):
+        weeks1 = getattr(g1, "active_weeks", None)
+        weeks2 = getattr(g2, "active_weeks", None)
+
+        if weeks1 == [] or weeks2 == []:
+            return False
+
+        if weeks1 is not None and weeks2 is not None:
+            if set(weeks1).isdisjoint(weeks2):
                 return False
 
         start1 = g1.timeslot_id
