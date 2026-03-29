@@ -97,7 +97,8 @@ class FitnessCalculator:
 
         return penalty
 
-    def _is_time_overlap(self, g1: ClassSessionGene, g2: ClassSessionGene) -> bool:
+    @staticmethod
+    def _is_time_overlap(g1: ClassSessionGene, g2: ClassSessionGene) -> bool:
         """
         Checks if two genes overlap in time (slots and weeks).
         :param g1: First Gene to check
@@ -164,7 +165,8 @@ class FitnessCalculator:
 
         return penalty
 
-    def _should_skip_location_check(self, g1, g2) -> bool:
+    @staticmethod
+    def _should_skip_location_check(g1, g2) -> bool:
         """
         Checks if genes are on different days, lack rooms, or don't share weeks.
         :param g1: First Gene to check
