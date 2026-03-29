@@ -81,7 +81,7 @@ CONFLICTING_GROUPS_QUERY = """
     JOIN groups g2 ON gm2."group" = g2.id
     JOIN study_programs sp2 ON g2.study_program = sp2.id
     JOIN study_fields sf2 ON sp2.study_field = sf2.id
-    WHERE gm1."group" != gm2."group"
+    WHERE gm1."group" < gm2."group"
         AND sf1.faculty = %(faculty_id)s
         AND sf2.faculty = %(faculty_id)s
 """
@@ -261,8 +261,14 @@ class DataProvider:
         :param conflicting_groups_df: dataframe with group_a and group_b
         :return: dictionary with group_id as key and set of conflicting group_ids as value
         """
+        conflicts = {}
         if conflicting_groups_df.empty:
             return {}
 
-        grouped = conflicting_groups_df.groupby("group_a")["group_b"].agg(set)
-        return grouped.to_dict()
+        for a, b in zip(
+            conflicting_groups_df["group_a"], conflicting_groups_df["group_b"]
+        ):
+            conflicts.setdefault(a, set()).add(b)
+            conflicts.setdefault(b, set()).add(a)
+
+        return conflicts
