@@ -1,0 +1,13 @@
+{
+  "login": {
+    "title": "Zaloguj się",
+    "username": "login",
+    "usernamePlaceholder": "example@edu.p.lodz.pl",
+    "password": "hasło",
+    "passwordPlaceholder": "hasło",
+    "submit": "zaloguj się",
+    "createAccount": "Utwórz konto",
+    "forgotPassword": "Nie pamiętam hasła",
+    "pageLabel": "Login"
+  }
+}

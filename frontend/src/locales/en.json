@@ -1,0 +1,13 @@
+{
+  "login": {
+    "title": "Sign in",
+    "username": "login",
+    "usernamePlaceholder": "example@edu.p.lodz.pl",
+    "password": "password",
+    "passwordPlaceholder": "password",
+    "submit": "sign in",
+    "createAccount": "Create account",
+    "forgotPassword": "Forgot password",
+    "pageLabel": "Login"
+  }
+}
