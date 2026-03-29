@@ -496,7 +496,9 @@ class FitnessCalculator:
     def _assign_instructor_gene(self, gene: ClassSessionGene, itinerary: dict) -> None:
         """Helper function to assign a single gene to the instructor's weekly itinerary."""
         if gene.instructor_id not in self.instructors_lookup:
-            return
+            raise ValueError(
+                f"Unknown instructor_id {gene.instructor_id!r} encountered in ClassSessionGene during itinerary construction."
+            )
 
         active_weeks = getattr(gene, "active_weeks", None)
 
