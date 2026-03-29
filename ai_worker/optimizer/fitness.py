@@ -247,7 +247,10 @@ class FitnessCalculator:
 
         weeks1 = getattr(g1, "active_weeks", None)
         weeks2 = getattr(g2, "active_weeks", None)
-        if weeks1 is not None and weeks2 is not None:
+        # Align with _is_time_overlap semantics:
+        # empty active_weeks means "all weeks", so only enforce intersection
+        # when both week lists are non-empty.
+        if weeks1 is not None and weeks2 is not None and weeks1 and weeks2:
             if not set(weeks1).intersection(weeks2):
                 return True
 
@@ -295,9 +298,12 @@ class FitnessCalculator:
         finish_slot_g1 = g1.timeslot_id + getattr(g1, "duration_slots", 1)
         gap = g2.timeslot_id - finish_slot_g1
 
-        r1 = self.rooms_lookup[g1.room_id]
-        r2 = self.rooms_lookup[g2.room_id]
+        r1 = self.rooms_lookup.get(g1.room_id)
+        r2 = self.rooms_lookup.get(g2.room_id)
 
+        if r1 is None or r2 is None:
+            # Missing room information indicates an invalid chromosome; apply hard penalty
+            return self.W_HARD_PENALTY * multiplier
         if r1["campus_id"] != r2["campus_id"]:
             return self._get_campus_change_penalty(gap, multiplier, w_campus_change)
 
