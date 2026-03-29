@@ -157,6 +157,20 @@ class FitnessCalculator:
         return penalty
 
     @staticmethod
+    def _do_weeks_overlap(weeks1: list | None, weeks2: list | None) -> bool:
+        """
+        Helper function to determine if two sets of active weeks overlap.
+        None implies "all weeks". Empty list [] implies "no weeks".
+        """
+        if weeks1 == [] or weeks2 == []:
+            return False
+
+        if weeks1 and weeks2:
+            return not set(weeks1).isdisjoint(weeks2)
+
+        return True
+
+    @staticmethod
     def _is_time_overlap(g1: ClassSessionGene, g2: ClassSessionGene) -> bool:
         """
         Checks if two genes overlap in time (slots and weeks).
@@ -167,15 +181,10 @@ class FitnessCalculator:
         if g1.timeslot_id is None or g2.timeslot_id is None:
             return False
 
-        weeks1 = getattr(g1, "active_weeks", None)
-        weeks2 = getattr(g2, "active_weeks", None)
-
-        if weeks1 == [] or weeks2 == []:
+        if not FitnessCalculator._do_weeks_overlap(
+            getattr(g1, "active_weeks", None), getattr(g2, "active_weeks", None)
+        ):
             return False
-
-        if weeks1 is not None and weeks2 is not None:
-            if set(weeks1).isdisjoint(weeks2):
-                return False
 
         start1 = g1.timeslot_id
         end1 = start1 + g1.duration_slots
