@@ -187,10 +187,12 @@ class FitnessCalculator:
             return False
 
         start1 = g1.timeslot_id
-        end1 = start1 + g1.duration_slots
+        duration1 = max(1, getattr(g1, "duration_slots", 1))
+        end1 = start1 + duration1
 
         start2 = g2.timeslot_id
-        end2 = start2 + g2.duration_slots
+        duration2 = max(1, getattr(g2, "duration_slots", 1))
+        end2 = start2 + duration2
 
         return start1 < end2 and start2 < end1
 
