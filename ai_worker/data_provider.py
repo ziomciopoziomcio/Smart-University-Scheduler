@@ -71,6 +71,28 @@ COMPETENCIES_QUERY = """
     JOIN employees e ON ci.employee = e.id
     WHERE e.faculty_id = %(faculty_id)s
 """
+CONFLICTING_GROUPS_QUERY = """
+    SELECT DISTINCT gm1."group" AS group_a, gm2."group" AS group_b
+    FROM group_members gm1
+    JOIN group_members gm2 ON gm1.student = gm2.student
+    JOIN groups g1 ON gm1."group" = g1.id
+    JOIN study_programs sp1 ON g1.study_program = sp1.id
+    JOIN study_fields sf1 ON sp1.study_field = sf1.id
+    JOIN groups g2 ON gm2."group" = g2.id
+    JOIN study_programs sp2 ON g2.study_program = sp2.id
+    JOIN study_fields sf2 ON sp2.study_field = sf2.id
+    WHERE gm1."group" < gm2."group"
+        AND sf1.faculty = %(faculty_id)s
+        AND sf2.faculty = %(faculty_id)s
+"""
+GROUP_MEMBERS_QUERY = """
+    SELECT gm."group" AS group_id, gm.student AS student_id
+    FROM group_members gm
+    JOIN groups g ON gm."group" = g.id
+    JOIN study_programs sp ON g.study_program = sp.id
+    JOIN study_fields sf ON sp.study_field = sf.id
+    WHERE sf.faculty = %(faculty_id)s
+"""
 
 
 class DataProvider:
@@ -91,6 +113,8 @@ class DataProvider:
         - requirements: course_code, class_type, course_name, class_hours, pc_needed,
         projector_needed, max_group_participants_number, group_id, group_name, program_name
         - competencies: employee_id, course_code, class_type, hours
+        - conflicting_groups: group_a, group_b
+        - group_members: group_id, student_id
         """
 
         rooms_df = pd.read_sql(
@@ -117,11 +141,24 @@ class DataProvider:
             params={"faculty_id": faculty_id},
         )
 
+        conflicts_df = pd.read_sql(
+            CONFLICTING_GROUPS_QUERY,
+            self.engine,
+            params={"faculty_id": faculty_id},
+        )
+        group_members_df = pd.read_sql(
+            GROUP_MEMBERS_QUERY,
+            self.engine,
+            params={"faculty_id": faculty_id},
+        )
+
         return {
             "rooms": rooms_df,
             "employees": employees_df,
             "requirements": requirements_df,
             "competencies": competencies_df,
+            "conflicting_groups": conflicts_df,
+            "group_members": group_members_df,
         }
 
     @staticmethod
@@ -135,7 +172,9 @@ class DataProvider:
 
         if freq == "MANUAL":
             manual_weeks = row["manual_weeks"]
-            if manual_weeks is None or (isinstance(manual_weeks, float) and pd.isna(manual_weeks)):
+            if manual_weeks is None or (
+                isinstance(manual_weeks, float) and pd.isna(manual_weeks)
+            ):
                 return []
             return [manual_weeks]
         elif freq == "BIWEEKLY":
@@ -177,3 +216,59 @@ class DataProvider:
             genes.append(gene)
 
         return genes
+
+    @staticmethod
+    def get_student_profiles(
+        group_members_df: pd.DataFrame,
+    ) -> tuple[dict[int, list[int]], dict[int, int]]:
+        """
+        Translates student profiles into groups
+        :param group_members_df: dataframe with group_id and student_id
+        :return: Tuple of two dictionaries:
+        - group_to_profiles: {group_id: [profile_id_1, profile_id_2]}
+        - profile_counts: {profile_id: students_amount}
+        """
+        if group_members_df.empty:
+            return {}, {}
+        student_groups = group_members_df.groupby("student_id")["group_id"].apply(
+            frozenset
+        )
+        profile_counts_series = student_groups.value_counts()
+
+        group_to_profiles = {}
+        profile_counts = {}
+
+        for profile_id, (group_set, count) in enumerate(profile_counts_series.items()):
+
+            if not isinstance(group_set, frozenset):
+                continue
+
+            profile_counts[profile_id] = count
+
+            for g_id in group_set:
+                if g_id not in group_to_profiles:
+                    group_to_profiles[g_id] = []
+                group_to_profiles[g_id].append(profile_id)
+
+        return group_to_profiles, profile_counts
+
+    @staticmethod
+    def get_conflicting_groups_dict(
+        conflicting_groups_df: pd.DataFrame,
+    ) -> dict[int, set[int]]:
+        """
+        Translates conflicting groups into groups
+        :param conflicting_groups_df: dataframe with group_a and group_b
+        :return: dictionary with group_id as key and set of conflicting group_ids as value
+        """
+        conflicts = {}
+        if conflicting_groups_df.empty:
+            return {}
+
+        for a, b in zip(
+            conflicting_groups_df["group_a"], conflicting_groups_df["group_b"]
+        ):
+            conflicts.setdefault(a, set()).add(b)
+            conflicts.setdefault(b, set()).add(a)
+
+        return conflicts
