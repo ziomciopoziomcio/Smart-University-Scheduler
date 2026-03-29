@@ -90,11 +90,54 @@ class FitnessCalculator:
         penalty = 0.0
         genes = chromosome.genes
 
-        for i, value in enumerate(genes):
-            for j in range(i + 1, len(genes)):
-                if self._has_resource_conflict(value, genes[j]):
-                    penalty += self.W_HARD_PENALTY
+        # Build buckets of genes indexed by (week, slot) to limit comparisons
+        # only to sessions that could actually overlap in time.
+        buckets = {}
+        for idx, gene in enumerate(genes):
+            # Genes without a timeslot cannot overlap in time
+            if gene.timeslot_id is None:
+                continue
 
+            active_weeks = getattr(gene, "active_weeks", None)
+            if not active_weeks:
+                continue
+
+            start_slot = gene.timeslot_id
+            duration = getattr(gene, "duration_slots", 0) or 0
+            # Fallback to a single slot if duration is missing or non-positive
+            if duration <= 0:
+                duration = 1
+
+            for week in active_weeks:
+                for slot in range(start_slot, start_slot + duration):
+                    key = (week, slot)
+                    if key not in buckets:
+                        buckets[key] = []
+                    buckets[key].append(idx)
+
+        # Now, for each time bucket, check for resource conflicts among
+        # the genes that share that (week, slot). Use a set to avoid
+        # checking the same pair multiple times across overlapping buckets.
+        seen_pairs = set()
+        for indices in buckets.values():
+            n = len(indices)
+            for i in range(n):
+                idx1 = indices[i]
+                g1 = genes[idx1]
+                for j in range(i + 1, n):
+                    idx2 = indices[j]
+                    # Normalize pair ordering for deduplication
+                    if idx1 < idx2:
+                        pair = (idx1, idx2)
+                    else:
+                        pair = (idx2, idx1)
+
+                    if pair in seen_pairs:
+                        continue
+                    seen_pairs.add(pair)
+
+                    if self._has_resource_conflict(g1, genes[idx2]):
+                        penalty += self.W_HARD_PENALTY
         return penalty
 
     @staticmethod
