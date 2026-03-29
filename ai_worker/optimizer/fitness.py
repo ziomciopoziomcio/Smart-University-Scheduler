@@ -201,14 +201,20 @@ class FitnessCalculator:
 
         same_group_conflict = g1.group_id == g2.group_id
 
-        conflicting_group_conflict = (
-            g2.group_id in self.conflicting_groups.get(g1.group_id, set())
+        conflicting_group_conflict = g2.group_id in self.conflicting_groups.get(
+            g1.group_id, set()
         )
 
-        if not (room_conflict or instructor_conflict or same_group_conflict or conflicting_group_conflict):
+        if not (
+            room_conflict
+            or instructor_conflict
+            or same_group_conflict
+            or conflicting_group_conflict
+        ):
             return False
 
         return self._is_time_overlap(g1, g2)
+
     def _evaluate_location_logic(self, chromosome: ScheduleChromosome) -> float:
         """
         Helper function to evaluate location logic (campuses, buildings) PER PROFILE
@@ -384,7 +390,7 @@ class FitnessCalculator:
         penalty = 0.0
         instructor_itinerary = self._build_weekly_instructor_itinerary(chromosome)
 
-        for instructor_id, weeks_dict in instructor_itinerary.items():
+        for _, weeks_dict in instructor_itinerary.items():
             for _week, genes in weeks_dict.items():
                 days_active = set((g.timeslot_id - 1) // 12 for g in genes)
                 penalty += len(days_active) * self.W_INSTR_DAY_USED
@@ -414,7 +420,7 @@ class FitnessCalculator:
         penalty = 0.0
         instructor_itinerary = self._build_instructor_itinerary(chromosome)
 
-        for instructor_id, items in instructor_itinerary.items():
+        for _, items in instructor_itinerary.items():
             sorted_genes = sorted(items, key=lambda x: x.timeslot_id)
 
             for k in range(len(sorted_genes) - 1):
