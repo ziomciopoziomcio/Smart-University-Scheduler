@@ -475,24 +475,26 @@ class FitnessCalculator:
         :return: Dictionary with instructor itineraries mapped by week
         """
         instructor_itinerary = {}
+
         for gene in chromosome.genes:
-            if gene.timeslot_id is None or gene.instructor_id is None:
-                continue
+            if gene.timeslot_id is not None and gene.instructor_id is not None:
+                self._assign_instructor_gene(gene, instructor_itinerary)
 
-            if gene.instructor_id not in self.instructors_lookup:
-                continue
-
-            active_weeks = getattr(gene, "active_weeks", None)
-            weeks = active_weeks if active_weeks else [None]
-
-            if gene.instructor_id not in instructor_itinerary:
-                instructor_itinerary[gene.instructor_id] = {}
-
-            for week in weeks:
-                if week not in instructor_itinerary[gene.instructor_id]:
-                    instructor_itinerary[gene.instructor_id][week] = []
-                instructor_itinerary[gene.instructor_id][week].append(gene)
         return instructor_itinerary
+
+    def _assign_instructor_gene(self, gene: ClassSessionGene, itinerary: dict) -> None:
+        """Helper function to assign a single gene to the instructor's weekly itinerary."""
+        if gene.instructor_id not in self.instructors_lookup:
+            return
+
+        weeks = getattr(gene, "active_weeks", None)
+        if not weeks:
+            weeks = [None]
+
+        weekly_dict = itinerary.setdefault(gene.instructor_id, {})
+
+        for week in weeks:
+            weekly_dict.setdefault(week, []).append(gene)
 
     def _calculate_daily_penalty(
         self,
