@@ -191,37 +191,46 @@ class FitnessCalculator:
 
         return 0.0
 
-    def _evaluate_time_efficiency(self, chromosome: ScheduleChromosome) -> float:
-        """Helper function to evaluate time efficiency (days, gaps, fatigue) PER PROFILE"""
-        penalty = 0.0
-        # profile_itinerary maps: profile_id -> {week_identifier -> [genes]}
+    def _build_weekly_profile_itinerary(self, chromosome: ScheduleChromosome) -> dict:
+        """
+        Helper function to build profile itineraries mapped by week.
+        :param chromosome: ScheduleChromosome to build profile itineraries for
+        :return: Dictionary with profiles mapped by week
+        """
         profile_itinerary = {}
 
         for gene in chromosome.genes:
             if gene.timeslot_id is None:
                 continue
+
             profiles_in_group = self.group_to_profiles.get(gene.group_id, [])
-            # Determine the weeks in which this gene is active. If no explicit
-            # active_weeks information is available, fall back to a single
-            # synthetic week bucket (None) to preserve existing behavior.
             active_weeks = getattr(gene, "active_weeks", None)
-            if not active_weeks:
-                weeks = [None]
-            else:
-                weeks = active_weeks
+            weeks = active_weeks if active_weeks else [None]
+
             for profile_id in profiles_in_group:
                 if profile_id not in profile_itinerary:
                     profile_itinerary[profile_id] = {}
+
                 for week in weeks:
                     if week not in profile_itinerary[profile_id]:
                         profile_itinerary[profile_id][week] = []
                     profile_itinerary[profile_id][week].append(gene)
 
+        return profile_itinerary
+
+    def _evaluate_time_efficiency(self, chromosome: ScheduleChromosome) -> float:
+        """
+        Helper function to evaluate time efficiency (days, gaps, fatigue) PER PROFILE
+        :param chromosome: ScheduleChromosome to evaluate time efficiency for
+        :return: float
+        """
+        penalty = 0.0
+        profile_itinerary = self._build_weekly_profile_itinerary(chromosome)
+
         for profile_id, weeks_dict in profile_itinerary.items():
             multiplier = self.profile_counts.get(profile_id, 1)
+
             for _week, genes in weeks_dict.items():
-                # Compute days, gaps and fatigue within this week only, so that
-                # sessions that never occur in the same week do not interact.
                 days_active = set((g.timeslot_id - 1) // 12 for g in genes)
                 penalty += len(days_active) * self.W_DAY_USED * multiplier
 
@@ -230,23 +239,35 @@ class FitnessCalculator:
                         [g for g in genes if (g.timeslot_id - 1) // 12 == day],
                         key=lambda x: x.timeslot_id,
                     )
+                    penalty += self._calculate_daily_penalty(day_genes, multiplier)
 
-                    daily_slots_count = 0
-                    for k in range(len(day_genes)):
-                        g = day_genes[k]
-                        daily_slots_count += g.duration_slots
+        return penalty
 
-                        if k < len(day_genes) - 1:
-                            next_g = day_genes[k + 1]
-                            finish_slot_g = g.timeslot_id + g.duration_slots
-                            gap = next_g.timeslot_id - finish_slot_g
+    def _calculate_daily_penalty(self, day_genes: list, multiplier: int) -> float:
+        """
+        Calculates gap and fatigue penalties for a single day of a profile.
+        :param day_genes: list of genes for a single day
+        :param multiplier: multiplier
+        :return: float
+        """
+        penalty = 0.0
+        daily_slots_count = 0
 
-                            if gap > 0:
-                                penalty += gap * self.W_GAP_SLOT * multiplier
-                                if gap > 2:
-                                    penalty += self.W_MAX_GAP * multiplier
+        for k in range(len(day_genes)):
+            g = day_genes[k]
+            daily_slots_count += g.duration_slots
 
-                    if daily_slots_count > 6:
-                        penalty += (daily_slots_count - 6) * self.W_FATIGUE * multiplier
+            if k < len(day_genes) - 1:
+                next_g = day_genes[k + 1]
+                finish_slot_g = g.timeslot_id + getattr(g, "duration_slots", 1)
+                gap = next_g.timeslot_id - finish_slot_g
+
+                if gap > 0:
+                    penalty += gap * self.W_GAP_SLOT * multiplier
+                    if gap > 2:
+                        penalty += self.W_MAX_GAP * multiplier
+
+        if daily_slots_count > 6:
+            penalty += (daily_slots_count - 6) * self.W_FATIGUE * multiplier
 
         return penalty
