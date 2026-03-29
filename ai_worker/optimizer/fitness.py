@@ -186,31 +186,29 @@ class FitnessCalculator:
         :param g2: Second Gene to check
         :return: True if there is a resource conflict, False otherwise
         """
-        if not self._is_time_overlap(g1, g2):
-            return False
-
-        if (
+        # First check for any shared or conflicting resource; only then check time overlap.
+        room_conflict = (
             g1.room_id is not None
             and g2.room_id is not None
             and g1.room_id == g2.room_id
-        ):
-            return True
+        )
 
-        if (
+        instructor_conflict = (
             g1.instructor_id is not None
             and g2.instructor_id is not None
             and g1.instructor_id == g2.instructor_id
-        ):
-            return True
+        )
 
-        if g1.group_id == g2.group_id:
-            return True
+        same_group_conflict = g1.group_id == g2.group_id
 
-        if g2.group_id in self.conflicting_groups.get(g1.group_id, set()):
-            return True
+        conflicting_group_conflict = (
+            g2.group_id in self.conflicting_groups.get(g1.group_id, set())
+        )
 
-        return False
+        if not (room_conflict or instructor_conflict or same_group_conflict or conflicting_group_conflict):
+            return False
 
+        return self._is_time_overlap(g1, g2)
     def _evaluate_location_logic(self, chromosome: ScheduleChromosome) -> float:
         """
         Helper function to evaluate location logic (campuses, buildings) PER PROFILE
