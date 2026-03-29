@@ -23,10 +23,18 @@ class FitnessCalculator:
         self.W_ROOM_SIZE = 1  # per one free seat
         self.W_CAMPUS_CHANGE = 500  # without gap
         self.W_FATIGUE = 150  # day longer than 6 time slots in a day
-        self.W_TOO_MUCH_STUDENTS = 5000
         self.W_BUILDING_CHANGE = 20
         self.W_ROOM_CHANGE = 10
 
+        self.W_INSTR_DAY_USED = 150
+        self.W_INSTR_GAP_SLOT = 75
+        self.W_INSTR_MAX_GAP = 300
+        self.W_INSTR_CAMPUS_CHANGE = 750
+        self.W_INSTR_FATIGUE = 200
+        self.W_INSTR_BUILDING_CHANGE = 30
+        self.W_INSTR_ROOM_CHANGE = 15
+
+        self.W_TOO_MUCH_STUDENTS = 5000
         self.W_HARD_PENALTY = 100000
 
     def calculate_fitness(self, chromosome: ScheduleChromosome) -> float:
@@ -39,6 +47,9 @@ class FitnessCalculator:
         penalty += self._evaluate_time_efficiency(chromosome)
         penalty += self._evaluate_room_usage(chromosome)
         penalty += self._evaluate_location_logic(chromosome)
+
+        penalty += self._evaluate_instructor_time_efficiency(chromosome)
+        penalty += self._evaluate_instructor_location_logic(chromosome)
 
         chromosome.fitness_score = penalty
         return penalty
@@ -103,10 +114,7 @@ class FitnessCalculator:
                 continue
 
             start_slot = gene.timeslot_id
-            duration = getattr(gene, "duration_slots", 0) or 0
-            # Fallback to a single slot if duration is missing or non-positive
-            if duration <= 0:
-                duration = 1
+            duration = getattr(gene, "duration_slots", 0) or 1
 
             for week in active_weeks:
                 for slot in range(start_slot, start_slot + duration):
@@ -126,11 +134,7 @@ class FitnessCalculator:
                 g1 = genes[idx1]
                 for j in range(i + 1, n):
                     idx2 = indices[j]
-                    # Normalize pair ordering for deduplication
-                    if idx1 < idx2:
-                        pair = (idx1, idx2)
-                    else:
-                        pair = (idx2, idx1)
+                    pair = (idx1, idx2) if idx1 < idx2 else (idx2, idx1)
 
                     if pair in seen_pairs:
                         continue
@@ -214,7 +218,12 @@ class FitnessCalculator:
 
             for k in range(len(sorted_genes) - 1):
                 penalty += self._calculate_location_penalty(
-                    sorted_genes[k], sorted_genes[k + 1], multiplier
+                    sorted_genes[k],
+                    sorted_genes[k + 1],
+                    multiplier,
+                    self.W_CAMPUS_CHANGE,
+                    self.W_BUILDING_CHANGE,
+                    self.W_ROOM_CHANGE,
                 )
 
         return penalty
@@ -244,26 +253,40 @@ class FitnessCalculator:
 
         return False
 
-    def _get_campus_change_penalty(self, gap: int, multiplier: int) -> float:
+    def _get_campus_change_penalty(
+        self, gap: int, multiplier: int, w_campus_change: float
+    ) -> float:
         """
         Calculates penalty for changing campus based on the available gap.
         :param gap: Gap to calculate penalty for
         :param multiplier: multiplier to calculate penalty for
+        :param w_campus_change: Specific weight for campus change
         :return: Penalty score (lower is better)
         """
         if gap == 0:
-            return self.W_CAMPUS_CHANGE * 2.0 * multiplier
+            return w_campus_change * 2.0 * multiplier
         if gap == 1:
-            return self.W_CAMPUS_CHANGE * 0.2 * multiplier
+            return w_campus_change * 0.2 * multiplier
 
-        return self.W_CAMPUS_CHANGE * 0.5 * multiplier
+        return w_campus_change * 0.5 * multiplier
 
-    def _calculate_location_penalty(self, g1, g2, multiplier: int) -> float:
+    def _calculate_location_penalty(
+        self,
+        g1,
+        g2,
+        multiplier: int,
+        w_campus_change: float,
+        w_building_change: float,
+        w_room_change: float,
+    ) -> float:
         """
         Calculates location penalty for a pair of consecutive genes.
         :param g1: First Gene to calculate penalty for
         :param g2: Second Gene to calculate penalty for
         :param multiplier: multiplier to calculate penalty for
+        :param w_campus_change: Penalty weight for changing campus
+        :param w_building_change: Penalty weight for changing building
+        :param w_room_change: Penalty weight for changing room
         :return: Penalty score (lower is better)
         """
         if self._should_skip_location_check(g1, g2):
@@ -276,13 +299,13 @@ class FitnessCalculator:
         r2 = self.rooms_lookup[g2.room_id]
 
         if r1["campus_id"] != r2["campus_id"]:
-            return self._get_campus_change_penalty(gap, multiplier)
+            return self._get_campus_change_penalty(gap, multiplier, w_campus_change)
 
         if r1["building_id"] != r2["building_id"]:
-            return self.W_BUILDING_CHANGE * multiplier
+            return w_building_change * multiplier
 
         if g1.room_id != g2.room_id:
-            return self.W_ROOM_CHANGE * multiplier
+            return w_room_change * multiplier
 
         return 0.0
 
@@ -314,11 +337,6 @@ class FitnessCalculator:
         return profile_itinerary
 
     def _evaluate_time_efficiency(self, chromosome: ScheduleChromosome) -> float:
-        """
-        Helper function to evaluate time efficiency (days, gaps, fatigue) PER PROFILE
-        :param chromosome: ScheduleChromosome to evaluate time efficiency for
-        :return: float
-        """
         penalty = 0.0
         profile_itinerary = self._build_weekly_profile_itinerary(chromosome)
 
@@ -334,23 +352,140 @@ class FitnessCalculator:
                         [g for g in genes if (g.timeslot_id - 1) // 12 == day],
                         key=lambda x: x.timeslot_id,
                     )
-                    penalty += self._calculate_daily_penalty(day_genes, multiplier)
-
+                    penalty += self._calculate_daily_penalty(
+                        day_genes,
+                        multiplier,
+                        self.W_GAP_SLOT,
+                        self.W_MAX_GAP,
+                        self.W_FATIGUE,
+                    )
         return penalty
 
-    def _calculate_daily_penalty(self, day_genes: list, multiplier: int) -> float:
+    def _evaluate_instructor_time_efficiency(
+        self, chromosome: ScheduleChromosome
+    ) -> float:
         """
-        Calculates gap and fatigue penalties for a single day of a profile.
+        Helper function to evaluate time efficiency for instructors
+        :param chromosome: ScheduleChromosome to evaluate time efficiency for
+        :return: Penalty score (lower is better)
+        """
+        penalty = 0.0
+        instructor_itinerary = self._build_weekly_instructor_itinerary(chromosome)
+
+        for instructor_id, weeks_dict in instructor_itinerary.items():
+            for _week, genes in weeks_dict.items():
+                days_active = set((g.timeslot_id - 1) // 12 for g in genes)
+                penalty += len(days_active) * self.W_INSTR_DAY_USED
+
+                for day in days_active:
+                    day_genes = sorted(
+                        [g for g in genes if (g.timeslot_id - 1) // 12 == day],
+                        key=lambda x: x.timeslot_id,
+                    )
+                    penalty += self._calculate_daily_penalty(
+                        day_genes,
+                        1,
+                        self.W_INSTR_GAP_SLOT,
+                        self.W_INSTR_MAX_GAP,
+                        self.W_INSTR_FATIGUE,
+                    )
+        return penalty
+
+    def _evaluate_instructor_location_logic(
+        self, chromosome: ScheduleChromosome
+    ) -> float:
+        """
+        Helper function to evaluate location logic for instructors
+        :param chromosome: ScheduleChromosome to evaluate location logic for
+        :return: Penalty score (lower is better)
+        """
+        penalty = 0.0
+        instructor_itinerary = self._build_instructor_itinerary(chromosome)
+
+        for instructor_id, items in instructor_itinerary.items():
+            sorted_genes = sorted(items, key=lambda x: x.timeslot_id)
+
+            for k in range(len(sorted_genes) - 1):
+                penalty += self._calculate_location_penalty(
+                    sorted_genes[k],
+                    sorted_genes[k + 1],
+                    1,
+                    self.W_INSTR_CAMPUS_CHANGE,
+                    self.W_INSTR_BUILDING_CHANGE,
+                    self.W_INSTR_ROOM_CHANGE,
+                )
+        return penalty
+
+    def _build_instructor_itinerary(self, chromosome: ScheduleChromosome) -> dict:
+        """
+        Helper function to build instructor itinerary
+        :param chromosome: ScheduleChromosome to build instructor itinerary for
+        :return: Dictionary with instructor itineraries
+        """
+        instructor_itinerary = {}
+        for gene in chromosome.genes:
+            if gene.timeslot_id is None or gene.instructor_id is None:
+                continue
+
+            if gene.instructor_id not in self.instructors_lookup:
+                continue
+
+            if gene.instructor_id not in instructor_itinerary:
+                instructor_itinerary[gene.instructor_id] = []
+            instructor_itinerary[gene.instructor_id].append(gene)
+        return instructor_itinerary
+
+    def _build_weekly_instructor_itinerary(
+        self, chromosome: ScheduleChromosome
+    ) -> dict:
+        """
+        Helper function to build instructor itinerary mapped by week for time efficiency evaluation.
+        :param chromosome: ScheduleChromosome to build instructor itinerary for
+        :return: Dictionary with instructor itineraries mapped by week
+        """
+        instructor_itinerary = {}
+        for gene in chromosome.genes:
+            if gene.timeslot_id is None or gene.instructor_id is None:
+                continue
+
+            if gene.instructor_id not in self.instructors_lookup:
+                continue
+
+            active_weeks = getattr(gene, "active_weeks", None)
+            weeks = active_weeks if active_weeks else [None]
+
+            if gene.instructor_id not in instructor_itinerary:
+                instructor_itinerary[gene.instructor_id] = {}
+
+            for week in weeks:
+                if week not in instructor_itinerary[gene.instructor_id]:
+                    instructor_itinerary[gene.instructor_id][week] = []
+                instructor_itinerary[gene.instructor_id][week].append(gene)
+        return instructor_itinerary
+
+    def _calculate_daily_penalty(
+        self,
+        day_genes: list,
+        multiplier: int,
+        w_gap: float,
+        w_max_gap: float,
+        w_fatigue: float,
+    ) -> float:
+        """
+        Helper function to calculate daily penalty
         :param day_genes: list of genes for a single day
-        :param multiplier: multiplier
-        :return: float
+        :param multiplier: multiplier to calculate penalty for
+        :param w_gap: penalty per gap slot
+        :param w_max_gap: penalty for a gap longer than 2 slots
+        :param w_fatigue: penalty per slot above 6 in a day
+        :return: Penalty score (lower is better)
         """
         penalty = 0.0
         daily_slots_count = 0
 
         for k, value in enumerate(day_genes):
             g = value
-            daily_slots_count += g.duration_slots
+            daily_slots_count += getattr(g, "duration_slots", 1)
 
             if k < len(day_genes) - 1:
                 next_g = day_genes[k + 1]
@@ -358,11 +493,11 @@ class FitnessCalculator:
                 gap = next_g.timeslot_id - finish_slot_g
 
                 if gap > 0:
-                    penalty += gap * self.W_GAP_SLOT * multiplier
+                    penalty += gap * w_gap * multiplier
                     if gap > 2:
-                        penalty += self.W_MAX_GAP * multiplier
+                        penalty += w_max_gap * multiplier
 
         if daily_slots_count > 6:
-            penalty += (daily_slots_count - 6) * self.W_FATIGUE * multiplier
+            penalty += (daily_slots_count - 6) * w_fatigue * multiplier
 
         return penalty
