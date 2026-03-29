@@ -259,11 +259,8 @@ class DataProvider:
         :param conflicting_groups_df: dataframe with group_a and group_b
         :return: dictionary with group_id as key and set of conflicting group_ids as value
         """
-        conflicts = {}
-        for _, row in conflicting_groups_df.iterrows():
-            g_a = row["group_a"]
-            g_b = row["group_b"]
-            if g_a not in conflicts:
-                conflicts[g_a] = set()
-            conflicts[g_a].add(g_b)
-        return conflicts
+        if conflicting_groups_df.empty:
+            return {}
+
+        grouped = conflicting_groups_df.groupby("group_a")["group_b"].agg(lambda x: set(x))
+        return grouped.to_dict()
