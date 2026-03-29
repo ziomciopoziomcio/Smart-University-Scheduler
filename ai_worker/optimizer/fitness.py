@@ -247,7 +247,10 @@ class FitnessCalculator:
 
         weeks1 = getattr(g1, "active_weeks", None)
         weeks2 = getattr(g2, "active_weeks", None)
-        if weeks1 is not None and weeks2 is not None:
+        # Align with _is_time_overlap semantics:
+        # empty active_weeks means "all weeks", so only enforce intersection
+        # when both week lists are non-empty.
+        if weeks1 is not None and weeks2 is not None and weeks1 and weeks2:
             if not set(weeks1).intersection(weeks2):
                 return True
 
