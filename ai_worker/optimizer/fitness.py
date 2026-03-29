@@ -348,17 +348,14 @@ class FitnessCalculator:
                 continue
 
             profiles_in_group = self.group_to_profiles.get(gene.group_id, [])
-            active_weeks = getattr(gene, "active_weeks", None)
-            weeks = active_weeks if active_weeks else [None]
+
+            weeks = getattr(gene, "active_weeks", None) or [None]
 
             for profile_id in profiles_in_group:
-                if profile_id not in profile_itinerary:
-                    profile_itinerary[profile_id] = {}
+                weekly_dict = profile_itinerary.setdefault(profile_id, {})
 
                 for week in weeks:
-                    if week not in profile_itinerary[profile_id]:
-                        profile_itinerary[profile_id][week] = []
-                    profile_itinerary[profile_id][week].append(gene)
+                    weekly_dict.setdefault(week, []).append(gene)
 
         return profile_itinerary
 
