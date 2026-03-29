@@ -254,7 +254,7 @@ class FitnessCalculator:
         Checks if genes are on different days, lack rooms, or don't share weeks.
         :param g1: First Gene to check
         :param g2: Second Gene to check
-        :return: True if genes are on different days, False otherwise
+        :return: True if genes are on different days or lack shared weeks, False otherwise
         """
         day1 = (g1.timeslot_id - 1) // 12
         day2 = (g2.timeslot_id - 1) // 12
@@ -267,9 +267,6 @@ class FitnessCalculator:
 
         weeks1 = getattr(g1, "active_weeks", None)
         weeks2 = getattr(g2, "active_weeks", None)
-        # Align with _is_time_overlap semantics:
-        # empty active_weeks means "all weeks", so only enforce intersection
-        # when both week lists are non-empty.
         if weeks1 and weeks2:
             if set(weeks1).isdisjoint(weeks2):
                 return True
