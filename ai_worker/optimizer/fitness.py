@@ -110,7 +110,15 @@ class FitnessCalculator:
                 continue
 
             active_weeks = getattr(gene, "active_weeks", None)
-            if not active_weeks:
+            # If active_weeks is None, we have no week information; skip as before.
+            # If it's an empty list, this typically means "all weeks" in this codebase.
+            # Since we cannot expand "all weeks" here without a known week range,
+            # treat it as an invalid configuration and apply a hard penalty instead
+            # of silently skipping collision checks.
+            if active_weeks is None:
+                continue
+            if isinstance(active_weeks, list) and len(active_weeks) == 0:
+                penalty += self.W_HARD_PENALTY
                 continue
 
             start_slot = gene.timeslot_id
@@ -178,31 +186,29 @@ class FitnessCalculator:
         :param g2: Second Gene to check
         :return: True if there is a resource conflict, False otherwise
         """
-        if not self._is_time_overlap(g1, g2):
-            return False
-
-        if (
+        # First check for any shared or conflicting resource; only then check time overlap.
+        room_conflict = (
             g1.room_id is not None
             and g2.room_id is not None
             and g1.room_id == g2.room_id
-        ):
-            return True
+        )
 
-        if (
+        instructor_conflict = (
             g1.instructor_id is not None
             and g2.instructor_id is not None
             and g1.instructor_id == g2.instructor_id
-        ):
-            return True
+        )
 
-        if g1.group_id == g2.group_id:
-            return True
+        same_group_conflict = g1.group_id == g2.group_id
 
-        if g2.group_id in self.conflicting_groups.get(g1.group_id, set()):
-            return True
+        conflicting_group_conflict = (
+            g2.group_id in self.conflicting_groups.get(g1.group_id, set())
+        )
 
-        return False
+        if not (room_conflict or instructor_conflict or same_group_conflict or conflicting_group_conflict):
+            return False
 
+        return self._is_time_overlap(g1, g2)
     def _evaluate_location_logic(self, chromosome: ScheduleChromosome) -> float:
         """
         Helper function to evaluate location logic (campuses, buildings) PER PROFILE
