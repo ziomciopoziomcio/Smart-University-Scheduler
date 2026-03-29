@@ -97,6 +97,27 @@ class FitnessCalculator:
 
         return penalty
 
+    def _is_time_overlap(self, g1: ClassSessionGene, g2: ClassSessionGene) -> bool:
+        """
+        Checks if two genes overlap in time (slots and weeks).
+        :param g1: First Gene to check
+        :param g2: Second Gene to check
+        :return: True if they overlap, False otherwise
+        """
+        if g1.timeslot_id is None or g2.timeslot_id is None:
+            return False
+
+        if not (set(g1.active_weeks) & set(g2.active_weeks)):
+            return False
+
+        start1 = g1.timeslot_id
+        end1 = start1 + g1.duration_slots
+
+        start2 = g2.timeslot_id
+        end2 = start2 + g2.duration_slots
+
+        return start1 < end2 and start2 < end1
+
     def _has_resource_conflict(
         self, g1: ClassSessionGene, g2: ClassSessionGene
     ) -> bool:
@@ -106,30 +127,20 @@ class FitnessCalculator:
         :param g2: Second Gene to check
         :return: True if there is a resource conflict, False otherwise
         """
-        if g1.timeslot_id is None or g2.timeslot_id is None:
+        if not self._is_time_overlap(g1, g2):
             return False
 
-        shared_weeks = set(g1.active_weeks) & set(g2.active_weeks)
-        if not shared_weeks:
-            return False
+        if g1.room_id == g2.room_id:
+            return True
 
-        start1 = g1.timeslot_id
-        end1 = start1 + g1.duration_slots
+        if g1.instructor_id == g2.instructor_id:
+            return True
 
-        start2 = g2.timeslot_id
-        end2 = start2 + g2.duration_slots
+        if g1.group_id == g2.group_id:
+            return True
 
-        if start1 < end2 and start2 < end1:
-            is_group_conflict = (g1.group_id == g2.group_id) or (
-                g2.group_id in self.conflicting_groups.get(g1.group_id, set())
-            )
-
-            if (
-                g1.room_id == g2.room_id
-                or g1.instructor_id == g2.instructor_id
-                or is_group_conflict
-            ):
-                return True
+        if g2.group_id in self.conflicting_groups.get(g1.group_id, set()):
+            return True
 
         return False
 
