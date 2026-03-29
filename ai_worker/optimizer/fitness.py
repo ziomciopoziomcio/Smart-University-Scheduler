@@ -62,6 +62,25 @@ class FitnessCalculator:
 
         return penalty
 
+    def _build_profile_itinerary(self, chromosome: ScheduleChromosome) -> dict:
+        """
+        Helper function to build profile itineraries for fitness evaluation.
+        :param chromosome: ScheduleChromosome to build itineraries for
+        :return: Dictionary with profiles
+        """
+        profile_itinerary = {}
+        for gene in chromosome.genes:
+            if gene.timeslot_id is None:
+                continue
+
+            profiles_in_group = self.group_to_profiles.get(gene.group_id, [])
+            for profile_id in profiles_in_group:
+                if profile_id not in profile_itinerary:
+                    profile_itinerary[profile_id] = []
+                profile_itinerary[profile_id].append(gene)
+
+        return profile_itinerary
+
     def _check_collisions(self, chromosome: ScheduleChromosome) -> float:
         """
         Helper function to check collisions
@@ -115,66 +134,62 @@ class FitnessCalculator:
         return False
 
     def _evaluate_location_logic(self, chromosome: ScheduleChromosome) -> float:
-        """Helper function to evaluate location logic (campuses, buildings) PER STUDENT"""
+        """
+        Helper function to evaluate location logic (campuses, buildings) PER PROFILE
+        :param chromosome: ScheduleChromosome to evaluate location logic for
+        :return: Penalty score (lower is better)
+        """
         penalty = 0.0
-        profile_itinerary = {}
-
-        for gene in chromosome.genes:
-            if gene.timeslot_id is None:
-                continue
-            profiles_in_group = self.group_to_profiles.get(gene.group_id, [])
-            for profile_id in profiles_in_group:
-                if profile_id not in profile_itinerary:
-                    profile_itinerary[profile_id] = []
-                profile_itinerary[profile_id].append(gene)
+        profile_itinerary = self._build_profile_itinerary(chromosome)
 
         for profile_id, items in profile_itinerary.items():
             multiplier = self.profile_counts.get(profile_id, 1)
             sorted_genes = sorted(items, key=lambda x: x.timeslot_id)
 
             for k in range(len(sorted_genes) - 1):
-                g1 = sorted_genes[k]
-                g2 = sorted_genes[k + 1]
-
-                day1 = (g1.timeslot_id - 1) // 12
-                day2 = (g2.timeslot_id - 1) // 12
-
-                if day1 != day2:
-                    continue
-
-                # Ensure we only penalize location changes between classes
-                # that can actually co-occur in at least one active week.
-                weeks1 = getattr(g1, "active_weeks", None)
-                weeks2 = getattr(g2, "active_weeks", None)
-                if weeks1 is not None and weeks2 is not None:
-                    if not set(weeks1).intersection(weeks2):
-                        # These classes never run in the same week for this profile.
-                        # Skip applying any location-change penalty between them.
-                        continue
-                finish_slot_g1 = g1.timeslot_id + g1.duration_slots
-                gap = g2.timeslot_id - finish_slot_g1
-
-                if not g1.room_id or not g2.room_id:
-                    continue
-
-                r1 = self.rooms_lookup[g1.room_id]
-                r2 = self.rooms_lookup[g2.room_id]
-
-                if r1["campus_id"] != r2["campus_id"]:
-                    if gap == 0:
-                        penalty += self.W_CAMPUS_CHANGE * 2.0 * multiplier
-                    elif gap == 1:
-                        penalty += self.W_CAMPUS_CHANGE * 0.2 * multiplier
-                    else:
-                        penalty += self.W_CAMPUS_CHANGE * 0.5 * multiplier
-
-                elif r1["building_id"] != r2["building_id"]:
-                    penalty += self.W_BUILDING_CHANGE * multiplier
-
-                elif g1.room_id != g2.room_id:
-                    penalty += self.W_ROOM_CHANGE * multiplier
+                penalty += self._calculate_location_penalty(
+                    sorted_genes[k], sorted_genes[k + 1], multiplier
+                )
 
         return penalty
+
+    def _calculate_location_penalty(self, g1, g2, multiplier: int) -> float:
+        """Calculates location penalty for a pair of consecutive genes."""
+        day1 = (g1.timeslot_id - 1) // 12
+        day2 = (g2.timeslot_id - 1) // 12
+
+        if day1 != day2:
+            return 0.0
+
+        weeks1 = getattr(g1, "active_weeks", None)
+        weeks2 = getattr(g2, "active_weeks", None)
+        if weeks1 is not None and weeks2 is not None:
+            if not set(weeks1).intersection(weeks2):
+                return 0.0
+
+        if not g1.room_id or not g2.room_id:
+            return 0.0
+
+        finish_slot_g1 = g1.timeslot_id + getattr(g1, "duration_slots", 1)
+        gap = g2.timeslot_id - finish_slot_g1
+
+        r1 = self.rooms_lookup[g1.room_id]
+        r2 = self.rooms_lookup[g2.room_id]
+
+        if r1["campus_id"] != r2["campus_id"]:
+            if gap == 0:
+                return self.W_CAMPUS_CHANGE * 2.0 * multiplier
+            if gap == 1:
+                return self.W_CAMPUS_CHANGE * 0.2 * multiplier
+            return self.W_CAMPUS_CHANGE * 0.5 * multiplier
+
+        if r1["building_id"] != r2["building_id"]:
+            return self.W_BUILDING_CHANGE * multiplier
+
+        if g1.room_id != g2.room_id:
+            return self.W_ROOM_CHANGE * multiplier
+
+        return 0.0
 
     def _evaluate_time_efficiency(self, chromosome: ScheduleChromosome) -> float:
         """Helper function to evaluate time efficiency (days, gaps, fatigue) PER PROFILE"""
