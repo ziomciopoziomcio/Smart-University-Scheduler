@@ -264,7 +264,5 @@ class DataProvider:
         if conflicting_groups_df.empty:
             return {}
 
-        grouped = conflicting_groups_df.groupby("group_a")["group_b"].agg(
-            lambda x: set(x)
-        )
+        grouped = conflicting_groups_df.groupby("group_a")["group_b"].agg(set)
         return grouped.to_dict()
