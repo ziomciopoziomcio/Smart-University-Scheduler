@@ -22,7 +22,7 @@ class FitnessCalculator:
         self.W_MAX_GAP = 200  # gap longer than 2 slots
         self.W_ROOM_SIZE = 1  # per one free seat
         self.W_CAMPUS_CHANGE = 500  # without gap
-        self.W_FATIGUE = 150  # day longer than 6 hours
+        self.W_FATIGUE = 150  # day longer than 6 time slots in a day
         self.W_TOO_MUCH_STUDENTS = 5000
         self.W_BUILDING_CHANGE = 20
         self.W_ROOM_CHANGE = 10
