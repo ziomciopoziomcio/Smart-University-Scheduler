@@ -113,26 +113,41 @@ class FitnessCalculator:
         penalty = 0.0
 
         for idx, gene in enumerate(genes):
-            if gene.timeslot_id is None:
-                continue
-
-            active_weeks = getattr(gene, "active_weeks", None)
-            if active_weeks is None:
-                continue
-
-            if isinstance(active_weeks, list) and len(active_weeks) == 0:
-                penalty += self.W_HARD_PENALTY
-                continue
-
-            start_slot = gene.timeslot_id
-            duration = getattr(gene, "duration_slots", 0) or 1
-
-            for week in active_weeks:
-                for slot in range(start_slot, start_slot + duration):
-                    key = (week, slot)
-                    buckets.setdefault(key, []).append(idx)
+            if gene.timeslot_id is not None:
+                penalty += self._add_gene_to_buckets(idx, gene, buckets)
 
         return buckets, penalty
+
+    def _add_gene_to_buckets(
+        self, idx: int, gene: ClassSessionGene, buckets: dict
+    ) -> float:
+        """
+        Helper function to process a single gene and assign it to time buckets.
+        Returns the penalty incurred by this gene (if any).
+        :param idx: Index of gene to process
+        :param gene: Gene to process
+        :param buckets: The dictionary to update with gene indices
+        :return: Penalty score (lower is better)
+        """
+        active_weeks = getattr(gene, "active_weeks", None)
+
+        if active_weeks is None:
+            return 0.0
+
+        if active_weeks == []:
+            return self.W_HARD_PENALTY
+
+        start_slot = gene.timeslot_id
+
+        duration = getattr(gene, "duration_slots", 1)
+        if duration <= 0:
+            duration = 1
+
+        for week in active_weeks:
+            for slot in range(start_slot, start_slot + duration):
+                buckets.setdefault((week, slot), []).append(idx)
+
+        return 0.0
 
     def _evaluate_bucket_collisions(self, buckets: dict, genes: list) -> float:
         """
@@ -329,20 +344,28 @@ class FitnessCalculator:
         profile_itinerary = {}
 
         for gene in chromosome.genes:
-            if gene.timeslot_id is None:
-                continue
-
-            profiles_in_group = self.group_to_profiles.get(gene.group_id, [])
-
-            weeks = getattr(gene, "active_weeks", None) or [None]
-
-            for profile_id in profiles_in_group:
-                weekly_dict = profile_itinerary.setdefault(profile_id, {})
-
-                for week in weeks:
-                    weekly_dict.setdefault(week, []).append(gene)
+            if gene.timeslot_id is not None:
+                self._assign_gene_to_profiles(gene, profile_itinerary)
 
         return profile_itinerary
+
+    def _assign_gene_to_profiles(self, gene: ClassSessionGene, itinerary: dict) -> None:
+        """
+        Helper function to assign a single gene to the appropriate profiles and weeks.
+        :param gene: Gene to assign
+        :param itinerary: The dictionary to update
+        """
+        profiles_in_group = self.group_to_profiles.get(gene.group_id, [])
+
+        weeks = getattr(gene, "active_weeks", None)
+        if not weeks:
+            weeks = [None]
+
+        for profile_id in profiles_in_group:
+            weekly_dict = itinerary.setdefault(profile_id, {})
+
+            for week in weeks:
+                weekly_dict.setdefault(week, []).append(gene)
 
     def _evaluate_time_efficiency(self, chromosome: ScheduleChromosome) -> float:
         penalty = 0.0
