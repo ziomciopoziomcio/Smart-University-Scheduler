@@ -332,7 +332,7 @@ class FitnessCalculator:
             return 0.0
 
         finish_slot_g1 = g1.timeslot_id + getattr(g1, "duration_slots", 1)
-        gap = g2.timeslot_id - finish_slot_g1
+        gap = max(0, g2.timeslot_id - finish_slot_g1)
 
         r1 = self.rooms_lookup.get(g1.room_id)
         r2 = self.rooms_lookup.get(g2.room_id)
