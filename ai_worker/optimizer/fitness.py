@@ -334,11 +334,14 @@ class FitnessCalculator:
         :param gene: Gene to assign
         :param itinerary: The dictionary to update
         """
+        active_weeks = getattr(gene, "active_weeks", None)
+
+        if active_weeks == []:
+            return
+
         profiles_in_group = self.group_to_profiles.get(gene.group_id, [])
 
-        weeks = getattr(gene, "active_weeks", None)
-        if not weeks:
-            weeks = [None]
+        weeks = active_weeks if active_weeks is not None else [None]
 
         for profile_id in profiles_in_group:
             weekly_dict = itinerary.setdefault(profile_id, {})
@@ -448,9 +451,12 @@ class FitnessCalculator:
         if gene.instructor_id not in self.instructors_lookup:
             return
 
-        weeks = getattr(gene, "active_weeks", None)
-        if not weeks:
-            weeks = [None]
+        active_weeks = getattr(gene, "active_weeks", None)
+
+        if active_weeks == []:
+            return
+
+        weeks = active_weeks if active_weeks is not None else [None]
 
         weekly_dict = itinerary.setdefault(gene.instructor_id, {})
 
