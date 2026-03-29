@@ -134,10 +134,18 @@ class FitnessCalculator:
         if not self._is_time_overlap(g1, g2):
             return False
 
-        if g1.room_id == g2.room_id:
+        if (
+            g1.room_id is not None
+            and g2.room_id is not None
+            and g1.room_id == g2.room_id
+        ):
             return True
 
-        if g1.instructor_id == g2.instructor_id:
+        if (
+            g1.instructor_id is not None
+            and g2.instructor_id is not None
+            and g1.instructor_id == g2.instructor_id
+        ):
             return True
 
         if g1.group_id == g2.group_id:
