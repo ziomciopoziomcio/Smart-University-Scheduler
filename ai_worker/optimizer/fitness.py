@@ -90,9 +90,9 @@ class FitnessCalculator:
         penalty = 0.0
         genes = chromosome.genes
 
-        for i in range(len(genes)):
+        for i, value in enumerate(genes):
             for j in range(i + 1, len(genes)):
-                if self._has_resource_conflict(genes[i], genes[j]):
+                if self._has_resource_conflict(value, genes[j]):
                     penalty += self.W_HARD_PENALTY
 
         return penalty
@@ -292,8 +292,8 @@ class FitnessCalculator:
         penalty = 0.0
         daily_slots_count = 0
 
-        for k in range(len(day_genes)):
-            g = day_genes[k]
+        for k, value in enumerate(day_genes):
+            g = value
             daily_slots_count += g.duration_slots
 
             if k < len(day_genes) - 1:
