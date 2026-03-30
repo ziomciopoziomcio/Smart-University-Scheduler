@@ -4,11 +4,15 @@ import re
 from sqlalchemy.orm import Session
 import json
 
-from backend.src.courses.models import ClassType, Course_type_detail, Course
-
-
-from backend.src.courses.models import Study_fields
 from backend.src.facilities.models import Faculty
+from backend.src.academics.models import Units
+from backend.src.courses.models import (
+    Study_fields,
+    Course,
+    ClassType,
+    CourseLanguage,
+    Course_type_detail,
+)
 
 
 def generate_study_fields(
@@ -138,3 +142,139 @@ def add_course_detail(
     session.add(ctd)
     session.flush()
     return db_ctd
+
+
+def _parse_hours_to_int(hours: str) -> int:
+    """
+    Converts a value to an integer representing hours.
+    :param hours: hours as string
+    :return: hours as integer
+    """
+    try:
+        result = int(hours)
+    except (ValueError, TypeError):
+        result = 0
+    return result
+
+
+def _map_units(units: dict[str, Units]):
+    """
+    Creates a mapping from unit full names to their IDs.
+    :param units: dictionary where keys are unit short names and values are Units objects.
+    :return: dictionary where keys are unit full names and values are their IDs.
+    """
+    result = {}
+    for unit in units.values():
+        result[unit.unit_name] = unit.id
+    return result
+
+
+def _parse_course_code(course_code: str) -> int:
+    """
+    Extracts digits from a course code string and converts them to an integer.
+    :param course_code: String containing a course code.
+    :return: Course code as an integer.
+    """
+
+    digits = re.sub(r"\D", "", course_code)
+    return int(digits) if digits else 0
+
+
+def _parse_course_language(
+    language: str, default=CourseLanguage.POLISH
+) -> CourseLanguage:
+    """
+    Parses a course language from a string and returns the corresponding CourseLanguage enum value.
+    :param language: String containing a course language.
+    :param default: Default course language.
+    :return: Course language enum value.
+    """
+    language_lower = language.lower()
+    if language_lower == "polski":
+        return CourseLanguage.POLISH
+    elif language_lower == "angielski":
+        return CourseLanguage.ENGLISH
+    elif language_lower == "francuski":
+        return CourseLanguage.FRENCH
+    else:
+        return default
+
+
+def generate_courses(
+    session: Session,
+    units: dict[str, Units],
+    sourcefile="../../../helpers/data_collector/final-programy.json",
+) -> dict[int, Course]:
+    """
+    Generates courses from JSON file and links them to units.
+    :param session: database session
+    :param units: dictionary of Units objects mapped by unit_short
+    :param sourcefile: path to JSON file containing study field data
+    :return: dictionary mapping course codes to Course objects
+    """
+
+    with open(sourcefile, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    mapped_units = _map_units(units)
+
+    db_courses: dict[int, Course] = {}  # already added
+
+    for kierunek in data:
+        for semestr in kierunek["semestry"]:
+            for przedmiot in semestr["przedmioty"]:
+                try:
+                    course_code = _parse_course_code(przedmiot["Kod przedmiotu"])
+                    ects = int(przedmiot["ECTS"])
+                    course_name = przedmiot["Nazwa przedmiotu w języku polskim"]
+                    course_language = _parse_course_language(przedmiot["jezyk"])
+                    leading_unit = przedmiot["jednostka"]
+                    course_coordinator = przedmiot["kierownik"]
+
+                    print(
+                        f"Processing course: {course_code} {ects} - {course_name} -  - {leading_unit} - {course_coordinator}"
+                    )
+
+                    # validation
+                    if course_code == 0:
+                        print(
+                            f"Wrong data - could not parse course code - {course_name}"
+                        )
+                        continue
+
+                    if course_coordinator == "":
+                        print(f"Wrong data - no course coordinator - {course_name}")
+                        continue
+
+                    if course_code in db_courses.keys():
+                        print(f"Duplicate course code {course_code}: {course_name}")
+                        continue
+
+                    leading_unit_id = mapped_units.get(leading_unit, None)
+                    if leading_unit_id is None:
+                        print("Wrong data - leading unit not found")
+                        continue
+
+                    # todo course_coordinator mapping !!!
+                    course_coordinator_id = 1
+
+                    # add course
+                    course = Course(
+                        course_code=course_code,
+                        ects_points=ects,
+                        course_name=course_name,
+                        course_language=course_language,
+                        leading_unit=leading_unit_id,
+                        course_coordinator=course_coordinator_id,
+                    )
+                    session.add(course)
+                    db_courses[course_code] = course
+
+                except KeyError as e:
+                    print(
+                        f"Could not find key in course - {e} - {przedmiot['Nazwa przedmiotu w języku polskim']}"
+                    )
+                    continue
+
+    session.flush()
+    return db_courses
