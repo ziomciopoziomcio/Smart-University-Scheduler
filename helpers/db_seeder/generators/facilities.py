@@ -38,7 +38,27 @@ def generate_faculties(session: Session) -> dict[str, Faculty]:
         {
             "faculty_name": "Wydział Elektrotechniki, Elektroniki, Informatyki i Automatyki",
             "faculty_short": "WEEIA",
-        }
+        },
+        {
+            "faculty_name": "Wydział Mechaniczny",
+            "faculty_short": "WM",
+        },
+        {
+            "faculty_name": "Wydział Fizyki Technicznej, Informatyki i Matematyki Stosowanej",
+            "faculty_short": "WFTIMS",
+        },
+        {
+            "faculty_name": "Wydział Organizacji i Zarządzania",
+            "faculty_short": "WOIZ",
+        },
+        {
+            "faculty_name": "Wydział Biotechnologii i Nauk o Żywności",
+            "faculty_short": "WBINOŻ",
+        },
+        {
+            "faculty_name": "Wydział Chemiczny",
+            "faculty_short": "Wch",
+        },
     ]
     db_faculties: dict[str, Faculty] = {}
     for faculty in faculties_data:
