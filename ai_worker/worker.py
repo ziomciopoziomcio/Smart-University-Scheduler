@@ -6,9 +6,23 @@ from aiokafka import AIOKafkaConsumer
 
 from data_provider import DataProvider
 from neo4j_provider import Neo4jProvider
+from optimizer import models, fitness
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def _evaluate_single_chromosome(
+    chromosome: models.ScheduleChromosome, calculator: fitness.FitnessCalculator
+) -> models.ScheduleChromosome:
+    """
+        Evaluates the fitness of a single chromosome using the provided fitness calculator.
+    :param chromosome: The ScheduleChromosome to be evaluated.
+    :param calculator: An instance of FitnessCalculator that contains the logic to compute the fitness score based on the chromosome's genes and the underlying data.
+    :return: The same ScheduleChromosome instance with its fitness_score attribute updated based on the evaluation.
+    """
+    chromosome.fitness_score = calculator.calculate_fitness(chromosome)
+    return chromosome
 
 
 async def process_task(
