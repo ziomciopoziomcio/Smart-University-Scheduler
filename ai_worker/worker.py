@@ -114,8 +114,10 @@ async def process_task(
         await neo4j_prov.load_requirements(data["requirements"])
         await neo4j_prov.load_competencies(data["competencies"])
 
+        base_genes = data_prov.prepare_initial_genes(data)
+
         best_schedule = await asyncio.to_thread(  # noqa F841
-            run_ai_optimizer_sync, faculty_id, data
+            run_ai_optimizer_sync, faculty_id, data, base_genes
         )
 
         # TODO: Save best_schedule
