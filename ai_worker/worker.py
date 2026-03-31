@@ -108,6 +108,27 @@ def run_ai_optimizer_sync(
                 default_workers,
             )
             max_workers = default_workers
+    default_workers = 1
+    if raw_max_workers is None:
+        max_workers = default_workers
+    else:
+        try:
+            parsed_workers = int(raw_max_workers)
+            if parsed_workers < 1:
+                logger.warning(
+                    "GA_MAX_WORKERS must be a positive integer; got %r. "
+                    "Falling back to %d.", raw_max_workers, default_workers
+                )
+                max_workers = default_workers
+            else:
+                max_workers = parsed_workers
+        except (TypeError, ValueError):
+            logger.warning(
+                "Invalid GA_MAX_WORKERS value %r. Falling back to %d.",
+                raw_max_workers,
+                default_workers,
+            )
+            max_workers = default_workers
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
         for gen in range(generations):
