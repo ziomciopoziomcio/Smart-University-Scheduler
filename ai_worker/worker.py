@@ -20,10 +20,12 @@ def _evaluate_single_chromosome(
     chromosome: models.ScheduleChromosome, calculator: fitness.FitnessCalculator
 ) -> models.ScheduleChromosome:
     """
-        Evaluates the fitness of a single chromosome using the provided fitness calculator.
+    Evaluates the fitness of a single chromosome using the provided fitness calculator.
     :param chromosome: The ScheduleChromosome to be evaluated.
-    :param calculator: An instance of FitnessCalculator that contains the logic to compute the fitness score based on the chromosome's genes and the underlying data.
-    :return: The same ScheduleChromosome instance with its fitness_score attribute updated based on the evaluation.
+    :param calculator: An instance of FitnessCalculator that contains the logic to compute
+        the fitness score based on the chromosome's genes and the underlying data.
+    :return: The same ScheduleChromosome instance with its fitness_score attribute
+        updated based on the evaluation.
     """
     chromosome.fitness_score = calculator.calculate_fitness(chromosome)
     return chromosome
