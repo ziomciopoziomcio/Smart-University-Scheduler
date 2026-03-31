@@ -1,8 +1,4 @@
 import os
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 # SQLAlchemy
 os.environ["DB_HOST"] = "localhost"
@@ -30,10 +26,15 @@ os.environ["SMTP_FROM"] = "Test <no-reply@test.pl>"
 os.environ["PUBLIC_BASE_URL"] = "http://localhost:3000"
 os.environ["CORS_ORIGINS"] = "http://localhost:3000"
 
-
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from main import app
 from src.database.database import get_db
 from src.database.base import Base
+from src.users import models as user_models
+from src.users.auth import create_access_token
 
 TEST_DB_URL = "sqlite:///:memory:"
 engine = create_engine(TEST_DB_URL, connect_args={"check_same_thread": False})
@@ -73,3 +74,60 @@ def client(db_session):
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def get_auth_headers(db_session):
+    def _get_headers(role_name: str):
+
+        if role_name == "guest":
+            return {}
+
+        ROLE_PERMISSIONS_MAP = {
+            # TODO permission map
+            # "admin" : ["student:create", ...]
+        }
+
+        role = (
+            db_session.query(user_models.Roles).filter_by(role_name=role_name).first()
+        )
+        if not role:
+            role = user_models.Roles(role_name=role_name)
+            db_session.add(role)
+            db_session.commit()
+
+        required_codes = ROLE_PERMISSIONS_MAP.get(role_name, [])
+        for code in required_codes:
+            perm = (
+                db_session.query(user_models.Permissions).filter_by(code=code).first()
+            )
+            if not perm:
+                perm = user_models.Permissions(code=code, name=f"Permission {code}")
+                db_session.add(perm)
+                db_session.commit()
+
+            if perm not in role.permissions:
+                role.permissions.append(perm)
+
+        db_session.commit()
+
+        user_email = f"{role_name.replace(' ', '_').lower()}@test.pl"
+        user = db_session.query(user_models.Users).filter_by(email=user_email).first()
+
+        if not user:
+            user = user_models.Users(
+                email=user_email,
+                password_hash="fake_hash",
+                name="Test",
+                surname=role_name,
+                email_verified=True,
+            )
+            user.roles.append(role)
+            db_session.add(user)
+            db_session.commit()
+
+        token = create_access_token(data={"sub": str(user.id)})
+        # print(f"DEBUG: Generated token for {user.email}: {token}")
+        return {"Authorization": f"Bearer {token}"}
+
+    return _get_headers
