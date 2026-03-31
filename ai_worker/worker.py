@@ -111,7 +111,19 @@ def run_ai_optimizer_sync(
                 )
                 max_workers = default_workers
             else:
-                max_workers = parsed_workers
+                # Cap the number of workers to avoid resource exhaustion.
+                cpu_count = os.cpu_count() or 1
+                safe_max_workers = min(cpu_count, population_size)
+                if parsed_workers > safe_max_workers:
+                    logger.warning(
+                        "GA_MAX_WORKERS=%d exceeds safe limit %d; capping to %d.",
+                        parsed_workers,
+                        safe_max_workers,
+                        safe_max_workers,
+                    )
+                    max_workers = safe_max_workers
+                else:
+                    max_workers = parsed_workers
         except (TypeError, ValueError):
             logger.warning(
                 "Invalid GA_MAX_WORKERS value %r. Falling back to %d.",
