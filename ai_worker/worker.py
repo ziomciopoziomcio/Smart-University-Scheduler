@@ -35,10 +35,27 @@ def run_ai_optimizer_sync(
     faculty_id: str, data: dict, base_genes: list[models.ClassSessionGene]
 ) -> models.ScheduleChromosome:
     """
-    Synchronous function to run the AI optimizer for a given faculty and data. This function is intended to be called in a separate thread to avoid blocking the main event loop.
-    :param faculty_id: The identifier of the faculty for which the schedule optimization should be performed.
-    :param data: A dictionary containing all necessary data for the optimization process, including
-    :return: - rooms: The best chromosome
+    Run the AI optimizer synchronously for a given faculty and input data.
+
+    This function is intended to be executed in a separate thread or process so that
+    it does not block the main event loop.
+
+    :param faculty_id: Identifier of the faculty for which the schedule optimization
+        should be performed.
+    :param data: Dictionary containing all necessary data for the optimization
+        process. It is expected to include at least:
+
+            - ``"group_members"``: data used to derive student profiles per group.
+            - ``"conflicting_groups"``: data describing groups that cannot be
+              scheduled at the same time.
+            - ``"rooms"``: tabular structure (e.g., DataFrame) with room
+              information, indexed by ``"room_id"``.
+            - ``"employees"``: tabular structure (e.g., DataFrame) with instructor
+              information, indexed by ``"id"``.
+    :param base_genes: List of ``ClassSessionGene`` instances representing the
+        initial set of genes from which the population will be constructed.
+    :return: The best ``ScheduleChromosome`` found after running the genetic
+        algorithm.
     """
     logger.info(f"Starting AI optimizer for {faculty_id}")
 
