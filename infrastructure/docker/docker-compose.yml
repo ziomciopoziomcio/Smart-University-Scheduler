@@ -104,7 +104,9 @@ services:
       context: ../../ai_worker
     container_name: smart_scheduler_ai_worker
     restart: unless-stopped
-    shm_size: '2gb'
+    # Increased shared memory for AI workloads (e.g. multiprocessing, large NumPy arrays, or other /dev/shm users).
+    # Make this configurable to avoid surprising resource requirements in constrained environments.
+    shm_size: ${AI_WORKER_SHM_SIZE:-2gb}
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
