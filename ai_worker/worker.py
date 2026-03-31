@@ -41,6 +41,71 @@ def _evaluate_single_chromosome(
     return chromosome
 
 
+def _create_fitness_calculator(data: dict) -> fitness.FitnessCalculator:
+    """
+    Creates the fitness calculator for the provided data.
+    :param data: Dictionary containing all necessary data for the optimization process. It is expected to include at least:
+    :return: An instance of FitnessCalculator initialized with the provided data.
+    """
+    group_to_profiles, profile_counts = DataProvider.get_student_profiles(
+        data["group_members"]
+    )
+    conflicting_groups = DataProvider.get_conflicting_groups_dict(
+        data["conflicting_groups"]
+    )
+
+    return fitness.FitnessCalculator(
+        rooms_lookup=data["rooms"].set_index("room_id").to_dict("index"),
+        instructors_lookup=data["employees"].set_index("id").to_dict("index"),
+        group_to_profiles=group_to_profiles,
+        profile_counts=profile_counts,
+        conflicting_groups=conflicting_groups,
+    )
+
+
+def _generate_initial_population(
+    base_genes: list[models.ClassSessionGene], size: int
+) -> list[models.ScheduleChromosome]:
+    """
+    Generates an initial population of ScheduleChromosomes based on the provided base genes.
+    :param base_genes: List of ClassSessionGene instances representing the initial set of genes.
+    :param size: The desired size of the population to generate.
+    :return: A list of ScheduleChromosome instances forming the initial population.
+    """
+    population = []
+    for _ in range(size):
+        # TODO: Greedy logic
+        genes_copy = copy.deepcopy(base_genes)
+        population.append(models.ScheduleChromosome(genes=genes_copy))
+    return population
+
+
+def _get_max_workers(population_size: int) -> int:
+    """
+    Parsing and validating workers amount from environment variable, with sensible defaults and limits to prevent resource exhaustion.
+    :param population_size: The size of the population, used to cap the number of workers to avoid creating more processes than necessary.
+    :return: The number of worker processes to use for parallel evaluation.
+    """
+    raw_val = os.getenv("GA_MAX_WORKERS")
+    if not raw_val:
+        return 1
+    try:
+        parsed = int(raw_val)
+        if parsed < 1:
+            logger.warning("GA_MAX_WORKERS must be positive. Falling back to 1.")
+            return 1
+        safe_max = min(os.cpu_count() or 1, population_size)
+        if parsed > safe_max:
+            logger.warning(
+                f"GA_MAX_WORKERS={parsed} exceeds safe limit {safe_max}. Capping to {safe_max}."
+            )
+            return safe_max
+        return parsed
+    except ValueError:
+        logger.warning(f"Invalid GA_MAX_WORKERS value '{raw_val}'. Falling back to 1.")
+        return 1
+
+
 def run_ai_optimizer_sync(
     faculty_id: str, data: dict, base_genes: list[models.ClassSessionGene]
 ) -> models.ScheduleChromosome:
@@ -69,71 +134,13 @@ def run_ai_optimizer_sync(
     """
     logger.info(f"Starting AI optimizer for {faculty_id}")
 
-    group_to_profiles, profile_counts = DataProvider.get_student_profiles(
-        data["group_members"]
-    )
-    conflicting_groups = DataProvider.get_conflicting_groups_dict(
-        data["conflicting_groups"]
-    )
-
-    rooms_lookup = data["rooms"].set_index("room_id").to_dict("index")
-    instructors_lookup = data["employees"].set_index("id").to_dict("index")
-
-    calculator = fitness.FitnessCalculator(
-        rooms_lookup=rooms_lookup,
-        instructors_lookup=instructors_lookup,
-        group_to_profiles=group_to_profiles,
-        profile_counts=profile_counts,
-        conflicting_groups=conflicting_groups,
-    )
+    calculator = _create_fitness_calculator(data)
     population_size = 50
-    population = []
+    population = _generate_initial_population(base_genes, population_size)
 
-    for _ in range(population_size):
-        genes_copy = copy.deepcopy(base_genes)
-        # TODO: Greedy
-        chromosome = models.ScheduleChromosome(genes=genes_copy)
-        population.append(chromosome)
-
-    generations = 100
-    raw_max_workers = os.getenv("GA_MAX_WORKERS")
-    default_workers = 1
-    if raw_max_workers is None:
-        max_workers = default_workers
-    else:
-        try:
-            parsed_workers = int(raw_max_workers)
-            if parsed_workers < 1:
-                logger.warning(
-                    "GA_MAX_WORKERS must be a positive integer; got %r. "
-                    "Falling back to %d.",
-                    raw_max_workers,
-                    default_workers,
-                )
-                max_workers = default_workers
-            else:
-                # Cap the number of workers to avoid resource exhaustion.
-                cpu_count = os.cpu_count() or 1
-                safe_max_workers = min(cpu_count, population_size)
-                if parsed_workers > safe_max_workers:
-                    logger.warning(
-                        "GA_MAX_WORKERS=%d exceeds safe limit %d; capping to %d.",
-                        parsed_workers,
-                        safe_max_workers,
-                        safe_max_workers,
-                    )
-                    max_workers = safe_max_workers
-                else:
-                    max_workers = parsed_workers
-        except (TypeError, ValueError):
-            logger.warning(
-                "Invalid GA_MAX_WORKERS value %r. Falling back to %d.",
-                raw_max_workers,
-                default_workers,
-            )
-            max_workers = default_workers
-
+    max_workers = _get_max_workers(population_size)
     chunk_size = max(1, population_size // (max_workers * 2))
+    generations = 100
 
     with concurrent.futures.ProcessPoolExecutor(
         max_workers=max_workers,
