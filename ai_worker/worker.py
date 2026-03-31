@@ -1,7 +1,11 @@
 import asyncio
+import concurrent.futures
+import copy
 import json
 import os
 import logging
+from functools import partial
+
 from aiokafka import AIOKafkaConsumer
 
 from data_provider import DataProvider
@@ -23,6 +27,59 @@ def _evaluate_single_chromosome(
     """
     chromosome.fitness_score = calculator.calculate_fitness(chromosome)
     return chromosome
+
+
+def run_ai_optimizer_sync(
+    faculty_id: str, data: dict, base_genes: list[models.ClassSessionGene]
+) -> models.ScheduleChromosome:
+    """
+    Synchronous function to run the AI optimizer for a given faculty and data. This function is intended to be called in a separate thread to avoid blocking the main event loop.
+    :param faculty_id: The identifier of the faculty for which the schedule optimization should be performed.
+    :param data: A dictionary containing all necessary data for the optimization process, including
+    :return: - rooms: The best chromosome
+    """
+    logger.info(f"Starting AI optimizer for {faculty_id}")
+
+    group_to_profiles, profile_counts = DataProvider.get_student_profiles(
+        data["group_members"]
+    )
+    conflicting_groups = DataProvider.get_conflicting_groups_dict(
+        data["conflicting_groups"]
+    )
+
+    rooms_lookup = data["rooms"].set_index("room_id").to_dict("index")
+    instructors_lookup = data["employees"].set_index("id").to_dict("index")
+
+    calculator = fitness.FitnessCalculator(
+        rooms_lookup=rooms_lookup,
+        instructors_lookup=instructors_lookup,
+        group_to_profiles=group_to_profiles,
+        profile_counts=profile_counts,
+        conflicting_groups=conflicting_groups,
+    )
+    population_size = 50
+    population = []
+
+    for _ in range(population_size):
+        genes_copy = copy.deepcopy(base_genes)
+        # TODO: Greedy
+        chromosome = models.ScheduleChromosome(genes=genes_copy)
+        population.append(chromosome)
+
+    generations = 100
+    max_workers = int(os.getenv("GA_MAX_WORKERS", "1"))
+
+    with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+        for gen in range(generations):
+            eval_func = partial(_evaluate_single_chromosome, calculator=calculator)
+            population = list(executor.map(eval_func, population))
+            # TODO: selection, crossover, mutation to create new population
+
+            population.sort(
+                key=lambda chrom: getattr(chrom, "fitness_score", float("inf"))
+            )
+
+    return population[0]
 
 
 async def process_task(
