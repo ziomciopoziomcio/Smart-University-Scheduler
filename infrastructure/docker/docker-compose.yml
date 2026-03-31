@@ -104,6 +104,9 @@ services:
       context: ../../ai_worker
     container_name: smart_scheduler_ai_worker
     restart: unless-stopped
+    # Increased shared memory for AI workloads (e.g. multiprocessing, large NumPy arrays, or other /dev/shm users).
+    # Make this configurable to avoid surprising resource requirements in constrained environments.
+    shm_size: ${AI_WORKER_SHM_SIZE:-2gb}
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
@@ -116,6 +119,7 @@ services:
       NEO4J_USER: ${NEO4J_USER:-neo4j}
       NEO4J_PORT: ${NEO4J_PORT:-7687}
       KAFKA_URL: "kafka:29092"
+      GA_MAX_WORKERS: ${GA_MAX_WORKERS:-4}
     depends_on:
       - postgres
       - neo4j
