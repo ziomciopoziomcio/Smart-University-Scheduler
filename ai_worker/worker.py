@@ -2,6 +2,7 @@ import asyncio
 import concurrent.futures
 import copy
 import json
+import multiprocessing
 import os
 import logging
 
@@ -135,7 +136,10 @@ def run_ai_optimizer_sync(
     chunk_size = max(1, population_size // (max_workers * 2))
 
     with concurrent.futures.ProcessPoolExecutor(
-        max_workers=max_workers, initializer=_init_worker, initargs=(calculator,)
+        max_workers=max_workers,
+        mp_context=multiprocessing.get_context("spawn"),
+        initializer=_init_worker,
+        initargs=(calculator,),
     ) as executor:
         for gen in range(generations):
             population = list(
