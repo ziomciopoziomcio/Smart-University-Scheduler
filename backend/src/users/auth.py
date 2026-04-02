@@ -19,7 +19,7 @@ from src.common.router_utils import _commit_or_rollback
 logger = logging.getLogger(__name__)
 
 # --- Password hashing ---
-pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_ctx = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 # --- standard TOTP/backup codes lengths ---
 TOTP_LENGTH = 6
