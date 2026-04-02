@@ -18,6 +18,9 @@
       ],
       "@assets/*": [
         "src/assets/*"
+      ],
+      "@api/*": [
+        "src/api/*"
       ]
     }
   }

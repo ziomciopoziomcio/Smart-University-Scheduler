@@ -1,7 +1,7 @@
 {
   "login": {
     "title": "Zaloguj się",
-    "username": "login",
+    "username": "email",
     "usernamePlaceholder": "example@edu.p.lodz.pl",
     "password": "hasło",
     "passwordPlaceholder": "hasło",

@@ -1,14 +1,13 @@
-import {
-    IconButton,
-    InputAdornment,
-    TextField,
-} from '@mui/material';
+import {IconButton, InputAdornment, TextField} from '@mui/material';
 
 type Props = {
     label: string;
     placeholder: string;
     showPassword: boolean;
     onTogglePassword: () => void;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    disabled?: boolean;
 };
 
 function AuthPasswordField({
@@ -16,21 +15,20 @@ function AuthPasswordField({
                                placeholder,
                                showPassword,
                                onTogglePassword,
+                               value,
+                               onChange,
+                               disabled,
                            }: Props) {
     return (
         <TextField
             label={label}
             type={showPassword ? 'text' : 'password'}
             placeholder={placeholder}
-            InputProps={{
-                endAdornment: (
-                    <InputAdornment position="end">
-                        <IconButton onClick={onTogglePassword} edge="end">
-                            👁️‍🗨️
-                        </IconButton>
-                    </InputAdornment>
-                ),
-            }}
+            value={value}
+            onChange={onChange}
+            disabled={disabled}
+            fullWidth
+            required
         />
     );
 }

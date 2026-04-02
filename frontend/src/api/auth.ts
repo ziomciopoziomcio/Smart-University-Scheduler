@@ -1,0 +1,39 @@
+import type {AuthResponse} from './types';
+
+const BASE_URL = 'http://localhost:3000/users';
+
+export const loginUser = async (email: string, password: string): Promise<AuthResponse> => {
+    const formData = new URLSearchParams();
+    formData.append('username', email);
+    formData.append('password', password);
+    const response = await fetch(`${BASE_URL}/login`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Could not login');
+    }
+
+    return response.json() as Promise<AuthResponse>;
+};
+
+export const verify2FA = async (code: string, preAuthToken: string): Promise<AuthResponse> => {
+    const response = await fetch(`${BASE_URL}/2fa/verify`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            code,
+            pre_auth_token: preAuthToken
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || '2FA failed');
+    }
+
+    return response.json() as Promise<AuthResponse>;
+};
