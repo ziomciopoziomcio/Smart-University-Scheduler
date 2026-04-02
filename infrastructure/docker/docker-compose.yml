@@ -90,6 +90,12 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS}
       KAFKA_URL: "kafka:9092"
       SECRET_KEY: ${SECRET_KEY}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM}
     depends_on:
       - postgres
       - kafka
