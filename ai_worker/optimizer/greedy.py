@@ -198,7 +198,7 @@ def greedy_assign(
     base_genes: list[ClassSessionGene],
     data: dict,
     randomize: bool = False,
-    seed: Optional[int] = None,
+    seed: int | None = None,
 ) -> list[ClassSessionGene]:
     """
     Greedy assignment used for seeding population.
