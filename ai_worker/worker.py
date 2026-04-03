@@ -5,12 +5,14 @@ import json
 import multiprocessing
 import os
 import logging
+from typing import Optional
 
 from aiokafka import AIOKafkaConsumer
 
 from data_provider import DataProvider
 from neo4j_provider import Neo4jProvider
 from optimizer import models, fitness
+from optimizer import models, fitness, greedy
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
