@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple, TypeAlias
 import secrets
 
 from .fitness import MAX_SLOT_ID, SLOTS_PER_DAY
@@ -11,6 +11,9 @@ RoomsLookup = Dict[int, dict]
 InstructorsLookup = Dict[int, dict]
 CompetenciesMap = Dict[Tuple[int, str], Set[int]]
 ConflictsMap = Dict[int, Set[int]]
+
+# (cost, start_slot, room_id, instr_id, pattern_index, weeks)
+BestTuple: TypeAlias = tuple[float, int, int, int, int, list[int]]
 
 
 @dataclass(frozen=True)
@@ -29,6 +32,17 @@ class Occupancy:
     occupied_room: set[tuple[int, int, int]]
     occupied_instr: set[tuple[int, int, int]]
     occupied_group: set[tuple[int, int, int]]
+
+
+@dataclass(frozen=True)
+class StartSlotInput:
+    gene: ClassSessionGene
+    weeks: list[int]
+    pattern_index: int
+    start_slot: int
+    duration: int
+    candidate_rooms: list[int]
+    instr_candidates: list[int]
 
 
 @dataclass(frozen=True)
@@ -154,6 +168,7 @@ def _cost_gap_penalty_for_day_span(
     finish = start_slot + duration - 1
     earliest = taken_slots[0]
     latest = taken_slots[-1]
+
     if start_slot > earliest and finish < latest:
         return penalty
     return 0.0
@@ -335,12 +350,8 @@ def _iter_feasible_instructors(
 
 
 def _update_best(
-    best: Optional[tuple[float, int, int, int, int, list[int]]],
-    cand: tuple[float, int, int, int, int, list[int]],
-) -> tuple[Optional[tuple[float, int, int, int, int, list[int]]], bool]:
-    """
-    Returns (new_best, changed).
-    """
+    best: Optional[BestTuple], cand: BestTuple
+) -> tuple[Optional[BestTuple], bool]:
     if best is None or cand[0] < best[0]:
         return cand, True
     return best, False
@@ -351,8 +362,8 @@ def _evaluate_candidates_for_start_slot(
     *,
     ctx: GreedyContext,
     occ: Occupancy,
-) -> Optional[tuple[float, int, int, int, int, list[int]]]:
-    best_local: Optional[tuple[float, int, int, int, int, list[int]]] = None
+) -> Optional[BestTuple]:
+    best_local: Optional[BestTuple] = None
 
     for rid in inp.feasible_rooms:
         for iid in inp.feasible_instr:
@@ -366,7 +377,14 @@ def _evaluate_candidates_for_start_slot(
                 occupied_group=occ.occupied_group,
                 occupied_instr=occ.occupied_instr,
             )
-            cand = (cost, inp.start_slot, rid, iid, inp.pattern_index, inp.weeks)
+            cand: BestTuple = (
+                cost,
+                inp.start_slot,
+                rid,
+                iid,
+                inp.pattern_index,
+                inp.weeks,
+            )
             best_local, _ = _update_best(best_local, cand)
 
             if best_local is not None and best_local[0] <= 0.1 and not ctx.randomize:
@@ -376,39 +394,44 @@ def _evaluate_candidates_for_start_slot(
 
 
 def _best_for_start_slot(
-    gene: ClassSessionGene,
+    inp: StartSlotInput,
     *,
-    weeks: list[int],
-    pidx: int,
-    start_slot: int,
-    duration: int,
-    candidate_rooms: list[int],
-    instr_candidates: list[int],
     ctx: GreedyContext,
     occ: Occupancy,
-) -> Optional[tuple[float, int, int, int, int, list[int]]]:
+) -> Optional[BestTuple]:
+    """
+    For a fixed (weeks, pattern_index, start_slot) compute best candidate among rooms/instructors.
+    """
     feasible_rooms = _iter_feasible_rooms(
-        candidate_rooms, weeks, start_slot, duration, occ
+        inp.candidate_rooms,
+        inp.weeks,
+        inp.start_slot,
+        inp.duration,
+        occ,
     )
     if not feasible_rooms:
         return None
 
     feasible_instr = _iter_feasible_instructors(
-        instr_candidates, weeks, start_slot, duration, occ
+        inp.instr_candidates,
+        inp.weeks,
+        inp.start_slot,
+        inp.duration,
+        occ,
     )
     if not feasible_instr:
         return None
 
-    inp = EvalInput(
-        gene=gene,
-        weeks=weeks,
-        pattern_index=pidx,
-        start_slot=start_slot,
-        duration=duration,
+    eval_inp = EvalInput(
+        gene=inp.gene,
+        weeks=inp.weeks,
+        pattern_index=inp.pattern_index,
+        start_slot=inp.start_slot,
+        duration=inp.duration,
         feasible_rooms=feasible_rooms,
         feasible_instr=feasible_instr,
     )
-    return _evaluate_candidates_for_start_slot(inp, ctx=ctx, occ=occ)
+    return _evaluate_candidates_for_start_slot(eval_inp, ctx=ctx, occ=occ)
 
 
 def _best_for_weeks(
@@ -421,8 +444,8 @@ def _best_for_weeks(
     instr_candidates: list[int],
     ctx: GreedyContext,
     occ: Occupancy,
-) -> Optional[tuple[float, int, int, int, int, list[int]]]:
-    best: Optional[tuple[float, int, int, int, int, list[int]]] = None
+) -> Optional[BestTuple]:
+    best: Optional[BestTuple] = None
 
     for start_slot in _iter_feasible_start_slots(duration, ctx):
         if not _is_start_slot_valid_for_day_boundary(start_slot, duration):
@@ -438,17 +461,16 @@ def _best_for_weeks(
         ):
             continue
 
-        local_best = _best_for_start_slot(
-            gene,
+        slot_inp = StartSlotInput(
+            gene=gene,
             weeks=weeks,
-            pidx=pidx,
+            pattern_index=pidx,
             start_slot=start_slot,
             duration=duration,
             candidate_rooms=candidate_rooms,
             instr_candidates=instr_candidates,
-            ctx=ctx,
-            occ=occ,
         )
+        local_best = _best_for_start_slot(slot_inp, ctx=ctx, occ=occ)
         if local_best is None:
             continue
 
@@ -468,8 +490,8 @@ def _best_over_patterns(
     instr_candidates: list[int],
     ctx: GreedyContext,
     occ: Occupancy,
-) -> Optional[tuple[float, int, int, int, int, list[int]]]:
-    best: Optional[tuple[float, int, int, int, int, list[int]]] = None
+) -> Optional[BestTuple]:
+    best: Optional[BestTuple] = None
 
     for pidx in _pattern_indices(gene, ctx):
         weeks = _iter_gene_weeks(gene, pidx)
@@ -559,17 +581,20 @@ def greedy_assign(
     seed: Optional[int] = None,
 ) -> List[ClassSessionGene]:
     """
-    Greedy seeding for initial population.
-    NOTE: Uses SystemRandom for randomization (no deterministic seed).
-    The `seed` parameter is accepted for API compatibility, but not used.
+    Greedy assignment used for seeding population.
 
     Hard constraints:
     - no collision for room/instructor/group in overlapping (week, slot)
     - no collision with conflicting groups
     - room capacity + equipment
     - class cannot cross day boundary
+
+    Note on randomness:
+    - When randomize=False, algorithm is deterministic without needing any RNG.
+    - When randomize=True, we use SystemRandom() (cryptographically secure).
+    - `seed` is kept for API compatibility but not used with SystemRandom.
     """
-    _ = seed  # kept intentionally for compatibility (and to avoid "unused parameter" warnings)
+    _ = seed  # kept intentionally for compatibility
 
     rooms_lookup, instructors_lookup, competencies_map, conflicting_groups = (
         build_lookups(data)
