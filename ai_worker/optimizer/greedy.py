@@ -51,3 +51,19 @@ def _slot_in_day(slot_id: int) -> int:
     return (slot_id - 1) % SLOTS_PER_DAY
 
 
+def _iter_gene_weeks(gene: ClassSessionGene, pattern_index: int) -> list[int]:
+    """
+    Returns list of weeks for a given allowed pattern.
+    If pattern is None -> assume standard semester weeks 1..15.
+    If [] -> no scheduling possible.
+    """
+    if not gene.allowed_week_patterns:
+        return []
+    weeks = gene.allowed_week_patterns[pattern_index]
+    if not weeks:
+        return []
+    if weeks is None:
+        return list(range(1, 16))
+    return list(weeks)
+
+
