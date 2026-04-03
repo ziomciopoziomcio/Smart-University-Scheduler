@@ -66,6 +66,58 @@ def _iter_gene_weeks(gene: ClassSessionGene, pattern_index: int) -> list[int]:
         return list(range(1, 16))
     return list(weeks)
 
+def _cost_early_start(start_slot: int) -> float:
+    # preference: earlier in day
+    return 0.20 * _slot_in_day(start_slot)
+
+
+def _cost_room_waste(gene: ClassSessionGene, room_id: int, rooms_lookup: RoomsLookup) -> float:
+    cap = int(rooms_lookup[room_id].get("room_capacity", 0) or 0)
+    return 0.05 * max(0, cap - int(gene.group_size))
+
+
+def _cost_late_finish(start_slot: int, duration: int) -> float:
+    finish = start_slot + duration - 1
+    return 0.10 * max(0, _slot_in_day(finish) - 7)
+
+
+def _taken_slots_for_day(
+    occupied: set[tuple[int, int, int]],
+    week: int,
+    entity_id: int,
+    day: int,
+) -> list[int]:
+    """
+    occupied contains tuples (week, slot, entity_id) where entity_id is group_id or instructor_id.
+    Returns sorted slots for the given (week, entity_id) that fall on the given day.
+    """
+    return sorted(
+        s for (ww, s, eid) in occupied
+        if ww == week and eid == entity_id and _day(s) == day
+    )
+
+
+def _cost_gap_penalty_for_day_span(
+    start_slot: int,
+    duration: int,
+    taken_slots: list[int],
+    penalty: float,
+) -> float:
+    """
+    If (start..finish) is strictly inside existing [earliest..latest] span in that day,
+    add a fixed penalty.
+    """
+    if not taken_slots:
+        return 0.0
+
+    finish = start_slot + duration - 1
+    earliest = taken_slots[0]
+    latest = taken_slots[-1]
+
+    if start_slot > earliest and finish < latest:
+        return penalty
+    return 0.0
+
 
 def _candidate_cost(
     gene: ClassSessionGene,
@@ -84,41 +136,40 @@ def _candidate_cost(
     - avoid late finishes
     - penalize inserting "in between" existing classes (simple gap penalty)
     """
-    cost = 0.0
-
     duration = max(1, int(getattr(gene, "duration_slots", 1)))
-    finish = start_slot + duration - 1
 
-    # preference: earlier in day
-    cost += 0.20 * _slot_in_day(start_slot)
+    cost = 0.0
+    cost += _cost_early_start(start_slot)
+    cost += _cost_room_waste(gene, room_id, rooms_lookup)
+    cost += _cost_late_finish(start_slot, duration)
 
-    # minimize room waste
-    cap = int(rooms_lookup[room_id].get("room_capacity", 0) or 0)
-    cost += 0.05 * max(0, cap - int(gene.group_size))
-
-    # penalize late finishes
-    cost += 0.10 * max(0, _slot_in_day(finish) - 7)
-
-    # gap penalty: if we schedule inside existing span for that day
-    d = _day(start_slot)
+    day = _day(start_slot)
     for w in weeks:
-        group_taken = sorted(
-            s
-            for (ww, s, gid) in occupied_group
-            if ww == w and gid == gene.group_id and _day(s) == d
+        group_taken = _taken_slots_for_day(
+            occupied=occupied_group,
+            week=w,
+            entity_id=gene.group_id,
+            day=day,
         )
-        if group_taken:
-            if start_slot > group_taken[0] and finish < group_taken[-1]:
-                cost += 5.0
+        cost += _cost_gap_penalty_for_day_span(
+            start_slot=start_slot,
+            duration=duration,
+            taken_slots=group_taken,
+            penalty=5.0,
+        )
 
-        instr_taken = sorted(
-            s
-            for (ww, s, iid) in occupied_instr
-            if ww == w and iid == instr_id and _day(s) == d
+        instr_taken = _taken_slots_for_day(
+            occupied=occupied_instr,
+            week=w,
+            entity_id=instr_id,
+            day=day,
         )
-        if instr_taken:
-            if start_slot > instr_taken[0] and finish < instr_taken[-1]:
-                cost += 7.5
+        cost += _cost_gap_penalty_for_day_span(
+            start_slot=start_slot,
+            duration=duration,
+            taken_slots=instr_taken,
+            penalty=7.5,
+        )
 
     return cost
 
