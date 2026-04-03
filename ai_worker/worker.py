@@ -21,10 +21,8 @@ _global_calculator: Optional[fitness.FitnessCalculator] = None
 
 def _greedy_assign_worker(args):
     base_genes, data = args
-    from optimizer import greedy
-    import copy as _copy
 
-    genes_copy = _copy.deepcopy(base_genes)
+    genes_copy = copy.deepcopy(base_genes)
     greedy.greedy_assign(genes_copy, data, randomize=True)
     return genes_copy
 
