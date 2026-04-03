@@ -66,12 +66,15 @@ def _iter_gene_weeks(gene: ClassSessionGene, pattern_index: int) -> list[int]:
         return list(range(1, 16))
     return list(weeks)
 
+
 def _cost_early_start(start_slot: int) -> float:
     # preference: earlier in day
     return 0.20 * _slot_in_day(start_slot)
 
 
-def _cost_room_waste(gene: ClassSessionGene, room_id: int, rooms_lookup: RoomsLookup) -> float:
+def _cost_room_waste(
+    gene: ClassSessionGene, room_id: int, rooms_lookup: RoomsLookup
+) -> float:
     cap = int(rooms_lookup[room_id].get("room_capacity", 0) or 0)
     return 0.05 * max(0, cap - int(gene.group_size))
 
@@ -92,7 +95,8 @@ def _taken_slots_for_day(
     Returns sorted slots for the given (week, entity_id) that fall on the given day.
     """
     return sorted(
-        s for (ww, s, eid) in occupied
+        s
+        for (ww, s, eid) in occupied
         if ww == week and eid == entity_id and _day(s) == day
     )
 
@@ -174,23 +178,226 @@ def _candidate_cost(
     return cost
 
 
+def _gene_priority(g: ClassSessionGene) -> tuple:
+    equipment = (1 if g.pc_needed else 0) + (1 if g.projector_needed else 0)
+    patterns = len(g.allowed_week_patterns or [])
+    return -int(g.group_size), -int(g.duration_slots), -equipment, patterns
+
+
+def _get_instructor_candidates(
+    gene: ClassSessionGene,
+    competencies_map: CompetenciesMap,
+    instructors_lookup: InstructorsLookup,
+    randomize: bool,
+) -> list[int]:
+    comp_key = (gene.course_code, gene.class_type)
+    competent = list(competencies_map.get(comp_key, []))
+    all_instr = list(instructors_lookup.keys())
+    instr_candidates = competent or all_instr
+    if randomize:
+        random.shuffle(instr_candidates)
+    return instr_candidates
+
+
+def _get_candidate_rooms(
+    gene: ClassSessionGene,
+    room_ids_sorted: list[int],
+    rooms_lookup: RoomsLookup,
+    randomize: bool,
+) -> list[int]:
+    candidate_rooms: list[int] = []
+    for rid in room_ids_sorted:
+        r = rooms_lookup[rid]
+        if int(r.get("room_capacity", 0) or 0) < int(gene.group_size):
+            continue
+        if gene.pc_needed and int(r.get("pc_amount", 0) or 0) <= 0:
+            continue
+        if gene.projector_needed and not bool(r.get("projector_availability", False)):
+            continue
+        candidate_rooms.append(rid)
+
+    if randomize and candidate_rooms and random.random() < 0.2:
+        random.shuffle(candidate_rooms)
+
+    return candidate_rooms
+
+
+def _pattern_indices(gene: ClassSessionGene, randomize: bool) -> list[int]:
+    idxs = list(range(len(gene.allowed_week_patterns)))
+    if randomize:
+        random.shuffle(idxs)
+    return idxs
+
+
+def _slot_candidates(duration: int, randomize: bool) -> list[int]:
+    slots = list(range(1, MAX_SLOT_ID - duration + 2))
+    if randomize:
+        slots = sorted(slots, key=lambda x: (_slot_in_day(x), random.random()))
+    return slots
+
+
+def _is_group_ok(
+    gene: ClassSessionGene,
+    weeks: list[int],
+    start_slot: int,
+    duration: int,
+    occupied_group: set[tuple[int, int, int]],
+    conflicting_groups: ConflictsMap,
+) -> bool:
+    # cannot cross day boundary already checked outside usually
+    for w in weeks:
+        for s in range(start_slot, start_slot + duration):
+            if (w, s, gene.group_id) in occupied_group:
+                return False
+            for cg in conflicting_groups.get(gene.group_id, set()):
+                if (w, s, cg) in occupied_group:
+                    return False
+    return True
+
+
+def _is_room_ok(
+    rid: int,
+    weeks: list[int],
+    start_slot: int,
+    duration: int,
+    occupied_room: set[tuple[int, int, int]],
+) -> bool:
+    for w in weeks:
+        for s in range(start_slot, start_slot + duration):
+            if (w, s, rid) in occupied_room:
+                return False
+    return True
+
+
+def _is_instructor_ok(
+    iid: int,
+    weeks: list[int],
+    start_slot: int,
+    duration: int,
+    occupied_instr: set[tuple[int, int, int]],
+) -> bool:
+    for w in weeks:
+        for s in range(start_slot, start_slot + duration):
+            if (w, s, iid) in occupied_instr:
+                return False
+    return True
+
+
+def _find_best_assignment_for_gene(
+    gene: ClassSessionGene,
+    *,
+    rooms_lookup: RoomsLookup,
+    room_ids_sorted: list[int],
+    instructors_lookup: InstructorsLookup,
+    competencies_map: CompetenciesMap,
+    conflicting_groups: ConflictsMap,
+    occupied_room: set[tuple[int, int, int]],
+    occupied_instr: set[tuple[int, int, int]],
+    occupied_group: set[tuple[int, int, int]],
+    randomize: bool,
+) -> Optional[tuple[int, int, int, int, list[int]]]:
+    """
+    Returns (start_slot, room_id, instructor_id, pattern_index, weeks) or None.
+    """
+    if not gene.allowed_week_patterns:
+        return None
+
+    duration = max(1, int(getattr(gene, "duration_slots", 1)))
+
+    instr_candidates = _get_instructor_candidates(
+        gene, competencies_map, instructors_lookup, randomize
+    )
+    candidate_rooms = _get_candidate_rooms(
+        gene, room_ids_sorted, rooms_lookup, randomize
+    )
+    if not candidate_rooms:
+        return None
+
+    best: Optional[tuple[float, int, int, int, int, list[int]]] = None
+    # best = (cost, start_slot, room_id, instr_id, pattern_index, weeks)
+
+    for pidx in _pattern_indices(gene, randomize):
+        weeks = _iter_gene_weeks(gene, pidx)
+        if not weeks:
+            continue
+
+        for start_slot in _slot_candidates(duration, randomize):
+            # day boundary check
+            if _slot_in_day(start_slot) + duration > SLOTS_PER_DAY:
+                continue
+
+            if not _is_group_ok(
+                gene, weeks, start_slot, duration, occupied_group, conflicting_groups
+            ):
+                continue
+
+            for rid in candidate_rooms:
+                if not _is_room_ok(rid, weeks, start_slot, duration, occupied_room):
+                    continue
+
+                for iid in instr_candidates:
+                    if not _is_instructor_ok(
+                        iid, weeks, start_slot, duration, occupied_instr
+                    ):
+                        continue
+
+                    cost = _candidate_cost(
+                        gene=gene,
+                        start_slot=start_slot,
+                        room_id=rid,
+                        instr_id=iid,
+                        weeks=weeks,
+                        rooms_lookup=rooms_lookup,
+                        occupied_group=occupied_group,
+                        occupied_instr=occupied_instr,
+                    )
+
+                    if best is None or cost < best[0]:
+                        best = (cost, start_slot, rid, iid, pidx, weeks)
+
+                    # micro-early-exit deterministic
+                    if best is not None and best[0] <= 0.1 and not randomize:
+                        break
+
+    if best is None:
+        return None
+
+    _, start_slot, room_id, instr_id, pidx, weeks = best
+    return start_slot, room_id, instr_id, pidx, weeks
+
+
+def _apply_assignment(
+    gene: ClassSessionGene,
+    *,
+    start_slot: int,
+    room_id: int,
+    instr_id: int,
+    pattern_index: int,
+    weeks: list[int],
+    occupied_room: set[tuple[int, int, int]],
+    occupied_instr: set[tuple[int, int, int]],
+    occupied_group: set[tuple[int, int, int]],
+) -> None:
+    duration = max(1, int(getattr(gene, "duration_slots", 1)))
+
+    gene.timeslot_id = start_slot
+    gene.room_id = room_id
+    gene.instructor_id = instr_id
+    gene.selected_pattern_index = pattern_index
+
+    for w in weeks:
+        for s in range(start_slot, start_slot + duration):
+            occupied_room.add((w, s, room_id))
+            occupied_instr.add((w, s, instr_id))
+            occupied_group.add((w, s, gene.group_id))
+
+
 def greedy_assign(
     base_genes: List[ClassSessionGene],
     data: dict,
     randomize: bool = False,
     seed: Optional[int] = None,
 ) -> List[ClassSessionGene]:
-    """
-    Best-fit greedy assignment:
-    - For each gene (hardest first), tries (pattern, slot, room, instructor)
-      and chooses the candidate with minimal heuristic cost.
-
-    Hard constraints:
-    - no collision for room/instructor/group in overlapping (week, slot)
-    - no collision with conflicting groups (checked against their *real* occupied slots)
-    - room capacity + equipment
-    - class cannot cross day boundary
-    """
     if seed is not None:
         random.seed(seed)
 
@@ -198,7 +405,6 @@ def greedy_assign(
         build_lookups(data)
     )
 
-    # order rooms by capacity ascending
     room_ids_sorted = sorted(
         rooms_lookup.keys(),
         key=lambda rid: rooms_lookup[rid].get("room_capacity", 0) or 0,
@@ -208,139 +414,35 @@ def greedy_assign(
     occupied_instr: set[tuple[int, int, int]] = set()
     occupied_group: set[tuple[int, int, int]] = set()
 
-    def gene_priority(g: ClassSessionGene) -> tuple:
-        equipment = (1 if g.pc_needed else 0) + (1 if g.projector_needed else 0)
-        patterns = len(g.allowed_week_patterns or [])
-        return -int(g.group_size), -int(g.duration_slots), -equipment, patterns
-
-    genes_ordered = sorted(base_genes, key=gene_priority)
+    genes_ordered = sorted(base_genes, key=_gene_priority)
 
     for gene in genes_ordered:
-        if not gene.allowed_week_patterns:
+        assignment = _find_best_assignment_for_gene(
+            gene,
+            rooms_lookup=rooms_lookup,
+            room_ids_sorted=room_ids_sorted,
+            instructors_lookup=instructors_lookup,
+            competencies_map=competencies_map,
+            conflicting_groups=conflicting_groups,
+            occupied_room=occupied_room,
+            occupied_instr=occupied_instr,
+            occupied_group=occupied_group,
+            randomize=randomize,
+        )
+        if assignment is None:
             continue
 
-        duration = max(1, int(getattr(gene, "duration_slots", 1)))
-
-        # instructors candidates
-        comp_key = (gene.course_code, gene.class_type)
-        competent = list(competencies_map.get(comp_key, []))
-        all_instr = list(instructors_lookup.keys())
-        instr_candidates = competent or all_instr
-        if randomize:
-            random.shuffle(instr_candidates)
-
-        # candidate rooms filtered by capacity + equipment
-        candidate_rooms: list[int] = []
-        for rid in room_ids_sorted:
-            r = rooms_lookup[rid]
-            if int(r.get("room_capacity", 0) or 0) < int(gene.group_size):
-                continue
-            if gene.pc_needed and int(r.get("pc_amount", 0) or 0) <= 0:
-                continue
-            if gene.projector_needed and not bool(
-                r.get("projector_availability", False)
-            ):
-                continue
-            candidate_rooms.append(rid)
-
-        if not candidate_rooms:
-            continue
-
-        if randomize and random.random() < 0.2:
-            random.shuffle(candidate_rooms)
-
-        pattern_indices = list(range(len(gene.allowed_week_patterns)))
-        if randomize:
-            random.shuffle(pattern_indices)
-
-        best: Optional[tuple[float, int, int, int, int, list[int]]] = None
-
-        for pidx in pattern_indices:
-            weeks = _iter_gene_weeks(gene, pidx)
-            if not weeks:
-                continue
-
-            slot_range = list(range(1, MAX_SLOT_ID - duration + 2))
-            if randomize:
-                slot_range = sorted(
-                    slot_range, key=lambda x: (_slot_in_day(x), random.random())
-                )
-
-            for start_slot in slot_range:
-                if _slot_in_day(start_slot) + duration > SLOTS_PER_DAY:
-                    continue
-
-                ok = True
-                for w in weeks:
-                    for s in range(start_slot, start_slot + duration):
-                        if (w, s, gene.group_id) in occupied_group:
-                            ok = False
-                            break
-                        for cg in conflicting_groups.get(gene.group_id, set()):
-                            if (w, s, cg) in occupied_group:
-                                ok = False
-                                break
-                    if not ok:
-                        break
-                if not ok:
-                    continue
-
-                for rid in candidate_rooms:
-                    room_ok = True
-                    for w in weeks:
-                        for s in range(start_slot, start_slot + duration):
-                            if (w, s, rid) in occupied_room:
-                                room_ok = False
-                                break
-                        if not room_ok:
-                            break
-                    if not room_ok:
-                        continue
-
-                    for iid in instr_candidates:
-                        instr_ok = True
-                        for w in weeks:
-                            for s in range(start_slot, start_slot + duration):
-                                if (w, s, iid) in occupied_instr:
-                                    instr_ok = False
-                                    break
-                            if not instr_ok:
-                                break
-                        if not instr_ok:
-                            continue
-
-                        cost = _candidate_cost(
-                            gene=gene,
-                            start_slot=start_slot,
-                            room_id=rid,
-                            instr_id=iid,
-                            weeks=weeks,
-                            rooms_lookup=rooms_lookup,
-                            occupied_group=occupied_group,
-                            occupied_instr=occupied_instr,
-                        )
-
-                        if best is None or cost < best[0]:
-                            best = (cost, start_slot, rid, iid, pidx, weeks)
-
-                        # micro-early-exit for deterministic mode
-                        if best is not None and best[0] <= 0.1 and not randomize:
-                            break
-
-        if best is None:
-            continue
-
-        _, start_slot, room_id, instr_id, pidx, weeks = best
-
-        gene.timeslot_id = start_slot
-        gene.room_id = room_id
-        gene.instructor_id = instr_id
-        gene.selected_pattern_index = pidx
-
-        for w in weeks:
-            for s in range(start_slot, start_slot + duration):
-                occupied_room.add((w, s, room_id))
-                occupied_instr.add((w, s, instr_id))
-                occupied_group.add((w, s, gene.group_id))
+        start_slot, room_id, instr_id, pidx, weeks = assignment
+        _apply_assignment(
+            gene,
+            start_slot=start_slot,
+            room_id=room_id,
+            instr_id=instr_id,
+            pattern_index=pidx,
+            weeks=weeks,
+            occupied_room=occupied_room,
+            occupied_instr=occupied_instr,
+            occupied_group=occupied_group,
+        )
 
     return base_genes
