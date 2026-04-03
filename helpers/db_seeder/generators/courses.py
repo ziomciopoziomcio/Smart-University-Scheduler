@@ -109,7 +109,7 @@ def _draw_projector_needed(class_type: ClassType, threshold=0.8) -> bool:
 
 def add_course_detail(
     session: Session, course_code: int, class_type: ClassType, class_hours: int
-) -> tuple[tuple[int, ClassType], Course_type_detail] | None:
+) -> tuple[tuple[int, ClassType], Course_type_detail]:
     """
     Add a course detail to the database.
     If `class_hours` is less than or equal to 0, no record is created and None is returned.
@@ -120,8 +120,8 @@ def add_course_detail(
     :param class_hours: the number of hours for this class type
     :return: the created Course_type_detail object
     """
-    if class_hours <= 0:
-        return None
+    # if class_hours <= 0:
+    #     return None
 
     pc_needed = _draw_pc_needed(class_type)
     projector_needed = _draw_projector_needed(class_type)
@@ -278,3 +278,88 @@ def generate_courses(
 
     session.flush()
     return db_courses
+
+
+def generate_course_type_details(
+    session: Session,
+    courses: dict[int, Course],
+    sourcefile="../../../helpers/data_collector/final-programy.json",
+) -> dict[tuple[int, ClassType], Course_type_detail]:
+    """
+    Generates course type details from JSON file.
+    :param session: database session
+    :param courses: dictionary mapping course codes (int) to Course objects.
+    :param sourcefile: path to JSON file containing study field data
+    :return: dictionary mapping (course_code, ClassType) tuples to their corresponding
+         Course_type_detail objects.
+    """
+
+    with open(sourcefile, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    course_codes_db = courses.keys()  # only course codes
+    db_course_type_details: dict[tuple[int, ClassType], Course_type_detail] = {}
+    already_added_codes: set[int] = set()  # helper
+
+    for kierunek in data:
+        for semestr in kierunek["semestry"]:
+            for przedmiot in semestr["przedmioty"]:
+                try:
+                    course_code = _parse_course_code(przedmiot["Kod przedmiotu"])
+                    course_name = przedmiot["Nazwa przedmiotu w języku polskim"]
+
+                    if course_code not in course_codes_db:
+                        print(f"Course code {course_code} not found")
+                        continue
+
+                    if course_code in already_added_codes:
+                        print(f"Course code {course_code} type details already added")
+                        continue
+
+                    lecture_hours = _parse_hours_to_int(przedmiot["W"])
+                    tutorials_hours = _parse_hours_to_int(przedmiot["Ć"])
+                    labs_hours = _parse_hours_to_int(przedmiot["L"])
+                    seminar_hours = _parse_hours_to_int(przedmiot["S"])
+                    other_hours = _parse_hours_to_int(przedmiot["I"])
+                    elearning_hours = _parse_hours_to_int(przedmiot["E-Learn."])
+                    # todo project
+
+                    _course_coordinator = przedmiot[
+                        "kierownik"
+                    ]  # only for validating course
+
+                    print(
+                        f"{course_code} {course_name}: {lecture_hours}, {tutorials_hours}, {labs_hours}, {seminar_hours}, {other_hours}, {elearning_hours}"
+                    )
+
+                    # correct data - adding do db
+
+                    mapped = {
+                        ClassType.LECTURE: lecture_hours,
+                        ClassType.TUTORIALS: tutorials_hours,
+                        ClassType.LABORATORY: labs_hours,
+                        ClassType.SEMINAR: seminar_hours,
+                        ClassType.OTHER: other_hours,
+                        ClassType.ELEARNING: elearning_hours,
+                    }
+
+                    for class_type in mapped.keys():
+                        hours = mapped[class_type]
+                        if hours > 0:
+                            added: tuple[tuple[int, ClassType], Course_type_detail] = (
+                                add_course_detail(
+                                    session, course_code, class_type, hours
+                                )
+                            )
+
+                            db_course_type_details[added[0]] = added[1]
+                    already_added_codes.add(course_code)
+
+                except KeyError as e:
+                    print(
+                        f"Could not find key in course - {e} - {przedmiot['Nazwa przedmiotu w języku polskim']}"
+                    )
+                    continue
+
+    session.flush()
+    return db_course_type_details
