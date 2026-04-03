@@ -112,13 +112,13 @@ def _create_evolution_engine(data: dict) -> evolution.EvolutionEngine:
     :param data: Dictionary containing all necessary data for the optimization process. It is expected to include at least:
     :return: An instance of EvolutionEngine initialized with the provided data.
     """
-    rooms_ids = data["rooms"]["room_id"].tolist() if "room_id" in data["rooms"] else []
-    instructors_ids = (
+    room_ids = data["rooms"]["room_id"].tolist() if "room_id" in data["rooms"] else []
+    instructor_ids = (
         data["employees"]["id"].tolist() if "id" in data["employees"] else []
     )
     return evolution.EvolutionEngine(
-        available_rooms=rooms_ids,
-        available_instructors=instructors_ids,
+        available_rooms=room_ids,
+        available_instructors=instructor_ids,
     )
 
 
