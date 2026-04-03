@@ -133,7 +133,10 @@ def _pattern_indices(gene: ClassSessionGene, ctx: GreedyContext) -> list[int]:
 
 
 def _get_instructor_candidates(gene: ClassSessionGene, ctx: GreedyContext) -> list[int]:
-    comp_key = (gene.course_code, gene.class_type)
+    class_type_norm = (
+        "" if gene.class_type is None else str(gene.class_type).strip().upper()
+    )
+    comp_key = (gene.course_code, class_type_norm)
     competent = list(ctx.competencies_map.get(comp_key, []))
     all_instr = list(ctx.instructors_lookup.keys())
     instr_candidates = competent or all_instr

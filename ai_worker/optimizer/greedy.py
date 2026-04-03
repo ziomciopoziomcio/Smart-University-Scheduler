@@ -76,7 +76,12 @@ def build_lookups(
     comp_df = data.get("competencies")
     if comp_df is not None and not comp_df.empty:
         for _, r in comp_df.iterrows():
-            key = (int(r["course_code"]), r["class_type"])
+            # normalize class_type to stable canonical form
+            class_type_raw = r.get("class_type")
+            class_type_norm = (
+                "" if class_type_raw is None else str(class_type_raw).strip().upper()
+            )
+            key = (int(r["course_code"]), class_type_norm)
             competencies_map.setdefault(key, set()).add(int(r["employee_id"]))
 
     conflicting_groups: ConflictsMap = {}
