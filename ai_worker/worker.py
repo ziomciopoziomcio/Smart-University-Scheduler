@@ -17,8 +17,7 @@ from optimizer import models, fitness, evolution, greedy
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-_global_calculator: Optional[fitness.FitnessCalculator] = None
-
+_global_calculator: fitness.FitnessCalculator | None = None
 
 def _greedy_assign_worker(args):
     base_genes, data = args
@@ -68,6 +67,9 @@ def _create_fitness_calculator(data: dict) -> fitness.FitnessCalculator:
     conflicting_groups = DataProvider.get_conflicting_groups_dict(
         data["conflicting_groups"]
     )
+    instructor_assignments = DataProvider.get_instructor_assignments(
+        data["competencies"]
+    )
 
     return fitness.FitnessCalculator(
         rooms_lookup=data["rooms"].set_index("room_id").to_dict("index"),
@@ -75,6 +77,7 @@ def _create_fitness_calculator(data: dict) -> fitness.FitnessCalculator:
         group_to_profiles=group_to_profiles,
         profile_counts=profile_counts,
         conflicting_groups=conflicting_groups,
+        instructor_assignments=instructor_assignments,
     )
 
 
