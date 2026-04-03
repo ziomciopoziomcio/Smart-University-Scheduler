@@ -243,11 +243,45 @@ class Neo4jProvider:
         :param faculty_id: The faculty to save the best chromosome
         :return: None
         """
+        incomplete_genes = []
+        for index, gene in enumerate(best_chromosome.genes):
+            missing_fields = [
+                field_name
+                for field_name, value in (
+                    ("instructor_id", gene.instructor_id),
+                    ("room_id", gene.room_id),
+                    ("timeslot_id", gene.timeslot_id),
+                )
+                if value is None
+            ]
+            if missing_fields:
+                incomplete_genes.append(
+                    {
+                        "index": index,
+                        "group_id": gene.group_id,
+                        "course_code": gene.course_code,
+                        "class_type": gene.class_type,
+                        "missing_fields": missing_fields,
+                    }
+                )
+
+        if incomplete_genes:
+            logger.error(
+                "Refusing to save partial schedule for faculty %s: %s/%s genes are incomplete. "
+                "First incomplete gene: %s",
+                faculty_id,
+                len(incomplete_genes),
+                len(best_chromosome.genes),
+                incomplete_genes[0],
+            )
+            raise ValueError(
+                f"Cannot save schedule for faculty {faculty_id}: "
+                f"{len(incomplete_genes)} of {len(best_chromosome.genes)} genes are missing "
+                "instructor_id, room_id, or timeslot_id."
+            )
+
         data_to_save = []
         for gene in best_chromosome.genes:
-            if None in [gene.instructor_id, gene.room_id, gene.timeslot_id]:
-                continue
-
             data_to_save.append(
                 {
                     "instructor_id": int(gene.instructor_id),
