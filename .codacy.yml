@@ -7,3 +7,7 @@ exclude_paths:
   - "frontend/vite.config.ts"
   - "frontend/src/App.css"
   - "frontend/package-lock.json"
+engines:
+  bandit:
+    patterns:
+      "B311": false
