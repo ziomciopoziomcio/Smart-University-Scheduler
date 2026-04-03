@@ -38,7 +38,11 @@ def _evaluate_single_chromosome(
     :return: The same ScheduleChromosome instance with its fitness_score attribute
         updated based on the evaluation.
     """
-    assert _global_calculator is not None
+    if _global_calculator is None:
+        raise RuntimeError(
+            "Fitness calculator was not initialized in worker process. "
+            "Did ProcessPoolExecutor initializer _init_worker run?"
+        )
     _global_calculator.calculate_fitness(chromosome)
     return chromosome
 
