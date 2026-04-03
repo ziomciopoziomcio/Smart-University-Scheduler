@@ -413,7 +413,7 @@ def find_best_assignment_for_gene(
     occ: Occupancy,
 ) -> Optional[BestTuple]:
     """
-    Zwraca BestTuple albo None.
+    Returns a BestTuple or None.
     """
     if not gene.allowed_week_patterns:
         return None
