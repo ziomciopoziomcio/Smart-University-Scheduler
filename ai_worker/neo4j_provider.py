@@ -287,3 +287,14 @@ class Neo4jProvider:
         except Exception as e:
             logger.error(f"Failed to save schedule: {e}")
             raise
+
+    async def clear_old_schedule(self, faculty_id: int) -> None:
+        """
+        Clear the old schedule
+        :param faculty_id: The faculty to clear the old schedule
+        :return: None
+        """
+        query = Query("MATCH (s:ClassSession {facultyId: $faculty_id}) DETACH DELETE s")
+        async with self.driver.session() as session:
+            await session.run(query, faculty_id=faculty_id)
+            logger.info(f"Successfully cleared old schedule for faculty {faculty_id}")
