@@ -272,7 +272,7 @@ class Neo4jProvider:
         MATCH (g:Group {groupId: row.group_id})
         MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
 
-        CREATE (s:ClassSession {weeks: row.weeks, facultyId: $faculty_id})
+        CREATE (s:ClassSession {weeks: row.weeks, facultyId: $faculty_id, createdAt: datetime()})
         MERGE (s)-[:TAUGHT_BY]->(i)
         MERGE (s)-[:HELD_IN]->(r)
         MERGE (s)-[:FOR_GROUP]->(g)
