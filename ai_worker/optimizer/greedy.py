@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set, Tuple
-import random
+import secrets
 
 from .fitness import MAX_SLOT_ID, SLOTS_PER_DAY
 from .models import ClassSessionGene
@@ -21,7 +21,7 @@ class GreedyContext:
     conflicting_groups: ConflictsMap
     room_ids_sorted: list[int]
     randomize: bool
-    rng: random.Random
+    rng: secrets.SystemRandom
 
 
 @dataclass
@@ -29,6 +29,17 @@ class Occupancy:
     occupied_room: set[tuple[int, int, int]]
     occupied_instr: set[tuple[int, int, int]]
     occupied_group: set[tuple[int, int, int]]
+
+
+@dataclass(frozen=True)
+class EvalInput:
+    gene: ClassSessionGene
+    weeks: list[int]
+    pattern_index: int
+    start_slot: int
+    duration: int
+    feasible_rooms: list[int]
+    feasible_instr: list[int]
 
 
 def build_lookups(
@@ -91,6 +102,17 @@ def _iter_gene_weeks(gene: ClassSessionGene, pattern_index: int) -> list[int]:
     return list(weeks)
 
 
+def _gene_priority(g: ClassSessionGene) -> tuple:
+    equipment = (1 if g.pc_needed else 0) + (1 if g.projector_needed else 0)
+    patterns = len(g.allowed_week_patterns or [])
+    return (
+        -int(g.group_size),
+        -int(getattr(g, "duration_slots", 1)),
+        -equipment,
+        patterns,
+    )
+
+
 def _cost_early_start(start_slot: int) -> float:
     return 0.20 * _slot_in_day(start_slot)
 
@@ -132,7 +154,6 @@ def _cost_gap_penalty_for_day_span(
     finish = start_slot + duration - 1
     earliest = taken_slots[0]
     latest = taken_slots[-1]
-
     if start_slot > earliest and finish < latest:
         return penalty
     return 0.0
@@ -158,10 +179,7 @@ def _candidate_cost(
     day = _day(start_slot)
     for w in weeks:
         group_taken = _taken_slots_for_day(
-            occupied=occupied_group,
-            week=w,
-            entity_id=gene.group_id,
-            day=day,
+            occupied=occupied_group, week=w, entity_id=gene.group_id, day=day
         )
         cost += _cost_gap_penalty_for_day_span(
             start_slot=start_slot,
@@ -171,10 +189,7 @@ def _candidate_cost(
         )
 
         instr_taken = _taken_slots_for_day(
-            occupied=occupied_instr,
-            week=w,
-            entity_id=instr_id,
-            day=day,
+            occupied=occupied_instr, week=w, entity_id=instr_id, day=day
         )
         cost += _cost_gap_penalty_for_day_span(
             start_slot=start_slot,
@@ -184,12 +199,6 @@ def _candidate_cost(
         )
 
     return cost
-
-
-def _gene_priority(g: ClassSessionGene) -> tuple:
-    equipment = (1 if g.pc_needed else 0) + (1 if g.projector_needed else 0)
-    patterns = len(g.allowed_week_patterns or [])
-    return -int(g.group_size), -int(g.duration_slots), -equipment, patterns
 
 
 def _pattern_indices(gene: ClassSessionGene, ctx: GreedyContext) -> list[int]:
@@ -204,7 +213,6 @@ def _get_instructor_candidates(gene: ClassSessionGene, ctx: GreedyContext) -> li
     competent = list(ctx.competencies_map.get(comp_key, []))
     all_instr = list(ctx.instructors_lookup.keys())
     instr_candidates = competent or all_instr
-
     if ctx.randomize:
         ctx.rng.shuffle(instr_candidates)
     return instr_candidates
@@ -326,40 +334,81 @@ def _iter_feasible_instructors(
     ]
 
 
+def _update_best(
+    best: Optional[tuple[float, int, int, int, int, list[int]]],
+    cand: tuple[float, int, int, int, int, list[int]],
+) -> tuple[Optional[tuple[float, int, int, int, int, list[int]]], bool]:
+    """
+    Returns (new_best, changed).
+    """
+    if best is None or cand[0] < best[0]:
+        return cand, True
+    return best, False
+
+
 def _evaluate_candidates_for_start_slot(
+    inp: EvalInput,
+    *,
+    ctx: GreedyContext,
+    occ: Occupancy,
+) -> Optional[tuple[float, int, int, int, int, list[int]]]:
+    best_local: Optional[tuple[float, int, int, int, int, list[int]]] = None
+
+    for rid in inp.feasible_rooms:
+        for iid in inp.feasible_instr:
+            cost = _candidate_cost(
+                gene=inp.gene,
+                start_slot=inp.start_slot,
+                room_id=rid,
+                instr_id=iid,
+                weeks=inp.weeks,
+                rooms_lookup=ctx.rooms_lookup,
+                occupied_group=occ.occupied_group,
+                occupied_instr=occ.occupied_instr,
+            )
+            cand = (cost, inp.start_slot, rid, iid, inp.pattern_index, inp.weeks)
+            best_local, _ = _update_best(best_local, cand)
+
+            if best_local is not None and best_local[0] <= 0.1 and not ctx.randomize:
+                return best_local
+
+    return best_local
+
+
+def _best_for_start_slot(
     gene: ClassSessionGene,
     *,
     weeks: list[int],
     pidx: int,
     start_slot: int,
     duration: int,
-    feasible_rooms: list[int],
-    feasible_instr: list[int],
+    candidate_rooms: list[int],
+    instr_candidates: list[int],
     ctx: GreedyContext,
     occ: Occupancy,
 ) -> Optional[tuple[float, int, int, int, int, list[int]]]:
-    best_local: Optional[tuple[float, int, int, int, int, list[int]]] = None
+    feasible_rooms = _iter_feasible_rooms(
+        candidate_rooms, weeks, start_slot, duration, occ
+    )
+    if not feasible_rooms:
+        return None
 
-    for rid in feasible_rooms:
-        for iid in feasible_instr:
-            cost = _candidate_cost(
-                gene=gene,
-                start_slot=start_slot,
-                room_id=rid,
-                instr_id=iid,
-                weeks=weeks,
-                rooms_lookup=ctx.rooms_lookup,
-                occupied_group=occ.occupied_group,
-                occupied_instr=occ.occupied_instr,
-            )
-            cand = (cost, start_slot, rid, iid, pidx, weeks)
-            if best_local is None or cost < best_local[0]:
-                best_local = cand
+    feasible_instr = _iter_feasible_instructors(
+        instr_candidates, weeks, start_slot, duration, occ
+    )
+    if not feasible_instr:
+        return None
 
-            if best_local is not None and best_local[0] <= 0.1 and not ctx.randomize:
-                return best_local
-
-    return best_local
+    inp = EvalInput(
+        gene=gene,
+        weeks=weeks,
+        pattern_index=pidx,
+        start_slot=start_slot,
+        duration=duration,
+        feasible_rooms=feasible_rooms,
+        feasible_instr=feasible_instr,
+    )
+    return _evaluate_candidates_for_start_slot(inp, ctx=ctx, occ=occ)
 
 
 def _best_for_weeks(
@@ -389,34 +438,21 @@ def _best_for_weeks(
         ):
             continue
 
-        feasible_rooms = _iter_feasible_rooms(
-            candidate_rooms, weeks, start_slot, duration, occ
-        )
-        if not feasible_rooms:
-            continue
-
-        feasible_instr = _iter_feasible_instructors(
-            instr_candidates, weeks, start_slot, duration, occ
-        )
-        if not feasible_instr:
-            continue
-
-        local_best = _evaluate_candidates_for_start_slot(
+        local_best = _best_for_start_slot(
             gene,
             weeks=weeks,
             pidx=pidx,
             start_slot=start_slot,
             duration=duration,
-            feasible_rooms=feasible_rooms,
-            feasible_instr=feasible_instr,
+            candidate_rooms=candidate_rooms,
+            instr_candidates=instr_candidates,
             ctx=ctx,
             occ=occ,
         )
         if local_best is None:
             continue
 
-        if best is None or local_best[0] < best[0]:
-            best = local_best
+        best, _ = _update_best(best, local_best)
 
         if best is not None and best[0] <= 0.1 and not ctx.randomize:
             break
@@ -433,11 +469,6 @@ def _best_over_patterns(
     ctx: GreedyContext,
     occ: Occupancy,
 ) -> Optional[tuple[float, int, int, int, int, list[int]]]:
-    """
-    Returns best tuple:
-      (cost, start_slot, room_id, instr_id, pattern_index, weeks)
-    or None.
-    """
     best: Optional[tuple[float, int, int, int, int, list[int]]] = None
 
     for pidx in _pattern_indices(gene, ctx):
@@ -458,10 +489,8 @@ def _best_over_patterns(
         if local_best is None:
             continue
 
-        if best is None or local_best[0] < best[0]:
-            best = local_best
+        best, _ = _update_best(best, local_best)
 
-        # early exit deterministic
         if best is not None and best[0] <= 0.1 and not ctx.randomize:
             break
 
@@ -474,9 +503,6 @@ def _find_best_assignment_for_gene(
     ctx: GreedyContext,
     occ: Occupancy,
 ) -> Optional[tuple[int, int, int, int, list[int]]]:
-    """
-    Returns (start_slot, room_id, instructor_id, pattern_index, weeks) or None.
-    """
     if not gene.allowed_week_patterns:
         return None
 
@@ -532,7 +558,18 @@ def greedy_assign(
     randomize: bool = False,
     seed: Optional[int] = None,
 ) -> List[ClassSessionGene]:
-    rng = random.Random(seed)
+    """
+    Greedy seeding for initial population.
+    NOTE: Uses SystemRandom for randomization (no deterministic seed).
+    The `seed` parameter is accepted for API compatibility, but not used.
+
+    Hard constraints:
+    - no collision for room/instructor/group in overlapping (week, slot)
+    - no collision with conflicting groups
+    - room capacity + equipment
+    - class cannot cross day boundary
+    """
+    _ = seed  # kept intentionally for compatibility (and to avoid "unused parameter" warnings)
 
     rooms_lookup, instructors_lookup, competencies_map, conflicting_groups = (
         build_lookups(data)
@@ -550,14 +587,10 @@ def greedy_assign(
         conflicting_groups=conflicting_groups,
         room_ids_sorted=room_ids_sorted,
         randomize=randomize,
-        rng=rng,
+        rng=secrets.SystemRandom(),
     )
 
-    occ = Occupancy(
-        occupied_room=set(),
-        occupied_instr=set(),
-        occupied_group=set(),
-    )
+    occ = Occupancy(occupied_room=set(), occupied_instr=set(), occupied_group=set())
 
     for gene in sorted(base_genes, key=_gene_priority):
         assignment = _find_best_assignment_for_gene(gene, ctx=ctx, occ=occ)
