@@ -11,7 +11,6 @@ from aiokafka import AIOKafkaConsumer
 
 from data_provider import DataProvider
 from neo4j_provider import Neo4jProvider
-from optimizer import models, fitness
 from optimizer import models, fitness, greedy
 
 logging.basicConfig(level=logging.INFO)
@@ -66,21 +65,40 @@ def _create_fitness_calculator(data: dict) -> fitness.FitnessCalculator:
     )
 
 
-def _generate_initial_population(
-    base_genes: list[models.ClassSessionGene], size: int
+def _seed_population_greedy(
+    base_genes: list[models.ClassSessionGene],
+    size: int,
+    data: dict,
 ) -> list[models.ScheduleChromosome]:
     """
-    Generates an initial population of ScheduleChromosomes based on the provided base genes.
-    :param base_genes: List of ClassSessionGene instances representing the initial set of genes.
-    :param size: The desired size of the population to generate.
-    :return: A list of ScheduleChromosome instances forming the initial population.
+    Creates initial population using greedy seeding:
+    - 1 deterministic greedy individual
+    - (size-1) greedy individuals with small randomness (diversity)
     """
-    population = []
-    for _ in range(size):
-        # TODO: Greedy logic
-        genes_copy = copy.deepcopy(base_genes)
-        population.append(models.ScheduleChromosome(genes=genes_copy))
+    population: list[models.ScheduleChromosome] = []
+
+    genes0 = copy.deepcopy(base_genes)
+    greedy.greedy_assign(genes0, data, randomize=False)
+    population.append(models.ScheduleChromosome(genes=genes0))
+
+    for i in range(size - 1):
+        genes_i = copy.deepcopy(base_genes)
+        greedy.greedy_assign(genes_i, data, randomize=True, seed=i + 1)
+        population.append(models.ScheduleChromosome(genes=genes_i))
+
     return population
+
+
+def _generate_initial_population(
+    base_genes: list[models.ClassSessionGene],
+    size: int,
+    data: dict,
+) -> list[models.ScheduleChromosome]:
+    """
+    Generates initial population.
+    Currently uses greedy seeding (see _seed_population_greedy).
+    """
+    return _seed_population_greedy(base_genes=base_genes, size=size, data=data)
 
 
 def _get_max_workers(population_size: int) -> int:
@@ -139,7 +157,7 @@ def run_ai_optimizer_sync(
 
     calculator = _create_fitness_calculator(data)
     population_size = 50
-    population = _generate_initial_population(base_genes, population_size)
+    population = _generate_initial_population(base_genes, population_size, data)
 
     max_workers = _get_max_workers(population_size)
     chunk_size = max(1, population_size // (max_workers * 2))
