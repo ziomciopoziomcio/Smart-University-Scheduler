@@ -13,6 +13,7 @@ class FitnessCalculator:
         conflicting_groups: dict,
         group_to_profiles: dict,
         profile_counts: dict,
+        instructors_assignments: dict,
     ) -> None:
         """Fitness calculator class init"""
         self.rooms_lookup = rooms_lookup
@@ -20,6 +21,7 @@ class FitnessCalculator:
         self.conflicting_groups = conflicting_groups
         self.group_to_profiles = group_to_profiles
         self.profile_counts = profile_counts
+        self.instructors_assignments = instructors_assignments
 
         self.W_DAY_USED = 100
         self.W_GAP_SLOT = 50
@@ -40,6 +42,7 @@ class FitnessCalculator:
 
         self.W_TOO_MUCH_STUDENTS = 5000
         self.W_HARD_PENALTY = 100000
+        self.W_WORKLOAD_MISMATCH = 500
 
     def calculate_fitness(self, chromosome: ScheduleChromosome) -> float:
         """Calculates fitness score for a given schedule chromosome
