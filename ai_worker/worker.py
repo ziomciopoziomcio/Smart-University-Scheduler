@@ -265,8 +265,18 @@ async def process_task(
     :param producer: AIOKafka producer object.
     :return: None
     """
-    task_id = task_data.get("task_id")
-    faculty_id = task_data.get("faculty_id")
+    def _normalize_identifier(value):
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str):
+            stripped_value = value.strip()
+            if stripped_value.isdigit():
+                return int(stripped_value)
+            return stripped_value
+        return value
+
+    task_id = _normalize_identifier(task_data.get("task_id"))
+    faculty_id = _normalize_identifier(task_data.get("faculty_id"))
     result_topic = os.getenv("KAFKA_RESULT_TOPIC", "schedule.optimization.results")
 
     try:
