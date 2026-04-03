@@ -13,7 +13,7 @@ class FitnessCalculator:
         conflicting_groups: dict,
         group_to_profiles: dict,
         profile_counts: dict,
-        instructors_assignments: dict,
+        instructor_assignments: dict,
     ) -> None:
         """Fitness calculator class init"""
         self.rooms_lookup = rooms_lookup
@@ -21,7 +21,7 @@ class FitnessCalculator:
         self.conflicting_groups = conflicting_groups
         self.group_to_profiles = group_to_profiles
         self.profile_counts = profile_counts
-        self.instructors_assignments = instructors_assignments
+        self.instructor_assignments = instructor_assignments
 
         self.W_DAY_USED = 100
         self.W_GAP_SLOT = 50
@@ -577,7 +577,7 @@ class FitnessCalculator:
             if gene.instructor_id is None:
                 continue
             assignment_key = (gene.instructor_id, gene.course_code, gene.class_type)
-            if assignment_key not in self.instructors_assignments:
+            if assignment_key not in self.instructor_assignments:
                 penalty += self.W_HARD_PENALTY
 
         return penalty
@@ -605,7 +605,7 @@ class FitnessCalculator:
                 assignment_key, 0
             ) + (duration * weeks_count)
 
-        for assignment_key, contracted_hours in self.instructors_assignments.items():
+        for assignment_key, contracted_hours in self.instructor_assignments.items():
             expected_slots = contracted_hours
             actual_slots = scheduled_workload.get(assignment_key, 0)
             diff = abs(expected_slots - actual_slots)
