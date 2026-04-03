@@ -290,11 +290,7 @@ class Neo4jProvider:
                     "timeslot_id": int(gene.timeslot_id),
                     "course_code": str(gene.course_code),
                     "class_type": str(gene.class_type).upper(),
-                    "weeks": (
-                        gene.allowed_week_patterns[gene.selected_pattern_index]
-                        if gene.allowed_week_patterns
-                        else []
-                    ),
+                    "weeks": gene.active_weeks,
                 }
             )
 
