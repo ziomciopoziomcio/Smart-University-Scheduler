@@ -89,17 +89,17 @@ def _candidate_cost(
     duration = max(1, int(getattr(gene, "duration_slots", 1)))
     finish = start_slot + duration - 1
 
-    #preference: earlier in day
+    # preference: earlier in day
     cost += 0.20 * _slot_in_day(start_slot)
 
-    #minimize room waste
+    # minimize room waste
     cap = int(rooms_lookup[room_id].get("room_capacity", 0) or 0)
     cost += 0.05 * max(0, cap - int(gene.group_size))
 
-    #penalize late finishes
+    # penalize late finishes
     cost += 0.10 * max(0, _slot_in_day(finish) - 7)
 
-    #gap penalty: if we schedule inside existing span for that day
+    # gap penalty: if we schedule inside existing span for that day
     d = _day(start_slot)
     for w in weeks:
         group_taken = sorted(
@@ -147,7 +147,7 @@ def greedy_assign(
         build_lookups(data)
     )
 
-    #order rooms by capacity ascending
+    # order rooms by capacity ascending
     room_ids_sorted = sorted(
         rooms_lookup.keys(),
         key=lambda rid: rooms_lookup[rid].get("room_capacity", 0) or 0,
@@ -170,7 +170,7 @@ def greedy_assign(
 
         duration = max(1, int(getattr(gene, "duration_slots", 1)))
 
-        #instructors candidates
+        # instructors candidates
         comp_key = (gene.course_code, gene.class_type)
         competent = list(competencies_map.get(comp_key, []))
         all_instr = list(instructors_lookup.keys())
@@ -178,7 +178,7 @@ def greedy_assign(
         if randomize:
             random.shuffle(instr_candidates)
 
-        #candidate rooms filtered by capacity + equipment
+        # candidate rooms filtered by capacity + equipment
         candidate_rooms: list[int] = []
         for rid in room_ids_sorted:
             r = rooms_lookup[rid]
