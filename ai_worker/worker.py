@@ -313,14 +313,19 @@ async def process_task(
 
     except Exception as e:
         logger.exception(f"Critical error: {e}")
-        await producer.send_and_wait(
-            result_topic,
-            {
-                "task_id": task_id,
-                "status": "FAILED",
-                "error": str(e),
-            },
-        )
+        failure_message = {
+            "task_id": task_id,
+            "status": "FAILED",
+            "error": str(e),
+        }
+        try:
+            await producer.send_and_wait(result_topic, failure_message)
+        except Exception:
+            logger.exception(
+                "Failed to publish failure result for task_id=%s after processing error: %s",
+                task_id,
+                e,
+            )
 
 
 async def main() -> None:
