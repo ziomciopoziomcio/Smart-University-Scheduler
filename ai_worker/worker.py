@@ -5,7 +5,6 @@ import json
 import multiprocessing
 import os
 import logging
-from typing import Optional
 
 from aiokafka import AIOKafkaConsumer
 
