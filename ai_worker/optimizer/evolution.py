@@ -9,6 +9,9 @@ class EvolutionEngine:
     """Evolution Engine"""
 
     def __init__(self, tournament_size: int = 3, mutation_rate: float = 0.05):
+        self.available_instructors = None
+        self.available_rooms = None
+        self.max_timeslots = None
         self.tournament_size = tournament_size
         self.mutation_rate = mutation_rate
 
@@ -53,3 +56,30 @@ class EvolutionEngine:
             offspring.append(models.ScheduleChromosome(genes=child2_genes))
 
         return offspring[: len(parents)]
+
+    def mutation(
+        self, population: List[models.ScheduleChromosome]
+    ) -> List[models.ScheduleChromosome]:
+        """
+        Mutation of the population
+        :param population: List of ScheduleChromosome to mutate
+        :return: List of mutated ScheduleChromosome
+        """
+
+        for chrom in population:
+            for gene in chrom.genes:
+                if random.random() < self.mutation_rate:
+                    gene.timeslot_id = random.randint(1, self.max_timeslots)
+                    if self.available_rooms:
+                        gene.room_id = random.choice(self.available_rooms)
+                    if self.available_instructors:
+                        gene.instructor_id = random.choice(self.available_instructors)
+                    if (
+                        gene.allowed_week_patterns
+                        and len(gene.allowed_week_patterns) > 1
+                    ):
+                        gene.selected_pattern_index = random.randint(
+                            0, len(gene.allowed_week_patterns) - 1
+                        )
+
+        return population
