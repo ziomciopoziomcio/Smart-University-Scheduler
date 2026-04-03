@@ -280,7 +280,7 @@ class DataProvider:
         """
         Translates competencies into instructor assignments
         :param competencies_df: dataframe with employee_id, course_code, class_type, hours
-        :return: Dictionary with key as (course_code, class_type) and value as employee_id
+        :return: Dictionary with key as (employee_id, course_code, class_type) and value as hours
         """
         assignments = {}
         if competencies_df.empty:
