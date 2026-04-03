@@ -272,6 +272,14 @@ async def process_task(
     try:
         if not faculty_id:
             logger.error("Faculty id not provided")
+            await producer.send_and_wait(
+                result_topic,
+                {
+                    "task_id": task_id,
+                    "status": "FAILED",
+                    "error": "Faculty id not provided",
+                },
+            )
             return
 
         data = await asyncio.to_thread(data_prov.get_all_data, faculty_id)
