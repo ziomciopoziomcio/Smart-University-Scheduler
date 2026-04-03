@@ -1,6 +1,5 @@
 import copy
 import random
-from typing import List
 
 from . import models
 
@@ -10,8 +9,8 @@ class EvolutionEngine:
 
     def __init__(
         self,
-        available_rooms: List[int],
-        available_instructors: List[int],
+        available_rooms: list[int],
+        available_instructors: list[int],
         max_timeslots: int = 60,
         tournament_size: int = 3,
         mutation_rate: float = 0.05,
@@ -23,7 +22,7 @@ class EvolutionEngine:
         self.mutation_rate = mutation_rate
 
     def tournament_selection(
-        self, population: List[models.ScheduleChromosome]
+        self, population: list[models.ScheduleChromosome]
     ) -> models.ScheduleChromosome:
         """
         Tournament selection
@@ -38,8 +37,8 @@ class EvolutionEngine:
 
     @staticmethod
     def crossover(
-        parents: List[models.ScheduleChromosome],
-    ) -> List[models.ScheduleChromosome]:
+        parents: list[models.ScheduleChromosome],
+    ) -> list[models.ScheduleChromosome]:
         """
         Crossover between parents to create offspring
         :param parents: List of ScheduleChromosome to crossover
@@ -65,8 +64,8 @@ class EvolutionEngine:
         return offspring[: len(parents)]
 
     def mutation(
-        self, population: List[models.ScheduleChromosome]
-    ) -> List[models.ScheduleChromosome]:
+        self, population: list[models.ScheduleChromosome]
+    ) -> list[models.ScheduleChromosome]:
         """
         Mutation of the population
         :param population: List of ScheduleChromosome to mutate
