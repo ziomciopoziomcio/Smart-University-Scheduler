@@ -46,6 +46,11 @@ class FitnessCalculator:
         self.W_HARD_PENALTY = 100000
         self.W_WORKLOAD_MISMATCH = 500
 
+        self.base_workload_penalty = sum(
+            hours * self.W_WORKLOAD_MISMATCH
+            for hours in self.instructor_assignments.values()
+        )
+
     def calculate_fitness(self, chromosome: ScheduleChromosome) -> float:
         """Calculates fitness score for a given schedule chromosome
         :param chromosome: ScheduleChromosome to calculate fitness for
@@ -590,32 +595,28 @@ class FitnessCalculator:
         :param chromosome: ScheduleChromosome to evaluate instructor workload for
         :return: Penalty score (lower is better)
         """
-        penalty = 0.0
+        penalty = self.base_workload_penalty
         scheduled_workload = {}
 
         for gene in chromosome.genes:
             if gene.instructor_id is None or gene.timeslot_id is None:
                 continue
 
-            assignment_key = (gene.instructor_id, gene.course_code, gene.class_type)
-
-            duration = max(1, getattr(gene, "duration_slots", 1))
-            weeks = getattr(gene, "active_weeks", None)
-
-            if weeks == []:
+            active_weeks = getattr(gene, "active_weeks", None)
+            if active_weeks == []:
                 continue
 
-            weeks_count = len(weeks) if weeks else 0
+            duration = max(1, getattr(gene, "duration_slots", 1))
+            weeks_count = len(active_weeks) if active_weeks else 15
 
+            assignment_key = (gene.instructor_id, gene.course_code, gene.class_type)
             scheduled_workload[assignment_key] = scheduled_workload.get(
                 assignment_key, 0
             ) + (duration * weeks_count)
 
-        for assignment_key, contracted_hours in self.instructor_assignments.items():
-            expected_slots = contracted_hours
-            actual_slots = scheduled_workload.get(assignment_key, 0)
-            diff = abs(expected_slots - actual_slots)
-            if diff > 0:
-                penalty += diff * self.W_WORKLOAD_MISMATCH
+        for assignment_key, actual_slots in scheduled_workload.items():
+            expected_slots = self.instructor_assignments.get(assignment_key, 0)
+            penalty -= expected_slots * self.W_WORKLOAD_MISMATCH
+            penalty += abs(expected_slots - actual_slots) * self.W_WORKLOAD_MISMATCH
 
         return penalty
