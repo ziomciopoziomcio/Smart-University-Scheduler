@@ -272,3 +272,27 @@ class DataProvider:
             conflicts.setdefault(b, set()).add(a)
 
         return conflicts
+
+    @staticmethod
+    def get_instructor_assignments(
+        competencies_df: pd.DataFrame,
+    ) -> dict[tuple[int, int, str], int]:
+        """
+        Translates competencies into instructor assignments
+        :param competencies_df: dataframe with employee_id, course_code, class_type, hours
+        :return: Dictionary with key as (course_code, class_type) and value as employee_id
+        """
+        assignments = {}
+        if competencies_df.empty:
+            return assignments
+
+        for _, row in competencies_df.iterrows():
+            class_type = row["class_type"]
+            if hasattr(class_type, "value"):
+                class_type = class_type.value
+            elif isinstance(class_type, str) and "." in class_type:
+                class_type = class_type.split(".")[-1]
+            key = (row["employee_id"], row["course_code"], class_type)
+            assignments[key] = row["hours"]
+
+        return assignments
