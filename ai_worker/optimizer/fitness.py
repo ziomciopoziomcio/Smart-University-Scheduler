@@ -13,6 +13,7 @@ class FitnessCalculator:
         conflicting_groups: dict,
         group_to_profiles: dict,
         profile_counts: dict,
+        instructor_assignments: dict,
     ) -> None:
         """Fitness calculator class init"""
         self.rooms_lookup = rooms_lookup
@@ -20,6 +21,9 @@ class FitnessCalculator:
         self.conflicting_groups = conflicting_groups
         self.group_to_profiles = group_to_profiles
         self.profile_counts = profile_counts
+        self.instructor_assignments = (
+            instructor_assignments  # TODO: USE IN EVOLUTIONENGINE
+        )
 
         self.W_DAY_USED = 100
         self.W_GAP_SLOT = 50
@@ -40,6 +44,12 @@ class FitnessCalculator:
 
         self.W_TOO_MUCH_STUDENTS = 5000
         self.W_HARD_PENALTY = 100000
+        self.W_WORKLOAD_MISMATCH = 500
+
+        self.base_workload_penalty = sum(
+            hours * self.W_WORKLOAD_MISMATCH
+            for hours in self.instructor_assignments.values()
+        )
 
     def calculate_fitness(self, chromosome: ScheduleChromosome) -> float:
         """Calculates fitness score for a given schedule chromosome
@@ -57,6 +67,9 @@ class FitnessCalculator:
 
         penalty += self._evaluate_instructor_time_efficiency(chromosome)
         penalty += self._evaluate_instructor_location_logic(chromosome)
+
+        penalty += self._evaluate_instructor_competencies(chromosome)
+        penalty += self._evaluate_instructor_workload(chromosome)
 
         chromosome.fitness_score = penalty
         return penalty
@@ -554,5 +567,62 @@ class FitnessCalculator:
 
         if daily_slots_count > 6:
             penalty += (daily_slots_count - 6) * w_fatigue * multiplier
+
+        return penalty
+
+    def _evaluate_instructor_competencies(
+        self, chromosome: ScheduleChromosome
+    ) -> float:
+        """
+        Helper function to evaluate instructor competencies
+        :param chromosome: ScheduleChromosome to evaluate instructor competencies for
+        :return: Penalty score (lower is better)
+        """
+        if not self.instructor_assignments:
+            return 0.0
+
+        penalty = 0.0
+
+        for gene in chromosome.genes:
+            if gene.instructor_id is None:
+                continue
+            assignment_key = (gene.instructor_id, gene.course_code, gene.class_type)
+            if assignment_key not in self.instructor_assignments:
+                penalty += self.W_HARD_PENALTY
+
+        return penalty
+
+    def _evaluate_instructor_workload(self, chromosome: ScheduleChromosome) -> float:
+        """
+        Helper function to evaluate instructor workload
+        :param chromosome: ScheduleChromosome to evaluate instructor workload for
+        :return: Penalty score (lower is better)
+        """
+        if not self.instructor_assignments:
+            return 0.0
+
+        penalty = self.base_workload_penalty
+        scheduled_workload = {}
+
+        for gene in chromosome.genes:
+            if gene.instructor_id is None or gene.timeslot_id is None:
+                continue
+
+            active_weeks = getattr(gene, "active_weeks", None)
+            if active_weeks == []:
+                continue
+
+            duration = max(1, getattr(gene, "duration_slots", 1))
+            weeks_count = len(active_weeks) if active_weeks else 15
+
+            assignment_key = (gene.instructor_id, gene.course_code, gene.class_type)
+            scheduled_workload[assignment_key] = scheduled_workload.get(
+                assignment_key, 0
+            ) + (duration * weeks_count)
+
+        for assignment_key, actual_slots in scheduled_workload.items():
+            expected_slots = self.instructor_assignments.get(assignment_key, 0)
+            penalty -= expected_slots * self.W_WORKLOAD_MISMATCH
+            penalty += abs(expected_slots - actual_slots) * self.W_WORKLOAD_MISMATCH
 
         return penalty

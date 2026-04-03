@@ -202,9 +202,12 @@ class DataProvider:
             duration = int(row["slots_per_class"])
             patterns = self._generate_allowed_patterns(row)
 
+            raw_class_type = str(row["class_type"])
+            normalized_class_type = raw_class_type.split(".")[-1].strip().upper()
+
             gene = ClassSessionGene(
                 course_code=row["course_code"],
-                class_type=row["class_type"],
+                class_type=normalized_class_type,
                 group_id=row["group_id"],
                 duration_slots=duration,
                 pc_needed=row["pc_needed"],
@@ -272,3 +275,34 @@ class DataProvider:
             conflicts.setdefault(b, set()).add(a)
 
         return conflicts
+
+    @staticmethod
+    def get_instructor_assignments(
+        competencies_df: pd.DataFrame,
+    ) -> dict[tuple[int, int, str], int]:
+        """
+        Translates competencies into instructor assignments
+        :param competencies_df: dataframe with employee_id, course_code, class_type, hours
+        :return: Dictionary with key as (employee_id, course_code, class_type) and value as hours
+        """
+        assignments = {}
+        if competencies_df.empty:
+            return assignments
+
+        competencies_df["hours"] = competencies_df["hours"].fillna(0).astype(int)
+
+        for _, row in competencies_df.iterrows():
+            raw_type = row["class_type"]
+            if hasattr(raw_type, "value"):
+                clean_type = str(raw_type.value)
+            elif isinstance(raw_type, str):
+                clean_type = raw_type.split(".")[-1]
+            else:
+                clean_type = str(raw_type)
+
+            normalized_type = clean_type.strip().upper()
+
+            key = (row["employee_id"], row["course_code"], normalized_type)
+            assignments[key] = row["hours"]
+
+        return assignments
