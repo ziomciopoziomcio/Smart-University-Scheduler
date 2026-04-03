@@ -127,11 +127,11 @@ def _apply_assignment(
 
 
 def greedy_assign(
-    base_genes: List[ClassSessionGene],
+    base_genes: list[ClassSessionGene],
     data: dict,
     randomize: bool = False,
     seed: Optional[int] = None,
-) -> List[ClassSessionGene]:
+) -> list[ClassSessionGene]:
     """
     Greedy assignment used for seeding population.
 
