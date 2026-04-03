@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from neo4j import AsyncGraphDatabase, Query
 
-from ai_worker.optimizer import models
+from optimizer import models
 
 logger = logging.getLogger(__name__)
 
