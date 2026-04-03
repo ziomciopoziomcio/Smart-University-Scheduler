@@ -57,7 +57,7 @@ def _taken_slots_for_day(
     day: int,
 ) -> list[int]:
     return sorted(
-        s
+        _slot_in_day(s)
         for (ww, s, eid) in occupied
         if ww == week and eid == entity_id and _day(s) == day
     )
@@ -72,10 +72,13 @@ def _cost_gap_penalty_for_day_span(
     if not taken_slots:
         return 0.0
 
-    finish = start_slot + duration - 1
+    start_in_day = _slot_in_day(start_slot)
+    finish_in_day = start_in_day + duration - 1
+
     earliest = taken_slots[0]
     latest = taken_slots[-1]
-    if start_slot > earliest and finish < latest:
+
+    if start_in_day > earliest and finish_in_day < latest:
         return penalty
     return 0.0
 
