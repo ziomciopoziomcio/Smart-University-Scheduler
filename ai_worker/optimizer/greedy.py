@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple, TypeAlias
+from typing import Optional, TypeAlias
 import secrets
 
 from .models import ClassSessionGene
 
-RoomsLookup = Dict[int, dict]
-InstructorsLookup = Dict[int, dict]
-CompetenciesMap = Dict[Tuple[int, str], Set[int]]
-ConflictsMap = Dict[int, Set[int]]
+RoomsLookup = dict[int, dict]
+InstructorsLookup = dict[int, dict]
+CompetenciesMap = dict[tuple[int, str], set[int]]
+ConflictsMap = dict[int, set[int]]
 
 # (cost, start_slot, room_id, instr_id, pattern_index, weeks)
 BestTuple: TypeAlias = tuple[float, int, int, int, int, list[int]]
