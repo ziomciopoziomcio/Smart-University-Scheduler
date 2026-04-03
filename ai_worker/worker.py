@@ -81,6 +81,9 @@ def _seed_population_greedy(
     """
     population: list[models.ScheduleChromosome] = []
 
+    if size <= 0:
+        return population
+
     genes0 = copy.deepcopy(base_genes)
     greedy.greedy_assign(genes0, data, randomize=False)
     population.append(models.ScheduleChromosome(genes=genes0))
