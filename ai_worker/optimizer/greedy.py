@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TypeAlias
-import secrets
+from typing import TypeAlias, Optional
+import random
 import bisect
 
 from .models import ClassSessionGene
@@ -25,7 +25,7 @@ class GreedyContext:
     conflicting_groups: ConflictsMap
     room_ids_sorted: list[int]
     randomize: bool
-    rng: secrets.SystemRandom
+    rng: random.Random
 
 
 @dataclass
@@ -198,13 +198,15 @@ def greedy_assign(
     base_genes: list[ClassSessionGene],
     data: dict,
     randomize: bool = False,
+    seed: Optional[int] = None,
 ) -> list[ClassSessionGene]:
     """
     Greedy assignment used for seeding population.
 
     Note on randomness:
-    - When randomize=False, algorithm is deterministic without needing any RNG.
-    - When randomize=True, we use SystemRandom() (cryptographically secure).
+    - When randomize=False, algorithm behaviour is deterministic (no shuffling).
+    - When randomize=True, we use random.Random(seed). If seed is provided, the
+      RNG will be reproducible.
     """
     from .greedy_search import (
         find_best_assignment_for_gene,
@@ -219,6 +221,8 @@ def greedy_assign(
         key=lambda rid: rooms_lookup[rid].get("room_capacity", 0) or 0,
     )
 
+    rng = random.Random(seed) if seed is not None else random.Random()
+
     ctx = GreedyContext(
         rooms_lookup=rooms_lookup,
         instructors_lookup=instructors_lookup,
@@ -226,7 +230,7 @@ def greedy_assign(
         conflicting_groups=conflicting_groups,
         room_ids_sorted=room_ids_sorted,
         randomize=randomize,
-        rng=secrets.SystemRandom(),
+        rng=rng,
     )
 
     occ = Occupancy(occupied_room=set(), occupied_instr=set(), occupied_group=set())
