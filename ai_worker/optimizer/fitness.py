@@ -578,6 +578,9 @@ class FitnessCalculator:
         :param chromosome: ScheduleChromosome to evaluate instructor competencies for
         :return: Penalty score (lower is better)
         """
+        if not self.instructor_assignments:
+            return 0.0
+
         penalty = 0.0
 
         for gene in chromosome.genes:
@@ -595,6 +598,9 @@ class FitnessCalculator:
         :param chromosome: ScheduleChromosome to evaluate instructor workload for
         :return: Penalty score (lower is better)
         """
+        if not self.instructor_assignments:
+            return 0.0
+
         penalty = self.base_workload_penalty
         scheduled_workload = {}
 
