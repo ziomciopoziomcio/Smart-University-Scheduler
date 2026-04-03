@@ -27,7 +27,7 @@ class EvolutionEngine:
         """
         Tournament selection
         :param population: List of ScheduleChromosome to select from
-        :return: List of selected ScheduleChromosome
+        :return: Selected ScheduleChromosome
         """
         tournament_pool = random.sample(population, self.tournament_size)
         return min(
@@ -44,12 +44,26 @@ class EvolutionEngine:
         :param parents: List of ScheduleChromosome to crossover
         :return: List of offspring ScheduleChromosome
         """
+        if len(parents) < 2:
+            return [
+                models.ScheduleChromosome(genes=copy.deepcopy(parent.genes))
+                for parent in parents
+            ]
+
         offspring = []
 
         for i in range(0, len(parents), 2):
             parent1 = parents[i]
             parent2 = parents[i + 1] if i + 1 < len(parents) else parents[0]
 
+            if len(parent1.genes) < 2 or len(parent2.genes) < 2:
+                offspring.append(
+                    models.ScheduleChromosome(genes=copy.deepcopy(parent1.genes))
+                )
+                offspring.append(
+                    models.ScheduleChromosome(genes=copy.deepcopy(parent2.genes))
+                )
+                continue
             crossover_point = random.randint(1, len(parent1.genes) - 1)
             child1_genes = copy.deepcopy(
                 parent1.genes[:crossover_point]
