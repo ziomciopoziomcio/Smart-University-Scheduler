@@ -293,6 +293,7 @@ class DataProvider:
             elif isinstance(class_type, str) and "." in class_type:
                 class_type = class_type.split(".")[-1]
             key = (row["employee_id"], row["course_code"], class_type)
-            assignments[key] = row["hours"]
+            hours = row["hours"]
+            assignments[key] = 0 if pd.isna(hours) else int(hours)
 
         return assignments
