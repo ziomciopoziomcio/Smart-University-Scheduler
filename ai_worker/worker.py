@@ -15,7 +15,7 @@ from optimizer import models, fitness
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-_global_calculator: fitness.FitnessCalculator = None
+_global_calculator: fitness.FitnessCalculator | None = None
 
 
 def _init_worker(calculator: fitness.FitnessCalculator) -> None:
