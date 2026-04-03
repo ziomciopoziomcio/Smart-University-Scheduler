@@ -24,7 +24,7 @@ class EvolutionEngine:
 
     def tournament_selection(
         self, population: List[models.ScheduleChromosome]
-    ) -> List[models.ScheduleChromosome]:
+    ) -> models.ScheduleChromosome:
         """
         Tournament selection
         :param population: List of ScheduleChromosome to select from
