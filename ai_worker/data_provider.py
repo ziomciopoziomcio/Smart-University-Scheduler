@@ -286,6 +286,8 @@ class DataProvider:
         if competencies_df.empty:
             return assignments
 
+        competencies_df["hours"] = competencies_df["hours"].fillna(0).astype(int)
+
         for _, row in competencies_df.iterrows():
             class_type = row["class_type"]
             if hasattr(class_type, "value"):
