@@ -6,17 +6,17 @@ import multiprocessing
 import os
 import logging
 
-from aiokafka import AIOKafkaConsumer
+from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 
 from data_provider import DataProvider
 from neo4j_provider import Neo4jProvider
 from optimizer import models, fitness, evolution, greedy
 
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 _global_calculator: fitness.FitnessCalculator | None = None
+
 
 def _greedy_assign_worker(args):
     base_genes, data = args
@@ -81,9 +81,7 @@ def _create_fitness_calculator(data: dict) -> fitness.FitnessCalculator:
 
 
 def _seed_population_greedy(
-    base_genes: list[models.ClassSessionGene], 
-    size: int, 
-    data: dict
+    base_genes: list[models.ClassSessionGene], size: int, data: dict
 ) -> list[models.ScheduleChromosome]:
     """
     Generates one deterministic individual (randomize=False) and (size-1)
@@ -94,7 +92,7 @@ def _seed_population_greedy(
     :param size: Target population size.
     :param data: Dictionary containing faculty infrastructure and requirements.
     :return: A list of initialized ScheduleChromosome objects.
-   """
+    """
     population = []
     if size <= 0:
         return population
@@ -302,17 +300,30 @@ async def main() -> None:
         value_deserializer=lambda m: json.loads(m.decode("utf-8")),
         auto_offset_reset="earliest",
     )
+    producer = AIOKafkaProducer(
+        bootstrap_servers=kafka_url,
+        value_serializer=lambda m: json.dumps(m).encode("utf-8"),
+    )
 
     data_provider = DataProvider()
     neo4j_provider = Neo4jProvider()
 
-    connected = False
-    while not connected:
+    connected_consumer = False
+    while not connected_consumer:
         try:
             await consumer.start()
-            connected = True
+            connected_consumer = True
         except Exception as e:
-            logger.error(f"Failed to connect to Kafka: {e}")
+            logger.error(f"Failed to connect to Kafka (consumer): {e}")
+            await asyncio.sleep(5)
+
+    connected_producer = False
+    while not connected_producer:
+        try:
+            await producer.start()
+            connected_producer = True
+        except Exception as e:
+            logger.error(f"Failed to connect to Kafka (producer): {e}")
             await asyncio.sleep(5)
 
     try:
@@ -320,6 +331,7 @@ async def main() -> None:
             await process_task(msg.value, data_provider, neo4j_provider)
     finally:
         await consumer.stop()
+        await producer.stop()
         await neo4j_provider.close()
 
 
