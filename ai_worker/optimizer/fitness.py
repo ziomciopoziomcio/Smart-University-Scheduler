@@ -578,3 +578,35 @@ class FitnessCalculator:
                 penalty += self.W_HARD_PENALTY
 
         return penalty
+
+    def _evaluate_instructor_workload(self, chromosome: ScheduleChromosome) -> float:
+        """
+        Helper function to evaluate instructor workload
+        :param chromosome: ScheduleChromosome to evaluate instructor workload for
+        :return: Penalty score (lower is better)
+        """
+        penalty = 0.0
+        scheduled_workload = {}
+
+        for gene in chromosome.genes:
+            if gene.instructor_id is None or gene.timeslot_id is None:
+                continue
+
+            assignment_key = (gene.instructor_id, gene.course_code, gene.class_type)
+
+            duration = max(1, getattr(gene, "duration_slots", 1))
+            weeks = getattr(gene, "active_weeks", [1])
+            weeks_count = len(weeks) if weeks else 1
+
+            scheduled_workload[assignment_key] = scheduled_workload.get(
+                assignment_key, 0
+            ) + (duration * weeks_count)
+
+        for assignment_key, contracted_hours in self.instructors_assignments.items():
+            expected_slots = contracted_hours
+            actual_slots = scheduled_workload.get(assignment_key, 0)
+            diff = abs(expected_slots - actual_slots)
+            if diff > 0:
+                penalty += diff * self.W_WORKLOAD_MISMATCH
+
+        return penalty
