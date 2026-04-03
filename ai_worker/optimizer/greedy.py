@@ -43,3 +43,11 @@ def build_lookups(
     return rooms_lookup, instructors_lookup, competencies_map, conflicting_groups
 
 
+def _day(slot_id: int) -> int:
+    return (slot_id - 1) // SLOTS_PER_DAY
+
+
+def _slot_in_day(slot_id: int) -> int:
+    return (slot_id - 1) % SLOTS_PER_DAY
+
+
