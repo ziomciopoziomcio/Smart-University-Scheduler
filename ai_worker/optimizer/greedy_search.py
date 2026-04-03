@@ -50,17 +50,25 @@ def _cost_late_finish(start_slot: int, duration: int) -> float:
     return 0.10 * max(0, _slot_in_day(finish) - 7)
 
 
-def _taken_slots_for_day(
-    occupied: set[tuple[int, int, int]],
+def _taken_slots_for_day_indexed(
+    occ: Occupancy,
     week: int,
     entity_id: int,
     day: int,
+    entity_type: str,
 ) -> list[int]:
-    return sorted(
-        _slot_in_day(s)
-        for (ww, s, eid) in occupied
-        if ww == week and eid == entity_id and _day(s) == day
-    )
+    """
+    Fast retrieval of slot_in_day list for given (week, entity_id, day).
+    entity_type in {"group", "instr", "room"}.
+    Returns a sorted list (may be empty).
+    """
+    if entity_type == "group":
+        return occ.taken_slots_for_group_day(week, entity_id, day)
+    if entity_type == "instr":
+        return occ.taken_slots_for_instr_day(week, entity_id, day)
+    if entity_type == "room":
+        return occ.taken_slots_for_room_day(week, entity_id, day)
+    return []
 
 
 def _cost_gap_penalty_for_day_span(
@@ -90,9 +98,11 @@ def _candidate_cost(
     instr_id: int,
     weeks: list[int],
     rooms_lookup: RoomsLookup,
-    occupied_group: set[tuple[int, int, int]],
-    occupied_instr: set[tuple[int, int, int]],
+    occ: Occupancy,
 ) -> float:
+    """
+    Compute candidate cost using occupancy indexes (occ) for gap penalties.
+    """
     duration = max(1, int(getattr(gene, "duration_slots", 1)))
 
     cost = 0.0
@@ -102,8 +112,8 @@ def _candidate_cost(
 
     day = _day(start_slot)
     for w in weeks:
-        group_taken = _taken_slots_for_day(
-            occupied=occupied_group, week=w, entity_id=gene.group_id, day=day
+        group_taken = _taken_slots_for_day_indexed(
+            occ=occ, week=w, entity_id=gene.group_id, day=day, entity_type="group"
         )
         cost += _cost_gap_penalty_for_day_span(
             start_slot=start_slot,
@@ -112,8 +122,8 @@ def _candidate_cost(
             penalty=5.0,
         )
 
-        instr_taken = _taken_slots_for_day(
-            occupied=occupied_instr, week=w, entity_id=instr_id, day=day
+        instr_taken = _taken_slots_for_day_indexed(
+            occ=occ, week=w, entity_id=instr_id, day=day, entity_type="instr"
         )
         cost += _cost_gap_penalty_for_day_span(
             start_slot=start_slot,
@@ -283,8 +293,7 @@ def _evaluate_candidates_for_start_slot(
                 instr_id=iid,
                 weeks=inp.weeks,
                 rooms_lookup=ctx.rooms_lookup,
-                occupied_group=occ.occupied_group,
-                occupied_instr=occ.occupied_instr,
+                occ=occ,
             )
             cand: BestTuple = (
                 cost,

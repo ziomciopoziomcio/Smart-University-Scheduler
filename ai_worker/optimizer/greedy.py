@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Optional, TypeAlias
+from dataclasses import dataclass, field
+from typing import TypeAlias
 import secrets
+import bisect
 
 from .models import ClassSessionGene
+from .fitness import SLOTS_PER_DAY
 
 RoomsLookup = dict[int, dict]
 InstructorsLookup = dict[int, dict]
@@ -31,6 +33,68 @@ class Occupancy:
     occupied_room: set[tuple[int, int, int]]
     occupied_instr: set[tuple[int, int, int]]
     occupied_group: set[tuple[int, int, int]]
+
+    room_index: dict[tuple[int, int, int], list[int]] = field(default_factory=dict)
+    instr_index: dict[tuple[int, int, int], list[int]] = field(default_factory=dict)
+    group_index: dict[tuple[int, int, int], list[int]] = field(default_factory=dict)
+
+    def _slot_day_parts(self, absolute_slot: int) -> tuple[int, int]:
+        """Return tuple (day, slot_in_day) for an absolute slot id."""
+        day = (absolute_slot - 1) // SLOTS_PER_DAY
+        slot_in_day = (absolute_slot - 1) % SLOTS_PER_DAY
+        return day, slot_in_day
+
+    def _insort_unique(self, lst: list[int], slot_in_day: int) -> None:
+        """
+        Insert slot_in_day into sorted list lst if not present.
+        Optimised: append fast-path when slot is greater than last element,
+        otherwise use bisect to find insertion point and avoid duplicates.
+        """
+        if not lst:
+            lst.append(slot_in_day)
+            return
+
+        if lst[-1] < slot_in_day:
+            lst.append(slot_in_day)
+            return
+
+        i = bisect.bisect_left(lst, slot_in_day)
+        if i == len(lst) or lst[i] != slot_in_day:
+            lst.insert(i, slot_in_day)
+
+    def add_room_slot(self, week: int, absolute_slot: int, room_id: int) -> None:
+        self.occupied_room.add((week, absolute_slot, room_id))
+        day, slot_in_day = self._slot_day_parts(absolute_slot)
+        key = (week, room_id, day)
+        lst = self.room_index.setdefault(key, [])
+        self._insort_unique(lst, slot_in_day)
+
+    def add_instr_slot(self, week: int, absolute_slot: int, instr_id: int) -> None:
+        self.occupied_instr.add((week, absolute_slot, instr_id))
+        day, slot_in_day = self._slot_day_parts(absolute_slot)
+        key = (week, instr_id, day)
+        lst = self.instr_index.setdefault(key, [])
+        self._insort_unique(lst, slot_in_day)
+
+    def add_group_slot(self, week: int, absolute_slot: int, group_id: int) -> None:
+        self.occupied_group.add((week, absolute_slot, group_id))
+        day, slot_in_day = self._slot_day_parts(absolute_slot)
+        key = (week, group_id, day)
+        lst = self.group_index.setdefault(key, [])
+        self._insort_unique(lst, slot_in_day)
+
+    def taken_slots_for_group_day(
+        self, week: int, group_id: int, day: int
+    ) -> list[int]:
+        return list(self.group_index.get((week, group_id, day), []))
+
+    def taken_slots_for_instr_day(
+        self, week: int, instr_id: int, day: int
+    ) -> list[int]:
+        return list(self.instr_index.get((week, instr_id, day), []))
+
+    def taken_slots_for_room_day(self, week: int, room_id: int, day: int) -> list[int]:
+        return list(self.room_index.get((week, room_id, day), []))
 
 
 @dataclass(frozen=True)
@@ -76,7 +140,6 @@ def build_lookups(
     comp_df = data.get("competencies")
     if comp_df is not None and not comp_df.empty:
         for _, r in comp_df.iterrows():
-            # normalize class_type to stable canonical form
             class_type_raw = r.get("class_type")
             class_type_norm = (
                 "" if class_type_raw is None else str(class_type_raw).strip().upper()
@@ -126,9 +189,9 @@ def _apply_assignment(
 
     for w in weeks:
         for s in range(start_slot, start_slot + duration):
-            occ.occupied_room.add((w, s, room_id))
-            occ.occupied_instr.add((w, s, instr_id))
-            occ.occupied_group.add((w, s, gene.group_id))
+            occ.add_room_slot(w, s, room_id)
+            occ.add_instr_slot(w, s, instr_id)
+            occ.add_group_slot(w, s, gene.group_id)
 
 
 def greedy_assign(
