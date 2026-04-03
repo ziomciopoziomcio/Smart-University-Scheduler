@@ -109,7 +109,7 @@ def _get_max_workers(population_size: int) -> int:
 def _create_evolution_engine(data: dict) -> evolution.EvolutionEngine:
     """
     Creates the evolution engine for the provided data.
-    :param data: Dictionary containing all necessary data for the optimization process. It is expected to include at least:
+    :param data: Dictionary containing all necessary data for the optimization process.
     :return: An instance of EvolutionEngine initialized with the provided data.
     """
     room_ids = data["rooms"]["room_id"].tolist() if "room_id" in data["rooms"] else []
