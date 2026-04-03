@@ -87,7 +87,11 @@ def _seed_population_greedy(
     randomized greedy individuals in parallel. Returns a list of
     ScheduleChromosome instances. Uses ProcessPoolExecutor for parallelism;
     large `data` may incur pickling overhead.
-    """
+    :param base_genes: List of initial genes to be assigned.
+    :param size: Target population size.
+    :param data: Dictionary containing faculty infrastructure and requirements.
+    :return: A list of initialized ScheduleChromosome objects.
+   """
     population = []
     if size <= 0:
         return population
