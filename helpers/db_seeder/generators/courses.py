@@ -452,10 +452,7 @@ def generate_elective_blocks(
         sf_id: int = sf_obj.id
 
         for eb_name in informatyka_elective_blocks:
-            elective_block_obj = Elective_block(
-                study_field=sf_id,
-                block_name=eb_name
-            )
+            elective_block_obj = Elective_block(study_field=sf_id, block_name=eb_name)
             session.add(elective_block_obj)
             db_elective_blocks[eb_name] = elective_block_obj
     else:
