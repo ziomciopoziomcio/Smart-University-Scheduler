@@ -312,7 +312,10 @@ class Neo4jProvider:
 
         try:
             async with self.driver.session() as session:
-                await session.run(query, batch=data_to_save, faculty_id=faculty_id)
+                result = await session.run(
+                    query, batch=data_to_save, faculty_id=faculty_id
+                )
+                await result.consume()
                 logger.info(f"Successfully exported schedule for faculty {faculty_id}")
         except Exception as e:
             logger.error(f"Failed to save schedule: {e}")
@@ -326,5 +329,6 @@ class Neo4jProvider:
         """
         query = Query("MATCH (s:ClassSession {facultyId: $faculty_id}) DETACH DELETE s")
         async with self.driver.session() as session:
-            await session.run(query, faculty_id=faculty_id)
+            result = await session.run(query, faculty_id=faculty_id)
+            await result.consume()
             logger.info(f"Successfully cleared old schedule for faculty {faculty_id}")
