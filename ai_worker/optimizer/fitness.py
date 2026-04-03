@@ -559,3 +559,22 @@ class FitnessCalculator:
             penalty += (daily_slots_count - 6) * w_fatigue * multiplier
 
         return penalty
+
+    def _evaluate_instructor_competencies(
+        self, chromosome: ScheduleChromosome
+    ) -> float:
+        """
+        Helper function to evaluate instructor competencies
+        :param chromosome: ScheduleChromosome to evaluate instructor competencies for
+        :return: Penalty score (lower is better)
+        """
+        penalty = 0.0
+
+        for gene in chromosome.genes:
+            if gene.instructor_id is None:
+                continue
+            assignment_key = (gene.instructor_id, gene.course_code, gene.class_type)
+            if assignment_key not in self.instructors_assignments:
+                penalty += self.W_HARD_PENALTY
+
+        return penalty
