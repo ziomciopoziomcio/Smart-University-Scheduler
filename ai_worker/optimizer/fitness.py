@@ -61,6 +61,9 @@ class FitnessCalculator:
         penalty += self._evaluate_instructor_time_efficiency(chromosome)
         penalty += self._evaluate_instructor_location_logic(chromosome)
 
+        penalty += self._evaluate_instructor_competencies(chromosome)
+        penalty += self._evaluate_instructor_workload(chromosome)
+
         chromosome.fitness_score = penalty
         return penalty
 
