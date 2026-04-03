@@ -53,6 +53,9 @@ def _create_fitness_calculator(data: dict) -> fitness.FitnessCalculator:
     conflicting_groups = DataProvider.get_conflicting_groups_dict(
         data["conflicting_groups"]
     )
+    instructor_assignments = DataProvider.get_instructor_assignments(
+        data["competencies"]
+    )
 
     return fitness.FitnessCalculator(
         rooms_lookup=data["rooms"].set_index("room_id").to_dict("index"),
@@ -60,6 +63,7 @@ def _create_fitness_calculator(data: dict) -> fitness.FitnessCalculator:
         group_to_profiles=group_to_profiles,
         profile_counts=profile_counts,
         conflicting_groups=conflicting_groups,
+        instructor_assignments=instructor_assignments,
     )
 
 
