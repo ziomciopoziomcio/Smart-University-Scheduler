@@ -202,9 +202,12 @@ class DataProvider:
             duration = int(row["slots_per_class"])
             patterns = self._generate_allowed_patterns(row)
 
+            raw_class_type = str(row["class_type"])
+            normalized_class_type = raw_class_type.split(".")[-1].strip().upper()
+
             gene = ClassSessionGene(
                 course_code=row["course_code"],
-                class_type=row["class_type"],
+                class_type=normalized_class_type,
                 group_id=row["group_id"],
                 duration_slots=duration,
                 pc_needed=row["pc_needed"],
@@ -297,7 +300,7 @@ class DataProvider:
             else:
                 clean_type = str(raw_type)
 
-            normalized_type = clean_type.strip().capitalize()
+            normalized_type = clean_type.strip().upper()
 
             key = (row["employee_id"], row["course_code"], normalized_type)
             assignments[key] = row["hours"]
