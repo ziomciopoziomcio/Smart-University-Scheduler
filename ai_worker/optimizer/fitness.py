@@ -600,8 +600,12 @@ class FitnessCalculator:
             assignment_key = (gene.instructor_id, gene.course_code, gene.class_type)
 
             duration = max(1, getattr(gene, "duration_slots", 1))
-            weeks = getattr(gene, "active_weeks", [1])
-            weeks_count = len(weeks) if weeks else 1
+            weeks = getattr(gene, "active_weeks", None)
+
+            if weeks == []:
+                continue
+
+            weeks_count = len(weeks) if weeks else 0
 
             scheduled_workload[assignment_key] = scheduled_workload.get(
                 assignment_key, 0
