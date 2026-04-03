@@ -165,7 +165,9 @@ def _room_satisfies_requirements(gene: ClassSessionGene, room: dict) -> bool:
         if room_pc < required_pc:
             return False
 
-    if getattr(gene, "projector_needed", False) and not bool(room.get("projector_availability", False)):
+    if getattr(gene, "projector_needed", False) and not bool(
+        room.get("projector_availability", False)
+    ):
         return False
 
     return True

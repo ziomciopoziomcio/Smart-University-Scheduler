@@ -19,6 +19,16 @@ logger = logging.getLogger(__name__)
 _global_calculator: Optional[fitness.FitnessCalculator] = None
 
 
+def _greedy_assign_worker(args):
+    base_genes, data = args
+    from optimizer import greedy
+    import copy as _copy
+
+    genes_copy = _copy.deepcopy(base_genes)
+    greedy.greedy_assign(genes_copy, data, randomize=True)
+    return genes_copy
+
+
 def _init_worker(calculator: fitness.FitnessCalculator) -> None:
     """
     Initializes the worker process by setting up a global fitness calculator instance.
@@ -69,18 +79,14 @@ def _create_fitness_calculator(data: dict) -> fitness.FitnessCalculator:
     )
 
 
-def _seed_population_greedy(
-    base_genes: list[models.ClassSessionGene],
-    size: int,
-    data: dict,
-) -> list[models.ScheduleChromosome]:
+def _seed_population_greedy(base_genes, size, data):
     """
-    Creates initial population using greedy seeding:
-    - 1 deterministic greedy individual
-    - (size-1) greedy individuals with small randomness (diversity)
+    Generates one deterministic individual (randomize=False) and (size-1)
+    randomized greedy individuals in parallel. Returns a list of
+    ScheduleChromosome instances. Uses ProcessPoolExecutor for parallelism;
+    large `data` may incur pickling overhead.
     """
-    population: list[models.ScheduleChromosome] = []
-
+    population = []
     if size <= 0:
         return population
 
@@ -88,10 +94,19 @@ def _seed_population_greedy(
     greedy.greedy_assign(genes0, data, randomize=False)
     population.append(models.ScheduleChromosome(genes=genes0))
 
-    for i in range(size - 1):
-        genes_i = copy.deepcopy(base_genes)
-        greedy.greedy_assign(genes_i, data, randomize=True)
-        population.append(models.ScheduleChromosome(genes=genes_i))
+    n_random = max(0, size - 1)
+    if n_random == 0:
+        return population
+
+    max_workers = min(n_random, os.cpu_count() or 1)
+    args_iterable = [(base_genes, data) for _ in range(n_random)]
+
+    mp_ctx = multiprocessing.get_context("spawn")
+    with concurrent.futures.ProcessPoolExecutor(
+        max_workers=max_workers, mp_context=mp_ctx
+    ) as exe:
+        for genes_assigned in exe.map(_greedy_assign_worker, args_iterable):
+            population.append(models.ScheduleChromosome(genes=genes_assigned))
 
     return population
 
