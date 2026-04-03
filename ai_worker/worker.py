@@ -356,7 +356,7 @@ async def main() -> None:
 
     try:
         async for msg in consumer:
-            await process_task(msg.value, data_provider, neo4j_provider)
+            await process_task(msg.value, data_provider, neo4j_provider, producer)
     finally:
         await consumer.stop()
         await producer.stop()
