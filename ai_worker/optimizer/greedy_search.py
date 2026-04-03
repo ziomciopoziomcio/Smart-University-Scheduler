@@ -158,10 +158,16 @@ def _get_instructor_candidates(gene: ClassSessionGene, ctx: GreedyContext) -> li
 def _room_satisfies_requirements(gene: ClassSessionGene, room: dict) -> bool:
     if int(room.get("room_capacity", 0) or 0) < int(gene.group_size):
         return False
-    if gene.pc_needed and int(room.get("pc_amount", 0) or 0) <= 0:
+
+    room_pc = int(room.get("pc_amount", 0) or 0)
+    if getattr(gene, "pc_needed", False):
+        required_pc = int(getattr(gene, "required_pc_amount", 1))
+        if room_pc < required_pc:
+            return False
+
+    if getattr(gene, "projector_needed", False) and not bool(room.get("projector_availability", False)):
         return False
-    if gene.projector_needed and not bool(room.get("projector_availability", False)):
-        return False
+
     return True
 
 
