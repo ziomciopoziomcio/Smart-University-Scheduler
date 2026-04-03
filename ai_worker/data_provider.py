@@ -289,12 +289,17 @@ class DataProvider:
         competencies_df["hours"] = competencies_df["hours"].fillna(0).astype(int)
 
         for _, row in competencies_df.iterrows():
-            class_type = row["class_type"]
-            if hasattr(class_type, "value"):
-                class_type = class_type.value
-            elif isinstance(class_type, str) and "." in class_type:
-                class_type = class_type.split(".")[-1]
-            key = (row["employee_id"], row["course_code"], class_type)
+            raw_type = row["class_type"]
+            if hasattr(raw_type, "value"):
+                clean_type = str(raw_type.value)
+            elif isinstance(raw_type, str):
+                clean_type = raw_type.split(".")[-1]
+            else:
+                clean_type = str(raw_type)
+
+            normalized_type = clean_type.strip().capitalize()
+
+            key = (row["employee_id"], row["course_code"], normalized_type)
             assignments[key] = row["hours"]
 
         return assignments
