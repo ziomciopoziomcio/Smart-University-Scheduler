@@ -28,7 +28,7 @@ class EvolutionEngine:
         """
         Tournament selection
         :param population: List of ScheduleChromosome to select from
-        :return: List of selected ScheduleChromosome
+        :return: Selected ScheduleChromosome
         """
         tournament_pool = random.sample(population, self.tournament_size)
         return min(
