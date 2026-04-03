@@ -8,10 +8,17 @@ from . import models
 class EvolutionEngine:
     """Evolution Engine"""
 
-    def __init__(self, tournament_size: int = 3, mutation_rate: float = 0.05):
-        self.available_instructors = None
-        self.available_rooms = None
-        self.max_timeslots = None
+    def __init__(
+        self,
+        available_rooms: List[int],
+        available_instructors: List[int],
+        max_timeslots: int = 60,
+        tournament_size: int = 3,
+        mutation_rate: float = 0.05,
+    ):
+        self.available_instructors = available_instructors
+        self.available_rooms = available_rooms
+        self.max_timeslots = max_timeslots
         self.tournament_size = tournament_size
         self.mutation_rate = mutation_rate
 
