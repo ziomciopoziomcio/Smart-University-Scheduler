@@ -1,8 +1,10 @@
 import logging
 import os
-import pandas as pd
 
+import pandas as pd
 from neo4j import AsyncGraphDatabase, Query
+
+from ai_worker.optimizer import models
 
 logger = logging.getLogger(__name__)
 
@@ -231,3 +233,57 @@ class Neo4jProvider:
                 f"Exception occurred during Graph DB init (competencies): {e}"
             )
             raise RuntimeError("Critical error: Failed to load competencies.")
+
+    async def save_best_schedule(
+        self, best_chromosome: models.ScheduleChromosome, faculty_id: int
+    ) -> None:
+        """
+        Save the best chromosome
+        :param best_chromosome: The best ScheduleChromosome to save
+        :param faculty_id: The faculty to save the best chromosome
+        :return: None
+        """
+        data_to_save = []
+        for gene in best_chromosome.genes:
+            if None in [gene.instructor_id, gene.room_id, gene.timeslot_id]:
+                continue
+
+            data_to_save.append(
+                {
+                    "instructor_id": int(gene.instructor_id),
+                    "room_id": int(gene.room_id),
+                    "group_id": int(gene.group_id),
+                    "timeslot_id": int(gene.timeslot_id),
+                    "course_code": str(gene.course_code),
+                    "class_type": str(gene.class_type).upper(),
+                    "weeks": (
+                        gene.allowed_week_patterns[gene.selected_pattern_index]
+                        if gene.allowed_week_patterns
+                        else []
+                    ),
+                }
+            )
+
+        query = Query("""
+        UNWIND $batch AS row
+        MATCH (i:Instructor {instructorId: row.instructor_id})
+        MATCH (r:Room {roomId: row.room_id})
+        MATCH (t:TimeSlot {timeSlotId: row.timeslot_id})
+        MATCH (g:Group {groupId: row.group_id})
+        MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
+
+        CREATE (s:ClassSession {weeks: row.weeks, facultyId: $faculty_id})
+        MERGE (s)-[:TAUGHT_BY]->(i)
+        MERGE (s)-[:HELD_IN]->(r)
+        MERGE (s)-[:FOR_GROUP]->(g)
+        MERGE (s)-[:AT_TIME]->(t)
+        MERGE (s)-[:OF_COURSE]->(c)
+        """)
+
+        try:
+            async with self.driver.session() as session:
+                await session.run(query, batch=data_to_save, faculty_id=faculty_id)
+                logger.info(f"Successfully exported schedule for faculty {faculty_id}")
+        except Exception as e:
+            logger.error(f"Failed to save schedule: {e}")
+            raise
