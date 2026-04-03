@@ -10,12 +10,20 @@ from aiokafka import AIOKafkaConsumer
 
 from data_provider import DataProvider
 from neo4j_provider import Neo4jProvider
-from optimizer import models, fitness, evolution
+from optimizer import models, fitness, evolution, greedy
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 _global_calculator: fitness.FitnessCalculator | None = None
+
+def _greedy_assign_worker(args):
+    base_genes, data = args
+
+    genes_copy = copy.deepcopy(base_genes)
+    greedy.greedy_assign(genes_copy, data, randomize=True)
+    return genes_copy
 
 
 def _init_worker(calculator: fitness.FitnessCalculator) -> None:
@@ -37,6 +45,11 @@ def _evaluate_single_chromosome(
     :return: The same ScheduleChromosome instance with its fitness_score attribute
         updated based on the evaluation.
     """
+    if _global_calculator is None:
+        raise RuntimeError(
+            "Fitness calculator was not initialized in worker process. "
+            "Did ProcessPoolExecutor initializer _init_worker run?"
+        )
     _global_calculator.calculate_fitness(chromosome)
     return chromosome
 
@@ -67,21 +80,56 @@ def _create_fitness_calculator(data: dict) -> fitness.FitnessCalculator:
     )
 
 
-def _generate_initial_population(
-    base_genes: list[models.ClassSessionGene], size: int
+def _seed_population_greedy(
+    base_genes: list[models.ClassSessionGene], 
+    size: int, 
+    data: dict
 ) -> list[models.ScheduleChromosome]:
     """
-    Generates an initial population of ScheduleChromosomes based on the provided base genes.
-    :param base_genes: List of ClassSessionGene instances representing the initial set of genes.
-    :param size: The desired size of the population to generate.
-    :return: A list of ScheduleChromosome instances forming the initial population.
-    """
+    Generates one deterministic individual (randomize=False) and (size-1)
+    randomized greedy individuals in parallel. Returns a list of
+    ScheduleChromosome instances. Uses ProcessPoolExecutor for parallelism;
+    large `data` may incur pickling overhead.
+    :param base_genes: List of initial genes to be assigned.
+    :param size: Target population size.
+    :param data: Dictionary containing faculty infrastructure and requirements.
+    :return: A list of initialized ScheduleChromosome objects.
+   """
     population = []
-    for _ in range(size):
-        # TODO: Greedy logic
-        genes_copy = copy.deepcopy(base_genes)
-        population.append(models.ScheduleChromosome(genes=genes_copy))
+    if size <= 0:
+        return population
+
+    genes0 = copy.deepcopy(base_genes)
+    greedy.greedy_assign(genes0, data, randomize=False)
+    population.append(models.ScheduleChromosome(genes=genes0))
+
+    n_random = max(0, size - 1)
+    if n_random == 0:
+        return population
+
+    max_workers = min(n_random, os.cpu_count() or 1)
+    args_iterable = [(base_genes, data) for _ in range(n_random)]
+
+    mp_ctx = multiprocessing.get_context("spawn")
+    with concurrent.futures.ProcessPoolExecutor(
+        max_workers=max_workers, mp_context=mp_ctx
+    ) as exe:
+        for genes_assigned in exe.map(_greedy_assign_worker, args_iterable):
+            population.append(models.ScheduleChromosome(genes=genes_assigned))
+
     return population
+
+
+def _generate_initial_population(
+    base_genes: list[models.ClassSessionGene],
+    size: int,
+    data: dict,
+) -> list[models.ScheduleChromosome]:
+    """
+    Generates initial population.
+    Currently uses greedy seeding (see _seed_population_greedy).
+    """
+    return _seed_population_greedy(base_genes=base_genes, size=size, data=data)
 
 
 def _get_max_workers(population_size: int) -> int:
@@ -156,7 +204,7 @@ def run_ai_optimizer_sync(
 
     calculator = _create_fitness_calculator(data)
     population_size = 50
-    population = _generate_initial_population(base_genes, population_size)
+    population = _generate_initial_population(base_genes, population_size, data)
 
     engine = _create_evolution_engine(data)
 
