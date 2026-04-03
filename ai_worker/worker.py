@@ -11,7 +11,8 @@ from aiokafka import AIOKafkaConsumer
 
 from data_provider import DataProvider
 from neo4j_provider import Neo4jProvider
-from optimizer import models, fitness, greedy
+from optimizer import models, fitness, evolution, greedy
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -155,6 +156,22 @@ def _get_max_workers(population_size: int) -> int:
         return 1
 
 
+def _create_evolution_engine(data: dict) -> evolution.EvolutionEngine:
+    """
+    Creates the evolution engine for the provided data.
+    :param data: Dictionary containing all necessary data for the optimization process.
+    :return: An instance of EvolutionEngine initialized with the provided data.
+    """
+    room_ids = data["rooms"]["room_id"].tolist() if "room_id" in data["rooms"] else []
+    instructor_ids = (
+        data["employees"]["id"].tolist() if "id" in data["employees"] else []
+    )
+    return evolution.EvolutionEngine(
+        available_rooms=room_ids,
+        available_instructors=instructor_ids,
+    )
+
+
 def run_ai_optimizer_sync(
     faculty_id: str, data: dict, base_genes: list[models.ClassSessionGene]
 ) -> models.ScheduleChromosome:
@@ -187,6 +204,8 @@ def run_ai_optimizer_sync(
     population_size = 50
     population = _generate_initial_population(base_genes, population_size, data)
 
+    engine = _create_evolution_engine(data)
+
     max_workers = _get_max_workers(population_size)
     chunk_size = max(1, population_size // (max_workers * 2))
     generations = 100
@@ -203,12 +222,24 @@ def run_ai_optimizer_sync(
                     _evaluate_single_chromosome, population, chunksize=chunk_size
                 )
             )
-            # TODO: selection, crossover, mutation to create new population
 
             population.sort(
                 key=lambda chrom: getattr(chrom, "fitness_score", float("inf"))
             )
 
+            new_population = list(population[:2])
+            parents = [
+                engine.tournament_selection(population)
+                for _ in range(population_size - len(new_population))
+            ]
+
+            offspring = engine.crossover(parents)
+            offspring = engine.mutation(offspring)
+
+            new_population.extend(offspring)
+            population = new_population
+
+    population.sort(key=lambda chrom: getattr(chrom, "fitness_score", float("inf")))
     return population[0]
 
 
