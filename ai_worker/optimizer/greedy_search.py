@@ -1,16 +1,14 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Optional
 
 from .fitness import MAX_SLOT_ID, SLOTS_PER_DAY
 from .models import ClassSessionGene
 from .greedy import (
     BestTuple,
-    CompetenciesMap,
     ConflictsMap,
     EvalInput,
     GreedyContext,
-    InstructorsLookup,
     Occupancy,
     RoomsLookup,
     StartSlotInput,
