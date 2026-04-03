@@ -244,7 +244,10 @@ def run_ai_optimizer_sync(
 
 
 async def process_task(
-    task_data: dict, data_prov: DataProvider, neo4j_prov: Neo4jProvider
+    task_data: dict,
+    data_prov: DataProvider,
+    neo4j_prov: Neo4jProvider,
+    producer: AIOKafkaProducer,
 ) -> None:
     """
     Task handler for schedule optimization requests.
@@ -259,10 +262,14 @@ async def process_task(
           may be present but are not used directly by this worker.
     :param data_prov: DataProvider object used to retrieve all required data.
     :param neo4j_prov: Neo4jProvider object.
+    :param producer: AIOKafka producer object.
     :return: None
     """
+    task_id = task_data.get("task_id")
+    faculty_id = task_data.get("faculty_id")
+    result_topic = os.getenv("KAFKA_RESULT_TOPIC", "schedule.optimization.results")
+
     try:
-        faculty_id = task_data.get("faculty_id")
         if not faculty_id:
             logger.error("Faculty id not provided")
             return
@@ -277,14 +284,35 @@ async def process_task(
 
         base_genes = data_prov.prepare_initial_genes(data)
 
-        best_schedule = await asyncio.to_thread(  # noqa F841
+        best_schedule = await asyncio.to_thread(
             run_ai_optimizer_sync, faculty_id, data, base_genes
         )
 
-        # TODO: Save best_schedule
+        await neo4j_prov.clear_old_schedule(faculty_id)
+        await neo4j_prov.save_best_schedule(best_schedule, faculty_id)
+
+        await producer.send_and_wait(
+            result_topic,
+            {
+                "task_id": task_id,
+                "faculty_id": faculty_id,
+                "status": "COMPLETED",
+                "fitness": float(best_schedule.fitness_score),
+                "message": "Optimisation successful.",
+            },
+        )
+        logger.info(f"Task {task_id} completed successfully")
 
     except Exception as e:
         logger.exception(f"Critical error: {e}")
+        await producer.send_and_wait(
+            result_topic,
+            {
+                "task_id": task_id,
+                "status": "FAILED",
+                "error": str(e),
+            },
+        )
 
 
 async def main() -> None:
