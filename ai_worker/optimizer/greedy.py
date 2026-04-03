@@ -67,3 +67,59 @@ def _iter_gene_weeks(gene: ClassSessionGene, pattern_index: int) -> list[int]:
     return list(weeks)
 
 
+def _candidate_cost(
+    gene: ClassSessionGene,
+    start_slot: int,
+    room_id: int,
+    instr_id: int,
+    weeks: list[int],
+    rooms_lookup: RoomsLookup,
+    occupied_group: set[tuple[int, int, int]],
+    occupied_instr: set[tuple[int, int, int]],
+) -> float:
+    """
+    Heuristic cost: lower is better. Not full fitness, but captures:
+    - prefer earlier hours
+    - minimize room waste
+    - avoid late finishes
+    - penalize inserting "in between" existing classes (simple gap penalty)
+    """
+    cost = 0.0
+
+    duration = max(1, int(getattr(gene, "duration_slots", 1)))
+    finish = start_slot + duration - 1
+
+    #preference: earlier in day
+    cost += 0.20 * _slot_in_day(start_slot)
+
+    #minimize room waste
+    cap = int(rooms_lookup[room_id].get("room_capacity", 0) or 0)
+    cost += 0.05 * max(0, cap - int(gene.group_size))
+
+    #penalize late finishes
+    cost += 0.10 * max(0, _slot_in_day(finish) - 7)
+
+    #gap penalty: if we schedule inside existing span for that day
+    d = _day(start_slot)
+    for w in weeks:
+        group_taken = sorted(
+            s
+            for (ww, s, gid) in occupied_group
+            if ww == w and gid == gene.group_id and _day(s) == d
+        )
+        if group_taken:
+            if start_slot > group_taken[0] and finish < group_taken[-1]:
+                cost += 5.0
+
+        instr_taken = sorted(
+            s
+            for (ww, s, iid) in occupied_instr
+            if ww == w and iid == instr_id and _day(s) == d
+        )
+        if instr_taken:
+            if start_slot > instr_taken[0] and finish < instr_taken[-1]:
+                cost += 7.5
+
+    return cost
+
+
