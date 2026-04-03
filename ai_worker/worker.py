@@ -37,6 +37,7 @@ def _evaluate_single_chromosome(
     :return: The same ScheduleChromosome instance with its fitness_score attribute
         updated based on the evaluation.
     """
+    assert _global_calculator is not None
     _global_calculator.calculate_fitness(chromosome)
     return chromosome
 
