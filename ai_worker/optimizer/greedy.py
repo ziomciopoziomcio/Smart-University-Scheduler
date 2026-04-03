@@ -130,7 +130,6 @@ def greedy_assign(
     base_genes: list[ClassSessionGene],
     data: dict,
     randomize: bool = False,
-    seed: Optional[int] = None,
 ) -> list[ClassSessionGene]:
     """
     Greedy assignment used for seeding population.
@@ -138,13 +137,10 @@ def greedy_assign(
     Note on randomness:
     - When randomize=False, algorithm is deterministic without needing any RNG.
     - When randomize=True, we use SystemRandom() (cryptographically secure).
-    - `seed` is kept for API compatibility but not used with SystemRandom.
     """
-    _ = seed  # kept intentionally for compatibility
-
     from .greedy_search import (
         find_best_assignment_for_gene,
-    )  # local import to avoid cycles
+    )
 
     rooms_lookup, instructors_lookup, competencies_map, conflicting_groups = (
         build_lookups(data)

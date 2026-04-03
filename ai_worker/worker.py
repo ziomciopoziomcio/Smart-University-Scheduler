@@ -90,7 +90,7 @@ def _seed_population_greedy(
 
     for i in range(size - 1):
         genes_i = copy.deepcopy(base_genes)
-        greedy.greedy_assign(genes_i, data, randomize=True, seed=i + 1)
+        greedy.greedy_assign(genes_i, data, randomize=True)
         population.append(models.ScheduleChromosome(genes=genes_i))
 
     return population
