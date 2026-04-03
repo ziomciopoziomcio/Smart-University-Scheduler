@@ -13,7 +13,7 @@ from backend.src.courses.models import (
     CourseLanguage,
     Course_type_detail,
 )
-from src.courses.models import Major
+from src.courses.models import Major, Elective_block
 
 
 def generate_study_fields(
@@ -394,7 +394,7 @@ def generate_majors(
     """
     Creates Major objects based on data extracted from a JSON file.
     :param session: database session
-    :param study_fields: dictionary mapping course names
+    :param study_fields: dictionary mapping study fields names
         to their corresponding Study_fields objects.
     :param sourcefile: path to JSON file containing study field data
     :return: dictionary mapping (study_field_name, major_name) tuples
@@ -420,3 +420,46 @@ def generate_majors(
 
     session.flush()
     return db_majors
+
+
+def generate_elective_blocks(
+    session: Session,
+    study_fields: dict[str, Study_fields],
+) -> dict[str, Elective_block]:
+    """
+    Creates Elective_block objects
+    :param session: database session
+    :param study_fields: dictionary mapping study fields names
+        to their corresponding Study_fields objects.
+    :return: dictionary mapping elective blocks names
+        to their corresponding Elective_block objects.
+    """
+    # only for "informatyka."
+
+    db_elective_blocks: dict[str, Elective_block] = {}
+
+    informatyka_elective_blocks = [
+        "Programowanie Gier",
+        "Technologie mobilne",
+        "Big Data i programowanie aplikacji bazodanowych",
+        "Zaawansowane aplikacje bazodanowe",
+        "Testowanie i zapewnianie jakości oprogramowania",
+        "Zarządzanie sieciami komputerowymi",
+    ]
+
+    sf_obj = study_fields.get("informatyka.", None)
+    if sf_obj is not None:
+        sf_id: int = sf_obj.id
+
+        for eb_name in informatyka_elective_blocks:
+            elective_block_obj = Elective_block(
+                study_field=sf_id,
+                block_name=eb_name
+            )
+            session.add(elective_block_obj)
+            db_elective_blocks[eb_name] = elective_block_obj
+    else:
+        print("Study field for elective blocks not found!")
+
+    session.flush()
+    return db_elective_blocks
