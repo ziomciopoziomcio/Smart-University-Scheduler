@@ -177,7 +177,7 @@ def run_ai_optimizer_sync(
                 key=lambda chrom: getattr(chrom, "fitness_score", float("inf"))
             )
 
-            new_population = copy.deepcopy(population[:2])
+            new_population = list(population[:2])
             parents = [
                 engine.tournament_selection(population)
                 for _ in range(population_size - len(new_population))
