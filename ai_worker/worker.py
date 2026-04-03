@@ -77,7 +77,11 @@ def _create_fitness_calculator(data: dict) -> fitness.FitnessCalculator:
     )
 
 
-def _seed_population_greedy(base_genes, size, data):
+def _seed_population_greedy(
+    base_genes: list[models.ClassSessionGene], 
+    size: int, 
+    data: dict
+) -> list[models.ScheduleChromosome]:
     """
     Generates one deterministic individual (randomize=False) and (size-1)
     randomized greedy individuals in parallel. Returns a list of
