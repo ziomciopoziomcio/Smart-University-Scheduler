@@ -13,6 +13,7 @@ from backend.src.courses.models import (
     CourseLanguage,
     Course_type_detail,
 )
+from src.courses.models import Major
 
 
 def generate_study_fields(
@@ -363,3 +364,59 @@ def generate_course_type_details(
 
     session.flush()
     return db_course_type_details
+
+
+def _extract_majors_from_file(sourcefile) -> list[tuple[str, str]]:
+    """
+    Extracts unique (study_field_name, major_name) pairs from a JSON file.
+    :param sourcefile: path to JSON file containing study field data
+    :return: list of unique (study_field_name, major_name) pairs sorted by study_field_name
+    """
+    with open(sourcefile, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    majors = set()
+    for kierunek in data:
+        if kierunek["specjalizacja"] is not None:
+            new_major = (kierunek["nazwa"], kierunek["specjalizacja"])
+            majors.add(new_major)
+
+    majors = list(majors)
+    majors.sort(key=lambda x: x[0])
+    return majors
+
+
+def generate_majors(
+    session: Session,
+    study_fields: dict[str, Study_fields],
+    sourcefile="../../../helpers/data_collector/final-programy.json",
+) -> dict[tuple[str, str], Major]:
+    """
+    Creates Major objects based on data extracted from a JSON file.
+    :param session: database session
+    :param study_fields: dictionary mapping course names
+        to their corresponding Study_fields objects.
+    :param sourcefile: path to JSON file containing study field data
+    :return: dictionary mapping (study_field_name, major_name) tuples
+        to their corresponding Major objects.
+    """
+
+    db_majors: dict[tuple[str, str], Major] = {}
+    majors = _extract_majors_from_file(sourcefile)
+
+    for study_field_name, major_name in majors:
+        try:
+            study_field_obj: Study_fields = study_fields[study_field_name]
+        except KeyError as e:
+            print(
+                f"Could not find study field for major - {e} - {study_field_name} - {major_name}"
+            )
+            continue
+        study_field_id: int = study_field_obj.id
+
+        major = Major(study_field=study_field_id, major_name=major_name)
+        session.add(major)
+        db_majors[(study_field_name, major_name)] = major
+
+    session.flush()
+    return db_majors
