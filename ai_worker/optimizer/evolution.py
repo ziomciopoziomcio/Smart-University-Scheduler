@@ -29,7 +29,8 @@ class EvolutionEngine:
         :param population: List of ScheduleChromosome to select from
         :return: Selected ScheduleChromosome
         """
-        tournament_pool = random.sample(population, self.tournament_size)
+        current_tournament_size = min(self.tournament_size, len(population))
+        tournament_pool = random.sample(population, current_tournament_size)
         return min(
             tournament_pool,
             key=lambda chrom: getattr(chrom, "fitness_score", float("inf")),
