@@ -295,6 +295,11 @@ class Neo4jProvider:
             )
 
         query = Query("""
+        MATCH (old_s:ClassSession {facultyId: $faculty_id})
+        DETACH DELETE old_s
+
+        WITH count(*) as _
+
         UNWIND $batch AS row
         MATCH (i:Instructor {instructorId: row.instructor_id})
         MATCH (r:Room {roomId: row.room_id})
@@ -320,15 +325,3 @@ class Neo4jProvider:
         except Exception as e:
             logger.error(f"Failed to save schedule: {e}")
             raise
-
-    async def clear_old_schedule(self, faculty_id: int) -> None:
-        """
-        Clear the old schedule
-        :param faculty_id: The faculty to clear the old schedule
-        :return: None
-        """
-        query = Query("MATCH (s:ClassSession {facultyId: $faculty_id}) DETACH DELETE s")
-        async with self.driver.session() as session:
-            result = await session.run(query, faculty_id=faculty_id)
-            await result.consume()
-            logger.info(f"Successfully cleared old schedule for faculty {faculty_id}")

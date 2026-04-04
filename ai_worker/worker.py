@@ -265,6 +265,7 @@ async def process_task(
     :param producer: AIOKafka producer object.
     :return: None
     """
+
     def _normalize_identifier(value):
         if isinstance(value, int):
             return value
@@ -306,7 +307,6 @@ async def process_task(
             run_ai_optimizer_sync, faculty_id, data, base_genes
         )
 
-        await neo4j_prov.clear_old_schedule(faculty_id)
         await neo4j_prov.save_best_schedule(best_schedule, faculty_id)
 
         await producer.send_and_wait(
