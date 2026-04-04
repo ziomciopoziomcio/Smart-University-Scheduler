@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from backend.src.users.models import Permissions
+import pandas as pd
 
 
 def _generate_perm_name(code: str) -> str | None:
@@ -57,7 +58,7 @@ def _generate_perm_description(code: str) -> str | None:
     return f"Can {action_text} {resource_name} data"
 
 
-def add_permission_to_db(
+def _add_permission_to_db(
     session: Session,
     code: str,
     name: str | None,
@@ -76,6 +77,45 @@ def add_permission_to_db(
     perm = Permissions(code=code, name=name, description=description, group=group)
     session.add(perm)
     return code, perm
+
+
+def generate_permissions_from_excel_file(
+    session: Session, sourcefile: str, sheet_name: str
+) -> dict[str, Permissions]:
+    """
+    Generate permissions from an Excel file and add them to the database.
+    :param session: database session
+    :param sourcefile: path to the source Excel file
+    :param sheet_name: name of the sheet in the Excel file to read
+    :return: dictionary mapping permission codes to Permissions objects
+             that were added to the database
+    """
+    db_permissions: dict[str, Permissions] = {}
+
+    groups = pd.read_excel(sourcefile, sheet_name=sheet_name, usecols="B")
+    perms_names = pd.read_excel(sourcefile, sheet_name=sheet_name, usecols="C")
+
+    curr_group = None
+    for group, code in zip(groups.iloc[:, 0], perms_names.iloc[:, 0]):
+        if pd.isnull(code):
+            continue
+        if not pd.isna(group):
+            curr_group = group
+        name = _generate_perm_name(code)
+        description = _generate_perm_description(code)
+        print(f"Processing: {code}\t-\t{name}\t-\t{description}\t-\t{curr_group}")
+
+        added_perm = _add_permission_to_db(
+            session=session,
+            code=code,
+            name=name,
+            description=description,
+            group=curr_group,
+        )
+        db_permissions[added_perm[0]] = added_perm[1]
+
+    session.flush()
+    return db_permissions
 
 
 if __name__ == "__main__":
