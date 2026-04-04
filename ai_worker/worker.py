@@ -293,6 +293,19 @@ async def process_task(
             )
             return
 
+        if not isinstance(faculty_id, int):
+            error_msg = f"Invalid faculty_id format: {faculty_id} (type {type(faculty_id)}). Expected int or numeric string."
+            logger.error(error_msg)
+            await producer.send_and_wait(
+                result_topic,
+                {
+                    "task_id": task_id,
+                    "status": "FAILED",
+                    "error": error_msg,
+                },
+            )
+            return
+
         data = await asyncio.to_thread(data_prov.get_all_data, faculty_id)
         await neo4j_prov.initialize_base_graph()
 
