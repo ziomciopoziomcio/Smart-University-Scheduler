@@ -336,7 +336,7 @@ class Neo4jProvider:
         MERGE (s)-[:AT_TIME]->(t)
         MERGE (s)-[:OF_COURSE]->(c)
 
-        WITH counts(s) as created_count
+        WITH count(s) as created_count
 
         RETURN
             CASE
