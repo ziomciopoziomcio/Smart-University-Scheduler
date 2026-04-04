@@ -1,3 +1,7 @@
+from sqlalchemy.orm import Session
+from backend.src.users.models import Permissions
+
+
 def _generate_perm_name(code: str) -> str | None:
     """
     Generate a permission name based on the code
@@ -51,6 +55,27 @@ def _generate_perm_description(code: str) -> str | None:
         resource_name = f"all {resource_name[:-1].capitalize()}s"
 
     return f"Can {action_text} {resource_name} data"
+
+
+def add_permission_to_db(
+    session: Session,
+    code: str,
+    name: str | None,
+    description: str | None,
+    group: str | None,
+) -> tuple[str, Permissions]:
+    """
+    Adds permission to the database
+    :param session: database session
+    :param code: permission code
+    :param name: permission name
+    :param description: permission description
+    :param group: permission group
+    :return: dictionary mapping permission code to Permissions object
+    """
+    perm = Permissions(code=code, name=name, description=description, group=group)
+    session.add(perm)
+    return code, perm
 
 
 if __name__ == "__main__":
