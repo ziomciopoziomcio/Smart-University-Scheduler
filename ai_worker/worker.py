@@ -321,6 +321,10 @@ async def process_task(
         )
         logger.info(f"Task {task_id} completed successfully")
 
+    except asyncio.CancelledError:
+        logger.warning(f"Task {task_id} cancelled during execution")
+        raise
+
     except Exception as e:
         logger.exception(f"Critical error: {e}")
         failure_message = {
