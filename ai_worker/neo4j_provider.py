@@ -173,6 +173,17 @@ class Neo4jProvider:
         :return: None
         """
         requirements_cleaned = requirements_df.where(pd.notnull(requirements_df), None)
+
+        if "class_type" in requirements_cleaned.columns:
+            requirements_cleaned["class_type"] = (
+                requirements_cleaned["class_type"]
+                .astype(str)
+                .str.split(".")
+                .str[-1]
+                .str.strip()
+                .str.upper()
+            )
+
         req_data = requirements_cleaned.to_dict(orient="records")
 
         query = Query("""
@@ -212,6 +223,17 @@ class Neo4jProvider:
         :return: None
         """
         comp_cleaned = competencies_df.where(pd.notnull(competencies_df), None)
+
+        if "class_type" in comp_cleaned.columns:
+            comp_cleaned["class_type"] = (
+                comp_cleaned["class_type"]
+                .astype(str)
+                .str.split(".")
+                .str[-1]
+                .str.strip()
+                .str.upper()
+            )
+
         comp_data = comp_cleaned.to_dict(orient="records")
 
         query = Query("""
