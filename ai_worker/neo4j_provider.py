@@ -313,6 +313,14 @@ class Neo4jProvider:
         MERGE (s)-[:FOR_GROUP]->(g)
         MERGE (s)-[:AT_TIME]->(t)
         MERGE (s)-[:OF_COURSE]->(c)
+
+        WITH counts(s) as created_count
+
+        RETURN
+            CASE
+                WHEN created_count = size($batch) THEN created_count
+                ELSE 1 / (created_count - created_count)
+            END as result
         """)
 
         try:
@@ -324,4 +332,4 @@ class Neo4jProvider:
                 logger.info(f"Successfully exported schedule for faculty {faculty_id}")
         except Exception as e:
             logger.error(f"Failed to save schedule: {e}")
-            raise
+            raise ValueError(f"Neo4j Transaction Failed: {e}")
