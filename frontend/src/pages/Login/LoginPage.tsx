@@ -1,12 +1,14 @@
-import {useState} from 'react';
-import {Button, Stack, TextField, Alert, CircularProgress} from '@mui/material';
-import {FormattedMessage, useIntl} from 'react-intl';
+import { useState } from 'react';
+import { Button, Stack, TextField, Alert, CircularProgress } from '@mui/material';
+import { FormattedMessage, useIntl } from 'react-intl';
+import { useNavigate } from 'react-router-dom';
 import AuthLayout from '@components/Login/AuthLayout';
 import AuthPasswordField from '@components/Login/AuthPasswordField';
-import {loginUser} from '@api/auth';
+import { loginUser } from '@api/auth';
 
 function LoginPage() {
     const intl = useIntl();
+    const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
 
     const [email, setEmail] = useState('');
@@ -22,13 +24,13 @@ function LoginPage() {
         try {
             const data = await loginUser(email, password);
             if (data.requires_2fa) {
-                alert("Wymagane 2FA! (Tu powinieneś pokazać pole na kod)");
+                alert(<FormattedMessage id="login.validation.2faRequired"/>);
             } else {
                 localStorage.setItem('token', data.access_token);
-                window.location.href = '/';
+                navigate('/plan', { replace: true });
             }
         } catch (err: any) {
-            setError(err.message);
+            setError(err.response?.data?.detail || err.message || <FormattedMessage id="login.validation.providerError"/>);
         } finally {
             setLoading(false);
         }
