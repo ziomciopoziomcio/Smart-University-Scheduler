@@ -118,6 +118,50 @@ def generate_permissions_from_excel_file(
     return db_permissions
 
 
+def _get_roles_names(sourcefile: str) -> list[str]:
+    """
+    Gets role names from an Excel file.
+    :param sourcefile: path to the source Excel file
+    :return: list of role names
+    """
+    df = pd.read_excel(sourcefile)
+    row = df.iloc[0]
+    return list(row.index)[3:]
+
+
+def _map_roles_into_english(roles_pl: list[str]) -> list[str]:
+    """
+    Maps Polish role names to English ones.
+    :param roles_pl: list of role names
+    :return: list of English role names
+    """
+    map_names = {
+        "Administrator": "Administrator",
+        "Menedżer planu": "Schedule Manager",
+        "Dziekanat": "Dean's Office",
+        "Kierownik jednostki": "Head of Unit",
+        "Prowadzący": "Instructor",
+        "Student": "Student",
+        "Pracownik administracyjny": "Administrative Staff",
+        "Gość": "Guest",
+    }
+
+    roles_en = []
+    for role in roles_pl:
+        role_en = map_names.get(role, role)
+        roles_en.append(role_en)
+    return roles_en
+
+
+def _get_next_column(curr_col):
+    """
+    Gets the next column letter.
+    :param curr_col: letter representing column
+    :return: letter representing next column
+    """
+    return chr(ord(curr_col) + 1)
+
+
 if __name__ == "__main__":
     print("Sample permission names:")
     print(_generate_perm_name("students:view"))
