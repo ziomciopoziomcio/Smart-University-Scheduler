@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from backend.src.users.models import Permissions
+from backend.src.users.models import Permissions, Roles
 import pandas as pd
 
 
@@ -160,6 +160,68 @@ def _get_next_column(curr_col):
     :return: letter representing next column
     """
     return chr(ord(curr_col) + 1)
+
+
+def generate_roles_from_excel_file(
+    session: Session,
+    sourcefile: str,
+    sheet_name: str,
+    permissions: dict[str, Permissions],
+) -> dict[str, Roles]:
+    """
+    Generate roles from an Excel file and add them to the database.
+    :param session: database session
+    :param sourcefile: path to the source Excel file
+    :param sheet_name: name of the sheet in the Excel file to read
+    :param permissions: dictionary mapping permission codes to
+        Permissions objects that were added to the database
+    :return: dictionary mapping role names to Roles objects
+    """
+
+    db_roles: dict[str, Roles] = {}
+
+    all_roles = _get_roles_names(sourcefile)
+    all_roles = _map_roles_into_english(all_roles)
+
+    start_col = "D"
+    perms_codes = pd.read_excel(sourcefile, sheet_name=sheet_name, usecols="C")
+
+    for role in all_roles:
+        print(
+            f"{role.upper()}: =============================================================="
+        )
+        role_perms = pd.read_excel(sourcefile, sheet_name=sheet_name, usecols=start_col)
+
+        granted_perms: list[Permissions] = []  # list of perms for the current role
+
+        for code, role_perm in zip(perms_codes.iloc[:, 0], role_perms.iloc[:, 0]):
+            if pd.isnull(code) or pd.isnull(role_perm):
+                continue
+            granted: bool = role_perm == 1
+            print(f"{role} -> {code} - {"granted" if granted else "not granted"}")
+
+            if granted:
+                to_add = permissions.get(code, None)
+                if to_add is None:
+                    print(
+                        f"Warning: permission with code '{code}' not found in the database. Skipping."
+                    )
+                else:
+                    granted_perms.append(to_add)
+
+        # creating role
+        role_obj = Roles(role_name=role, role_perms=granted_perms)
+        session.add(role_obj)
+        db_roles[role] = role_obj
+
+        print()
+        print()
+        print()
+
+        start_col = _get_next_column(start_col)
+
+    session.flush()
+    return db_roles
 
 
 if __name__ == "__main__":
