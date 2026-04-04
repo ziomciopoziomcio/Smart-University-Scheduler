@@ -8,6 +8,35 @@ from optimizer import models
 
 logger = logging.getLogger(__name__)
 
+SAVE_SCHEDULE_QUERY = Query("""
+        MATCH (old_s:ClassSession {facultyId: $faculty_id})
+        DETACH DELETE old_s
+
+        WITH count(*) as _
+
+        UNWIND $batch AS row
+        MATCH (i:Instructor {instructorId: row.instructor_id})
+        MATCH (r:Room {roomId: row.room_id})
+        MATCH (t:TimeSlot {timeSlotId: row.timeslot_id})
+        MATCH (g:Group {groupId: row.group_id})
+        MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
+
+        CREATE (s:ClassSession {weeks: row.weeks, facultyId: $faculty_id, createdAt: datetime()})
+        MERGE (s)-[:TAUGHT_BY]->(i)
+        MERGE (s)-[:HELD_IN]->(r)
+        MERGE (s)-[:FOR_GROUP]->(g)
+        MERGE (s)-[:AT_TIME]->(t)
+        MERGE (s)-[:OF_COURSE]->(c)
+
+        WITH count(s) as created_count
+
+        RETURN
+            CASE
+                WHEN created_count = size($batch) THEN created_count
+                ELSE 1 / (created_count - created_count)
+            END as result
+        """)
+
 
 class Neo4jProvider:
     """Neo4j Provider"""
@@ -256,6 +285,50 @@ class Neo4jProvider:
             )
             raise RuntimeError("Critical error: Failed to load competencies.")
 
+    @staticmethod
+    def _validate_schedule(
+        best_chromosome: models.ScheduleChromosome, faculty_id: int
+    ) -> None:
+        """
+        Validate the best chromosome before saving
+        :param best_chromosome: The best ScheduleChromosome to validate
+        :param faculty_id: The faculty for which the schedule is being saved
+        :return: None
+        """
+        incomplete_genes = [
+            {"index": i, "course": g.course_code, "type": g.class_type}
+            for i, g in enumerate(best_chromosome.genes)
+            if None in (g.instructor_id, g.room_id, g.timeslot_id)
+        ]
+
+        if incomplete_genes:
+            logger.error(
+                f"Refusing to save partial schedule for faulty {faculty_id}: {len(incomplete_genes)}/{len(best_chromosome.genes)} genes are incomplete. "
+            )
+            raise ValueError(
+                f"Cannot save schedule for faculty {faculty_id}: {len(incomplete_genes)} genes are missing assignments."
+            )
+
+    @staticmethod
+    def _prepare_batch(best_chromosome: models.ScheduleChromosome) -> list[dict]:
+        """
+        Prepare batch data for saving the best chromosome
+        :param best_chromosome: The best ScheduleChromosome to prepare
+        :return: A list of dictionaries representing the batch data
+        """
+        return [
+            {
+                "instructor_id": int(gene.instructor_id),
+                "room_id": int(gene.room_id),
+                "group_id": int(gene.group_id),
+                "timeslot_id": int(gene.timeslot_id),
+                "course_code": str(gene.course_code),
+                "class_type": str(gene.class_type).upper(),
+                "weeks": gene.active_weeks,
+            }
+            for gene in best_chromosome.genes
+        ]
+
     async def save_best_schedule(
         self, best_chromosome: models.ScheduleChromosome, faculty_id: int
     ) -> None:
@@ -265,90 +338,13 @@ class Neo4jProvider:
         :param faculty_id: The faculty to save the best chromosome
         :return: None
         """
-        incomplete_genes = []
-        for index, gene in enumerate(best_chromosome.genes):
-            missing_fields = [
-                field_name
-                for field_name, value in (
-                    ("instructor_id", gene.instructor_id),
-                    ("room_id", gene.room_id),
-                    ("timeslot_id", gene.timeslot_id),
-                )
-                if value is None
-            ]
-            if missing_fields:
-                incomplete_genes.append(
-                    {
-                        "index": index,
-                        "group_id": gene.group_id,
-                        "course_code": gene.course_code,
-                        "class_type": gene.class_type,
-                        "missing_fields": missing_fields,
-                    }
-                )
-
-        if incomplete_genes:
-            logger.error(
-                "Refusing to save partial schedule for faculty %s: %s/%s genes are incomplete. "
-                "First incomplete gene: %s",
-                faculty_id,
-                len(incomplete_genes),
-                len(best_chromosome.genes),
-                incomplete_genes[0],
-            )
-            raise ValueError(
-                f"Cannot save schedule for faculty {faculty_id}: "
-                f"{len(incomplete_genes)} of {len(best_chromosome.genes)} genes are missing "
-                "instructor_id, room_id, or timeslot_id."
-            )
-
-        data_to_save = []
-        for gene in best_chromosome.genes:
-            data_to_save.append(
-                {
-                    "instructor_id": int(gene.instructor_id),
-                    "room_id": int(gene.room_id),
-                    "group_id": int(gene.group_id),
-                    "timeslot_id": int(gene.timeslot_id),
-                    "course_code": str(gene.course_code),
-                    "class_type": str(gene.class_type).upper(),
-                    "weeks": gene.active_weeks,
-                }
-            )
-
-        query = Query("""
-        MATCH (old_s:ClassSession {facultyId: $faculty_id})
-        DETACH DELETE old_s
-
-        WITH count(*) as _
-
-        UNWIND $batch AS row
-        MATCH (i:Instructor {instructorId: row.instructor_id})
-        MATCH (r:Room {roomId: row.room_id})
-        MATCH (t:TimeSlot {timeSlotId: row.timeslot_id})
-        MATCH (g:Group {groupId: row.group_id})
-        MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
-
-        CREATE (s:ClassSession {weeks: row.weeks, facultyId: $faculty_id, createdAt: datetime()})
-        MERGE (s)-[:TAUGHT_BY]->(i)
-        MERGE (s)-[:HELD_IN]->(r)
-        MERGE (s)-[:FOR_GROUP]->(g)
-        MERGE (s)-[:AT_TIME]->(t)
-        MERGE (s)-[:OF_COURSE]->(c)
-
-        WITH count(s) as created_count
-
-        RETURN
-            CASE
-                WHEN created_count = size($batch) THEN created_count
-                ELSE 1 / (created_count - created_count)
-            END as result
-        """)
+        self._validate_schedule(best_chromosome, faculty_id)
+        data_to_save = self._prepare_batch(best_chromosome)
 
         try:
             async with self.driver.session() as session:
                 result = await session.run(
-                    query, batch=data_to_save, faculty_id=faculty_id
+                    SAVE_SCHEDULE_QUERY, batch=data_to_save, faculty_id=faculty_id
                 )
                 await result.consume()
                 logger.info(f"Successfully exported schedule for faculty {faculty_id}")
