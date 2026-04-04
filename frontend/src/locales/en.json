@@ -15,5 +15,34 @@
       "2faRequired": "Two-factor authentication required",
       "providerError": "Authentication provider error"
     }
+  },
+  "register": {
+    "title": "Create new account",
+    "submit": "Create account",
+    "backToLogin": "Back to login",
+    "name": "first name",
+    "namePlaceholder": "enter first name",
+    "surname": "last name",
+    "surnamePlaceholder": "enter last name",
+    "confirmPassword": "confirm password",
+    "confirmPasswordPlaceholder": "password",
+    "phone": "phone number",
+    "phonePlaceholder": "enter phone number",
+    "degree": "degree",
+    "degreePlaceholder": "select degree",
+    "validation": {
+      "passwordsDontMatch": "Passwords do not match."
+    },
+    "titleSuccess": "Account created!",
+    "successMessage": "Registration successful. Check your email to activate your account.",
+    "redirectingToLogin": "Redirecting to login page...",
+    "degrees": {
+      "none": "None",
+      "inz": "Bachelor of Engineering",
+      "mgr": "Master of Science",
+      "dr": "Doctor (Ph.D.)",
+      "dr_hab": "Habilitated Doctor",
+      "prof": "Professor"
+    }
   }
 }

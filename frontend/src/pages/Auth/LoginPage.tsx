@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Button, Stack, TextField, Alert, CircularProgress } from '@mui/material';
-import { FormattedMessage, useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
+import {useState} from 'react';
+import {Button, Stack, TextField, Alert, CircularProgress} from '@mui/material';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {useNavigate} from 'react-router-dom';
 import AuthLayout from '@components/Login/AuthLayout';
 import AuthPasswordField from '@components/Login/AuthPasswordField';
-import { loginUser } from '@api/auth';
+import {loginUser} from '@api/auth';
 
 function LoginPage() {
     const intl = useIntl();
@@ -27,10 +27,11 @@ function LoginPage() {
                 alert(<FormattedMessage id="login.validation.2faRequired"/>);
             } else {
                 localStorage.setItem('token', data.access_token);
-                navigate('/plan', { replace: true });
+                navigate('/plan', {replace: true});
             }
         } catch (err: any) {
-            setError(err.response?.data?.detail || err.message || <FormattedMessage id="login.validation.providerError"/>);
+            setError(err.response?.data?.detail || err.message ||
+                <FormattedMessage id="login.validation.providerError"/>);
         } finally {
             setLoading(false);
         }
@@ -76,7 +77,7 @@ function LoginPage() {
                 </Button>
 
                 <Stack direction="row" justifyContent="space-between">
-                    <Button variant="text" disabled={loading}>
+                    <Button variant="text" disabled={loading} onClick={() => navigate('/register')}>
                         <FormattedMessage id="login.createAccount"/>
                     </Button>
                     <Button variant="text" disabled={loading}>

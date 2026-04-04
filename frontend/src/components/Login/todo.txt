@@ -1,0 +1,2 @@
+//TODO: Jakies guziczki i inne bzdety do logowania
+//(chyba ze beda tez w innych pageach te same to wtedy nie tutaj tylko w @components
