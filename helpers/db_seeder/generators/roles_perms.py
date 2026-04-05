@@ -118,13 +118,14 @@ def generate_permissions_from_excel_file(
     return db_permissions
 
 
-def _get_roles_names(sourcefile: str) -> list[str]:
+def _get_roles_names(sourcefile: str, sheet_name: str) -> list[str]:
     """
     Gets role names from an Excel file.
     :param sourcefile: path to the source Excel file
+    :param sheet_name: name of the sheet in the Excel file to read
     :return: list of role names
     """
-    df = pd.read_excel(sourcefile)
+    df = pd.read_excel(sourcefile, sheet_name=sheet_name)
     row = df.iloc[0]
     return list(row.index)[3:]
 
