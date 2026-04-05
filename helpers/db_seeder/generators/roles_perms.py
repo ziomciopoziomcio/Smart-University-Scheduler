@@ -72,7 +72,7 @@ def _add_permission_to_db(
     :param name: permission name
     :param description: permission description
     :param group: permission group
-    :return: dictionary mapping permission code to Permissions object
+    :return: tuple mapping permission code to Permissions object
     """
     perm = Permissions(code=code, name=name, description=description, group=group)
     session.add(perm)
