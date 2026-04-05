@@ -75,6 +75,27 @@ def _generate_email(name: str, surname: str, domain: str) -> str:
     return f"{name}.{surname}@{domain}"
 
 
+def _generate_unique_phone_numbers(n: int, phone_len: int = 9) -> list[str]:
+    """
+    Generates a list of unique phone numbers
+    :param n: number of phone numbers
+    :param phone_len: phone number length
+    :return: list of unique phone numbers
+    """
+    max_combinations = 10**phone_len
+
+    if n > max_combinations:
+        raise ValueError("Not enough unique combinations")
+
+    numbers = set()
+    while len(numbers) < n:
+        num = random.randint(0, 999_999_999)
+        formatted = f"{num:09d}"
+        numbers.add(formatted)
+
+    return list(numbers)
+
+
 if "__main__" == __name__:
     male_names = _read_list_from_txt(sourcefile=r"../data/male_names.txt")
     female_names = _read_list_from_txt(sourcefile=r"../data/female_names.txt")
@@ -91,3 +112,6 @@ if "__main__" == __name__:
     print(female_full_names)
 
     print(_generate_email("Jan", "Wąsowski", "my.domain.com"))
+
+    phones = _generate_unique_phone_numbers(n=3, phone_len=9)
+    print(phones)
