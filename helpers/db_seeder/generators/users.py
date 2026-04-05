@@ -1,3 +1,4 @@
+import hashlib
 import random
 
 
@@ -108,6 +109,15 @@ def _generate_password(name: str, surname: str) -> str:
     return f"{name}{surname}"
 
 
+def change_me_hash(text: str) -> str:
+    """
+    Hash function ONLY FOR TESTS
+    :param text: text to be hashed
+    :return: hash
+    """
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
 if "__main__" == __name__:
     male_names = _read_list_from_txt(sourcefile=r"../data/male_names.txt")
     female_names = _read_list_from_txt(sourcefile=r"../data/female_names.txt")
@@ -128,4 +138,6 @@ if "__main__" == __name__:
     phones = _generate_unique_phone_numbers(n=3, phone_len=9)
     print(phones)
 
-    print(_generate_password("Jan", "Wąsowski"))
+    password = _generate_password("Jan", "Wąsowski")
+    print(password)
+    print(change_me_hash(password))
