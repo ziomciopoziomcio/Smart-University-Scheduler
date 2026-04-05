@@ -96,6 +96,18 @@ def _generate_unique_phone_numbers(n: int, phone_len: int = 9) -> list[str]:
     return list(numbers)
 
 
+def _generate_password(name: str, surname: str) -> str:
+    """
+    Generates a simple password from name and surname
+    :param name: name of user
+    :param surname: surname of user
+    :return: simple password
+    """
+    name = name.strip().lower()
+    surname = surname.strip().lower()
+    return f"{name}{surname}"
+
+
 if "__main__" == __name__:
     male_names = _read_list_from_txt(sourcefile=r"../data/male_names.txt")
     female_names = _read_list_from_txt(sourcefile=r"../data/female_names.txt")
@@ -115,3 +127,5 @@ if "__main__" == __name__:
 
     phones = _generate_unique_phone_numbers(n=3, phone_len=9)
     print(phones)
+
+    print(_generate_password("Jan", "Wąsowski"))
