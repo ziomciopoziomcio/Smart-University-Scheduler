@@ -225,18 +225,5 @@ def generate_roles_from_excel_file(
 
 
 if __name__ == "__main__":
-    print("Sample permission names:")
-    print(_generate_perm_name("students:view"))
-    print(_generate_perm_name("student:view"))
-    print(_generate_perm_name("student:create"))
-    print(_generate_perm_name("student:update"))
-    print(_generate_perm_name("student:delete"))
-    print()
-
-    print("Sample permission descriptions:")
-    print(_generate_perm_description("students:view"))
-    print(_generate_perm_description("student:view"))
-    print(_generate_perm_description("student:create"))
-    print(_generate_perm_description("student:update"))
-    print(_generate_perm_description("student:delete"))
-    print()
+    path = r"..\data\role_uprawnienia.xlsx"
+    sheet_name = "Arkusz1"
