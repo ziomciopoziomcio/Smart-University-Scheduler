@@ -210,7 +210,7 @@ def generate_roles_from_excel_file(
                     granted_perms.append(to_add)
 
         # creating role
-        role_obj = Roles(role_name=role, role_perms=granted_perms)
+        role_obj = Roles(role_name=role, permissions=granted_perms)
         session.add(role_obj)
         db_roles[role] = role_obj
 
