@@ -163,7 +163,6 @@ def generate_users(
     list[dict[tuple[str | None, str, str], Users]],
     list[dict[tuple[str | None, str, str], Users]],
 ]:
-    # todo update doc
     """
     Generates a list of users (teachers and others)
     :param session: database session
@@ -355,6 +354,7 @@ def generate_users(
     #     "Administrative Staff": 0,
     #     "Guest": 0,
     # }
+
 
 #     db_teachers, db_not_teachers = generate_users(
 #         # session=...,
