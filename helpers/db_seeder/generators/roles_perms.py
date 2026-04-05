@@ -198,7 +198,7 @@ def generate_roles_from_excel_file(
             if pd.isnull(code) or pd.isnull(role_perm):
                 continue
             granted: bool = role_perm == 1
-            print(f"{role} -> {code} - {"granted" if granted else "not granted"}")
+            print(f"{role} -> {code} - {'granted' if granted else 'not granted'}")
 
             if granted:
                 to_add = permissions.get(code, None)
