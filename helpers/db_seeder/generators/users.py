@@ -39,6 +39,42 @@ def _generate_full_names(
         return list(result)
 
 
+def _generate_email(name: str, surname: str, domain: str) -> str:
+    """
+    Generates an email address from name and surname
+    :param name: name of email
+    :param surname: surname of email
+    :param domain: domain of email
+    :return: email address
+    """
+
+    def _replace_polish_chars(text: str) -> str:
+        mapping = {
+            "ą": "a",
+            "ć": "c",
+            "ę": "e",
+            "ł": "l",
+            "ń": "n",
+            "ó": "o",
+            "ś": "s",
+            "ż": "z",
+            "ź": "z",
+        }
+        return "".join(mapping.get(c, c) for c in text)
+
+    def _normalize(text: str) -> str:
+        text = text.strip().lower()
+        return _replace_polish_chars(text)
+
+    name = name[:3]
+
+    name = _normalize(name)
+    surname = _normalize(surname)
+    domain = _normalize(domain)
+
+    return f"{name}.{surname}@{domain}"
+
+
 if "__main__" == __name__:
     male_names = _read_list_from_txt(sourcefile=r"../data/male_names.txt")
     female_names = _read_list_from_txt(sourcefile=r"../data/female_names.txt")
@@ -53,3 +89,5 @@ if "__main__" == __name__:
     )
     print(male_full_names)
     print(female_full_names)
+
+    print(_generate_email("Jan", "Wąsowski", "my.domain.com"))
