@@ -26,15 +26,12 @@ function ResetPasswordPage() {
     const [password2, setPassword2] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
-    const [pageStatus, setPageStatus] = useState<'verifying' | 'form' | 'success' | 'error'>('verifying');
+    const [pageStatus, setPageStatus] = useState<'verifying' | 'form' | 'success'>('form');
     const [errorMsg, setErrorMsg] = useState<string | React.ReactNode>('');
 
     useEffect(() => {
         if (!token || token.length < 10) {
-            setPageStatus('error');
             setErrorMsg(<FormattedMessage id="activate.error.invalid"/>);
-        } else {
-            setPageStatus('form');
         }
     }, [token]);
 
@@ -46,12 +43,14 @@ function ResetPasswordPage() {
         if (!isLongEnough || !isMatching || !token) return;
 
         setPageStatus('verifying');
+        setErrorMsg('');
+
         try {
             await resetPassword({token, password, password2});
             setPageStatus('success');
             setTimeout(() => navigate('/login'), 3000);
         } catch (err: any) {
-            setPageStatus('error');
+            setPageStatus('form');
             setErrorMsg(err.message || <FormattedMessage id="activate.error.generic"/>);
         }
     };
@@ -69,30 +68,20 @@ function ResetPasswordPage() {
         <AuthLayout title={<FormattedMessage id="forgotPassword.title"/>}>
             <Stack spacing={3} width="100%" alignItems="center">
 
-                {pageStatus === 'verifying' && (
-                    <Stack alignItems="center" spacing={2}>
-                        <CircularProgress/>
-                        <Typography><FormattedMessage id="activate.loading"/></Typography>
-                    </Stack>
-                )}
-
-                {pageStatus === 'error' && (
-                    <>
-                        <Alert severity="error" sx={{width: '100%'}}>{errorMsg}</Alert>
-                        <Button variant="contained" onClick={() => navigate('/forgot-password')} fullWidth>
-                            <FormattedMessage id="activate.resend"/>
-                        </Button>
-                    </>
-                )}
-
-                {pageStatus === 'success' && (
+                {/* Status sukcesu - wyświetlany zamiast formularza */}
+                {pageStatus === 'success' ? (
                     <Alert severity="success" sx={{width: '100%'}}>
                         <FormattedMessage id="login.validation.success"/>
                     </Alert>
-                )}
-
-                {pageStatus === 'form' && (
+                ) : (
                     <>
+                        {/* Wyświetlanie błędu nad formularzem (np. Invalid Token) */}
+                        {errorMsg && (
+                            <Alert severity="error" sx={{width: '100%'}}>
+                                {errorMsg}
+                            </Alert>
+                        )}
+
                         <Box sx={{width: '100%'}}>
                             <Typography variant="body2" textAlign="center" sx={{mb: 2}}>
                                 <FormattedMessage id="forgotPassword.instruction"/>
@@ -107,6 +96,7 @@ function ResetPasswordPage() {
                             <Stack spacing={2}>
                                 <TextField
                                     fullWidth
+                                    disabled={pageStatus === 'verifying'}
                                     type={showPassword ? 'text' : 'password'}
                                     label={intl.formatMessage({id: 'forgotPassword.newPassword'})}
                                     value={password}
@@ -124,6 +114,7 @@ function ResetPasswordPage() {
                                 />
                                 <TextField
                                     fullWidth
+                                    disabled={pageStatus === 'verifying'}
                                     type={showPassword ? 'text' : 'password'}
                                     label={intl.formatMessage({id: 'forgotPassword.confirmNewPassword'})}
                                     value={password2}
@@ -137,17 +128,25 @@ function ResetPasswordPage() {
                                     fullWidth
                                     size="large"
                                     type="submit"
-                                    disabled={!isLongEnough || !isMatching}
+                                    disabled={pageStatus === 'verifying' || !isLongEnough || !isMatching || !!(token && token.length < 10)}
                                     sx={{mt: 2, backgroundColor: '#004d71'}}
                                 >
-                                    <FormattedMessage id="forgotPassword.submitNew"/>
+                                    {pageStatus === 'verifying' ? (
+                                        <CircularProgress size={24} color="inherit"/>
+                                    ) : (
+                                        <FormattedMessage id="forgotPassword.submitNew"/>
+                                    )}
                                 </Button>
                             </Stack>
                         </form>
                     </>
                 )}
 
-                <Button onClick={() => navigate('/login')} sx={{textTransform: 'none'}}>
+                <Button
+                    onClick={() => navigate('/login')}
+                    sx={{textTransform: 'none'}}
+                    disabled={pageStatus === 'verifying'}
+                >
                     <FormattedMessage id="register.backToLogin"/>
                 </Button>
             </Stack>
