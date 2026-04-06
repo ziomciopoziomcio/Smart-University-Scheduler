@@ -6,17 +6,17 @@ import multiprocessing
 import os
 import logging
 
-from aiokafka import AIOKafkaConsumer
+from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 
 from data_provider import DataProvider
 from neo4j_provider import Neo4jProvider
 from optimizer import models, fitness, evolution, greedy
 
-
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 _global_calculator: fitness.FitnessCalculator | None = None
+
 
 def _greedy_assign_worker(args):
     base_genes, data = args
@@ -81,9 +81,7 @@ def _create_fitness_calculator(data: dict) -> fitness.FitnessCalculator:
 
 
 def _seed_population_greedy(
-    base_genes: list[models.ClassSessionGene], 
-    size: int, 
-    data: dict
+    base_genes: list[models.ClassSessionGene], size: int, data: dict
 ) -> list[models.ScheduleChromosome]:
     """
     Generates one deterministic individual (randomize=False) and (size-1)
@@ -94,7 +92,7 @@ def _seed_population_greedy(
     :param size: Target population size.
     :param data: Dictionary containing faculty infrastructure and requirements.
     :return: A list of initialized ScheduleChromosome objects.
-   """
+    """
     population = []
     if size <= 0:
         return population
@@ -246,7 +244,10 @@ def run_ai_optimizer_sync(
 
 
 async def process_task(
-    task_data: dict, data_prov: DataProvider, neo4j_prov: Neo4jProvider
+    task_data: dict,
+    data_prov: DataProvider,
+    neo4j_prov: Neo4jProvider,
+    producer: AIOKafkaProducer,
 ) -> None:
     """
     Task handler for schedule optimization requests.
@@ -261,12 +262,48 @@ async def process_task(
           may be present but are not used directly by this worker.
     :param data_prov: DataProvider object used to retrieve all required data.
     :param neo4j_prov: Neo4jProvider object.
+    :param producer: AIOKafka producer object.
     :return: None
     """
+
+    def _normalize_identifier(value):
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str):
+            stripped_value = value.strip()
+            if stripped_value.isdigit():
+                return int(stripped_value)
+            return stripped_value
+        return value
+
+    task_id = _normalize_identifier(task_data.get("task_id"))
+    faculty_id = _normalize_identifier(task_data.get("faculty_id"))
+    result_topic = os.getenv("KAFKA_RESULT_TOPIC", "schedule.optimization.results")
+
     try:
-        faculty_id = task_data.get("faculty_id")
         if not faculty_id:
             logger.error("Faculty id not provided")
+            await producer.send_and_wait(
+                result_topic,
+                {
+                    "task_id": task_id,
+                    "status": "FAILED",
+                    "error": "Faculty id not provided",
+                },
+            )
+            return
+
+        if not isinstance(faculty_id, int):
+            error_msg = f"Invalid faculty_id format: {faculty_id} (type {type(faculty_id)}). Expected int or numeric string."
+            logger.error(error_msg)
+            await producer.send_and_wait(
+                result_topic,
+                {
+                    "task_id": task_id,
+                    "status": "FAILED",
+                    "error": error_msg,
+                },
+            )
             return
 
         data = await asyncio.to_thread(data_prov.get_all_data, faculty_id)
@@ -279,14 +316,43 @@ async def process_task(
 
         base_genes = data_prov.prepare_initial_genes(data)
 
-        best_schedule = await asyncio.to_thread(  # noqa F841
+        best_schedule = await asyncio.to_thread(
             run_ai_optimizer_sync, faculty_id, data, base_genes
         )
 
-        # TODO: Save best_schedule
+        await neo4j_prov.save_best_schedule(best_schedule, faculty_id)
+
+        await producer.send_and_wait(
+            result_topic,
+            {
+                "task_id": task_id,
+                "faculty_id": faculty_id,
+                "status": "COMPLETED",
+                "fitness": float(best_schedule.fitness_score),
+                "message": "Optimisation successful.",
+            },
+        )
+        logger.info(f"Task {task_id} completed successfully")
+
+    except asyncio.CancelledError:
+        logger.warning(f"Task {task_id} cancelled during execution")
+        raise
 
     except Exception as e:
         logger.exception(f"Critical error: {e}")
+        failure_message = {
+            "task_id": task_id,
+            "status": "FAILED",
+            "error": str(e),
+        }
+        try:
+            await producer.send_and_wait(result_topic, failure_message)
+        except Exception:
+            logger.exception(
+                "Failed to publish failure result for task_id=%s after processing error: %s",
+                task_id,
+                e,
+            )
 
 
 async def main() -> None:
@@ -302,24 +368,38 @@ async def main() -> None:
         value_deserializer=lambda m: json.loads(m.decode("utf-8")),
         auto_offset_reset="earliest",
     )
+    producer = AIOKafkaProducer(
+        bootstrap_servers=kafka_url,
+        value_serializer=lambda m: json.dumps(m).encode("utf-8"),
+    )
 
     data_provider = DataProvider()
     neo4j_provider = Neo4jProvider()
 
-    connected = False
-    while not connected:
+    connected_consumer = False
+    while not connected_consumer:
         try:
             await consumer.start()
-            connected = True
+            connected_consumer = True
         except Exception as e:
-            logger.error(f"Failed to connect to Kafka: {e}")
+            logger.error(f"Failed to connect to Kafka (consumer): {e}")
+            await asyncio.sleep(5)
+
+    connected_producer = False
+    while not connected_producer:
+        try:
+            await producer.start()
+            connected_producer = True
+        except Exception as e:
+            logger.error(f"Failed to connect to Kafka (producer): {e}")
             await asyncio.sleep(5)
 
     try:
         async for msg in consumer:
-            await process_task(msg.value, data_provider, neo4j_provider)
+            await process_task(msg.value, data_provider, neo4j_provider, producer)
     finally:
         await consumer.stop()
+        await producer.stop()
         await neo4j_provider.close()
 
 
