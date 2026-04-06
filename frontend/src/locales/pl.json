@@ -2,12 +2,79 @@
   "login": {
     "title": "Zaloguj się",
     "username": "email",
-    "usernamePlaceholder": "example@edu.p.lodz.pl",
+    "usernamePlaceholder": "przyklad@edu.p.lodz.pl",
     "password": "hasło",
     "passwordPlaceholder": "hasło",
     "submit": "zaloguj się",
     "createAccount": "Utwórz konto",
-    "forgotPassword": "Nie pamiętam hasła",
-    "pageLabel": "Login"
+    "forgotPassword": "Zapomniałeś hasła?",
+    "pageLabel": "Logowanie",
+    "validation": {
+      "error": "Niepoprawny email lub hasło",
+      "success": "Zalogowano pomyślnie",
+      "2faRequired": "Wymagana autoryzacja dwuetapowa (2FA)",
+      "providerError": "Błąd dostawcy uwierzytelniania"
+    }
+  },
+  "register": {
+    "title": "Utwórz nowe konto",
+    "submit": "Utwórz konto",
+    "backToLogin": "Wróć do logowania",
+    "name": "imię",
+    "namePlaceholder": "wpisz imię",
+    "surname": "nazwisko",
+    "surnamePlaceholder": "wpisz nazwisko",
+    "confirmPassword": "potwierdź hasło",
+    "confirmPasswordPlaceholder": "hasło",
+    "phone": "numer telefonu",
+    "phonePlaceholder": "wpisz numer telefonu",
+    "degree": "stopień naukowy",
+    "degreePlaceholder": "wybierz stopień",
+    "validation": {
+      "passwordsDontMatch": "Hasła nie są identyczne.",
+      "length": "Zawierać co najmniej 8 znaków",
+      "match": "Być identyczne z powtórzonym hasłem"
+    },
+    "titleSuccess": "Konto utworzone!",
+    "successMessage": "Rejestracja przebiegła pomyślnie. Sprawdź swoją pocztę, aby aktywować konto.",
+    "redirectingToLogin": "Przekierowywanie do strony logowania...",
+    "degrees": {
+      "none": "Brak",
+      "inz": "Inżynier",
+      "mgr": "Magister",
+      "dr": "Doktor (Ph.D.)",
+      "dr_hab": "Doktor habilitowany",
+      "prof": "Profesor"
+    }
+  },
+  "activate": {
+    "title": "Aktywuj swoje konto",
+    "description": "Link aktywacyjny został wysłany na Twój adres e-mail. Sprawdź skrzynkę odbiorczą i kliknij w link, aby aktywować konto.",
+    "resend": "Wyślij ponownie e-mail aktywacyjny",
+    "cancel": "Anuluj",
+    "loading": "Weryfikowanie adresu e-mail...",
+    "success": "Konto zostało pomyślnie aktywowane! Możesz się teraz zalogować.",
+    "backToLogin": "Wróć do logowania",
+    "goToLogin": "Przejdź do logowania",
+    "error": {
+      "incomplete": "Link aktywacyjny jest niekompletny (brak tokenu).",
+      "generic": "Wystąpił błąd podczas aktywacji.",
+      "invalidOrExpired": "Link jest nieaktywny, wygasł lub został już użyty.",
+      "tooShort": "Token aktywacyjny jest za krótki.",
+      "invalid": "Nieprawidłowy token aktywacyjny.",
+      "expired": "Token aktywacyjny wygasł.",
+      "alreadyActivated": "Konto jest już aktywne."
+    }
+  },
+  "forgotPassword": {
+    "title": "Resetowanie hasła",
+    "instruction": "Twoje nowe hasło powinno:",
+    "newPassword": "nowe hasło",
+    "confirmNewPassword": "powtórz nowe hasło",
+    "submitNew": "Utwórz nowe hasło",
+    "sendResetLink": "Wyślij link do resetowania",
+    "successMailSent": "Jeśli konto istnieje, link do resetowania został wysłany.",
+    "errorSending": "Błąd podczas wysyłania kodu resetującego.",
+    "errorInvalidToken": "Link do resetowania jest nieprawidłowy lub wygasł."
   }
 }
