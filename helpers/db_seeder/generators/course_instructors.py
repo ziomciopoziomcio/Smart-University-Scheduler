@@ -131,8 +131,7 @@ def extract_teachers(
         people.values(), key=lambda x: (x["last_name"].lower(), x["first_name"].lower())
     )
 
-
-if __name__ == "__main__":
-    teachers = extract_teachers()
-
-    print(teachers)
+# if __name__ == "__main__":
+#     teachers = extract_teachers()
+#
+#     print(teachers)
