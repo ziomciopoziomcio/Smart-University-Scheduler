@@ -142,8 +142,8 @@ def generate_users(
     not_teacher_email_domain: str,
     teacher_email_domain: str,
 ) -> tuple[
-    list[dict[tuple[str | None, str, str], Users]],
-    list[dict[tuple[str | None, str, str], Users]],
+    list[dict[tuple[str | None, str, str, str, str], Users]],
+    list[dict[tuple[str | None, str, str, str, str], Users]],
 ]:
     """
     Generates a list of users (teachers and others)
@@ -161,14 +161,14 @@ def generate_users(
     :param teacher_email_domain: domain for teacher email
     :return: A tuple containing two lists of dictionaries.
         Each dictionary maps a key, represented as a tuple of
-        (degree, name, surname), to a Users object.
+        (degree, name, surname, email, password), to a Users object.
         First dictionary contains teachers.
         Second dictionary contains non-teachers.
     """
 
-    # list[dict[tuple[degree, name, surname], Users]]
-    db_teachers: list[dict[tuple[str | None, str, str], Users]] = []
-    db_not_teachers: list[dict[tuple[str | None, str, str], Users]] = []
+    # list[dict[tuple[degree, name, surname, email, password], Users]]
+    db_teachers: list[dict[tuple[str | None, str, str, str, str], Users]] = []
+    db_not_teachers: list[dict[tuple[str | None, str, str, str, str], Users]] = []
 
     if total_not_teacher_new_users < 0:
         raise ValueError("total_not_teacher_new_users cannot be negative")
@@ -247,7 +247,13 @@ def generate_users(
             f"{degree} {name} {surname} - {phone} - {mail} - {password} ({password_hash})"
         )
 
-        user_key: tuple[str | None, str, str] = (degree, name, surname)
+        user_key: tuple[str | None, str, str, str, str] = (
+            degree,
+            name,
+            surname,
+            mail,
+            password,
+        )
         user_obj = Users(
             password_hash=password_hash,
             email=mail,
@@ -277,7 +283,13 @@ def generate_users(
             f"{degree} {name} {surname} - {phone} - {mail} - {password} ({password_hash})"
         )
 
-        user_key: tuple[str | None, str, str] = (degree, name, surname)
+        user_key: tuple[str | None, str, str, str, str] = (
+            degree,
+            name,
+            surname,
+            mail,
+            password,
+        )
         user_obj = Users(
             password_hash=password_hash,
             email=mail,
