@@ -7,19 +7,6 @@ from sqlalchemy.orm import Session
 from backend.src.users.models import Users, Roles
 
 
-# todo remove
-def _read_list_from_txt(sourcefile: str) -> list[str]:
-    """
-    Reads a text file into a list
-    :param sourcefile: txt file with list of names/surnames, one per line
-    :return: list of names/surnames with whitespace removed and capitalized
-    """
-    with open(sourcefile, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-    lines = [line.strip().capitalize() for line in lines]
-    return lines
-
-
 def _generate_full_names(
     n: int, seed: int | None = None, with_duplicates: bool = False
 ) -> list[tuple[str, str]]:
