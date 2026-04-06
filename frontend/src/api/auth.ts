@@ -81,3 +81,41 @@ export const verifyEmail = async (token: string): Promise<void> => {
 
     return;
 };
+
+export const forgotPassword = async (email: string): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/password/forgot`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Forgot password request failed');
+    }
+
+    return;
+};
+
+export const resetPassword = async (payload: any): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/password/reset`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            token: payload.token,
+            password: payload.password,
+            password2: payload.password2,
+        }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Resetting password failed');
+    }
+
+    return;
+};

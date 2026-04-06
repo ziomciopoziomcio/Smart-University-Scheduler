@@ -80,7 +80,7 @@ function LoginPage() {
                     <Button variant="text" disabled={loading} onClick={() => navigate('/register')}>
                         <FormattedMessage id="login.createAccount"/>
                     </Button>
-                    <Button variant="text" disabled={loading}>
+                    <Button variant="text" disabled={loading} onClick={() => navigate('/forgot-password')}>
                         <FormattedMessage id="login.forgotPassword"/>
                     </Button>
                 </Stack>

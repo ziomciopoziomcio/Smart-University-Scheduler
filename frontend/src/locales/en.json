@@ -31,7 +31,9 @@
     "degree": "degree",
     "degreePlaceholder": "select degree",
     "validation": {
-      "passwordsDontMatch": "Passwords do not match."
+      "passwordsDontMatch": "Passwords do not match.",
+      "length": "Contain at least 8 characters",
+      "match": "Be identical to the repeated password"
     },
     "titleSuccess": "Account created!",
     "successMessage": "Registration successful. Check your email to activate your account.",
@@ -63,5 +65,15 @@
       "expired": "Activation token has expired.",
       "alreadyActivated": "Account is already activated."
     }
+  },
+  "forgotPassword": {
+    "title": "Reset password",
+    "instruction": "Your new password should:",
+    "newPassword": "new password",
+    "confirmNewPassword": "repeat new password",
+    "submitNew": "Create new password",
+    "sendResetLink": "Send reset link",
+    "successMailSent": "If the account exists, a reset link has been sent.",
+    "errorSending": "Error sending the reset code."
   }
 }
