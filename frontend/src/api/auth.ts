@@ -65,3 +65,19 @@ export const verify2FA = async (code: string, preAuthToken: string): Promise<Aut
 
     return response.json() as Promise<AuthResponse>;
 };
+
+export const verifyEmail = async (token: string): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/verify-email?token=${encodeURIComponent(token)}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Activation failed');
+    }
+
+    return;
+};

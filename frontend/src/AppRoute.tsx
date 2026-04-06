@@ -1,6 +1,7 @@
 import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom';
 import LoginPage from './pages/Auth/LoginPage';
 import RegisterPage from './pages/Auth/RegisterPage';
+import ActivationPage from './pages/Auth/ActivationPage.tsx'
 import MyPlan from './pages/Plan/MyPlan.tsx';
 import ProtectedRoute from './components/Login/ProtectedRoute';
 
@@ -10,6 +11,7 @@ function AppRoute() {
             <Routes>
                 <Route path="/login" element={<LoginPage/>}/>
                 <Route path="/register" element={<RegisterPage/>}/>
+                <Route path="/activate" element={<ActivationPage/>}/>
                 <Route element={<ProtectedRoute/>}>
                     <Route path="/plan" element={<MyPlan/>}/>
                 </Route>

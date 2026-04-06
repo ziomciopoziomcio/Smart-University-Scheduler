@@ -58,7 +58,7 @@ function RegisterPage() {
                 degree
             });
             setSuccess(true);
-            setTimeout(() => navigate('/login'), 2000);
+            setTimeout(() => navigate('/login'), 10000);
         } catch (err: any) {
             setError(err.response?.data?.detail || err.message || intl.formatMessage({id: 'register.validation.providerError'}));
         } finally {

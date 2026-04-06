@@ -44,5 +44,24 @@
       "dr_hab": "Habilitated Doctor",
       "prof": "Professor"
     }
+  },
+  "activate": {
+    "title": "Activate your account",
+    "description": "An activation link has been sent to your email. Please check your inbox and click the link to activate your account.",
+    "resend": "Resend activation email",
+    "cancel": "Cancel",
+    "loading": "Verifying email address...",
+    "success": "Account successfully activated! You can now log in.",
+    "backToLogin": "Back to login",
+    "goToLogin": "Go to login",
+    "error": {
+      "incomplete": "Activation link is incomplete (missing token).",
+      "generic": "An error occurred during activation.",
+      "invalidOrExpired": "Link is inactive, expired, or has already been used.",
+      "tooShort": "Activation token is too short.",
+      "invalid": "Invalid activation token.",
+      "expired": "Activation token has expired.",
+      "alreadyActivated": "Account is already activated."
+    }
   }
 }
