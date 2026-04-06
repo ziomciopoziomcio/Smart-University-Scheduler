@@ -113,15 +113,6 @@ def _generate_password(name: str, surname: str) -> str:
     return f"{name}{surname}"
 
 
-def change_me_hash(text: str) -> str:
-    """
-    Hash function ONLY FOR TESTS
-    :param text: text to be hashed
-    :return: hash
-    """
-    return hashlib.sha256(text.encode()).hexdigest()
-
-
 def _sum_values(d: dict[str, int]) -> int:
     """
     Calculate sum of dictionary values
