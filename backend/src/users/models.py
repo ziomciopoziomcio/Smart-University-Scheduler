@@ -20,6 +20,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database.base import Base
+from sqlalchemy import func
 
 user_roles = Table(
     "user_roles",
@@ -39,7 +40,7 @@ class Users(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True)  # Citext
     phone_number: Mapped[str | None] = mapped_column(String(20))
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=text("now()")
+        DateTime(timezone=True), server_default=func.now()
     )
     name: Mapped[str] = mapped_column(String(255))
     surname: Mapped[str] = mapped_column(String(255))
