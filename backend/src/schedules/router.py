@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import date
+from datetime import timezone, datetime, date
 
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -9,14 +9,15 @@ from . import models
 from . import schemas
 from ..academics import models as ac_mod
 from ..common.kafka_client import send_event
-from ..common.pagination.pagination import paginate
-from ..common.pagination.pagination_model import PaginatedResponse
+from ..common.pagination.pagination import PaginatedResponse, paginate
 from ..common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
 )
 from ..database.database import get_db
+from ..common.require_permission import require_permission
+from ..users import models as user_models
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
 
@@ -26,10 +27,15 @@ ACADEMIC_CALENDAR_LIMIT = 100
 EMPLOYEE_ABSENCE_LIMIT = 100
 
 
+# Schedules
+SUGGESTION_LIMIT = 50
+
+
 @router.post("/generate", status_code=status.HTTP_202_ACCEPTED)
 async def generate_schedule(
     payload: schemas.GenerateScheduleRequest,
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("schedule:generate")),
     # TODO: Users = Depends(get_current_user)
 ):
     task_id = str(uuid.uuid4())
@@ -70,12 +76,122 @@ async def generate_schedule(
 
 
 @router.post(
+    "/suggestions",
+    response_model=schemas.ScheduleSuggestionRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_schedule_suggestion(
+    payload: schemas.ScheduleSuggestionCreate,
+    db: Session = Depends(get_db),
+):
+    obj = models.ScheduleSuggestion(**payload.model_dump())
+    db.add(obj)
+    _commit_or_rollback(db)
+    db.refresh(obj)
+    return obj
+
+
+@router.get(
+    "/suggestions", response_model=PaginatedResponse[schemas.ScheduleSuggestionRead]
+)
+def list_schedule_suggestions(
+    status_filter: models.SuggestionStatus | None = Query(None, alias="status"),
+    source: str | None = Query(
+        None, description='Filter by suggestion source (e.g. "RAG")'
+    ),
+    target_class_session_id: uuid.UUID | None = Query(None),
+    limit: int = Query(SUGGESTION_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.ScheduleSuggestion)
+
+    if status_filter:
+        query = query.filter(models.ScheduleSuggestion.status == status_filter)
+    if source:
+        query = query.filter(models.ScheduleSuggestion.source == source)
+    if target_class_session_id:
+        query = query.filter(
+            models.ScheduleSuggestion.target_class_session_id == target_class_session_id
+        )
+
+    return paginate(
+        query, limit, offset, order_by=models.ScheduleSuggestion.created_at.desc()
+    )
+
+
+@router.get(
+    "/suggestions/{suggestion_id}", response_model=schemas.ScheduleSuggestionRead
+)
+def get_schedule_suggestion(suggestion_id: int, db: Session = Depends(get_db)):
+    return _get_or_404(
+        db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
+    )
+
+
+@router.patch(
+    "/suggestions/{suggestion_id}", response_model=schemas.ScheduleSuggestionRead
+)
+def resolve_schedule_suggestion(
+    suggestion_id: int,
+    payload: schemas.ScheduleSuggestionUpdate,
+    db: Session = Depends(get_db),
+    # TODO: neo4j_driver
+):
+    obj = _get_or_404(
+        db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
+    )
+
+    if obj.status != models.SuggestionStatus.PENDING:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Suggestion already resolved with status: {obj.status}",
+        )
+
+    allowed_terminal_states = (
+        models.SuggestionStatus.ACCEPTED,
+        models.SuggestionStatus.REJECTED,
+        models.SuggestionStatus.FAILED,
+    )
+
+    if payload.status not in allowed_terminal_states:
+        allowed_str = ", ".join([s.value for s in allowed_terminal_states])
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid target status. Suggestion status must be one of {allowed_str}",
+        )
+
+    obj.status = payload.status
+    obj.resolved_at = datetime.now(timezone.utc)
+
+    # TODO: Neo4j implementation
+
+    db.add(obj)
+    _commit_or_rollback(db)
+    db.refresh(obj)
+    return obj
+
+
+@router.delete("/suggestions/{suggestion_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_schedule_suggestion(suggestion_id: int, db: Session = Depends(get_db)):
+    obj = _get_or_404(
+        db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
+    )
+    db.delete(obj)
+    _commit_or_rollback(db)
+
+    return None
+
+
+@router.post(
     "/absences",
     response_model=schemas.EmployeeAbsenceRead,
     status_code=status.HTTP_201_CREATED,
 )
 def create_employee_absence(
-    payload: schemas.EmployeeAbsenceCreate, db: Session = Depends(get_db)
+    payload: schemas.EmployeeAbsenceCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("absence:create")),
 ):
     _get_or_404(db, ac_mod.Employees, payload.employee_id, "Employee")
 
@@ -104,6 +220,7 @@ def list_employee_absences(
     limit: int | None = Query(EMPLOYEE_ABSENCE_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("absences:view")),
 ):
     query = db.query(models.Employee_absences)
 
@@ -120,7 +237,11 @@ def list_employee_absences(
 
 
 @router.get("/absences/{absence_id}", response_model=schemas.EmployeeAbsenceRead)
-def get_employee_absence(absence_id: int, db: Session = Depends(get_db)):
+def get_employee_absence(
+    absence_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("absence:view")),
+):
     return _get_or_404(db, models.Employee_absences, absence_id, "Employee Absence")
 
 
@@ -129,6 +250,7 @@ def update_employee_absence(
     absence_id: int,
     payload: schemas.EmployeeAbsenceUpdate,
     db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("absence:update")),
 ):
     obj = _get_or_404(db, models.Employee_absences, absence_id, "Employee Absence")
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"reason"})
@@ -149,7 +271,11 @@ def update_employee_absence(
 
 
 @router.delete("/absences/{absence_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_employee_absence(absence_id: int, db: Session = Depends(get_db)):
+def delete_employee_absence(
+    absence_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("absence:delete")),
+):
     obj = _get_or_404(db, models.Employee_absences, absence_id, "Employee Absence")
 
     # deleted_event_id = str(obj.event_id)
