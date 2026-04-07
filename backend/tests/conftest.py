@@ -1,4 +1,9 @@
 import os
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 # SQLAlchemy
 os.environ["DB_HOST"] = "localhost"
@@ -36,6 +41,11 @@ from src.database.base import Base
 from src.users import models as user_models
 from src.users.auth import create_access_token
 
+from helpers.db_seeder.generators.roles_perms import (
+    generate_permissions_from_excel_file,
+    generate_roles_from_excel_file,
+)
+
 TEST_DB_URL = "sqlite:///:memory:"
 engine = create_engine(TEST_DB_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -43,8 +53,33 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_database():
-    """Sets up test DB. Executes once."""
+    """Sets up test DB and seeds roles/permissions. Executes once."""
     Base.metadata.create_all(bind=engine)
+
+    session = TestingSessionLocal()
+    try:
+        excel_path = (
+            PROJECT_ROOT / "helpers" / "db_seeder" / "data" / "role_uprawnienia.xlsx"
+        )
+        if excel_path.exists():
+            permissions = generate_permissions_from_excel_file(
+                session=session, sourcefile=str(excel_path), sheet_name="Arkusz1"
+            )
+            generate_roles_from_excel_file(
+                session=session,
+                sourcefile=str(excel_path),
+                sheet_name="Arkusz1",
+                permissions=permissions,
+            )
+            session.commit()
+        else:
+            print(f"WARNING: Seed file not found at {excel_path}")
+    except Exception as e:
+        print(f"Error while seeding database: {e}")
+        session.rollback()
+    finally:
+        session.close()
+
     yield
     Base.metadata.drop_all(bind=engine)
 
@@ -78,15 +113,8 @@ def client(db_session):
 
 @pytest.fixture
 def get_auth_headers(db_session):
-    def _get_headers(role_name: str):
 
-        if role_name == "guest":
-            return {}
-
-        ROLE_PERMISSIONS_MAP = {
-            # TODO permission map
-            # "admin" : ["student:create", ...]
-        }
+    def _get_headers(role_name: str, additional_permissions: list[str] = None):
 
         role = (
             db_session.query(user_models.Roles).filter_by(role_name=role_name).first()
@@ -96,20 +124,21 @@ def get_auth_headers(db_session):
             db_session.add(role)
             db_session.commit()
 
-        required_codes = ROLE_PERMISSIONS_MAP.get(role_name, [])
-        for code in required_codes:
-            perm = (
-                db_session.query(user_models.Permissions).filter_by(code=code).first()
-            )
-            if not perm:
-                perm = user_models.Permissions(code=code, name=f"Permission {code}")
-                db_session.add(perm)
-                db_session.commit()
+        if additional_permissions:
+            for code in additional_permissions:
+                perm = (
+                    db_session.query(user_models.Permissions)
+                    .filter_by(code=code)
+                    .first()
+                )
+                if not perm:
+                    perm = user_models.Permissions(code=code, name=code)
+                    db_session.add(perm)
 
-            if perm not in role.permissions:
-                role.permissions.append(perm)
+                if perm not in role.permissions:
+                    role.permissions.append(perm)
 
-        db_session.commit()
+            db_session.commit()
 
         user_email = f"{role_name.replace(' ', '_').lower()}@test.pl"
         user = db_session.query(user_models.Users).filter_by(email=user_email).first()
@@ -127,7 +156,6 @@ def get_auth_headers(db_session):
             db_session.commit()
 
         token = create_access_token(data={"sub": str(user.id)})
-        # print(f"DEBUG: Generated token for {user.email}: {token}")
         return {"Authorization": f"Bearer {token}"}
 
     return _get_headers
