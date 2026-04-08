@@ -1,0 +1,80 @@
+{
+  "login": {
+    "title": "Sign in",
+    "username": "email",
+    "usernamePlaceholder": "example@edu.p.lodz.pl",
+    "password": "password",
+    "passwordPlaceholder": "password",
+    "submit": "sign in",
+    "createAccount": "Create account",
+    "forgotPassword": "Forgot password",
+    "pageLabel": "Login",
+    "validation": {
+      "error": "Incorrect email or password",
+      "success": "Successfully logged in",
+      "2faRequired": "Two-factor authentication required",
+      "providerError": "Authentication provider error"
+    }
+  },
+  "register": {
+    "title": "Create new account",
+    "submit": "Create account",
+    "backToLogin": "Back to login",
+    "name": "first name",
+    "namePlaceholder": "enter first name",
+    "surname": "last name",
+    "surnamePlaceholder": "enter last name",
+    "confirmPassword": "confirm password",
+    "confirmPasswordPlaceholder": "password",
+    "phone": "phone number",
+    "phonePlaceholder": "enter phone number",
+    "degree": "degree",
+    "degreePlaceholder": "select degree",
+    "validation": {
+      "passwordsDontMatch": "Passwords do not match.",
+      "length": "Contain at least 8 characters",
+      "match": "Be identical to the repeated password"
+    },
+    "titleSuccess": "Account created!",
+    "successMessage": "Registration successful. Check your email to activate your account.",
+    "redirectingToLogin": "Redirecting to login page...",
+    "degrees": {
+      "none": "None",
+      "inz": "Bachelor of Engineering",
+      "mgr": "Master of Science",
+      "dr": "Doctor (Ph.D.)",
+      "dr_hab": "Habilitated Doctor",
+      "prof": "Professor"
+    }
+  },
+  "activate": {
+    "title": "Activate your account",
+    "description": "An activation link has been sent to your email. Please check your inbox and click the link to activate your account.",
+    "resend": "Resend activation email",
+    "cancel": "Cancel",
+    "loading": "Verifying email address...",
+    "success": "Account successfully activated! You can now log in.",
+    "backToLogin": "Back to login",
+    "goToLogin": "Go to login",
+    "error": {
+      "incomplete": "Activation link is incomplete (missing token).",
+      "generic": "An error occurred during activation.",
+      "invalidOrExpired": "Link is inactive, expired, or has already been used.",
+      "tooShort": "Activation token is too short.",
+      "invalid": "Invalid activation token.",
+      "expired": "Activation token has expired.",
+      "alreadyActivated": "Account is already activated."
+    }
+  },
+  "forgotPassword": {
+    "title": "Reset password",
+    "instruction": "Your new password should:",
+    "newPassword": "new password",
+    "confirmNewPassword": "repeat new password",
+    "submitNew": "Create new password",
+    "sendResetLink": "Send reset link",
+    "successMailSent": "If the account exists, a reset link has been sent.",
+    "errorSending": "Error sending the reset code.",
+    "errorInvalidToken": "The reset link is invalid or has expired."
+  }
+}
