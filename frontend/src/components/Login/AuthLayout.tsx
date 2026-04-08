@@ -43,7 +43,7 @@ function AuthLayout({title, children}: Props) {
                     <Box
                         component="img"
                         src={Logo}
-                        alt="Logotyp SUS"
+                        alt="Page Logo"
                         sx={{
                             width: '100%',
                             maxWidth: 220,
