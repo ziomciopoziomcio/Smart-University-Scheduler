@@ -9,7 +9,7 @@ interface AuthState {
     isAuthenticated: boolean;
     loading: boolean;
     error: string | null;
-    login: (email: string, password: string) => Promise<AuthResponse>;
+    login: (_email: string, _password: string) => Promise<AuthResponse>;
     logout: () => void;
 }
 
@@ -46,7 +46,7 @@ export const useAuthStore = create<AuthState>()(
 
             logout: () => {
                 set({token: null, user: null, isAuthenticated: false});
-                localStorage.removeItem('auth-storage');
+                // localStorage.removeItem('auth-storage');
             }
         }),
         {
