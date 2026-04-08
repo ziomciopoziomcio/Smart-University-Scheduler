@@ -68,7 +68,7 @@ function ResetPasswordPage() {
         <AuthLayout title={<FormattedMessage id="forgotPassword.title"/>}>
             <Stack spacing={3} width="100%" alignItems="center">
 
-                {/* Status sukcesu - wyświetlany zamiast formularza */}
+                {/* Success Status - displayed instead of the form */}
                 {pageStatus === 'success' ? (
                     <Alert severity="success" sx={{width: '100%'}}>
                         <FormattedMessage id="login.validation.success"/>
