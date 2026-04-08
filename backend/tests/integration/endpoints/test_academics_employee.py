@@ -25,6 +25,8 @@ def test_endpoint_view_employees(
         role_name,
         # additional_permissions=["academics:employees:view"]
     )
+    email = f"{role_name.replace(' ', '_').lower()}@test.pl"
+    debug_user_permissions(db_session, email)
     response = client.get("/academics/employees", headers=headers)
     assert (
         response.status_code == expected_status
@@ -53,12 +55,12 @@ def test_endpoint_view_employee(
     expected_status,
 ):
     email = f"{role_name.replace(' ', '_').lower()}@test.pl"
-    emp = create_test_employee(email=email)
-
     headers = get_auth_headers(
         role_name,
         # additional_permissions=["academics:employee:view"]
     )
+    emp = create_test_employee(email=email)
+    debug_user_permissions(db_session, email)
     response = client.get(f"/academics/employees/{emp.id}", headers=headers)
 
     assert response.status_code == expected_status
@@ -131,6 +133,10 @@ def test_endpoint_update_employee(
     role_name,
     expected_status,
 ):
+    headers = get_auth_headers(
+        role_name,
+        # additional_permissions=["academics:employee:update"]
+    )
     email = f"{role_name.replace(' ', '_').lower()}@test.pl"
     employee = create_test_employee(email=email)
     new_unit = Units(
@@ -140,11 +146,6 @@ def test_endpoint_update_employee(
     )
     db_session.add(new_unit)
     db_session.commit()
-
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["academics:employee:update"]
-    )
 
     payload = {"unit_id": new_unit.id}
 
@@ -195,3 +196,20 @@ def test_endpoint_delete_employee(
         )
         check = client.get(f"/academics/employees/{employee.id}", headers=admin_headers)
         assert check.status_code == 404
+
+
+def debug_user_permissions(db_session, email: str):
+
+    user = db_session.query(Users).filter(Users.email == email).first()
+    assert user is not None, f"No user in DB: {email}"
+
+    role_names = [r.role_name for r in user.roles]
+    perm_codes = sorted(
+        {p.code for r in user.roles for p in getattr(r, "permissions", [])}
+    )
+
+    print(f"[DEBUG] user={user.email} id={user.id}")
+    print(f"[DEBUG] roles={role_names}")
+    print(f"[DEBUG] permissions={perm_codes}")
+
+    return user, role_names, perm_codes

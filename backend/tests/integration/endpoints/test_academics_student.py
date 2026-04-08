@@ -4,6 +4,7 @@ from src.courses.models import (
     Study_fields,
 )
 from src.users.models import Users
+from tests.integration.endpoints.test_academics_employee import debug_user_permissions
 
 
 @pytest.mark.parametrize(
@@ -54,13 +55,13 @@ def test_endpoint_view_student(
     role_name,
     expected_status,
 ):
-    email = f"{role_name.replace(' ', '_').lower()}@test.pl"
-    student = create_test_student(email=email)
-
     headers = get_auth_headers(
         role_name,
         # additional_permissions=["academics:student:view"]
     )
+    email = f"{role_name.replace(' ', '_').lower()}@test.pl"
+    student = create_test_student(email=email)
+    debug_user_permissions(db_session, email)
     response = client.get(f"/academics/students/{student.id}", headers=headers)
 
     assert response.status_code == expected_status
@@ -96,6 +97,7 @@ def test_endpoint_create_student(
     )
     dummy_student = create_test_student(email=f"candidate_{role_name}@test.pl")
 
+    email = f"fresh_mail_{role_name}@test.pl"
     new_user = Users(
         email=f"fresh_mail_{role_name}@test.pl",
         password_hash="hash",
@@ -108,11 +110,13 @@ def test_endpoint_create_student(
     payload = {
         "user_id": new_user.id,
         "study_program": dummy_student.study_program,
-        "major": "Data Science",
+        "major": 1,
     }
+    debug_user_permissions(db_session, email)
 
     response = client.post("/academics/students", json=payload, headers=headers)
 
+    print(response.json())
     assert response.status_code == expected_status
     if expected_status == 201:
         data = response.json()
@@ -141,18 +145,18 @@ def test_endpoint_update_student(
     role_name,
     expected_status,
 ):
-    email = f"{role_name.replace(' ', '_').lower()}@test.pl"
-    student = create_test_student(email=email)
-
     headers = get_auth_headers(
         role_name,
         # additional_permissions=["academics:student:update"]
     )
 
+    email = f"{role_name.replace(' ', '_').lower()}@test.pl"
+    student = create_test_student(email=email)
+    debug_user_permissions(db_session, email)
     payload = {
         "user_id": student.user_id,
         "study_program": student.study_program,
-        "major": "New Specialization",
+        "major": 2,
     }
 
     response = client.patch(
@@ -161,7 +165,7 @@ def test_endpoint_update_student(
 
     assert response.status_code == expected_status
     if expected_status == 200:
-        assert response.json()["major"] == "New Specialization"
+        assert response.json()["major"] == 2
 
 
 @pytest.mark.parametrize(
@@ -185,8 +189,11 @@ def test_endpoint_delete_student(
     role_name,
     expected_status,
 ):
+    headers = get_auth_headers(
+        role_name,
+        # additional_permissions=["student:delete"]
+    )
     student = create_test_student(email="to_be_deleted@test.pl")
-    headers = get_auth_headers(role_name, additional_permissions=["student:delete"])
 
     response = client.delete(f"/academics/students/{student.id}", headers=headers)
 

@@ -33,7 +33,7 @@ os.environ["CORS_ORIGINS"] = "http://localhost:3000"
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import sessionmaker
 from main import app
 from src.database.database import get_db
@@ -48,16 +48,22 @@ from helpers.db_seeder.generators.roles_perms import (
 
 from src.courses.models import Study_program, Study_fields
 from src.academics.models import Students, Employees, Units
+from src.users.models import Users
 
 
 TEST_DB_URL = "sqlite:///:memory:"
-engine = create_engine(TEST_DB_URL, connect_args={"check_same_thread": False})
+engine = create_engine(
+    TEST_DB_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_database():
     """Sets up test DB and seeds roles/permissions. Executes once."""
+
     Base.metadata.create_all(bind=engine)
 
     session = TestingSessionLocal()
@@ -66,6 +72,7 @@ def setup_database():
             PROJECT_ROOT / "helpers" / "db_seeder" / "data" / "role_uprawnienia.xlsx"
         )
         if excel_path.exists():
+
             permissions = generate_permissions_from_excel_file(
                 session=session, sourcefile=str(excel_path), sheet_name="Arkusz1"
             )
@@ -76,10 +83,9 @@ def setup_database():
                 permissions=permissions,
             )
             session.commit()
-        else:
-            print(f"WARNING: Seed file not found at {excel_path}")
+            print("\n[INFO] Database seeded successfully.")
     except Exception as e:
-        print(f"Error while seeding database: {e}")
+        print(f"\n[ERROR] Error occured during database seeding: {e}")
         session.rollback()
     finally:
         session.close()
@@ -142,7 +148,8 @@ def get_auth_headers(db_session):
                 if perm not in role.permissions:
                     role.permissions.append(perm)
 
-            db_session.commit()
+            db_session.flush()
+            db_session.refresh(role)
 
         user_email = f"{role_name.replace(' ', '_').lower()}@test.pl"
         user = db_session.query(user_models.Users).filter_by(email=user_email).first()
