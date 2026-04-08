@@ -34,9 +34,7 @@ ACADEMIC_CALENDAR_LIMIT = 100
 def create_student(
     payload: schemas.StudentCreate,
     db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(
-        require_permission("academics:student:create")
-    ),
+    _current_user: user_models.Users = Depends(require_permission("student:create")),
 ):
     obj = models.Students(**payload.model_dump())
     db.add(obj)
@@ -53,9 +51,7 @@ def list_students(
     limit: int = Query(STUDENT_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(
-        require_permission("academics:students:view")
-    ),
+    _current_user: user_models.Users = Depends(require_permission("students:view")),
 ):
     query = db.query(models.Students)
 
@@ -73,9 +69,7 @@ def list_students(
 def get_student(
     student_id: int,
     db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(
-        require_permission("academics:student:view")
-    ),
+    _current_user: user_models.Users = Depends(require_permission("student:view")),
 ):
     return _get_or_404(db, models.Students, student_id, "Student")
 
@@ -85,9 +79,7 @@ def update_student(
     student_id: int,
     payload: schemas.StudentUpdate,
     db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(
-        require_permission("academics:student:update")
-    ),
+    _current_user: user_models.Users = Depends(require_permission("student:update")),
 ):
     obj = _get_or_404(db, models.Students, student_id, "Student")
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"major"})
@@ -101,9 +93,7 @@ def update_student(
 def delete_student(
     student_id: int,
     db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(
-        require_permission("academics:student:delete")
-    ),
+    _current_user: user_models.Users = Depends(require_permission("student:delete")),
 ):
     obj = _get_or_404(db, models.Students, student_id, "Student")
     db.delete(obj)
