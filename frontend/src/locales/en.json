@@ -79,5 +79,12 @@
     "successMailSent": "If the account exists, a reset link has been sent.",
     "errorSending": "Error sending the reset code.",
     "errorInvalidToken": "The reset link is invalid or has expired."
+  },
+  "sidebar": {
+    "my_plan": "My plan",
+    "plans": "Plans",
+    "chat": "Chat",
+    "suggestions": "Suggestions",
+    "settings": "Settings"
   }
 }
