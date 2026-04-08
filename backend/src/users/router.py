@@ -416,7 +416,6 @@ def password_forgot(
 
     db.add(user)
     db.flush()
-    print(f"DEBUG RESET TOKEN: {token}")
     _commit_or_rollback(db)
 
     background_tasks.add_task(send_password_reset_email, user.email, token)
