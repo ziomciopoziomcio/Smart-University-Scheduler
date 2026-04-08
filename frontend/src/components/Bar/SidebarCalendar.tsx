@@ -12,7 +12,7 @@ export default function SidebarCalendar({open}: { open: boolean }) {
     if (!open) {
         return (
             <Box sx={{display: 'flex', justifyContent: 'center', width: '100%'}}>
-                <CalendarToday sx={{fontSize: 24, color: '#333'}}/>
+                <CalendarToday sx={{fontSize: 22, color: '#333'}}/>
             </Box>
         );
     }
@@ -64,7 +64,6 @@ export default function SidebarCalendar({open}: { open: boolean }) {
             </Box>
 
             <Box sx={{display: 'flex', flexWrap: 'wrap'}}>
-                {/* 2. Użycie formatMessage dla nagłówków dni */}
                 {daysHeaderKeys.map((key) => (
                     <Box key={key} sx={{flex: '0 0 14.28%', textAlign: 'center', mb: 1}}>
                         <Typography sx={{fontSize: '11px', color: '#888', fontWeight: 700}}>
@@ -73,7 +72,6 @@ export default function SidebarCalendar({open}: { open: boolean }) {
                     </Box>
                 ))}
 
-                {/* Reszta logiki renderowania dni (bez zmian) */}
                 {Array.from({length: offset}).map((_, i) => (
                     <Box key={`prev-${i}`} sx={{flex: '0 0 14.28%', textAlign: 'center'}}>
                         <Typography sx={{fontSize: '12px', color: '#ccc', p: '6px 0'}}>

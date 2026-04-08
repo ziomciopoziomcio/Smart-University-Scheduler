@@ -18,7 +18,7 @@ export default function SidebarClock({open}: { open: boolean }) {
     if (!open) {
         return (
             <Box sx={{display: 'flex', justifyContent: 'center', width: '100%'}}>
-                <AccessTimeFilled sx={{fontSize: 24, color: '#333'}}/>
+                <AccessTimeFilled sx={{fontSize: 22, color: '#333'}}/>
             </Box>
         );
     }

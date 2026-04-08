@@ -10,13 +10,13 @@ import {
     IconButton
 } from '@mui/material';
 import {
-    CalendarToday,
-    Person,
-    Settings,
+    PersonOutlined,
+    SettingsOutlined,
     ChatBubbleOutline,
-    LightbulbOutline,
     ArrowBack,
     ArrowForward,
+    GroupsOutlined,
+    InboxOutlined
 } from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 import SidebarClock from "./SidebarClock.tsx";
@@ -28,11 +28,11 @@ export default function Sidebar() {
     const intl = useIntl();
 
     const menuItems = [
-        {id: 'sidebar.my_plan', icon: <Person/>},
-        {id: 'sidebar.plans', icon: <CalendarToday/>},
+        {id: 'sidebar.my_plan', icon: <PersonOutlined/>},
+        {id: 'sidebar.plans', icon: <GroupsOutlined/>},
         {id: 'sidebar.chat', icon: <ChatBubbleOutline/>},
-        {id: 'sidebar.suggestions', icon: <LightbulbOutline/>},
-        {id: 'sidebar.settings', icon: <Settings/>},
+        {id: 'sidebar.suggestions', icon: <InboxOutlined/>},
+        {id: 'sidebar.settings', icon: <SettingsOutlined/>},
     ];
 
     return (
@@ -61,8 +61,8 @@ export default function Sidebar() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: 2,
-                mb: open ? 2 : 12,
+                gap: open ? 1 : 6,
+                mb: open ? 0 : 19,
                 px: open ? 1 : 0
             }}>
                 <SidebarClock open={open}/>
@@ -71,10 +71,11 @@ export default function Sidebar() {
 
             <List sx={{width: '100%', px: open ? 0 : 1}}>
                 {menuItems.map((item) => (
-                    <ListItem key={item.id} disablePadding sx={{display: 'block', mb: 1}}>
+                    <ListItem key={item.id} disablePadding
+                              sx={{display: 'block', mb: open ? 0.5 : 1.5}}>
                         <ListItemButton
                             sx={{
-                                minHeight: 48,
+                                minHeight: 30,
                                 justifyContent: open ? 'initial' : 'center',
                                 px: 2.5,
                                 borderRadius: '12px',
@@ -83,16 +84,24 @@ export default function Sidebar() {
                             <ListItemIcon
                                 sx={{
                                     minWidth: 0,
-                                    mr: open ? 3 : 'auto',
+                                    mr: open ? 2 : 'auto',
                                     justifyContent: 'center',
-                                    color: '#555'
+                                    color: '#555',
+                                    '& svg': {
+                                        fontSize: open ? 20 : 25,
+                                    }
                                 }}
                             >
                                 {item.icon}
                             </ListItemIcon>
+
                             {open && (
                                 <ListItemText
                                     primary={intl.formatMessage({id: item.id})}
+                                    primaryTypographyProps={{
+                                        fontSize: '0.875rem',
+                                        fontWeight: 500,
+                                    }}
                                     sx={{opacity: 1}}
                                 />
                             )}
@@ -101,7 +110,7 @@ export default function Sidebar() {
                 ))}
             </List>
 
-            <Box sx={{mt: 'auto', mb: 4, width: '100%', display: 'flex', justifyContent: 'center'}}>
+            <Box sx={{mt: 'auto', mb: open ? 1 : 4, width: '100%', display: 'flex', justifyContent: 'center'}}>
                 <IconButton
                     onClick={() => setOpen(!open)}
                     sx={{
