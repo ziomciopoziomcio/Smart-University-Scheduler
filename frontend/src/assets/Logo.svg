@@ -1,0 +1,51 @@
+<svg width="1200" height="400" viewBox="0 0 1200 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="40" y1="40" x2="360" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#14B8A6"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="110" y1="90" x2="290" y2="290" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DDF7F3"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0F172A" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <rect x="40" y="40" width="320" height="320" rx="72" fill="url(#bgGrad)"/>
+  </g>
+
+  <rect x="92" y="96" width="216" height="188" rx="28" fill="url(#accentGrad)" opacity="0.95"/>
+  <rect x="92" y="96" width="216" height="54" rx="28" fill="#EAF3FF"/>
+  <rect x="92" y="125" width="216" height="25" fill="#EAF3FF"/>
+
+  <rect x="132" y="74" width="18" height="46" rx="9" fill="#DBEAFE"/>
+  <rect x="250" y="74" width="18" height="46" rx="9" fill="#CCFBF1"/>
+
+  <circle cx="135" cy="205" r="10" fill="#2563EB"/>
+  <circle cx="200" cy="205" r="10" fill="#14B8A6"/>
+  <circle cx="265" cy="205" r="10" fill="#2563EB"/>
+  <circle cx="168" cy="245" r="10" fill="#14B8A6"/>
+  <circle cx="232" cy="245" r="10" fill="#2563EB"/>
+
+  <path d="M145 205H190" stroke="#93C5FD" stroke-width="8" stroke-linecap="round"/>
+  <path d="M210 205H255" stroke="#5EEAD4" stroke-width="8" stroke-linecap="round"/>
+  <path d="M142 211L161 239" stroke="#93C5FD" stroke-width="8" stroke-linecap="round"/>
+  <path d="M258 211L239 239" stroke="#5EEAD4" stroke-width="8" stroke-linecap="round"/>
+  <path d="M178 245H222" stroke="#93C5FD" stroke-width="8" stroke-linecap="round"/>
+
+  <circle cx="278" cy="285" r="44" fill="#0F172A"/>
+  <circle cx="278" cy="285" r="34" fill="#F8FAFC"/>
+  <path d="M278 285V266" stroke="#2563EB" stroke-width="8" stroke-linecap="round"/>
+  <path d="M278 285L293 294" stroke="#14B8A6" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="278" cy="285" r="5" fill="#0F172A"/>
+
+  <g transform="translate(430 72)">
+    <text x="0" y="125" font-family="Inter, Arial, Helvetica, sans-serif" font-size="112" font-weight="800" letter-spacing="3" fill="#0F172A">SUS</text>
+    <rect x="3" y="145" width="160" height="10" rx="5" fill="url(#bgGrad)"/>
+    <text x="0" y="210" font-family="Inter, Arial, Helvetica, sans-serif" font-size="48" font-weight="700" fill="#0F172A">Smart University Scheduler</text>
+    <text x="0" y="255" font-family="Inter, Arial, Helvetica, sans-serif" font-size="28" font-weight="500" fill="#475569">Automatic creation and management of class schedules</text>
+  </g>
+</svg>
