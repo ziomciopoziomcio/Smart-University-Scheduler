@@ -88,7 +88,7 @@ services:
       DB_NAME: ${DB_NAME}
       #NEO4J_HOST: ${NEO4J_HOST}
       CORS_ORIGINS: ${CORS_ORIGINS}
-      KAFKA_URL: "kafka:9092"
+      KAFKA_URL: "kafka:29092"
       SECRET_KEY: ${SECRET_KEY}
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
       SMTP_HOST: ${SMTP_HOST}
