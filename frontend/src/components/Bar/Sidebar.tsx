@@ -7,7 +7,6 @@ import {
     ListItemIcon,
     ListItemText,
     Box,
-    Typography,
     IconButton
 } from '@mui/material';
 import {
@@ -18,13 +17,14 @@ import {
     LightbulbOutline,
     ArrowBack,
     ArrowForward,
-    AccessTimeFilled
 } from '@mui/icons-material';
 import {useIntl} from 'react-intl';
+import SidebarClock from "./SidebarClock.tsx";
+import SidebarCalendar from "./SidebarCalendar.tsx";
 
 export default function Sidebar() {
     const [open, setOpen] = useState(false);
-    const drawerWidth = open ? 280 : 80;
+    const drawerWidth = open ? 310 : 80;
     const intl = useIntl();
 
     const menuItems = [
@@ -57,52 +57,16 @@ export default function Sidebar() {
             }}
         >
             <Box sx={{
+                width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: open ? 'flex-start' : 'center',
-                gap: open ? 2 : 4,
-                mt: 2.5,
-                mb: 12,
-                width: '100%',
-                pl: open ? 3 : 0,
-                transition: 'all 0.3s ease'
+                alignItems: 'center',
+                gap: 2,
+                mb: open ? 2 : 12,
+                px: open ? 1 : 0
             }}>
-                <Box sx={{display: 'flex', alignItems: 'center', gap: 4}}>
-                    <AccessTimeFilled sx={{fontSize: 24, color: '#333'}}/>
-                    {open && (
-                        <Typography variant="caption" sx={{fontWeight: 'bold', lineHeight: 1.2, whiteSpace: 'nowrap'}}>
-                            {intl.formatDate(new Date(), {
-                                weekday: 'long',
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric'
-                            })}
-                            <br/>
-                            {intl.formatTime(new Date(), {hour: '2-digit', minute: '2-digit'})}
-                        </Typography>
-                    )}
-                </Box>
-
-                <Box sx={{width: '100%', display: 'flex', justifyContent: open ? 'flex-start' : 'center'}}>
-                    {open ? (
-                        <Box sx={{
-                            bgcolor: 'white',
-                            p: 1.5,
-                            borderRadius: '12px',
-                            boxShadow: '0px 2px 8px rgba(0,0,0,0.05)',
-                            mr: 3,
-                            width: '100%'
-                        }}>
-                            <Typography variant="caption"
-                                        sx={{fontWeight: 'bold', display: 'block', mb: 1, textAlign: 'center'}}>
-                                Marzec 2026
-                            </Typography>
-                            <CalendarToday sx={{fontSize: 20, color: '#ccc', display: 'block', margin: 'auto'}}/>
-                        </Box>
-                    ) : (
-                        <CalendarToday sx={{fontSize: 24, color: '#333'}}/>
-                    )}
-                </Box>
+                <SidebarClock open={open}/>
+                <SidebarCalendar open={open}/>
             </Box>
 
             <List sx={{width: '100%', px: open ? 0 : 1}}>
