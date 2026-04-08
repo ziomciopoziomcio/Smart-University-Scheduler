@@ -252,3 +252,25 @@ def create_test_employee(db_session):
         return employee
 
     return _create
+
+
+@pytest.fixture
+def create_test_unit(db_session):
+    """Factory fixture to create a test unit."""
+
+    def _create(
+        unit_name="Institute of Artificial Intelligence", unit_short="IAI", faculty_id=1
+    ):
+        unit = db_session.query(Units).filter_by(unit_name=unit_name).first()
+
+        if not unit:
+            unit = Units(
+                unit_name=unit_name, unit_short=unit_short, faculty_id=faculty_id
+            )
+            db_session.add(unit)
+            db_session.commit()
+            db_session.refresh(unit)
+
+        return unit
+
+    return _create
