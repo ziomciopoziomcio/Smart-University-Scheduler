@@ -23,7 +23,7 @@ def test_endpoint_view_employees(
 ):
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["academics:employees:view"]
+        # additional_permissions=["employees:view"]
     )
     email = f"{role_name.replace(' ', '_').lower()}@test.pl"
     debug_user_permissions(db_session, email)
@@ -57,7 +57,7 @@ def test_endpoint_view_employee(
     email = f"{role_name.replace(' ', '_').lower()}@test.pl"
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["academics:employee:view"]
+        # additional_permissions=["employee:view"]
     )
     emp = create_test_employee(email=email)
     debug_user_permissions(db_session, email)
@@ -89,7 +89,7 @@ def test_endpoint_create_employee(
 ):
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["academics:employee:create"]
+        # additional_permissions=["employee:create"]
     )
 
     temp_emp = create_test_employee(email=f"temp_{role_name}@test.pl")
@@ -135,7 +135,7 @@ def test_endpoint_update_employee(
 ):
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["academics:employee:update"]
+        # additional_permissions=["employee:update"]
     )
     email = f"{role_name.replace(' ', '_').lower()}@test.pl"
     employee = create_test_employee(email=email)
@@ -183,7 +183,7 @@ def test_endpoint_delete_employee(
     employee = create_test_employee(email="to_be_deleted@test.pl")
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["academics:employee:delete"]
+        # additional_permissions=["employee:delete"]
     )
 
     response = client.delete(f"/academics/employees/{employee.id}", headers=headers)
@@ -192,7 +192,7 @@ def test_endpoint_delete_employee(
     if expected_status == 204:
         admin_headers = get_auth_headers(
             "Administrator",
-            # additional_permissions=["student:view"]
+            # additional_permissions=["employee:view"]
         )
         check = client.get(f"/academics/employees/{employee.id}", headers=admin_headers)
         assert check.status_code == 404

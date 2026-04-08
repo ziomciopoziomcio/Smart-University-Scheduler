@@ -177,7 +177,7 @@ def test_endpoint_delete_unit(
 ):
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["student:delete"]
+        # additional_permissions=["unit:delete"]
     )
 
     unit = create_test_unit()

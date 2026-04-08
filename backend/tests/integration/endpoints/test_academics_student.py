@@ -25,7 +25,7 @@ def test_endpoint_view_students(
 ):
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["academics:students:view"]
+        # additional_permissions=["students:view"]
     )
     response = client.get("/academics/students", headers=headers)
 
@@ -57,7 +57,7 @@ def test_endpoint_view_student(
 ):
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["academics:student:view"]
+        # additional_permissions=["student:view"]
     )
     email = f"{role_name.replace(' ', '_').lower()}@test.pl"
     student = create_test_student(email=email)
@@ -93,7 +93,7 @@ def test_endpoint_create_student(
 ):
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["academics:student:create"]
+        # additional_permissions=["student:create"]
     )
     dummy_student = create_test_student(email=f"candidate_{role_name}@test.pl")
 
@@ -147,7 +147,7 @@ def test_endpoint_update_student(
 ):
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["academics:student:update"]
+        # additional_permissions=["student:update"]
     )
 
     email = f"{role_name.replace(' ', '_').lower()}@test.pl"
