@@ -1,14 +1,13 @@
 # Backend tests
 
-## Endpoint permission tests
+## Endpoints tests
 
 ### Academics
 
-✅ View Students
-
-✅ Create Student
-
-✅ View Student
+- ✅ Student Endpoints Tests
+  - ✅ View Students
+  - ✅ Create Student
+  - ✅ View Student
 
 
 ❌

@@ -46,6 +46,10 @@ from helpers.db_seeder.generators.roles_perms import (
     generate_roles_from_excel_file,
 )
 
+from src.courses.models import Study_program, Study_fields
+from src.academics.models import Students
+
+
 TEST_DB_URL = "sqlite:///:memory:"
 engine = create_engine(TEST_DB_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -159,3 +163,37 @@ def get_auth_headers(db_session):
         return {"Authorization": f"Bearer {token}"}
 
     return _get_headers
+
+
+@pytest.fixture
+def create_test_student(db_session):
+    """Factory fixture to create test student with unique or specific email."""
+
+    def _create(email="student_default@test.pl", field_name="Computer Science"):
+
+        field = db_session.query(Study_fields).filter_by(field_name=field_name).first()
+        if not field:
+            field = Study_fields(faculty=1, field_name=field_name)
+            db_session.add(field)
+            db_session.flush()
+
+        program = Study_program(
+            study_field=field.id, start_year="2025", program_name=f"Prog {field_name}"
+        )
+        db_session.add(program)
+        db_session.flush()
+
+        user = db_session.query(user_models.Users).filter_by(email=email).first()
+        if not user:
+            user = user_models.Users(
+                email=email, password_hash="hash", name="Test", surname="Student"
+            )
+            db_session.add(user)
+            db_session.flush()
+
+        student = Students(user_id=user.id, study_program=program.id)
+        db_session.add(student)
+        db_session.commit()
+        return student
+
+    return _create
