@@ -47,7 +47,7 @@ from helpers.db_seeder.generators.roles_perms import (
 )
 
 from src.courses.models import Study_program, Study_fields
-from src.academics.models import Students
+from src.academics.models import Students, Employees, Units
 
 
 TEST_DB_URL = "sqlite:///:memory:"
@@ -167,7 +167,7 @@ def get_auth_headers(db_session):
 
 @pytest.fixture
 def create_test_student(db_session):
-    """Factory fixture to create test student with unique or specific email."""
+    """Factory fixture to create test student."""
 
     def _create(email="student_default@test.pl", field_name="Computer Science"):
 
@@ -195,5 +195,53 @@ def create_test_student(db_session):
         db_session.add(student)
         db_session.commit()
         return student
+
+    return _create
+
+
+@pytest.fixture
+def create_test_employee(db_session):
+    """Factory fixture to create test employee."""
+
+    def _create(email="employee@test.pl", unit_name="Test Unit"):
+
+        faculty_id = 1
+
+        unit = db_session.query(Units).filter_by(unit_name=unit_name).first()
+        if not unit:
+            unit = Units(
+                unit_name=unit_name,
+                unit_short=unit_name[:5].upper(),
+                faculty_id=faculty_id,
+            )
+            db_session.add(unit)
+            db_session.flush()
+
+        user = db_session.query(user_models.Users).filter_by(email=email).first()
+        if not user:
+            user = user_models.Users(
+                email=email,
+                password_hash="hash",
+                name="Test",
+                surname="Employee",
+                email_verified=True,
+            )
+            db_session.add(user)
+            db_session.flush()
+
+        employee = (
+            db_session.query(Employees)
+            .filter_by(user_id=user.id, unit_id=unit.id, faculty_id=faculty_id)
+            .first()
+        )
+
+        if not employee:
+            employee = Employees(
+                user_id=user.id, faculty_id=faculty_id, unit_id=unit.id
+            )
+            db_session.add(employee)
+            db_session.commit()
+
+        return employee
 
     return _create

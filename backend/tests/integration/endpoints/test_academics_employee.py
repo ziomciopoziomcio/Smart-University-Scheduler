@@ -1,33 +1,31 @@
 import pytest
-from src.courses.models import (
-    Study_program,
-    Study_fields,
-)
 from src.users.models import Users
+from src.academics.models import Units
+
+from backend.tests.conftest import create_test_employee
 
 
 @pytest.mark.parametrize(
     "role_name, expected_status",
     [
         pytest.param("Administrator", 200, id="admin-can-view"),
-        pytest.param("Schedule Manager", 403, id="manager-forbidden"),
+        pytest.param("Schedule Manager", 200, id="manager-can-view"),
         pytest.param("Dean's Office", 200, id="dean-can-view"),
         pytest.param("Head of Unit", 200, id="head-of-unit-can-view"),
         pytest.param("Instructor", 200, id="instructor-can-view"),
-        pytest.param("Student", 403, id="student-forbidden"),
-        pytest.param("Administrative Staff", 403, id="administrative-staff-forbidden"),
+        pytest.param("Student", 200, id="student-can-view"),
+        pytest.param("Administrative Staff", 200, id="administrative-can-view"),
         pytest.param("Guest", 403, id="guest-forbidden"),
     ],
 )
-def test_endpoint_view_students(
+def test_endpoint_view_employees(
     client, db_session, get_auth_headers, role_name, expected_status
 ):
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["academics:students:view"]
+        # additional_permissions=["academics:employees:view"]
     )
-    response = client.get("/academics/students", headers=headers)
-
+    response = client.get("/academics/employees", headers=headers)
     assert (
         response.status_code == expected_status
     ), f"Role {role_name} failed. Expected {expected_status}, but got {response.status_code}. Response: {response.json()}"
@@ -37,36 +35,33 @@ def test_endpoint_view_students(
     "role_name, expected_status",
     [
         pytest.param("Administrator", 200, id="admin-can-view"),
-        pytest.param("Schedule Manager", 403, id="manager-forbidden"),
+        pytest.param("Schedule Manager", 200, id="manager-can-view"),
         pytest.param("Dean's Office", 200, id="dean-can-view"),
         pytest.param("Head of Unit", 200, id="head-of-unit-can-view"),
         pytest.param("Instructor", 200, id="instructor-can-view"),
         pytest.param("Student", 200, id="student-can-view"),
-        pytest.param("Administrative Staff", 403, id="administrative-staff-forbidden"),
+        pytest.param("Administrative Staff", 200, id="administrative-can-view"),
         pytest.param("Guest", 403, id="guest-forbidden"),
     ],
 )
-def test_endpoint_view_student(
+def test_endpoint_view_employee(
     client,
     db_session,
     get_auth_headers,
-    create_test_student,
+    create_test_employee,
     role_name,
     expected_status,
 ):
     email = f"{role_name.replace(' ', '_').lower()}@test.pl"
-    student = create_test_student(email=email)
+    emp = create_test_employee(email=email)
 
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["academics:student:view"]
+        # additional_permissions=["academics:employee:view"]
     )
-    response = client.get(f"/academics/students/{student.id}", headers=headers)
+    response = client.get(f"/academics/employees/{emp.id}", headers=headers)
 
     assert response.status_code == expected_status
-    if expected_status == 200:
-        data = response.json()
-        assert data["id"] == student.id
 
 
 @pytest.mark.parametrize(
@@ -78,46 +73,41 @@ def test_endpoint_view_student(
         pytest.param("Head of Unit", 403, id="head-of-unit-forbidden"),
         pytest.param("Instructor", 403, id="instructor-forbidden"),
         pytest.param("Student", 403, id="student-forbidden"),
-        pytest.param("Administrative Staff", 403, id="administrative-staff-forbidden"),
+        pytest.param("Administrative Staff", 403, id="administrative-forbidden"),
         pytest.param("Guest", 403, id="guest-forbidden"),
     ],
 )
-def test_endpoint_create_student(
+def test_endpoint_create_employee(
     client,
     db_session,
     get_auth_headers,
-    create_test_student,
+    create_test_employee,
     role_name,
     expected_status,
 ):
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["academics:student:create"]
+        # additional_permissions=["academics:employee:create"]
     )
-    dummy_student = create_test_student(email=f"candidate_{role_name}@test.pl")
 
+    temp_emp = create_test_employee(email=f"temp_{role_name}@test.pl")
     new_user = Users(
-        email=f"fresh_mail_{role_name}@test.pl",
-        password_hash="hash",
-        name="New",
-        surname="Student",
+        email=f"new_emp_{role_name}@test.pl", password_hash="h", name="N", surname="S"
     )
     db_session.add(new_user)
     db_session.commit()
 
     payload = {
         "user_id": new_user.id,
-        "study_program": dummy_student.study_program,
-        "major": "Data Science",
+        "faculty_id": temp_emp.faculty_id,
+        "unit_id": temp_emp.unit_id,
     }
 
-    response = client.post("/academics/students", json=payload, headers=headers)
+    response = client.post("/academics/employees", json=payload, headers=headers)
 
-    assert response.status_code == expected_status
-    if expected_status == 201:
-        data = response.json()
-        assert data["user_id"] == new_user.id
-        assert data["study_program"] == dummy_student.study_program
+    assert (
+        response.status_code == expected_status
+    ), f"Role {role_name} failed. Expected {expected_status}, but got {response.status_code}. Response: {response.json()}"
 
 
 @pytest.mark.parametrize(
@@ -127,41 +117,44 @@ def test_endpoint_create_student(
         pytest.param("Schedule Manager", 403, id="manager-forbidden"),
         pytest.param("Dean's Office", 200, id="dean-can-update"),
         pytest.param("Head of Unit", 403, id="head-of-unit-forbidden"),
-        pytest.param("Instructor", 403, id="instructor-forbidden"),
-        pytest.param("Student", 200, id="student-can-update"),
-        pytest.param("Administrative Staff", 403, id="administrative-staff-forbidden"),
+        pytest.param("Instructor", 200, id="instructor-can-update"),
+        pytest.param("Student", 403, id="student-forbidden"),
+        pytest.param("Administrative Staff", 403, id="administrative-forbidden"),
         pytest.param("Guest", 403, id="guest-forbidden"),
     ],
 )
-def test_endpoint_update_student(
+def test_endpoint_update_employee(
     client,
     db_session,
     get_auth_headers,
-    create_test_student,
+    create_test_employee,
     role_name,
     expected_status,
 ):
     email = f"{role_name.replace(' ', '_').lower()}@test.pl"
-    student = create_test_student(email=email)
+    employee = create_test_employee(email=email)
+    new_unit = Units(
+        unit_name="New Test Department",
+        unit_short="NTD",
+        faculty_id=employee.faculty_id,
+    )
+    db_session.add(new_unit)
+    db_session.commit()
 
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["academics:student:update"]
+        # additional_permissions=["academics:employee:update"]
     )
 
-    payload = {
-        "user_id": student.user_id,
-        "study_program": student.study_program,
-        "major": "New Specialization",
-    }
+    payload = {"unit_id": new_unit.id}
 
     response = client.patch(
-        f"/academics/students/{student.id}", json=payload, headers=headers
+        f"/academics/employees/{employee.id}", json=payload, headers=headers
     )
 
-    assert response.status_code == expected_status
-    if expected_status == 200:
-        assert response.json()["major"] == "New Specialization"
+    assert (
+        response.status_code == expected_status
+    ), f"Role {role_name} failed. Expected {expected_status}, but got {response.status_code}. Response: {response.json()}"
 
 
 @pytest.mark.parametrize(
@@ -173,28 +166,29 @@ def test_endpoint_update_student(
         pytest.param("Head of Unit", 403, id="head-of-unit-forbidden"),
         pytest.param("Instructor", 403, id="instructor-forbidden"),
         pytest.param("Student", 403, id="student-forbidden"),
-        pytest.param("Administrative Staff", 403, id="administrative-staff-forbidden"),
+        pytest.param("Administrative Staff", 403, id="administrative-forbidden"),
         pytest.param("Guest", 403, id="guest-forbidden"),
     ],
 )
-def test_endpoint_delete_student(
+def test_endpoint_delete_employee(
     client,
     db_session,
     get_auth_headers,
-    create_test_student,
+    create_test_employee,
     role_name,
     expected_status,
 ):
-    student = create_test_student(email="to_be_deleted@test.pl")
+
+    employee = create_test_employee(email="to_be_deleted@test.pl")
     headers = get_auth_headers(
         role_name,
-        # additional_permissions=["academics:student:delete"]
+        # additional_permissions=["academics:employee:delete"]
     )
 
-    response = client.delete(f"/academics/students/{student.id}", headers=headers)
+    response = client.delete(f"/academics/employees/{employee.id}", headers=headers)
 
     assert response.status_code == expected_status
     if expected_status == 200:
         admin_headers = get_auth_headers("Administrator")
-        check = client.get(f"/academics/students/{student.id}", headers=admin_headers)
+        check = client.get(f"/academics/employees/{employee.id}", headers=admin_headers)
         assert check.status_code == 404
