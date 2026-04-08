@@ -4,56 +4,44 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useNavigate} from 'react-router-dom';
 import AuthLayout from '@components/Login/AuthLayout';
 import AuthPasswordField from '@components/Login/AuthPasswordField';
-import {loginUser} from '@api/auth';
+import {useAuthStore} from '@store/useAuthStore';
 
 function LoginPage() {
     const intl = useIntl();
     const navigate = useNavigate();
+    const {login, loading, error} = useAuthStore();
     const [showPassword, setShowPassword] = useState(false);
-
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
-        setLoading(true);
-
         try {
-            const data = await loginUser(email, password);
+            const data = await login(email, password);
             if (data.requires_2fa) {
-                alert(<FormattedMessage id="login.validation.2faRequired"/>);
+                alert(intl.formatMessage({id: 'login.validation.2faRequired'}));
             } else {
-                localStorage.setItem('token', data.access_token);
                 navigate('/plan', {replace: true});
             }
         } catch (err: any) {
-            setError(err.response?.data?.detail || err.message ||
-                <FormattedMessage id="login.validation.providerError"/>);
-        } finally {
-            setLoading(false);
         }
     };
 
     return (
         <AuthLayout title={<FormattedMessage id="login.title"/>}>
-            <Stack
-                component="form"
-                spacing={2.5}
-                width="100%"
-                onSubmit={handleSubmit}
-            >
-                {error && <Alert severity="error">{error}</Alert>}
-
+            <Stack component="form" spacing={2.5} width="100%" onSubmit={handleSubmit}>
+                {error && (
+                    <Alert severity="error">
+                        {error}
+                    </Alert>
+                )}
                 <TextField
-                    label={intl.formatMessage({id: 'login.username'})}
-                    placeholder={intl.formatMessage({id: 'login.usernamePlaceholder'})}
+                    label={intl.formatMessage({id: 'login.email'})}
+                    placeholder={intl.formatMessage({id: 'login.emailPlaceholder'})}
+                    fullWidth
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={loading}
-                    type="email"
                     required
                 />
 
@@ -73,7 +61,10 @@ function LoginPage() {
                     disabled={loading}
                     startIcon={loading && <CircularProgress size={20} color="inherit"/>}
                 >
-                    {loading ? 'Logowanie...' : intl.formatMessage({id: 'login.submit'})}
+                    {loading
+                        ? intl.formatMessage({id: 'login.loggingIn'})
+                        : intl.formatMessage({id: 'login.submit'})
+                    }
                 </Button>
 
                 <Stack direction="row" justifyContent="space-between">

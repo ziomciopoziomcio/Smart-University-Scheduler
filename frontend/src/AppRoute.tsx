@@ -6,8 +6,11 @@ import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage.tsx'
 import ResetPasswordPage from './pages/Auth/ResetPasswordPage.tsx'
 import MyPlan from './pages/Plan/MyPlan.tsx';
 import ProtectedRoute from './components/Login/ProtectedRoute';
+import {useAuthStore} from '@store/useAuthStore';
 
 function AppRoute() {
+    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
     return (
         <BrowserRouter>
             <Routes>
@@ -22,7 +25,7 @@ function AppRoute() {
                 <Route
                     path="/"
                     element={
-                        localStorage.getItem('token')
+                        isAuthenticated
                             ? <Navigate to="/plan" replace/>
                             : <Navigate to="/login" replace/>
                     }
