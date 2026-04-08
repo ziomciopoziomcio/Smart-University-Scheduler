@@ -46,6 +46,6 @@
     <text x="0" y="125" font-family="Inter, Arial, Helvetica, sans-serif" font-size="112" font-weight="800" letter-spacing="3" fill="#0F172A">SUS</text>
     <rect x="3" y="145" width="160" height="10" rx="5" fill="url(#bgGrad)"/>
     <text x="0" y="210" font-family="Inter, Arial, Helvetica, sans-serif" font-size="48" font-weight="700" fill="#0F172A">Smart University Scheduler</text>
-    <text x="0" y="255" font-family="Inter, Arial, Helvetica, sans-serif" font-size="28" font-weight="500" fill="#475569">Automatyczne tworzenie i zarządzanie planem zajęć</text>
+    <text x="0" y="255" font-family="Inter, Arial, Helvetica, sans-serif" font-size="28" font-weight="500" fill="#475569">Automatic creation and management of class schedules</text>
   </g>
 </svg>
