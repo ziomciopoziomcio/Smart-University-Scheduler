@@ -47,7 +47,7 @@ from helpers.db_seeder.generators.roles_perms import (
 )
 
 from src.courses.models import Study_program, Study_fields
-from src.academics.models import Students, Employees, Units
+from src.academics.models import Students, Employees, Units, Groups, Group_members
 from src.users.models import Users
 
 
@@ -272,5 +272,45 @@ def create_test_unit(db_session):
             db_session.refresh(unit)
 
         return unit
+
+    return _create
+
+
+@pytest.fixture
+def create_test_group(db_session):
+    """Factory fixture to create a test group."""
+
+    def _create(
+        group_name="Test Group A",
+        study_program_id=None,
+        major_id=None,
+        elective_block_id=None,
+    ):
+
+        if study_program_id is None:
+            program = db_session.query(Study_program).first()
+            if not program:
+                program = Study_program(
+                    study_field=1, start_year="2025", program_name="Default Program"
+                )
+                db_session.add(program)
+                db_session.flush()
+            study_program_id = program.id
+
+        group = db_session.query(Groups).filter_by(group_name=group_name).first()
+
+        if not group:
+            group = Groups(
+                group_name=group_name,
+                study_program=study_program_id,
+                major=major_id,
+                elective_block=elective_block_id,
+            )
+
+            db_session.add(group)
+            db_session.commit()
+            db_session.refresh(group)
+
+        return group
 
     return _create
