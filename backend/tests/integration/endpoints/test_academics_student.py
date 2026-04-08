@@ -167,9 +167,9 @@ def test_endpoint_update_student(
 @pytest.mark.parametrize(
     "role_name, expected_status",
     [
-        pytest.param("Administrator", 200, id="admin-can-delete"),
+        pytest.param("Administrator", 204, id="admin-can-delete"),
         pytest.param("Schedule Manager", 403, id="manager-forbidden"),
-        pytest.param("Dean's Office", 200, id="dean-can-delete"),
+        pytest.param("Dean's Office", 204, id="dean-can-delete"),
         pytest.param("Head of Unit", 403, id="head-of-unit-forbidden"),
         pytest.param("Instructor", 403, id="instructor-forbidden"),
         pytest.param("Student", 403, id="student-forbidden"),
@@ -186,15 +186,15 @@ def test_endpoint_delete_student(
     expected_status,
 ):
     student = create_test_student(email="to_be_deleted@test.pl")
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["academics:student:delete"]
-    )
+    headers = get_auth_headers(role_name, additional_permissions=["student:delete"])
 
     response = client.delete(f"/academics/students/{student.id}", headers=headers)
 
     assert response.status_code == expected_status
-    if expected_status == 200:
-        admin_headers = get_auth_headers("Administrator")
+    if expected_status == 204:
+        admin_headers = get_auth_headers(
+            "Administrator",
+            # additional_permissions=["student:view"]
+        )
         check = client.get(f"/academics/students/{student.id}", headers=admin_headers)
         assert check.status_code == 404
