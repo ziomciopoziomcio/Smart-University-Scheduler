@@ -1,5 +1,6 @@
 import type {AuthResponse} from './types';
 
+//TODO: ENV VARIABLES - FIX URL
 const BASE_URL = 'http://localhost:3000/users';
 
 export const loginUser = async (email: string, password: string): Promise<AuthResponse> => {
