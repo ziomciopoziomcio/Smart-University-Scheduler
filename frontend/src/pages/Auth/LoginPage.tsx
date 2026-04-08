@@ -14,17 +14,22 @@ function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        try {
-            const data = await login(email, password);
-            if (data.requires_2fa) {
-                alert(intl.formatMessage({id: 'login.validation.2faRequired'}));
-            } else {
-                navigate('/plan', {replace: true});
+        const executeLogin = async () => {
+            try {
+                const data = await login(email, password);
+                if (data.requires_2fa) {
+                    alert(intl.formatMessage({id: 'login.validation.2faRequired'}));
+                } else {
+                    navigate('/plan', {replace: true});
+                }
+            } catch (err: any) {
+                console.error(err);
             }
-        } catch (err: any) {
-        }
+        };
+
+        void executeLogin();
     };
 
     return (
