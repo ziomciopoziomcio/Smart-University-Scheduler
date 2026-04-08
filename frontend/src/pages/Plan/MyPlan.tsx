@@ -31,12 +31,11 @@ function MyPlan() {
                 >
                     <Stack spacing={3}>
                         <Typography variant="h3" component="h1" gutterBottom>
-                            Witaj w Smart University Scheduler! 🎓
+                            MY PLAN PAGE
                         </Typography>
                         
                         <Typography variant="body1" color="text.secondary">
-                            Zostałeś pomyślnie zalogowany do systemu. 
-                            To jest Twój panel główny (Home Page).
+                            MY PLAN PAGE
                         </Typography>
 
                         <Box sx={{ mt: 2 }}>
@@ -45,7 +44,7 @@ function MyPlan() {
                                 color="error" 
                                 onClick={handleLogout}
                             >
-                                Wyloguj się
+                                Logout
                             </Button>
                         </Box>
                     </Stack>
