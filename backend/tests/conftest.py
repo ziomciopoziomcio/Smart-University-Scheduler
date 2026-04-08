@@ -314,3 +314,33 @@ def create_test_group(db_session):
         return group
 
     return _create
+
+
+@pytest.fixture
+def create_test_group_member(db_session, create_test_group, create_test_student):
+    """Factory fixture to create a membership between a group and a student."""
+
+    def _create(group_id=None, student_id=None):
+        if group_id is None:
+            group = create_test_group(group_name="Default Membership Group")
+            group_id = group.id
+
+        if student_id is None:
+            student = create_test_student(email="member@test.pl")
+            student_id = student.id
+
+        member = (
+            db_session.query(Group_members)
+            .filter_by(group=group_id, student=student_id)
+            .first()
+        )
+
+        if not member:
+            member = Group_members(group=group_id, student=student_id)
+            db_session.add(member)
+            db_session.commit()
+            db_session.refresh(member)
+
+        return member
+
+    return _create
