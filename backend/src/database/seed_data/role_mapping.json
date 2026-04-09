@@ -1,5 +1,5 @@
 {
-  "administrator": [
+  "Administrator": [
     "students:view", "student:view", "student:create", "student:update", "student:delete",
     "employees:view", "employee:view", "employee:create", "employee:update", "employee:delete",
     "units:view", "unit:view", "unit:create", "unit:update", "unit:delete",
@@ -31,7 +31,7 @@
     "message:create", "messages:view",
     "user:signup", "user:password-forgot", "user:password-reset", "user:password-change", "user:verify-email"
   ],
-  "schedule manager": [
+  "Schedule Manager": [
     "employees:view", "employee:view",
     "units:view", "unit:view",
     "groups:view", "group:view", "group:create", "group:update", "group:delete",
@@ -55,7 +55,7 @@
     "suggestions:view", "suggestion:view", "suggestion:create", "suggestion:update", "suggestion:delete", "suggestion:approve", "suggestion:reject",
     "absences:view", "absence:view"
   ],
-  "deans office": [
+  "Deans Office": [
     "students:view", "student:view", "student:create", "student:update", "student:delete",
     "employees:view", "employee:view", "employee:create", "employee:update", "employee:delete",
     "units:view", "unit:view", "unit:create", "unit:update", "unit:delete",
@@ -81,7 +81,7 @@
     "suggestions:view", "suggestion:view", "suggestion:create", "suggestion:update", "suggestion:delete", "suggestion:approve", "suggestion:reject",
     "absences:view", "absence:view", "absence:create", "absence:update", "absence:delete"
   ],
-  "unit head": [
+  "Unit head": [
     "students:view", "student:view",
     "employees:view", "employee:view",
     "units:view", "unit:view", "unit:update",
@@ -106,7 +106,7 @@
     "suggestions:view", "suggestion:view", "suggestion:create",
     "absences:view", "absence:view", "absence:create", "absence:update"
   ],
-  "instructor": [
+  "Instructor": [
     "students:view", "student:view",
     "employees:view", "employee:view", "employee:update",
     "units:view", "unit:view",
@@ -131,7 +131,7 @@
     "suggestions:view", "suggestion:view", "suggestion:create",
     "absences:view", "absence:view", "absence:create", "absence:update"
   ],
-  "student": [
+  "Student": [
     "student:view", "student:update",
     "employees:view", "employee:view",
     "units:view", "unit:view",
@@ -156,7 +156,7 @@
     "suggestions:view", "suggestion:view", "suggestion:create",
     "absences:view", "absence:view"
   ],
-  "administrative staff": [
+  "Administrative Staff": [
     "employees:view", "employee:view",
     "units:view", "unit:view",
     "groups:view", "group:view",
@@ -179,7 +179,7 @@
     "suggestions:view", "suggestion:view", "suggestion:create",
     "absences:view", "absence:view"
   ],
-  "guest": [
+  "Guest": [
     "units:view", "unit:view",
     "groups:view", "group:view",
     "study-fields:view", "study-field:view",
