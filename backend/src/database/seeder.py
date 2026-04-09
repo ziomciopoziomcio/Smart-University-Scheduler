@@ -47,7 +47,7 @@ def seed_roles_and_permissions(db: Session, role_mapping: dict) -> None:
     existing_roles_result = db.execute(
         select(Roles).where(Roles.role_name.in_(role_names))
     )
-    db_roles = {r.role_name for r in existing_roles_result.scalars().all()}
+    db_roles = {r.role_name: r for r in existing_roles_result.scalars().all()}
 
     new_roles = []
     for role_name, perm_codes in role_mapping.items():
