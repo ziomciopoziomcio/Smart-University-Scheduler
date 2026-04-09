@@ -515,3 +515,35 @@ def create_test_course_instructor(
         return obj
 
     return _create
+
+
+@pytest.fixture
+def create_test_study_program(db_session, create_test_study_field):
+    """Factory fixture to create a test study program."""
+
+    def _create(
+        program_name="Default Program", start_year="2024/2025", study_field_id=None
+    ):
+
+        if study_field_id is None:
+            safe_name = program_name.replace(" ", "_")
+            field = create_test_study_field(field_name=f"Field_for_{safe_name}")
+            study_field_id = field.id
+
+        obj = (
+            db_session.query(Study_program).filter_by(program_name=program_name).first()
+        )
+
+        if not obj:
+            obj = Study_program(
+                study_field=study_field_id,
+                start_year=start_year,
+                program_name=program_name,
+            )
+            db_session.add(obj)
+            db_session.commit()
+            db_session.refresh(obj)
+
+        return obj
+
+    return _create
