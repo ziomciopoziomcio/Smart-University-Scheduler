@@ -61,7 +61,7 @@ from src.courses.models import (
 )
 from src.academics.models import Students, Employees, Units, Groups, Group_members
 from src.users.models import Users
-from src.facilities.models import Campus
+from src.facilities.models import Campus, Building
 
 TEST_DB_URL = "sqlite:///:memory:"
 engine = create_engine(
@@ -602,5 +602,42 @@ def create_test_campus(db_session):
             db_session.commit()
             db_session.refresh(campus)
         return campus
+
+    return _create
+
+
+@pytest.fixture
+def create_test_building(db_session, create_test_campus):
+    """Factory fixture to create a test building."""
+
+    def _create(
+        building_number="B18",
+        building_name="Information Technologies Center",
+        campus_id=None,
+    ):
+
+        if campus_id is None:
+            safe_num = building_number.replace(" ", "_")
+            campus = create_test_campus(
+                campus_name=f"Campus_for_{safe_num}", campus_short=f"C_{safe_num}"
+            )
+            campus_id = campus.id
+
+        building = (
+            db_session.query(Building)
+            .filter_by(building_number=building_number)
+            .first()
+        )
+        if not building:
+            building = Building(
+                building_number=building_number,
+                building_name=building_name,
+                campus_id=campus_id,
+            )
+            db_session.add(building)
+            db_session.commit()
+            db_session.refresh(building)
+
+        return building
 
     return _create
