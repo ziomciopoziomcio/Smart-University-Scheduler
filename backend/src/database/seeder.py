@@ -1,6 +1,6 @@
 import logging
 
-from sqlalchemy.future import select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.users.models import Roles, Permissions, Users

@@ -3,7 +3,7 @@ import os
 import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, Header
-from sqlalchemy.future import select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette import status
 
