@@ -2,8 +2,6 @@ import pytest
 from src.users.models import Users
 from src.academics.models import Units
 
-from backend.tests.conftest import create_test_employee
-
 
 @pytest.mark.parametrize(
     "role_name, expected_status",
@@ -21,12 +19,7 @@ from backend.tests.conftest import create_test_employee
 def test_endpoint_view_employees(
     client, db_session, get_auth_headers, role_name, expected_status
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["employees:view"]
-    )
-    email = f"{role_name.replace(' ', '_').lower()}@test.pl"
-    debug_user_permissions(db_session, email)
+    headers = get_auth_headers(role_name)
     response = client.get("/academics/employees", headers=headers)
     assert (
         response.status_code == expected_status
@@ -54,13 +47,8 @@ def test_endpoint_view_employee(
     role_name,
     expected_status,
 ):
-    email = f"{role_name.replace(' ', '_').lower()}@test.pl"
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["employee:view"]
-    )
-    emp = create_test_employee(email=email)
-    debug_user_permissions(db_session, email)
+    headers = get_auth_headers(role_name)
+    emp = create_test_employee(email=f"{role_name.replace(' ', '_').lower()}@test.pl")
     response = client.get(f"/academics/employees/{emp.id}", headers=headers)
 
     assert response.status_code == expected_status
@@ -83,26 +71,22 @@ def test_endpoint_create_employee(
     client,
     db_session,
     get_auth_headers,
-    create_test_employee,
+    create_test_user,
+    create_test_unit,
     role_name,
     expected_status,
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["employee:create"]
-    )
+    headers = get_auth_headers(role_name)
+    safe_name = role_name.replace(" ", "_")
 
-    temp_emp = create_test_employee(email=f"temp_{role_name}@test.pl")
-    new_user = Users(
-        email=f"new_emp_{role_name}@test.pl", password_hash="h", name="N", surname="S"
+    new_user = create_test_user(email=f"new_emp_{safe_name}@test.pl")
+    unit = create_test_unit(
+        unit_name=f"Unit_for_{safe_name}", unit_short=f"U_{safe_name}"
     )
-    db_session.add(new_user)
-    db_session.commit()
-
     payload = {
         "user_id": new_user.id,
-        "faculty_id": temp_emp.faculty_id,
-        "unit_id": temp_emp.unit_id,
+        "faculty_id": unit.faculty_id,
+        "unit_id": unit.id,
     }
 
     response = client.post("/academics/employees", json=payload, headers=headers)
@@ -133,10 +117,7 @@ def test_endpoint_update_employee(
     role_name,
     expected_status,
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["employee:update"]
-    )
+    headers = get_auth_headers(role_name)
     email = f"{role_name.replace(' ', '_').lower()}@test.pl"
     employee = create_test_employee(email=email)
     new_unit = Units(
@@ -181,35 +162,12 @@ def test_endpoint_delete_employee(
 ):
 
     employee = create_test_employee(email="to_be_deleted@test.pl")
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["employee:delete"]
-    )
+    headers = get_auth_headers(role_name)
 
     response = client.delete(f"/academics/employees/{employee.id}", headers=headers)
 
     assert response.status_code == expected_status
     if expected_status == 204:
-        admin_headers = get_auth_headers(
-            "Administrator",
-            # additional_permissions=["employee:view"]
-        )
+        admin_headers = get_auth_headers("Administrator")
         check = client.get(f"/academics/employees/{employee.id}", headers=admin_headers)
         assert check.status_code == 404
-
-
-def debug_user_permissions(db_session, email: str):
-
-    user = db_session.query(Users).filter(Users.email == email).first()
-    assert user is not None, f"No user in DB: {email}"
-
-    role_names = [r.role_name for r in user.roles]
-    perm_codes = sorted(
-        {p.code for r in user.roles for p in getattr(r, "permissions", [])}
-    )
-
-    print(f"[DEBUG] user={user.email} id={user.id}")
-    print(f"[DEBUG] roles={role_names}")
-    print(f"[DEBUG] permissions={perm_codes}")
-
-    return user, role_names, perm_codes

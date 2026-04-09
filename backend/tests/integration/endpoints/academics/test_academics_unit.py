@@ -23,10 +23,7 @@ from src.academics.models import Units
 def test_endpoint_view_units(
     client, db_session, get_auth_headers, role_name, expected_status
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["units:view"]
-    )
+    headers = get_auth_headers(role_name)
     response = client.get("/academics/units", headers=headers)
 
     assert (
@@ -55,10 +52,7 @@ def test_endpoint_view_unit(
     role_name,
     expected_status,
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["unit:view"]
-    )
+    headers = get_auth_headers(role_name)
 
     unit = create_test_unit()
     response = client.get(f"/academics/units/{unit.id}", headers=headers)
@@ -90,10 +84,7 @@ def test_endpoint_create_unit(
     role_name,
     expected_status,
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["unit:create"]
-    )
+    headers = get_auth_headers(role_name)
 
     payload = {
         "unit_name": "Institute of Mechatronics and Informatic Systems",
@@ -132,10 +123,7 @@ def test_endpoint_update_unit(
     role_name,
     expected_status,
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["unit:update"]
-    )
+    headers = get_auth_headers(role_name)
 
     new_unit = create_test_unit()
 
@@ -175,10 +163,7 @@ def test_endpoint_delete_unit(
     role_name,
     expected_status,
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["unit:delete"]
-    )
+    headers = get_auth_headers(role_name)
 
     unit = create_test_unit()
 
@@ -186,9 +171,6 @@ def test_endpoint_delete_unit(
 
     assert response.status_code == expected_status
     if expected_status == 204:
-        admin_headers = get_auth_headers(
-            "Administrator",
-            # additional_permissions=["unit:view"]
-        )
+        admin_headers = get_auth_headers("Administrator")
         check = client.get(f"/academics/students/{unit.id}", headers=admin_headers)
         assert check.status_code == 404

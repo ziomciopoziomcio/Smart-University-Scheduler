@@ -18,10 +18,7 @@ from src.academics.models import Groups
 def test_endpoint_view_groups(
     client, db_session, get_auth_headers, role_name, expected_status
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["groups:view"]
-    )
+    headers = get_auth_headers(role_name)
     response = client.get("/academics/groups", headers=headers)
 
     assert (
@@ -50,10 +47,7 @@ def test_endpoint_view_group(
     role_name,
     expected_status,
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["group:view"]
-    )
+    headers = get_auth_headers(role_name)
 
     group = create_test_group()
     response = client.get(f"/academics/groups/{group.id}", headers=headers)
@@ -81,26 +75,24 @@ def test_endpoint_create_group_success(
     client,
     db_session,
     get_auth_headers,
-    create_test_student,
+    create_test_study_program,
+    create_test_major,
     role_name,
     expected_status,
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["group:create"]
-    )
+    headers = get_auth_headers(role_name)
+    safe_name = role_name.replace(" ", "_")
+    program = create_test_study_program(program_name=f"Prog_{safe_name}")
+    major = create_test_major(major_name=f"Major_{safe_name}")
 
-    tmp_student = create_test_student(email=f"helper_{role_name}@test.pl")
-    prog_id = tmp_student.study_program
     payload = {
-        "group_name": f"Test Group {role_name}",
-        "study_program": prog_id,
-        "major": 1,
+        "group_name": f"Test Group {safe_name}",
+        "study_program": program.id,
+        "major": major.id,
         "elective_block": None,
     }
 
     response = client.post("/academics/groups", json=payload, headers=headers)
-    print(response.json())
     assert response.status_code == expected_status
     if expected_status == 201:
         data = response.json()
@@ -126,22 +118,23 @@ def test_endpoint_create_group_validation_error(
     client,
     db_session,
     get_auth_headers,
-    create_test_student,
+    create_test_study_program,
+    create_test_major,
+    create_test_elective_block,
     role_name,
     expected_status,
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["group:create"]
-    )
+    headers = get_auth_headers(role_name)
+    safe_name = role_name.replace(" ", "_")
 
-    tmp_student = create_test_student(email=f"helper_{role_name}@test.pl")
-    prog_id = tmp_student.study_program
+    program = create_test_study_program(program_name=f"Prog_E_{safe_name}")
+    major = create_test_major(major_name=f"Major_E_{safe_name}")
+    block = create_test_elective_block(block_name=f"Block_E_{safe_name}")
     payload = {
-        "group_name": f"Test Group {role_name}",
-        "study_program": prog_id,
-        "major": 1,
-        "elective_block": 1,
+        "group_name": f"Error Group {safe_name}",
+        "study_program": program.id,
+        "major": major.id,
+        "elective_block": block.id,
     }
 
     response = client.post("/academics/groups", json=payload, headers=headers)
@@ -214,10 +207,7 @@ def test_endpoint_delete_group(
     role_name,
     expected_status,
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["group:delete"]
-    )
+    headers = get_auth_headers(role_name)
 
     group = create_test_group()
 
@@ -225,9 +215,6 @@ def test_endpoint_delete_group(
 
     assert response.status_code == expected_status
     if expected_status == 204:
-        admin_headers = get_auth_headers(
-            "Administrator",
-            # additional_permissions=["group:view"]
-        )
+        admin_headers = get_auth_headers("Administrator")
         check = client.get(f"/academics/students/{group.id}", headers=admin_headers)
         assert check.status_code == 404

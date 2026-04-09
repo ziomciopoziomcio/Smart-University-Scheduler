@@ -5,8 +5,6 @@ from src.courses.models import (
 )
 from src.users.models import Users
 
-# from tests.integration.endpoints.test_academics_employee import debug_user_permissions
-
 
 @pytest.mark.parametrize(
     "role_name, expected_status",
@@ -24,10 +22,7 @@ from src.users.models import Users
 def test_endpoint_view_students(
     client, db_session, get_auth_headers, role_name, expected_status
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["students:view"]
-    )
+    headers = get_auth_headers(role_name)
     response = client.get("/academics/students", headers=headers)
 
     assert (
@@ -56,13 +51,9 @@ def test_endpoint_view_student(
     role_name,
     expected_status,
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["student:view"]
-    )
+    headers = get_auth_headers(role_name)
     email = f"{role_name.replace(' ', '_').lower()}@test.pl"
     student = create_test_student(email=email)
-    # debug_user_permissions(db_session, email)
     response = client.get(f"/academics/students/{student.id}", headers=headers)
 
     assert response.status_code == expected_status
@@ -88,41 +79,28 @@ def test_endpoint_create_student(
     client,
     db_session,
     get_auth_headers,
-    create_test_student,
+    create_test_user,
+    create_test_study_program,
     role_name,
     expected_status,
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["student:create"]
-    )
-    dummy_student = create_test_student(email=f"candidate_{role_name}@test.pl")
-
-    email = f"fresh_mail_{role_name}@test.pl"
-    new_user = Users(
-        email=f"fresh_mail_{role_name}@test.pl",
-        password_hash="hash",
-        name="New",
-        surname="Student",
-    )
-    db_session.add(new_user)
-    db_session.commit()
+    headers = get_auth_headers(role_name)
+    safe_name = role_name.replace(" ", "_")
+    new_user = create_test_user(email=f"fresh_student_{safe_name}@test.pl")
+    program = create_test_study_program(program_name=f"Prog_{safe_name}")
 
     payload = {
         "user_id": new_user.id,
-        "study_program": dummy_student.study_program,
-        "major": 1,
+        "study_program": program.id,
+        "major": None,
     }
-    # debug_user_permissions(db_session, email)
 
     response = client.post("/academics/students", json=payload, headers=headers)
-
-    print(response.json())
     assert response.status_code == expected_status
     if expected_status == 201:
         data = response.json()
         assert data["user_id"] == new_user.id
-        assert data["study_program"] == dummy_student.study_program
+        assert data["study_program"] == program.id
 
 
 @pytest.mark.parametrize(
@@ -146,14 +124,10 @@ def test_endpoint_update_student(
     role_name,
     expected_status,
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["student:update"]
-    )
+    headers = get_auth_headers(role_name)
 
     email = f"{role_name.replace(' ', '_').lower()}@test.pl"
     student = create_test_student(email=email)
-    # debug_user_permissions(db_session, email)
     payload = {
         "user_id": student.user_id,
         "study_program": student.study_program,
@@ -190,19 +164,13 @@ def test_endpoint_delete_student(
     role_name,
     expected_status,
 ):
-    headers = get_auth_headers(
-        role_name,
-        # additional_permissions=["student:delete"]
-    )
+    headers = get_auth_headers(role_name)
     student = create_test_student(email="to_be_deleted@test.pl")
 
     response = client.delete(f"/academics/students/{student.id}", headers=headers)
 
     assert response.status_code == expected_status
     if expected_status == 204:
-        admin_headers = get_auth_headers(
-            "Administrator",
-            # additional_permissions=["student:view"]
-        )
+        admin_headers = get_auth_headers("Administrator")
         check = client.get(f"/academics/students/{student.id}", headers=admin_headers)
         assert check.status_code == 404
