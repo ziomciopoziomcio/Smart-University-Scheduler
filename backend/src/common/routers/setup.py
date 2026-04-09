@@ -11,7 +11,7 @@ from src.database.database import get_db
 from src.database import seeder
 from src.users.models import Users
 from src.users.auth import hash_password as get_password_hash
-from .schemas import SetupPayloadSchema  # todo
+from .schemas import SetupPayloadSchema
 
 router = APIRouter(prefix="/setup", tags=["System Setup"])
 
