@@ -1,8 +1,11 @@
 import json
 import os
-from fastapi import APIRouter, Depends, HTTPException
+import secrets
+
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from starlette import status
 
 from src.users.auth import get_db
 from src.database import seeder
@@ -15,8 +18,22 @@ router = APIRouter(prefix="/setup", tags=["System Setup"])
 
 @router.post("/")
 async def initialize_system(
-    payload: SetupPayloadSchema, db: AsyncSession = Depends(get_db)
+    payload: SetupPayloadSchema,
+    db: AsyncSession = Depends(get_db),
+    x_setup_token: str = Header(..., description="Token required to run setup"),
 ):
+    expected_token = os.getenv("SETUP_SECURITY_TOKEN")
+    if not expected_token:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Missing Setup Token",
+        )
+
+    if not secrets.compare_digest(expected_token, x_setup_token):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Setup Token"
+        )
+
     user_exist = await db.execute(select(Users.id).limit(1))
     if user_exist.scalars().first():
         raise HTTPException(status_code=400, detail="System already initialized")
