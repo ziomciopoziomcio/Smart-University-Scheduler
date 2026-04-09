@@ -1,8 +1,9 @@
 import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from src.users.models import Roles, Permissions
+from src.users.models import Roles, Permissions, Users
 
 logger = logging.getLogger(__name__)
 
@@ -52,3 +53,41 @@ async def seed_roles_and_permissions(db: AsyncSession, role_mapping: dict) -> No
         ]
     await db.commit()
     logger.info("Successfully seed roles and permissions")
+
+
+async def create_admin_user(
+    db: AsyncSession, admin_data: dict, hashed_password: str
+) -> Users:
+    """
+    Creates an admin user with the provided data and hashed password. The admin user will be assigned the "admin" role.
+    :param db: Database session
+    :param admin_data: A dictionary containing the admin user's data.
+    :param hashed_password: The hashed password for the admin user.
+    :return: The created admin user instance.
+    """
+    result = await db.execute(select(Roles).where(Roles.role_name == "Administrator"))
+    admin_role = result.scalars().first()
+
+    if not admin_role:
+        logger.error(
+            "Administrator role not found. Please seed roles and permissions first."
+        )
+        raise ValueError("Administrator role not found.")
+
+    new_admin = Users(
+        email=admin_data["email"],
+        password_hash=hashed_password,
+        name=admin_data["name"],
+        surname=admin_data["surname"],
+        email_verified=True,
+        two_factor_enabled=False,
+    )
+
+    new_admin.roles.append(admin_role)
+
+    db.add(new_admin)
+    await db.commit()
+    await db.refresh(new_admin)
+
+    logger.info("Successfully created admin user")
+    return new_admin
