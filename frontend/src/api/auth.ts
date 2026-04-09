@@ -1,4 +1,4 @@
-import type {AuthResponse} from './types';
+import type {AuthResponse, User} from './types';
 
 const BASE_URL = import.meta.env.VITE_API_URL_USERS;
 
