@@ -3,8 +3,9 @@ export interface User {
     email: string;
     name: string;
     surname: string;
-    degree?: string;
-    phone_number?: string;
+    degree: string | null;
+    phone_number: string | null;
+    created_at: string;
 }
 
 export interface AuthResponse {
@@ -15,5 +16,5 @@ export interface AuthResponse {
 }
 
 export interface LoginError {
-    detail: string;
+    detail: string | Array<{ msg: string }>;
 }

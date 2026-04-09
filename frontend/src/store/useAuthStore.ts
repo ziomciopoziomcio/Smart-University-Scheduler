@@ -1,61 +1,71 @@
 import {create} from 'zustand';
 import {persist, createJSONStorage} from 'zustand/middleware';
-import {loginUser} from '@api/auth';
+import {loginUser, fetchUserData} from '@api/auth';
 import type {AuthResponse, User} from '@api/types';
 
 interface AuthState {
     token: string | null;
     user: User | null;
-    isAuthenticated: boolean;
     loading: boolean;
     error: string | null;
-    login: (_email: string, _password: string) => Promise<AuthResponse>;
+
+    login: (email: string, password: string) => Promise<AuthResponse>;
     logout: () => void;
+    initialize: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             token: null,
             user: null,
-            isAuthenticated: false,
             loading: false,
             error: null,
 
             login: async (email, password) => {
                 set({loading: true, error: null});
                 try {
-                    const data = await loginUser(email, password);
-                    if (!data.requires_2fa) {
+                    const authData = await loginUser(email, password);
+
+                    if (!authData.requires_2fa && authData.access_token) {
+                        const userData = await fetchUserData(authData.access_token);
                         set({
-                            token: data.access_token,
-                            user: data.user || null,
-                            isAuthenticated: true,
+                            token: authData.access_token,
+                            user: userData,
                             loading: false
                         });
                     } else {
                         set({loading: false});
                     }
-                    return data;
+                    return authData;
                 } catch (err: unknown) {
                     const message = err instanceof Error ? err.message : 'Login failed';
-                    set({error: message, loading: false});
+                    set({error: message, loading: false, token: null, user: null});
                     throw err;
                 }
             },
 
+            initialize: async () => {
+                const token = get().token;
+                if (!token || get().user) return;
+
+                try {
+                    const userData = await fetchUserData(token);
+                    set({user: userData});
+                } catch (err) {
+                    set({token: null, user: null});
+                }
+            },
+
             logout: () => {
-                set({token: null, user: null, isAuthenticated: false});
-                // localStorage.removeItem('auth-storage');
+                set({token: null, user: null, error: null});
             }
         }),
         {
             name: 'auth-storage',
             storage: createJSONStorage(() => localStorage),
-            partialize: (state: AuthState) => ({
+            partialize: (state) => ({
                 token: state.token,
-                user: state.user,
-                isAuthenticated: state.isAuthenticated
             }),
         }
     )

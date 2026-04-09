@@ -46,6 +46,7 @@ function LoginPage() {
                     fullWidth
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    type="email"
                     disabled={loading}
                     required
                 />

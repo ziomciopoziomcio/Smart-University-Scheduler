@@ -88,7 +88,7 @@ export const forgotPassword = async (email: string): Promise<void> => {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({email}),
     });
 
     if (!response.ok) {
@@ -118,4 +118,21 @@ export const resetPassword = async (payload: any): Promise<void> => {
     }
 
     return;
+};
+
+
+export const fetchUserData = async (token: string): Promise<User> => {
+    const response = await fetch(`${BASE_URL}/me`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+    }
+
+    return response.json();
 };
