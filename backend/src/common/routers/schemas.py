@@ -26,7 +26,7 @@ class SetupPayloadSchema(BaseModel):
 
     custom_role_mapping: dict[str, list[str]] | None = Field(
         default=None,
-        description="Mapping of custom role names to custom role codes",
+        description="Mapping of custom role names to custom permission codes",
         json_schema_extra={
             "example": {
                 "Administrator": ["user:view", "user:create"],
