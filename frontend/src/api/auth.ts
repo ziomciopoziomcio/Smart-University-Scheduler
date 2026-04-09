@@ -1,7 +1,6 @@
 import type {AuthResponse} from './types';
 
-//TODO: ENV VARIABLES - FIX URL
-const BASE_URL = 'http://localhost:3000/users';
+const BASE_URL = import.meta.env.VITE_API_URL_USERS;
 
 export const loginUser = async (email: string, password: string): Promise<AuthResponse> => {
     const formData = new URLSearchParams();
