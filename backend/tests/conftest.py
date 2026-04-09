@@ -46,7 +46,17 @@ from helpers.db_seeder.generators.roles_perms import (
     generate_roles_from_excel_file,
 )
 
-from src.courses.models import Study_program, Study_fields, Major, Elective_block
+from src.courses.models import (
+    Study_program,
+    Study_fields,
+    Major,
+    Elective_block,
+    Course_type_detail,
+    ClassType,
+    FrequencyType,
+    Course,
+    CourseLanguage,
+)
 from src.academics.models import Students, Employees, Units, Groups, Group_members
 from src.users.models import Users
 
@@ -392,5 +402,35 @@ def create_test_elective_block(db_session, create_test_study_field):
         db_session.commit()
         db_session.refresh(obj)
         return obj
+
+    return _create
+
+
+@pytest.fixture
+def create_test_course(db_session, create_test_unit, create_test_employee):
+    """Factory fixture to create a test course."""
+
+    def _create(course_code=1000, course_name="Test Course"):
+
+        course = db_session.query(Course).filter_by(course_code=course_code).first()
+        if not course:
+            unit = create_test_unit()
+            coordinator = create_test_employee(
+                email=f"coordinator_{course_code}@test.pl"
+            )
+
+            course = Course(
+                course_code=course_code,
+                ects_points=5,
+                course_name=course_name,
+                course_language=CourseLanguage.POLISH,
+                leading_unit=unit.id,
+                course_coordinator=coordinator.id,
+            )
+            db_session.add(course)
+            db_session.commit()
+            db_session.refresh(course)
+
+        return course
 
     return _create
