@@ -57,6 +57,7 @@ from src.courses.models import (
     Course,
     CourseLanguage,
     Courses_instructors,
+    Curriculum_course,
 )
 from src.academics.models import Students, Employees, Units, Groups, Group_members
 from src.users.models import Users
@@ -539,6 +540,45 @@ def create_test_study_program(db_session, create_test_study_field):
                 study_field=study_field_id,
                 start_year=start_year,
                 program_name=program_name,
+            )
+            db_session.add(obj)
+            db_session.commit()
+            db_session.refresh(obj)
+
+        return obj
+
+    return _create
+
+
+@pytest.fixture
+def create_test_curriculum(db_session, create_test_study_program, create_test_course):
+    """Factory fixture to create a test curriculum course."""
+
+    def _create(program_name="Curriculum Program", course_code=None, semester=1):
+
+        program = create_test_study_program(program_name=program_name)
+
+        if course_code is None:
+            course = create_test_course(
+                course_code=9999, course_name="Curriculum Default Course"
+            )
+            course_code = course.course_code
+        else:
+            course = create_test_course(course_code=course_code)
+
+        obj = (
+            db_session.query(Curriculum_course)
+            .filter_by(study_program=program.id, course=course_code, semester=semester)
+            .first()
+        )
+
+        if not obj:
+            obj = Curriculum_course(
+                study_program=program.id,
+                course=course_code,
+                semester=semester,
+                major=None,
+                elective_block=None,
             )
             db_session.add(obj)
             db_session.commit()
