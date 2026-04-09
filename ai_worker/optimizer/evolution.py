@@ -39,7 +39,7 @@ class EvolutionEngine:
     @staticmethod
     def crossover(
         parents: list[models.ScheduleChromosome],
-    ) -> list[models.ScheduleChromosome]:
+    ) -> list[models.ScheduleChromosome]:  # TODO: prevent invalid crossovers
         """
         Crossover between parents to create offspring
         :param parents: List of ScheduleChromosome to crossover
@@ -89,11 +89,11 @@ class EvolutionEngine:
 
         for chrom in population:
             for gene in chrom.genes:
-                if random.random() < self.mutation_rate:
+                if random.random() < self.mutation_rate:  # TODO: 3x random.random()
                     gene.timeslot_id = random.randint(1, self.max_timeslots)
-                    if self.available_rooms:
+                    if self.available_rooms:  # TODO: check data
                         gene.room_id = random.choice(self.available_rooms)
-                    if self.available_instructors:
+                    if self.available_instructors:  # TODO: check data
                         gene.instructor_id = random.choice(self.available_instructors)
                     if (
                         gene.allowed_week_patterns
