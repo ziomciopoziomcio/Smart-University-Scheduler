@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette import status
 
-from src.users.auth import get_db
+from src.database.database import get_db
 from src.database import seeder
 from src.users.models import Users
 from src.users.auth import hash_password as get_password_hash
