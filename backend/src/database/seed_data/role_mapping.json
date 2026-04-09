@@ -25,7 +25,7 @@
     "class-sessions:view", "class-session:view", "class-session:update", "class-session:delete", "class-session:create",
     "suggestions:view", "suggestion:view", "suggestion:create", "suggestion:update", "suggestion:delete", "suggestion:approve", "suggestion:reject",
     "absences:view", "absence:view", "absence:create", "absence:update", "absence:delete",
-    "permissions:view", "permission:add-to-role",
+    "permissions:view", "permission:add-to-role", "permission:delete",
     "calendar-bulk:create", "calendar-day:create", "calendar-days:view", "calendar-day:view", "calendar-day:update", "calendar-day:delete",
     "chat:create", "chats:view", "chat:view", "chat:update", "chat:delete",
     "message:create", "messages:view",
