@@ -659,3 +659,47 @@ def create_test_faculty(db_session):
         return faculty
 
     return _create
+
+
+@pytest.fixture
+def create_test_room(db_session, create_test_building, create_test_faculty):
+    """Factory fixture to create a test room."""
+
+    def _create(room_name="101A", building_id=None, faculty_id=None):
+
+        if building_id is None:
+            safe_b = room_name.replace(" ", "_")
+            building = create_test_building(
+                building_number=f"B_Room_{safe_b}",
+                building_name=f"Building for {safe_b}",
+            )
+            building_id = building.id
+
+        if faculty_id is None:
+            safe_f = room_name.replace(" ", "_")
+            faculty = create_test_faculty(
+                faculty_name=f"Faculty_{safe_f}", faculty_short=f"F_{safe_f}"
+            )
+            faculty_id = faculty.id
+
+        room = (
+            db_session.query(Room)
+            .filter_by(room_name=room_name, building_id=building_id)
+            .first()
+        )
+        if not room:
+            room = Room(
+                room_name=room_name,
+                building_id=building_id,
+                faculty_id=faculty_id,
+                pc_amount=15,
+                room_capacity=30,
+                projector_availability=True,
+            )
+            db_session.add(room)
+            db_session.commit()
+            db_session.refresh(room)
+
+        return room
+
+    return _create
