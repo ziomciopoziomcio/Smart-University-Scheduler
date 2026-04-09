@@ -4,7 +4,8 @@ from src.courses.models import (
     Study_fields,
 )
 from src.users.models import Users
-from tests.integration.endpoints.test_academics_employee import debug_user_permissions
+
+# from tests.integration.endpoints.test_academics_employee import debug_user_permissions
 
 
 @pytest.mark.parametrize(
@@ -61,7 +62,7 @@ def test_endpoint_view_student(
     )
     email = f"{role_name.replace(' ', '_').lower()}@test.pl"
     student = create_test_student(email=email)
-    debug_user_permissions(db_session, email)
+    # debug_user_permissions(db_session, email)
     response = client.get(f"/academics/students/{student.id}", headers=headers)
 
     assert response.status_code == expected_status
@@ -112,7 +113,7 @@ def test_endpoint_create_student(
         "study_program": dummy_student.study_program,
         "major": 1,
     }
-    debug_user_permissions(db_session, email)
+    # debug_user_permissions(db_session, email)
 
     response = client.post("/academics/students", json=payload, headers=headers)
 
@@ -152,7 +153,7 @@ def test_endpoint_update_student(
 
     email = f"{role_name.replace(' ', '_').lower()}@test.pl"
     student = create_test_student(email=email)
-    debug_user_permissions(db_session, email)
+    # debug_user_permissions(db_session, email)
     payload = {
         "user_id": student.user_id,
         "study_program": student.study_program,
