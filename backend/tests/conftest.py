@@ -61,7 +61,7 @@ from src.courses.models import (
 )
 from src.academics.models import Students, Employees, Units, Groups, Group_members
 from src.users.models import Users
-
+from src.facilities.models import Campus
 
 TEST_DB_URL = "sqlite:///:memory:"
 engine = create_engine(
@@ -585,5 +585,22 @@ def create_test_curriculum(db_session, create_test_study_program, create_test_co
             db_session.refresh(obj)
 
         return obj
+
+    return _create
+
+
+@pytest.fixture
+def create_test_campus(db_session):
+    """Factory fixture to create a test campus."""
+
+    def _create(campus_name="Main Campus", campus_short="MAIN"):
+
+        campus = db_session.query(Campus).filter_by(campus_name=campus_name).first()
+        if not campus:
+            campus = Campus(campus_name=campus_name, campus_short=campus_short)
+            db_session.add(campus)
+            db_session.commit()
+            db_session.refresh(campus)
+        return campus
 
     return _create
