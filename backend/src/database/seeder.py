@@ -1,14 +1,14 @@
 import logging
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import Session
 
 from src.users.models import Roles, Permissions, Users
 
 logger = logging.getLogger(__name__)
 
 
-async def seed_roles_and_permissions(db: AsyncSession, role_mapping: dict) -> None:
+def seed_roles_and_permissions(db: Session, role_mapping: dict) -> None:
     """
     Seed roles and permissions table
     :param db: Database session
@@ -25,7 +25,7 @@ async def seed_roles_and_permissions(db: AsyncSession, role_mapping: dict) -> No
 
     db_permissions = {}
     for code in unique_perm_codes:
-        result = await db.execute(select(Permissions).where(Permissions.code == code))
+        result = db.execute(select(Permissions).where(Permissions.code == code))
         perm = result.scalars().first()
         if not perm:
             group_name = code.split(":")[0] if ":" in code else "general"
@@ -39,10 +39,10 @@ async def seed_roles_and_permissions(db: AsyncSession, role_mapping: dict) -> No
             db.add(perm)
         db_permissions[code] = perm
 
-    await db.flush()
+    db.flush()
 
     for role_name, perm_codes in role_mapping.items():
-        result = await db.execute(select(Roles).where(Roles.role_name == role_name))
+        result = db.execute(select(Roles).where(Roles.role_name == role_name))
         role = result.scalars().first()
 
         if not role:
@@ -51,13 +51,11 @@ async def seed_roles_and_permissions(db: AsyncSession, role_mapping: dict) -> No
         role.permissions = [
             db_permissions[code] for code in perm_codes if code in db_permissions
         ]
-    await db.commit()
+    db.commit()
     logger.info("Successfully seeded roles and permissions")
 
 
-async def create_admin_user(
-    db: AsyncSession, admin_data: dict, hashed_password: str
-) -> Users:
+def create_admin_user(db: Session, admin_data: dict, hashed_password: str) -> Users:
     """
     Creates an admin user with the provided data and hashed password. The admin user will be assigned the "admin" role.
     :param db: Database session
@@ -65,7 +63,7 @@ async def create_admin_user(
     :param hashed_password: The hashed password for the admin user.
     :return: The created admin user instance.
     """
-    result = await db.execute(select(Roles).where(Roles.role_name == "Administrator"))
+    result = db.execute(select(Roles).where(Roles.role_name == "Administrator"))
     admin_role = result.scalars().first()
 
     if not admin_role:
@@ -86,8 +84,8 @@ async def create_admin_user(
     new_admin.roles.append(admin_role)
 
     db.add(new_admin)
-    await db.commit()
-    await db.refresh(new_admin)
+    db.commit()
+    db.refresh(new_admin)
 
     logger.info("Successfully created admin user")
     return new_admin

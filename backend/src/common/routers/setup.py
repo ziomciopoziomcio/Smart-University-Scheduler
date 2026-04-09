@@ -3,8 +3,8 @@ import os
 import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, Header
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import Session
 from starlette import status
 
 from src.users.auth import get_db
@@ -17,9 +17,9 @@ router = APIRouter(prefix="/setup", tags=["System Setup"])
 
 
 @router.post("/")
-async def initialize_system(
+def initialize_system(
     payload: SetupPayloadSchema,
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db),
     x_setup_token: str = Header(..., description="Token required to run setup"),
 ):
     expected_token = os.getenv("SETUP_SECURITY_TOKEN")
@@ -34,7 +34,7 @@ async def initialize_system(
             status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Setup Token"
         )
 
-    user_exist = await db.execute(select(Users.id).limit(1))
+    user_exist = db.execute(select(Users.id).limit(1))
     if user_exist.scalars().first():
         raise HTTPException(status_code=400, detail="System already initialized")
 
@@ -47,12 +47,12 @@ async def initialize_system(
     if payload.custom_role_mapping:
         role_mapping = payload.custom_role_mapping
 
-    await seeder.seed_roles_and_permissions(db, role_mapping)
+    seeder.seed_roles_and_permissions(db, role_mapping)
     hashed_pwd = get_password_hash(payload.admin_password)
     admin_data = {
         "email": payload.admin_email,
         "name": payload.admin_name,
         "surname": payload.admin_surname,
     }
-    await seeder.create_admin_user(db, admin_data, hashed_pwd)
+    seeder.create_admin_user(db, admin_data, hashed_pwd)
     return {"message": "Admin user created successfully"}
