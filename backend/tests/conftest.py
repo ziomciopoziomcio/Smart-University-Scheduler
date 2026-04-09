@@ -434,3 +434,41 @@ def create_test_course(db_session, create_test_unit, create_test_employee):
         return course
 
     return _create
+
+
+@pytest.fixture
+def create_test_course_type(db_session, create_test_course):
+    """Factory fixture to create a test course type detail."""
+
+    def _create(course_code=None, class_type="Lecture"):
+
+        if course_code is None:
+            course = create_test_course()
+            course_code = course.course_code
+
+        c_type = getattr(ClassType, class_type.upper(), ClassType.LECTURE)
+
+        obj = (
+            db_session.query(Course_type_detail)
+            .filter_by(course=course_code, class_type=c_type)
+            .first()
+        )
+
+        if not obj:
+            obj = Course_type_detail(
+                course=course_code,
+                class_type=c_type,
+                class_hours=30,
+                slots_per_class=2,
+                frequency=FrequencyType.EVERY_WEEK,
+                pc_needed=False,
+                projector_needed=True,
+                max_group_participants_number=15,
+            )
+            db_session.add(obj)
+            db_session.commit()
+            db_session.refresh(obj)
+
+        return obj
+
+    return _create
