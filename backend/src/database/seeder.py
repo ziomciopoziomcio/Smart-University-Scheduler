@@ -51,7 +51,7 @@ def seed_roles_and_permissions(db: Session, role_mapping: dict) -> None:
         role.permissions = [
             db_permissions[code] for code in perm_codes if code in db_permissions
         ]
-    db.commit()
+    db.flush()
     logger.info("Successfully seeded roles and permissions")
 
 
@@ -84,7 +84,7 @@ def create_admin_user(db: Session, admin_data: dict, hashed_password: str) -> Us
     new_admin.roles.append(admin_role)
 
     db.add(new_admin)
-    db.commit()
+    db.flush()
     db.refresh(new_admin)
 
     logger.info("Successfully created admin user")

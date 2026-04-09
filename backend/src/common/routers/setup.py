@@ -4,6 +4,7 @@ import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -47,12 +48,24 @@ def initialize_system(
     if payload.custom_role_mapping:
         role_mapping = payload.custom_role_mapping
 
-    seeder.seed_roles_and_permissions(db, role_mapping)
-    hashed_pwd = get_password_hash(payload.admin_password)
-    admin_data = {
-        "email": payload.admin_email,
-        "name": payload.admin_name,
-        "surname": payload.admin_surname,
-    }
-    seeder.create_admin_user(db, admin_data, hashed_pwd)
-    return {"message": "Admin user created successfully"}
+    try:
+        seeder.seed_roles_and_permissions(db, role_mapping)
+        hashed_pwd = get_password_hash(payload.admin_password)
+        admin_data = {
+            "email": payload.admin_email,
+            "name": payload.admin_name,
+            "surname": payload.admin_surname,
+        }
+        seeder.create_admin_user(db, admin_data, hashed_pwd)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Database conflict.")
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Database error.")
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="An unexpected error occurred.")
+
+    return {"message": "System initialized successfully."}
