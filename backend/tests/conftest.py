@@ -56,6 +56,7 @@ from src.courses.models import (
     FrequencyType,
     Course,
     CourseLanguage,
+    Courses_instructors,
 )
 from src.academics.models import Students, Employees, Units, Groups, Group_members
 from src.users.models import Users
@@ -464,6 +465,48 @@ def create_test_course_type(db_session, create_test_course):
                 pc_needed=False,
                 projector_needed=True,
                 max_group_participants_number=15,
+            )
+            db_session.add(obj)
+            db_session.commit()
+            db_session.refresh(obj)
+
+        return obj
+
+    return _create
+
+
+@pytest.fixture
+def create_test_course_instructor(
+    db_session, create_test_employee, create_test_course_type
+):
+    """Factory fixture to create a test course instructor assignment."""
+
+    def _create(
+        employee_email="inst_default@test.pl", course_code=None, class_type="Lecture"
+    ):
+
+        c_type_detail = create_test_course_type(
+            course_code=course_code, class_type=class_type
+        )
+
+        employee = create_test_employee(email=employee_email)
+
+        obj = (
+            db_session.query(Courses_instructors)
+            .filter_by(
+                employee=employee.id,
+                course=c_type_detail.course,
+                class_type=c_type_detail.class_type,
+            )
+            .first()
+        )
+
+        if not obj:
+            obj = Courses_instructors(
+                employee=employee.id,
+                course=c_type_detail.course,
+                class_type=c_type_detail.class_type,
+                hours=30,
             )
             db_session.add(obj)
             db_session.commit()
