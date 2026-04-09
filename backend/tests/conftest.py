@@ -344,3 +344,19 @@ def create_test_group_member(db_session, create_test_group, create_test_student)
         return member
 
     return _create
+
+
+@pytest.fixture
+def create_test_study_field(db_session):
+    """Factory fixture to create a test study field."""
+
+    def _create(field_name="Informatyka", faculty_id=1):
+        obj = db_session.query(Study_fields).filter_by(field_name=field_name).first()
+        if not obj:
+            obj = Study_fields(faculty=faculty_id, field_name=field_name)
+            db_session.add(obj)
+            db_session.commit()
+            db_session.refresh(obj)
+        return obj
+
+    return _create
