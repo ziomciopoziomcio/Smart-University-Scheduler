@@ -364,11 +364,30 @@ def create_test_study_field(db_session):
 
 @pytest.fixture
 def create_test_major(db_session, create_test_study_field):
+    """Factory fixture to create a test major."""
+
     def _create(major_name="Software Engineering", study_field_id=None):
         if study_field_id is None:
             field = create_test_study_field(field_name=f"Field_for_{major_name}")
             study_field_id = field.id
         obj = Major(major_name=major_name, study_field=study_field_id)
+        db_session.add(obj)
+        db_session.commit()
+        db_session.refresh(obj)
+        return obj
+
+    return _create
+
+
+@pytest.fixture
+def create_test_elective_block(db_session, create_test_study_field):
+    """Factory fixture to create a test elective block."""
+
+    def _create(block_name="Mobile Technologies", study_field_id=None):
+        if study_field_id is None:
+            field = create_test_study_field(field_name=f"Field_for_{block_name}")
+            study_field_id = field.id
+        obj = Elective_block(elective_block_name=block_name, study_field=study_field_id)
         db_session.add(obj)
         db_session.commit()
         db_session.refresh(obj)
