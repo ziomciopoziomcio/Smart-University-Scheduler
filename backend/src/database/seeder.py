@@ -19,38 +19,51 @@ def seed_roles_and_permissions(db: Session, role_mapping: dict) -> None:
         }
     :return: None
     """
-    unique_perm_codes = set()
-    for perms in role_mapping.values():
-        unique_perm_codes.update(perms)
+    unique_perm_codes = {code for perms in role_mapping.values() for code in perms}
+    existing_perms_result = db.execute(
+        select(Permissions).where(Permissions.code.in_(unique_perm_codes))
+    )
+    db_permissions = {p.code: p for p in existing_perms_result.scalars().all()}
 
-    db_permissions = {}
+    new_perms = []
     for code in unique_perm_codes:
-        result = db.execute(select(Permissions).where(Permissions.code == code))
-        perm = result.scalars().first()
-        if not perm:
+        if code not in db_permissions:
             group_name = code.split(":")[0] if ":" in code else "general"
-
-            perm = Permissions(
+            new_perm = Permissions(
                 code=code,
-                name=code.replace("_", " ").replace(":", " ").title(),
+                name=code.replace("-", " ").replace(":", " ").title(),
                 group=group_name,
                 description=f"Allows {code.split(':')[-1]} on {group_name}",
             )
-            db.add(perm)
-        db_permissions[code] = perm
+            new_perms.append(new_perm)
 
-    db.flush()
+    if new_perms:
+        db.add_all(new_perms)
+        db.flush()
+        for p in new_perms:
+            db_permissions[p.code] = p
 
+    role_names = list(role_mapping.keys())
+    existing_roles_result = db.execute(
+        select(Roles).where(Roles.role_name.in_(role_names))
+    )
+    db_roles = {r.role_name for r in existing_roles_result.scalars().all()}
+
+    new_roles = []
     for role_name, perm_codes in role_mapping.items():
-        result = db.execute(select(Roles).where(Roles.role_name == role_name))
-        role = result.scalars().first()
+        role = db_roles.get(role_name)
 
         if not role:
             role = Roles(role_name=role_name)
-            db.add(role)
+            new_roles.append(role)
+            db_roles[role_name] = role
         role.permissions = [
             db_permissions[code] for code in perm_codes if code in db_permissions
         ]
+
+    if new_roles:
+        db.add_all(new_roles)
+
     db.flush()
     logger.info("Successfully seeded roles and permissions")
 
