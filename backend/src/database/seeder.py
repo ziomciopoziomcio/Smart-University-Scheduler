@@ -52,7 +52,7 @@ async def seed_roles_and_permissions(db: AsyncSession, role_mapping: dict) -> No
             db_permissions[code] for code in perm_codes if code in db_permissions
         ]
     await db.commit()
-    logger.info("Successfully seed roles and permissions")
+    logger.info("Successfully seeded roles and permissions")
 
 
 async def create_admin_user(
