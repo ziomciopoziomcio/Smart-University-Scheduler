@@ -46,7 +46,7 @@ from helpers.db_seeder.generators.roles_perms import (
     generate_roles_from_excel_file,
 )
 
-from src.courses.models import Study_program, Study_fields
+from src.courses.models import Study_program, Study_fields, Major, Elective_block
 from src.academics.models import Students, Employees, Units, Groups, Group_members
 from src.users.models import Users
 
@@ -357,6 +357,21 @@ def create_test_study_field(db_session):
             db_session.add(obj)
             db_session.commit()
             db_session.refresh(obj)
+        return obj
+
+    return _create
+
+
+@pytest.fixture
+def create_test_major(db_session, create_test_study_field):
+    def _create(major_name="Software Engineering", study_field_id=None):
+        if study_field_id is None:
+            field = create_test_study_field(field_name=f"Field_for_{major_name}")
+            study_field_id = field.id
+        obj = Major(major_name=major_name, study_field=study_field_id)
+        db_session.add(obj)
+        db_session.commit()
+        db_session.refresh(obj)
         return obj
 
     return _create
