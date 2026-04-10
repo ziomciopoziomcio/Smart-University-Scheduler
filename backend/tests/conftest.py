@@ -35,6 +35,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import sessionmaker
+from datetime import date
 from main import app
 from src.database.database import get_db
 from src.database.base import Base
@@ -59,7 +60,15 @@ from src.courses.models import (
     Courses_instructors,
     Curriculum_course,
 )
-from src.academics.models import Students, Employees, Units, Groups, Group_members
+from src.academics.models import (
+    Students,
+    Employees,
+    Units,
+    Groups,
+    Group_members,
+    Academic_calendar,
+    SemesterType,
+)
 from src.users.models import Users, Permissions, Roles
 from src.facilities.models import Campus, Building, Faculty, Room
 
@@ -778,5 +787,38 @@ def create_auth_user(db_session):
             db_session.commit()
             db_session.refresh(user)
         return user, password
+
+    return _create
+
+
+@pytest.fixture
+def create_test_calendar_day(db_session):
+    """Factory fixture to create a test calendar day."""
+
+    def _create(
+        date_val="2026-10-01", description="Inauguration", week_num=1, day_of_week=1
+    ):
+
+        if isinstance(date_val, str):  # SQLite exclusive
+            date_val = date.fromisoformat(date_val)
+
+        day = (
+            db_session.query(Academic_calendar)
+            .filter_by(calendar_date=date_val)
+            .first()
+        )
+        if not day:
+            day = Academic_calendar(
+                calendar_date=date_val,
+                academic_year="2025/2026",
+                semester_type=SemesterType.WINTER,
+                week_number=week_num,
+                academic_day_of_week=day_of_week,
+                description=description,
+            )
+            db_session.add(day)
+            db_session.commit()
+            db_session.refresh(day)
+        return day
 
     return _create
