@@ -1,5 +1,7 @@
 import pytest
-from src.users.models import Permissions, Roles
+from src.users.models import Permissions, Roles, Users
+from datetime import datetime, timedelta, timezone
+from src.users.auth import create_password_reset_token, _hash_token, hash_password
 
 
 @pytest.mark.parametrize(
@@ -188,3 +190,87 @@ def test_2fa_complete_flow(client, db_session, create_auth_user):
     )
     assert verify_backup_fail.status_code == 400
     assert verify_backup_fail.json()["detail"] == "Invalid 2FA code"
+
+
+def test_password_forgot_success(client, db_session, create_test_user):
+    user = create_test_user(email="forgot_target@test.pl")
+
+    response = client.post("/users/password/forgot", json={"email": user.email})
+
+    assert response.status_code == 200
+    assert "reset link has been sent" in response.json()["detail"]
+
+
+def test_password_forgot_nonexistent_user(client):
+    response = client.post("/users/password/forgot", json={"email": "nobody@test.pl"})
+    assert response.status_code == 200
+
+
+def test_password_reset_success(client, db_session, create_test_user):
+
+    user = create_test_user(email="reset_target@test.pl")
+    raw_token = create_password_reset_token()
+
+    user.password_reset_token_hash = _hash_token(raw_token)
+    user.password_reset_expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
+    db_session.commit()
+
+    payload = {
+        "token": raw_token,
+        "password": "NewStrongPassword123!",
+        "password2": "NewStrongPassword123!",
+    }
+
+    response = client.post("/users/password/reset", json=payload)
+
+    assert response.status_code == 200
+    assert response.json()["detail"] == "Password has been reset"
+
+
+def test_password_reset_invalid_token(client):
+    payload = {
+        "token": "invalid_or_fake_token_string_here_12345",
+        "password": "NewStrongPassword123!",
+        "password2": "NewStrongPassword123!",
+    }
+    response = client.post("/users/password/reset", json=payload)
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid or expired token"
+
+
+@pytest.mark.parametrize(
+    "role_name, expected_status",
+    [
+        pytest.param("Administrator", 200, id="admin-can-change-pass"),
+        pytest.param("Schedule Manager", 200, id="manager-can-change-pass"),
+        pytest.param("Dean's Office", 200, id="dean-can-change-pass"),
+        pytest.param("Head of Unit", 200, id="head-of-unit-can-change-pass"),
+        pytest.param("Instructor", 200, id="instructor-can-change-pass"),
+        pytest.param("Student", 200, id="student-can-change-pass"),
+        pytest.param("Administrative Staff", 200, id="staff-can-change-pass"),
+        pytest.param("Guest", 403, id="guest-forbidden"),
+    ],
+)
+def test_password_change(
+    client, db_session, get_auth_headers, role_name, expected_status
+):
+    headers = get_auth_headers(role_name)
+    email = f"{role_name.replace(' ', '_').lower()}@test.pl"
+
+    target_user = db_session.query(Users).filter_by(email=email).first()
+    if target_user:
+        target_user.password_hash = hash_password("ValidOldPassword123!")
+        db_session.commit()
+
+    payload = {
+        "old_password": "ValidOldPassword123!",
+        "password": "NewValidPassword123!",
+        "password2": "NewValidPassword123!",
+    }
+
+    response = client.post("/users/password/change", json=payload, headers=headers)
+
+    assert response.status_code == expected_status
+    if expected_status == 200:
+        assert response.json()["detail"] == "Password changed"

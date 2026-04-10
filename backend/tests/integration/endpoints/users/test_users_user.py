@@ -93,7 +93,7 @@ def test_endpoint_create_user(
     if expected_status == 201:
         data = response.json()
         assert data["email"] == payload["email"]
-        assert "password" not in data  # Upewniamy się, że hasło nie wycieka w responsie
+        assert "password" not in data
 
 
 @pytest.mark.parametrize(

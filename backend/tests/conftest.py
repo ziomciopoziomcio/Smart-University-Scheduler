@@ -36,6 +36,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import sessionmaker
 from datetime import date
+from unittest.mock import patch
 from main import app
 from src.database.database import get_db
 from src.database.base import Base
@@ -113,6 +114,15 @@ def setup_database():
 
     yield
     Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture(autouse=True)
+def mock_send_email():
+    """
+    Mocks sending email for testing purposes.
+    """
+    with patch("src.common.notifications.send_email") as mock_mail:
+        yield mock_mail
 
 
 @pytest.fixture
