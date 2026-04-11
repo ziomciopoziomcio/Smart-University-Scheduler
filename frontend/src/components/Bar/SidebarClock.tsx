@@ -8,8 +8,6 @@ export default function SidebarClock({open}: { open: boolean }) {
     const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentTime(new Date());
         if (!open) {
             return;
         }
