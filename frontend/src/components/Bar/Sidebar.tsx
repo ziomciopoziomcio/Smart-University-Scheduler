@@ -21,6 +21,7 @@ import {
 import {useIntl} from 'react-intl';
 import SidebarClock from './SidebarClock';
 import SidebarCalendar from './SidebarCalendar';
+import {NavLink} from 'react-router-dom';
 
 export default function Sidebar() {
     const [open, setOpen] = useState(false);
@@ -28,11 +29,11 @@ export default function Sidebar() {
     const intl = useIntl();
 
     const menuItems = [
-        {id: 'sidebar.myPlan', icon: <PersonOutlined/>},
-        {id: 'sidebar.plans', icon: <GroupsOutlined/>},
-        {id: 'sidebar.chat', icon: <ChatBubbleOutline/>},
-        {id: 'sidebar.suggestions', icon: <InboxOutlined/>},
-        {id: 'sidebar.settings', icon: <SettingsOutlined/>},
+        {id: 'sidebar.myPlan', icon: <PersonOutlined/>, path: '/'},
+        {id: 'sidebar.plans', icon: <GroupsOutlined/>, path: '/'},
+        {id: 'sidebar.chat', icon: <ChatBubbleOutline/>, path: '/'},
+        {id: 'sidebar.suggestions', icon: <InboxOutlined/>, path: '/'},
+        {id: 'sidebar.settings', icon: <SettingsOutlined/>, path: '/'},
     ];
 
     return (
@@ -73,39 +74,47 @@ export default function Sidebar() {
                 {menuItems.map((item) => (
                     <ListItem key={item.id} disablePadding
                               sx={{display: 'block', mb: open ? 0.5 : 1.5}}>
-                        <ListItemButton
-                            sx={{
-                                minHeight: 30,
-                                justifyContent: open ? 'initial' : 'center',
-                                px: 2.5,
-                                borderRadius: '12px',
-                            }}
-                        >
-                            <ListItemIcon
+                        <NavLink
+                            to={item.path}
+                            style={({isActive}) => ({
+                                textDecoration: 'none',
+                                color: isActive ? '#005a8d' : '#555',
+                                display: 'block'
+                            })}>
+                            <ListItemButton
                                 sx={{
-                                    minWidth: 0,
-                                    mr: open ? 2 : 'auto',
-                                    justifyContent: 'center',
-                                    color: '#555',
-                                    '& svg': {
-                                        fontSize: open ? 20 : 25,
-                                    }
+                                    minHeight: 30,
+                                    justifyContent: open ? 'initial' : 'center',
+                                    px: 2.5,
+                                    borderRadius: '12px',
                                 }}
                             >
-                                {item.icon}
-                            </ListItemIcon>
-
-                            {open && (
-                                <ListItemText
-                                    primary={intl.formatMessage({id: item.id})}
-                                    primaryTypographyProps={{
-                                        fontSize: '0.875rem',
-                                        fontWeight: 500,
+                                <ListItemIcon
+                                    sx={{
+                                        minWidth: 0,
+                                        mr: open ? 2 : 'auto',
+                                        justifyContent: 'center',
+                                        color: '#555',
+                                        '& svg': {
+                                            fontSize: open ? 20 : 25,
+                                        }
                                     }}
-                                    sx={{opacity: 1}}
-                                />
-                            )}
-                        </ListItemButton>
+                                >
+                                    {item.icon}
+                                </ListItemIcon>
+
+                                {open && (
+                                    <ListItemText
+                                        primary={intl.formatMessage({id: item.id})}
+                                        primaryTypographyProps={{
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500,
+                                        }}
+                                        sx={{opacity: 1}}
+                                    />
+                                )}
+                            </ListItemButton>
+                        </NavLink>
                     </ListItem>
                 ))}
             </List>
