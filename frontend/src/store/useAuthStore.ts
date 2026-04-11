@@ -3,11 +3,13 @@ import {persist, createJSONStorage} from 'zustand/middleware';
 import {loginUser, fetchUserData} from '@api/auth';
 import type {AuthResponse, User} from '@api/types';
 
-interface AuthState {
+export interface AuthState {
     token: string | null;
     user: User | null;
     loading: boolean;
     error: string | null;
+
+    isAuthenticated: () => boolean;
 
     login: (email: string, password: string) => Promise<AuthResponse>;
     logout: () => void;
@@ -21,6 +23,8 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             loading: false,
             error: null,
+
+            isAuthenticated: () => !!get().token,
 
             login: async (email, password) => {
                 set({loading: true, error: null});
