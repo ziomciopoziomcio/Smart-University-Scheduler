@@ -77,7 +77,7 @@ class EvolutionEngine:
 
                 def get_resources(gene):
                     return [
-                        f"ROOM_{gene.room_id}_TIME_{gene.timeslot_id}"
+                        f"ROOM_{gene.room_id}_TIME_{gene.timeslot_id}",
                         f"INSTR_{gene.instructor_id}_TIME_{gene.timeslot_id}",
                     ]
 
@@ -85,18 +85,18 @@ class EvolutionEngine:
                 g2_res = get_resources(g2)
 
                 swap_c1_safe = not any(res in c1_used_resources for res in g2_res)
-                swpac_c2_safe = not any(res in c2_used_resources for res in g1_res)
+                swap_c2_safe = not any(res in c2_used_resources for res in g1_res)
 
-                if random.random() < 0.5 and swap_c1_safe and swpac_c2_safe:
+                if random.random() < 0.5 and swap_c1_safe and swap_c2_safe:
                     child1_genes.append(copy.deepcopy(g2))
                     child2_genes.append(copy.deepcopy(g1))
-                    c1_used_resources.add(g2_res)
-                    c2_used_resources.add(g1_res)
+                    c1_used_resources.update(g2_res)
+                    c2_used_resources.update(g1_res)
                 else:
                     child1_genes.append(copy.deepcopy(g1))
                     child2_genes.append(copy.deepcopy(g2))
-                    c1_used_resources.add(g1_res)
-                    c2_used_resources.add(g2_res)
+                    c1_used_resources.update(g1_res)
+                    c2_used_resources.update(g2_res)
 
             offspring.append(models.ScheduleChromosome(genes=child1_genes))
             offspring.append(models.ScheduleChromosome(genes=child2_genes))
