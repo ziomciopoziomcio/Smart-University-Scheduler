@@ -39,9 +39,10 @@ class EvolutionEngine:
     @staticmethod
     def crossover(
         parents: list[models.ScheduleChromosome],
-    ) -> list[models.ScheduleChromosome]:  # TODO: prevent invalid crossovers
+    ) -> list[models.ScheduleChromosome]:
         """
-        Crossover between parents to create offspring
+        Conflict-Aware Uniform Crossover
+        Crossover between parents to create offspring.
         :param parents: List of ScheduleChromosome to crossover
         :return: List of offspring ScheduleChromosome
         """
@@ -65,13 +66,36 @@ class EvolutionEngine:
                     models.ScheduleChromosome(genes=copy.deepcopy(parent2.genes))
                 )
                 continue
-            crossover_point = random.randint(1, len(parent1.genes) - 1)
-            child1_genes = copy.deepcopy(
-                parent1.genes[:crossover_point]
-            ) + copy.deepcopy(parent2.genes[crossover_point:])
-            child2_genes = copy.deepcopy(
-                parent2.genes[:crossover_point]
-            ) + copy.deepcopy(parent1.genes[crossover_point:])
+
+            child1_genes = []
+            child2_genes = []
+            c1_used_resources = set()
+            c2_used_resources = set()
+
+            for g1, g2 in zip(parent1.genes, parent2.genes):
+
+                def get_resources(gene):
+                    return [
+                        f"ROOM_{gene.room_id}_TIME_{gene.timeslot_id}"
+                        f"INSTR_{gene.instructor_id}_TIME_{gene.timeslot_id}",
+                    ]
+
+                g1_res = get_resources(g1)
+                g2_res = get_resources(g2)
+
+                swap_c1_safe = not any(res in c1_used_resources for res in g2_res)
+                swpac_c2_safe = not any(res in c2_used_resources for res in g1_res)
+
+                if random.random() < 0.5 and swap_c1_safe and swpac_c2_safe:
+                    child1_genes.append(copy.deepcopy(g2))
+                    child2_genes.append(copy.deepcopy(g1))
+                    c1_used_resources.add(g2_res)
+                    c2_used_resources.add(g1_res)
+                else:
+                    child1_genes.append(copy.deepcopy(g1))
+                    child2_genes.append(copy.deepcopy(g2))
+                    c1_used_resources.add(g1_res)
+                    c2_used_resources.add(g2_res)
 
             offspring.append(models.ScheduleChromosome(genes=child1_genes))
             offspring.append(models.ScheduleChromosome(genes=child2_genes))
