@@ -234,7 +234,7 @@ class EvolutionEngine:
                                     candidate_instructors
                                 )
                     elif target == "pattern":
-                        gene.selected_pattern = random.randint(
+                        gene.selected_pattern_index = random.randint(
                             0, len(gene.allowed_week_patterns) - 1
                         )
 
