@@ -35,8 +35,10 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import sessionmaker
-from datetime import date
+from datetime import date, timedelta
 from unittest.mock import patch
+import uuid
+
 from main import app
 from src.database.database import get_db
 from src.database.base import Base
@@ -73,6 +75,12 @@ from src.academics.models import (
 from src.users.models import Users, Permissions, Roles
 from src.facilities.models import Campus, Building, Faculty, Room
 from src.conversations.models import Chats, Messages, MessageRole
+from src.schedules.models import (
+    ScheduleSuggestion,
+    SuggestionStatus,
+    Employee_absences,
+    AbsenceStatus,
+)
 
 TEST_DB_URL = "sqlite:///:memory:"
 engine = create_engine(
@@ -124,6 +132,15 @@ def mock_send_email():
     """
     with patch("src.common.notifications.send_email") as mock_mail:
         yield mock_mail
+
+
+@pytest.fixture(autouse=True)
+def mock_kafka():
+    """
+    Mocks sending events to Kafka for testing purposes.
+    """
+    with patch("src.schedules.router.send_event", return_value=True) as mock:
+        yield mock
 
 
 @pytest.fixture
@@ -868,5 +885,48 @@ def create_test_message(db_session, create_test_chat):
         db_session.commit()
         db_session.refresh(message)
         return message
+
+    return _create
+
+
+@pytest.fixture
+def create_test_suggestion(db_session):
+    """Factory fixture to create a test schedule suggestion."""
+
+    def _create(source="Test Source", reason="Room conflict"):
+        obj = ScheduleSuggestion(
+            source=source,
+            reason=reason,
+            target_class_session_id=uuid.uuid4(),
+            state_before={"room_capacity": 15},
+            state_after={"room_capacity": 30},
+            status=SuggestionStatus.PENDING,
+        )
+        db_session.add(obj)
+        db_session.commit()
+        db_session.refresh(obj)
+        return obj
+
+    return _create
+
+
+@pytest.fixture
+def create_test_absence(db_session, create_test_employee):
+    """Factory fixture to create a test employee absence."""
+
+    def _create(employee_email="absent_user@test.pl", reason="Medical leave"):
+        employee = create_test_employee(email=employee_email)
+
+        obj = Employee_absences(
+            employee_id=employee.id,
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=1),
+            reason=reason,
+            status=AbsenceStatus.REPORTED,
+        )
+        db_session.add(obj)
+        db_session.commit()
+        db_session.refresh(obj)
+        return obj
 
     return _create
