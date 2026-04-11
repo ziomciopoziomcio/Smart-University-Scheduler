@@ -121,14 +121,14 @@ class EvalInput:
 
 def build_lookups(
     data: dict,
-) -> tuple[RoomsLookup, InstructorsLookup, CompetenciesMap, ConflictsMap]:
+) -> tuple[RoomsLookup, InstructorsLookup, dict, ConflictsMap]:
     """
     Converts DataFrames in `data` into fast lookup dicts.
 
     Expects keys:
     - rooms (DataFrame with room_id)
     - employees (DataFrame with id)
-    - competencies (DataFrame with employee_id, course_code, class_type) [optional]
+    - instructor_assignments (dict mapping (employee_id, course_code, class_type) to hours) [optional]
     - conflicting_groups (DataFrame with group_a, group_b) [optional]
     """
     rooms_lookup: RoomsLookup = data["rooms"].set_index("room_id").to_dict("index")
