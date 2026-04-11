@@ -21,9 +21,7 @@ class FitnessCalculator:
         self.conflicting_groups = conflicting_groups
         self.group_to_profiles = group_to_profiles
         self.profile_counts = profile_counts
-        self.instructor_assignments = (
-            instructor_assignments  # TODO: USE IN EVOLUTIONENGINE
-        )
+        self.instructor_assignments = instructor_assignments
 
         self.W_DAY_USED = 100
         self.W_GAP_SLOT = 50

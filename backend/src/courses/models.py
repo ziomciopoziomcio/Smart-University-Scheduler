@@ -145,7 +145,7 @@ class Course_type_detail(Base):
         Enum(FrequencyType), default=FrequencyType.EVERY_WEEK
     )
     manual_weeks: Mapped[list[int] | None] = mapped_column(JSON)
-    pc_needed: Mapped[bool] = mapped_column(default=False)
+    pc_needed: Mapped[bool] = mapped_column(default=False)  # Teacher PC excluded
     projector_needed: Mapped[bool] = mapped_column(default=True)
     max_group_participants_number: Mapped[int] = mapped_column(Integer, default=15)
 

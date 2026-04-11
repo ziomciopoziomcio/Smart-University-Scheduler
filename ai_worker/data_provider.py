@@ -196,6 +196,23 @@ class DataProvider:
         """
 
         requirements_df = data["requirements"]
+        rooms_df = data["rooms"]
+        competencies_df = data["competencies"].copy()
+        competencies_df["normalized_class_type"] = (
+            competencies_df["class_type"]
+            .astype(str)
+            .apply(lambda x: x.split(".")[-1].strip().upper())
+        )
+        competencies_dict = (
+            competencies_df.groupby(["course_code", "normalized_class_type"])[
+                "employee_id"
+            ]
+            .apply(lambda x: x.unique().tolist())
+            .to_dict()
+        )
+
+        room_cache: dict[tuple[int, int, int], list[int]] = {}
+
         genes = []
 
         for _, row in requirements_df.iterrows():
@@ -204,6 +221,26 @@ class DataProvider:
 
             raw_class_type = str(row["class_type"])
             normalized_class_type = raw_class_type.split(".")[-1].strip().upper()
+
+            members = int(row["members_amount"])
+            pc_needed = int(row["pc_needed"])
+            proj_needed = int(row["projector_needed"])
+
+            req_key = (members, pc_needed, proj_needed)
+
+            if req_key not in room_cache:
+                room_mask = rooms_df["room_capacity"] >= members
+                if pc_needed:
+                    room_mask &= rooms_df["pc_amount"] >= members
+                if proj_needed:
+                    room_mask &= rooms_df["projector_availability"].astype(bool)
+                room_cache[req_key] = rooms_df.loc[room_mask, "room_id"].tolist()
+
+            allowed_rooms = room_cache.get(req_key, [])
+
+            allowed_instructors = competencies_dict.get(
+                (row["course_code"], normalized_class_type), []
+            )
 
             gene = ClassSessionGene(
                 course_code=row["course_code"],
@@ -215,6 +252,8 @@ class DataProvider:
                 group_size=row["members_amount"],
                 allowed_week_patterns=patterns,
                 selected_pattern_index=0,
+                allowed_rooms=allowed_rooms,
+                allowed_instructors=allowed_instructors,
             )
             genes.append(gene)
 
