@@ -214,7 +214,7 @@ class DataProvider:
 
             room_mask = rooms_df["room_capacity"] >= row["members_amount"]
             if row["pc_needed"]:
-                room_mask &= rooms_df["pc_needed"] > 0  # TODO: check
+                room_mask &= rooms_df["pc_amount"] >= row["members_amount"]
 
             if row["projector_needed"]:
                 room_mask &= rooms_df["projector_availability"].astype(bool)
