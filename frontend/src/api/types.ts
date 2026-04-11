@@ -16,5 +16,5 @@ export interface AuthResponse {
 }
 
 export interface LoginError {
-    detail: string | Array<{ msg: string }>;
+    detail: string | { msg: string }[];
 }
