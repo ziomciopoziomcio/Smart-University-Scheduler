@@ -236,7 +236,7 @@ class DataProvider:
                     room_mask &= rooms_df["projector_availability"].astype(bool)
                 room_cache[req_key] = rooms_df.loc[room_mask, "room_id"].tolist()
 
-            allowed_rooms = room_cache[req_key]
+            allowed_rooms = room_cache.get(req_key, [])
 
             allowed_instructors = competencies_dict.get(
                 (row["course_code"], normalized_class_type), []
