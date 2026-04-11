@@ -117,7 +117,9 @@ class EvolutionEngine:
                         return resources
 
                     duration_slots = max(1, getattr(gene, "duration_slots", 1) or 1)
-                    active_weeks = getattr(gene, "active_weeks", None) or [None]
+                    active_weeks = getattr(gene, "active_weeks", None)
+                    if active_weeks is None:
+                        active_weeks = [None]
 
                     for week in active_weeks:
                         for slot_offset in range(duration_slots):
