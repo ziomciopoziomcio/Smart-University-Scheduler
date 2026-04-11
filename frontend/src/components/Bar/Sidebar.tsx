@@ -112,7 +112,9 @@ export default function Sidebar() {
 
             <Box sx={{mt: 'auto', mb: open ? 1 : 4, width: '100%', display: 'flex', justifyContent: 'center'}}>
                 <IconButton
-                    onClick={() => setOpen(!open)}
+                    onClick={() => {
+                        setOpen(!open)
+                    }}
                     sx={{
                         bgcolor: 'white',
                         boxShadow: '0px 4px 10px rgba(0,0,0,0.05)',

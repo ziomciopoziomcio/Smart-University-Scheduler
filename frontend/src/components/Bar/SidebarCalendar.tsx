@@ -54,10 +54,14 @@ export default function SidebarCalendar({open}: { open: boolean }) {
                     <ArrowDropDown fontSize="small"/>
                 </Box>
                 <Box sx={{display: 'flex', gap: 0.5}}>
-                    <IconButton size="small" onClick={() => changeMonth(-1)} sx={{p: 0.5}}>
+                    <IconButton size="small" onClick={() => {
+                        changeMonth(-1)
+                    }} sx={{p: 0.5}}>
                         <ChevronLeft fontSize="small"/>
                     </IconButton>
-                    <IconButton size="small" onClick={() => changeMonth(1)} sx={{p: 0.5}}>
+                    <IconButton size="small" onClick={() => {
+                        changeMonth(1)
+                    }} sx={{p: 0.5}}>
                         <ChevronRight fontSize="small"/>
                     </IconButton>
                 </Box>
