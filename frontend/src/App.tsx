@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { IntlProvider } from 'react-intl';
 import AppRoute from './AppRoute';
 import enMessages from './locales/en.json';
 import plMessages from './locales/pl.json';
+import {useAuthStore} from '@store/useAuthStore';
 import './App.css';
 
 const flattenMessages = (nestedMessages: any, prefix = '') => {
@@ -27,6 +29,30 @@ const messages = {
 };
 
 function App() {
+  const initialize = useAuthStore((state) => state.initialize);
+  const [isSessionInitialized, setIsSessionInitialized] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    const bootstrapSession = async () => {
+      try {
+        await initialize();
+      } finally {
+        if (active) setIsSessionInitialized(true);
+      }
+    };
+
+    void bootstrapSession();
+    return () => {
+      active = false;
+    };
+  }, [initialize]);
+
+  if (!isSessionInitialized) {
+    return null;
+  }
+
   return (
     <IntlProvider
       locale={locale}

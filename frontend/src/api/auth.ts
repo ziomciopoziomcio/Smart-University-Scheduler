@@ -1,6 +1,30 @@
-import type {AuthResponse} from './types';
+import type {AuthResponse, User} from './types';
 
-const BASE_URL = import.meta.env.VITE_API_URL_USERS;
+const baseApiUrl = import.meta.env.VITE_API_URL as string | undefined;
+const usersApiUrl = import.meta.env.VITE_API_URL_USERS as string | undefined;
+const BASE_URL = (usersApiUrl ?? (baseApiUrl ? `${baseApiUrl}/users` : 'http://localhost:3000/users')).replace(/\/+$/, '');
+
+const extractErrorMessage = async (response: Response, fallback: string): Promise<string> => {
+    const contentType = response.headers.get('content-type') ?? '';
+
+    if (contentType.includes('application/json')) {
+        try {
+            const errorData = await response.json();
+            const detail = errorData?.detail;
+            if (Array.isArray(detail) && detail[0]?.msg) return detail[0].msg;
+            if (typeof detail === 'string' && detail.length > 0) return detail;
+        } catch {
+            return fallback;
+        }
+    }
+
+    try {
+        const text = (await response.text()).trim();
+        return text || fallback;
+    } catch {
+        return fallback;
+    }
+};
 
 export const loginUser = async (email: string, password: string): Promise<AuthResponse> => {
     const formData = new URLSearchParams();
@@ -13,8 +37,8 @@ export const loginUser = async (email: string, password: string): Promise<AuthRe
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Could not login');
+        const message = await extractErrorMessage(response, 'Could not login');
+        throw new Error(message);
     }
 
     return response.json() as Promise<AuthResponse>;
@@ -38,11 +62,8 @@ export const registerUser = async (userData: any): Promise<void> => {
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = Array.isArray(errorData.detail)
-            ? errorData.detail[0].msg
-            : errorData.detail;
-        throw new Error(errorMessage || 'Registration failed');
+        const message = await extractErrorMessage(response, 'Registration failed');
+        throw new Error(message);
     }
 
     return;
@@ -59,8 +80,8 @@ export const verify2FA = async (code: string, preAuthToken: string): Promise<Aut
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || '2FA failed');
+        const message = await extractErrorMessage(response, '2FA failed');
+        throw new Error(message);
     }
 
     return response.json() as Promise<AuthResponse>;
@@ -75,8 +96,8 @@ export const verifyEmail = async (token: string): Promise<void> => {
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Activation failed');
+        const message = await extractErrorMessage(response, 'Activation failed');
+        throw new Error(message);
     }
 
     return;
@@ -88,12 +109,12 @@ export const forgotPassword = async (email: string): Promise<void> => {
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({email}),
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Forgot password request failed');
+        const message = await extractErrorMessage(response, 'Forgot password request failed');
+        throw new Error(message);
     }
 
     return;
@@ -113,9 +134,26 @@ export const resetPassword = async (payload: any): Promise<void> => {
     });
 
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Resetting password failed');
+        const message = await extractErrorMessage(response, 'Resetting password failed');
+        throw new Error(message);
     }
 
     return;
+};
+
+
+export const fetchUserData = async (token: string): Promise<User> => {
+    const response = await fetch(`${BASE_URL}/me`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+    }
+
+    return response.json();
 };

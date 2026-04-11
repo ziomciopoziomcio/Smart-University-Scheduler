@@ -2,24 +2,27 @@
   "login": {
     "title": "Zaloguj się",
     "username": "email",
-    "usernamePlaceholder": "przyklad@edu.p.lodz.pl",
+    "email": "email",
+    "usernamePlaceholder": "example@edu.p.lodz.pl",
+    "emailPlaceholder": "example@edu.p.lodz.pl",
     "password": "hasło",
     "passwordPlaceholder": "hasło",
     "submit": "zaloguj się",
     "createAccount": "Utwórz konto",
-    "forgotPassword": "Zapomniałeś hasła?",
+    "forgotPassword": "Nie pamiętam hasła",
     "pageLabel": "Logowanie",
+    "loggingIn": "Logowanie...",
     "validation": {
       "error": "Niepoprawny email lub hasło",
-      "success": "Zalogowano pomyślnie",
-      "2faRequired": "Wymagana autoryzacja dwuetapowa (2FA)",
+      "success": "Pomyślnie zalogowano",
+      "2faRequired": "Wymagana weryfikacja dwuetapowa",
       "providerError": "Błąd dostawcy uwierzytelniania"
     }
   },
   "register": {
     "title": "Utwórz nowe konto",
     "submit": "Utwórz konto",
-    "backToLogin": "Wróć do logowania",
+    "backToLogin": "Powrót do logowania",
     "name": "imię",
     "namePlaceholder": "wpisz imię",
     "surname": "nazwisko",
@@ -28,7 +31,7 @@
     "confirmPasswordPlaceholder": "hasło",
     "phone": "numer telefonu",
     "phonePlaceholder": "wpisz numer telefonu",
-    "degree": "stopień naukowy",
+    "degree": "stopień/tytuł",
     "degreePlaceholder": "wybierz stopień",
     "validation": {
       "passwordsDontMatch": "Hasła nie są identyczne.",
@@ -36,7 +39,7 @@
       "match": "Być identyczne z powtórzonym hasłem"
     },
     "titleSuccess": "Konto utworzone!",
-    "successMessage": "Rejestracja przebiegła pomyślnie. Sprawdź swoją pocztę, aby aktywować konto.",
+    "successMessage": "Rejestracja zakończona sukcesem. Sprawdź swoją skrzynkę e-mail, aby aktywować konto.",
     "redirectingToLogin": "Przekierowywanie do strony logowania...",
     "degrees": {
       "none": "Brak",
@@ -54,12 +57,12 @@
     "cancel": "Anuluj",
     "loading": "Weryfikowanie adresu e-mail...",
     "success": "Konto zostało pomyślnie aktywowane! Możesz się teraz zalogować.",
-    "backToLogin": "Wróć do logowania",
+    "backToLogin": "Powrót do logowania",
     "goToLogin": "Przejdź do logowania",
     "error": {
       "incomplete": "Link aktywacyjny jest niekompletny (brak tokenu).",
       "generic": "Wystąpił błąd podczas aktywacji.",
-      "invalidOrExpired": "Link jest nieaktywny, wygasł lub został już użyty.",
+      "invalidOrExpired": "Link jest nieaktywny, wygasł lub został już wykorzystany.",
       "tooShort": "Token aktywacyjny jest za krótki.",
       "invalid": "Nieprawidłowy token aktywacyjny.",
       "expired": "Token aktywacyjny wygasł.",
@@ -75,6 +78,6 @@
     "sendResetLink": "Wyślij link do resetowania",
     "successMailSent": "Jeśli konto istnieje, link do resetowania został wysłany.",
     "errorSending": "Błąd podczas wysyłania kodu resetującego.",
-    "errorInvalidToken": "Link do resetowania jest nieprawidłowy lub wygasł."
+    "errorInvalidToken": "Link resetujący jest nieprawidłowy lub wygasł."
   }
 }

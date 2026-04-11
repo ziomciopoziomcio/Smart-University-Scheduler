@@ -21,6 +21,9 @@
       ],
       "@api/*": [
         "src/api/*"
+      ],
+      "@store/*": [
+        "src/store/*"
       ]
     }
   }
