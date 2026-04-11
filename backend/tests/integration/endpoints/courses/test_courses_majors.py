@@ -42,7 +42,7 @@ def test_endpoint_view_major(
     expected_status,
 ):
     headers = get_auth_headers(role_name)
-    major = create_test_major(major_name=f"Software Engineering")
+    major = create_test_major(major_name="Software Engineering")
 
     response = client.get(f"/course/majors/{major.id}", headers=headers)
 

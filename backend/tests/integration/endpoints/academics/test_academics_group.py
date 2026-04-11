@@ -1,5 +1,4 @@
 import pytest
-from src.academics.models import Groups
 
 
 @pytest.mark.parametrize(

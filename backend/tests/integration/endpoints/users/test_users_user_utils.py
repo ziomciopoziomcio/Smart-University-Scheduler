@@ -1,4 +1,5 @@
 import pytest
+import pyotp
 from src.users.models import Permissions, Roles, Users
 from datetime import datetime, timedelta, timezone
 from src.users.auth import create_password_reset_token, _hash_token, hash_password
@@ -28,10 +29,6 @@ def test_endpoint_view_me(
         data = response.json()
         expected_email = f"{role_name.replace(' ', '_').lower()}@test.pl"
         assert data["email"] == expected_email
-
-
-import pytest
-import pyotp
 
 
 def test_login_success(client, create_auth_user):

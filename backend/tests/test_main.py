@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_read_main_root(client):
     """
     Checks main endpoint.

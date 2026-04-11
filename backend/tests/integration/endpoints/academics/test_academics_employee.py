@@ -1,5 +1,4 @@
 import pytest
-from src.users.models import Users
 from src.academics.models import Units
 
 

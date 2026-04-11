@@ -1,10 +1,5 @@
 import pytest
-from src.courses.models import (
-    Study_program,
-    Study_fields,
-)
 
-from src.academics.models import Units
 
 
 @pytest.mark.parametrize(
