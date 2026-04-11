@@ -425,38 +425,97 @@ def generate_majors(
 def generate_elective_blocks(
     session: Session,
     study_fields: dict[str, Study_fields],
-) -> dict[str, Elective_block]:
+) -> dict[tuple[str, str], Elective_block]:
     """
     Creates Elective_block objects
     :param session: database session
     :param study_fields: dictionary mapping study fields names
         to their corresponding Study_fields objects.
-    :return: dictionary mapping elective blocks names
+    :return: dictionary mapping elective blocks and study field names
         to their corresponding Elective_block objects.
     """
-    # only for "informatyka."
 
-    db_elective_blocks: dict[str, Elective_block] = {}
+    db_elective_blocks: dict[tuple[str, str], Elective_block] = (
+        {}
+    )  # elective_block_name, study_field_name, object
 
-    informatyka_elective_blocks = [
-        "Programowanie Gier",
-        "Technologie mobilne",
-        "Big Data i programowanie aplikacji bazodanowych",
-        "Zaawansowane aplikacje bazodanowe",
-        "Testowanie i zapewnianie jakości oprogramowania",
-        "Zarządzanie sieciami komputerowymi",
-    ]
+    elective_blocks_names = {
+        "informatyka.": [
+            "Programowanie Gier",
+            "Technologie mobilne",
+            "Big Data i programowanie aplikacji bazodanowych",
+            "Zaawansowane aplikacje bazodanowe",
+            "Testowanie i zapewnianie jakości oprogramowania",
+            "Zarządzanie sieciami komputerowymi",
+        ],
+        "elektronika i telekomunikacja": [
+            "Digital Signal Processing",
+            "Wireless Communication Systems",
+            "Embedded Systems Design",
+            "Optical Fiber Networks",
+            "Radio Communication Systems",
+            "Microelectronics Basics",
+        ],
+        "automatyka i sterowanie robotów": [
+            "Advanced Control Systems",
+            "Industrial Robotics",
+            "Autonomous Systems",
+            "Sensor Networks",
+            "PLC Programming",
+            "Machine Vision Systems",
+        ],
+        "elektrotechnika": [
+            "Power Systems Engineering",
+            "Electrical Machines",
+            "High Voltage Engineering",
+            "Renewable Energy Systems",
+            "Electrical Installations",
+            "Smart Grids",
+        ],
+        "computer science and information technology": [
+            "Cloud Computing",
+            "Big Data Systems",
+            "Cybersecurity",
+            "Software Engineering",
+            "Mobile Applications",
+            "Computer Networks",
+        ],
+        "biomedical engineering and technologies": [
+            "Medical Imaging",
+            "Biomedical Signal Processing",
+            "Biosensors",
+            "Rehabilitation Engineering",
+            "Healthcare IT Systems",
+            "Biomechanics",
+        ],
+        "computer science": [
+            "Algorithms and Data Structures II",
+            "Machine Learning Fundamentals",
+            "Distributed Systems",
+            "Web Application Development",
+            "Cybersecurity Basics",
+        ],
+    }
 
-    sf_obj = study_fields.get("informatyka.", None)
-    if sf_obj is not None:
+    for sf_name in elective_blocks_names.keys():
+        print(f"STUDY FIELD: {sf_name} ==============================")
+        sf_obj = study_fields.get(sf_name, None)
+
+        if sf_obj is None:
+            print("STUDY FIELD NOT FOUND")
+            continue
+
         sf_id: int = sf_obj.id
 
-        for eb_name in informatyka_elective_blocks:
-            elective_block_obj = Elective_block(study_field=sf_id, block_name=eb_name)
-            session.add(elective_block_obj)
-            db_elective_blocks[eb_name] = elective_block_obj
-    else:
-        print("Study field for elective blocks not found!")
+        for eb_name in elective_blocks_names[sf_name]:
+            eb_obj = Elective_block(study_field=sf_id, block_name=eb_name)
+            db_elective_blocks[(eb_name, sf_name)] = eb_obj
+            session.add(eb_obj)
+            print(f"Added {eb_name}")
+
+        print()
+        print()
+        print()
 
     session.flush()
     return db_elective_blocks
