@@ -4,7 +4,7 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 //TODO: THIS IS AI GENERATED PAGE ONLY FOR TESTING PURPOSES. REPLACE WITH REAL CONTENT LATER.
 
-export default function SchedulePage() {
+export default function MyPlan() {
     return (
         <Box>
             <Paper sx={{p: 1, px: 3, borderRadius: 5, mb: 3, width: 'fit-content'}}>
