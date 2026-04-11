@@ -234,6 +234,7 @@ class DataProvider:
                     room_mask &= rooms_df["pc_amount"] >= members
                 if proj_needed:
                     room_mask &= rooms_df["projector_availability"].astype(bool)
+                room_cache[req_key] = rooms_df.loc[room_mask, "room_id"].tolist()
 
             allowed_rooms = room_cache[req_key]
 
