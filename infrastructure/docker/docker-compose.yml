@@ -96,6 +96,7 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       SMTP_FROM: ${SMTP_FROM}
+      SETUP_SECURITY_TOKEN: ${SETUP_SECURITY_TOKEN}
     depends_on:
       - postgres
       - kafka
