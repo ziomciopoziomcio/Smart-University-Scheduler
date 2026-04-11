@@ -19,8 +19,8 @@ import {
     InboxOutlined
 } from '@mui/icons-material';
 import {useIntl} from 'react-intl';
-import SidebarClock from "./SidebarClock.tsx";
-import SidebarCalendar from "./SidebarCalendar.tsx";
+import SidebarClock from './SidebarClock';
+import SidebarCalendar from './SidebarCalendar';
 
 export default function Sidebar() {
     const [open, setOpen] = useState(false);
