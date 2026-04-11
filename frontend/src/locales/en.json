@@ -2,13 +2,16 @@
   "login": {
     "title": "Sign in",
     "username": "email",
+    "email": "email",
     "usernamePlaceholder": "example@edu.p.lodz.pl",
+    "emailPlaceholder": "example@edu.p.lodz.pl",
     "password": "password",
     "passwordPlaceholder": "password",
     "submit": "sign in",
     "createAccount": "Create account",
     "forgotPassword": "Forgot password",
     "pageLabel": "Login",
+    "loggingIn": "Logging in...",
     "validation": {
       "error": "Incorrect email or password",
       "success": "Successfully logged in",
