@@ -113,12 +113,15 @@ class EvolutionEngine:
 
         for chrom in population:
             for gene in chrom.genes:
-                if random.random() < self.mutation_rate:  # TODO: 3x random.random()
+                if random.random() < self.mutation_rate:
                     gene.timeslot_id = random.randint(1, self.max_timeslots)
+                if random.random() < self.mutation_rate:
                     if self.available_rooms:  # TODO: check data
                         gene.room_id = random.choice(self.available_rooms)
+                if random.random() < self.mutation_rate:
                     if self.available_instructors:  # TODO: check data
                         gene.instructor_id = random.choice(self.available_instructors)
+                if random.random() < self.mutation_rate:
                     if (
                         gene.allowed_week_patterns
                         and len(gene.allowed_week_patterns) > 1
