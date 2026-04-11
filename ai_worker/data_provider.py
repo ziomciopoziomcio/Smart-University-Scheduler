@@ -217,7 +217,7 @@ class DataProvider:
                 room_mask &= rooms_df["pc_amount"] >= row["members_amount"]
 
             if row["projector_needed"]:
-                room_mask &= rooms_df["projector_availability"].astype(bool)
+                room_mask &= rooms_df["projector_availability"].fillna(False).astype(bool)
 
             allowed_rooms = rooms_df[room_mask]["room_id"].tolist()
 
