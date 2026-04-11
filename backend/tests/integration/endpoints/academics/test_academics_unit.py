@@ -1,7 +1,6 @@
 import pytest
 
 
-
 @pytest.mark.parametrize(
     "role_name, expected_status",
     [
