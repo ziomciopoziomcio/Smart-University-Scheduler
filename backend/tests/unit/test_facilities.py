@@ -3,7 +3,6 @@ from pydantic import ValidationError
 
 from src.facilities.schemas import RoomCreate, RoomUpdate
 
-
 # ==========================================
 # TESTS: Room (Numeric ranges and constraints)
 # ==========================================

@@ -7,7 +7,6 @@ from src.academics.schemas import GroupsCreate, GroupsUpdate, AcademicCalendarCr
 from src.academics.router import _check_for_payload_duplicates
 from src.academics.models import SemesterType
 
-
 # ==========================================
 # TESTS: Groups (Complex validation)
 # ==========================================

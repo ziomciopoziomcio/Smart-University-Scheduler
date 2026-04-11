@@ -4,7 +4,6 @@ from pydantic import ValidationError
 from src.conversations.schemas import ChatCreate, MessageCreate
 from src.conversations.models import MessageRole
 
-
 # ==========================================
 # TESTS: Chat (Field limits)
 # ==========================================

@@ -9,7 +9,6 @@ from src.schedules.schemas import (
 )
 from src.academics.models import SemesterType
 
-
 # ==========================================
 # TESTS: GenerateScheduleRequest
 # ==========================================
