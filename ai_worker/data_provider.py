@@ -203,6 +203,16 @@ class DataProvider:
             .astype(str)
             .apply(lambda x: x.split(".")[-1].strip().upper())
         )
+        competencies_dict = (
+            competencies_df.groupby(["cource_code", "normalized_class_type"])[
+                "employee_id"
+            ]
+            .apply(lambda x: x.unique().tolist())
+            .to_dict()
+        )
+
+        room_cache: dict[tuple[int, int, int], list[int]] = {}
+
         genes = []
 
         for _, row in requirements_df.iterrows():
@@ -212,21 +222,23 @@ class DataProvider:
             raw_class_type = str(row["class_type"])
             normalized_class_type = raw_class_type.split(".")[-1].strip().upper()
 
-            room_mask = rooms_df["room_capacity"] >= row["members_amount"]
-            if row["pc_needed"]:
-                room_mask &= rooms_df["pc_amount"] >= row["members_amount"]
+            members = int(row["members_amount"])
+            pc_needed = int(row["pc_needed"])
+            proj_needed = int(row["projector_needed"])
 
-            if row["projector_needed"]:
-                room_mask &= rooms_df["projector_availability"].fillna(False).astype(bool)
+            req_key = (members, pc_needed, proj_needed)
 
-            allowed_rooms = rooms_df[room_mask]["room_id"].tolist()
+            if req_key not in room_cache:
+                room_mask = rooms_df["room_capacity"] >= members
+                if pc_needed:
+                    room_mask &= rooms_df["pc_amount"] >= members
+                if proj_needed:
+                    room_mask &= rooms_df["projector_availability"].astype(bool)
 
-            instructor_mask = (competencies_df["course_code"] == row["course_code"]) & (
-                competencies_df["normalized_class_type"] == normalized_class_type
-            )
+            allowed_rooms = room_cache[req_key]
 
-            allowed_instructors = (
-                competencies_df[instructor_mask]["employee_id"].unique().tolist()
+            allowed_instructors = competencies_dict.get(
+                (row["course_code"], normalized_class_type), []
             )
 
             gene = ClassSessionGene(
