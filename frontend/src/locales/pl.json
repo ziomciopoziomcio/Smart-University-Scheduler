@@ -81,7 +81,7 @@
     "errorInvalidToken": "Link resetujący jest nieprawidłowy lub wygasł."
   },
   "sidebar": {
-    "my_plan": "Mój plan",
+    "myPlan": "Mój plan",
     "plans": "Plany",
     "chat": "Czat",
     "suggestions": "Sugestie",
