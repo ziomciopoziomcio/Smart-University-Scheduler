@@ -14,7 +14,6 @@ from src.courses.models import CourseLanguage, ClassType
 
 def test_curriculum_course_validator_success():
     """Tests valid cases: only major, only elective block, or neither."""
-
     # 1. Assigned only to Major (success)
     valid_major = CurriculumCourseCreate(
         study_program=1, course=101, semester=1, major=5, elective_block=None
@@ -37,7 +36,6 @@ def test_curriculum_course_validator_success():
 
 def test_curriculum_course_validator_failure():
     """Tests if the validator raises an error when BOTH values are provided."""
-
     with pytest.raises(ValidationError) as exc:
         CurriculumCourseCreate(
             study_program=1, course=101, semester=1, major=5, elective_block=3
@@ -50,7 +48,6 @@ def test_curriculum_course_validator_failure():
 
 def test_curriculum_course_update_validator_failure():
     """Tests the same mutual exclusion logic for the Update schema."""
-
     with pytest.raises(ValidationError) as exc:
         CurriculumCourseUpdate(major=2, elective_block=4)
 
@@ -61,7 +58,6 @@ def test_curriculum_course_update_validator_failure():
 
 def test_curriculum_course_semester_gt_zero():
     """Tests the limit for the semester field (must be > 0)."""
-
     with pytest.raises(ValidationError) as exc:
         CurriculumCourseCreate(study_program=1, course=101, semester=0)
 
@@ -70,7 +66,6 @@ def test_curriculum_course_semester_gt_zero():
 
 def test_course_ects_points_limits():
     """Tests the ECTS limit (cannot be negative)."""
-
     # Success (0 is acceptable)
     valid_course = CourseCreate(
         course_code=100,
@@ -97,7 +92,6 @@ def test_course_ects_points_limits():
 
 def test_course_type_detail_slots_limits():
     """Tests if slots_per_class falls within the 1-10 range."""
-
     base_data = {
         "course": 101,
         "class_type": ClassType.LECTURE,
@@ -122,7 +116,6 @@ def test_course_type_detail_slots_limits():
 
 def test_course_type_detail_group_size():
     """Tests the group size limit (> 0)."""
-
     with pytest.raises(ValidationError):
         CourseTypeDetailCreate(
             course=101, class_type=ClassType.LECTURE, max_group_participants_number=0
@@ -131,7 +124,6 @@ def test_course_type_detail_group_size():
 
 def test_course_instructor_hours_limit():
     """Tests that the instructor is not assigned negative hours."""
-
     with pytest.raises(ValidationError):
         CourseInstructorCreate(
             employee=1, course=101, class_type=ClassType.LABORATORY, hours=-5

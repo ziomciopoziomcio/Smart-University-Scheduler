@@ -56,7 +56,6 @@ def test_room_pc_amount_limits():
 
 def test_room_update_limits():
     """Tests the exact same constraints applied to the RoomUpdate schema."""
-
     # Invalid capacity update
     with pytest.raises(ValidationError) as exc_cap:
         RoomUpdate(room_capacity=0)

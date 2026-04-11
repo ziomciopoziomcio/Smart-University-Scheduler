@@ -96,7 +96,9 @@ def test_endpoint_2fa_setup_permissions(
 
 def test_2fa_complete_flow(client, db_session, create_auth_user):
     """
-    Tests complete scenario:
+    Tests complete scenario.
+
+    Steps:
     1. Registration and login
     2. Setup 2FA
     3. Confirm 2FA

@@ -95,7 +95,6 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 @pytest.fixture(scope="session", autouse=True)
 def setup_database():
     """Sets up test DB and seeds roles/permissions. Executes once."""
-
     Base.metadata.create_all(bind=engine)
 
     session = TestingSessionLocal()
@@ -128,18 +127,14 @@ def setup_database():
 
 @pytest.fixture(autouse=True)
 def mock_send_email():
-    """
-    Mocks sending email for testing purposes.
-    """
+    """Mocks sending email for testing purposes."""
     with patch("src.common.notifications.send_email") as mock_mail:
         yield mock_mail
 
 
 @pytest.fixture(autouse=True)
 def mock_kafka():
-    """
-    Mocks sending events to Kafka for testing purposes.
-    """
+    """Mocks sending events to Kafka for testing purposes."""
     with patch("src.schedules.router.send_event", return_value=True) as mock:
         yield mock
 

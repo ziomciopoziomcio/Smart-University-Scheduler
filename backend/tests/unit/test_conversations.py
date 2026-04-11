@@ -11,7 +11,6 @@ from src.conversations.models import MessageRole
 
 def test_chat_title_max_length():
     """Tests if the chat title respects the maximum length of 255 characters."""
-
     # Valid: Exactly 255 characters
     valid_title = "a" * 255
     chat = ChatCreate(title=valid_title)
@@ -31,7 +30,6 @@ def test_chat_title_max_length():
 
 def test_message_content_min_length():
     """Tests if the message content strictly requires at least 1 character."""
-
     # Invalid: Empty string
     with pytest.raises(ValidationError) as exc:
         MessageCreate(content="")
@@ -44,7 +42,6 @@ def test_message_content_min_length():
 
 def test_message_role_assignment():
     """Tests the default role fallback and rejects invalid enum role assignments."""
-
     # Valid: Default role should automatically fall back to USER
     msg_default = MessageCreate(content="Hello world!")
     assert msg_default.role == MessageRole.USER
