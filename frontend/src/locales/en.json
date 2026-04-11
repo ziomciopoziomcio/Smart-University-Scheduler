@@ -81,7 +81,7 @@
     "errorInvalidToken": "The reset link is invalid or has expired."
   },
   "sidebar": {
-    "my_plan": "My plan",
+    "myPlan": "My plan",
     "plans": "Plans",
     "chat": "Chat",
     "suggestions": "Suggestions",
