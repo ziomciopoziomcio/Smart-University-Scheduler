@@ -48,6 +48,39 @@ class EvolutionEngine:
         :param parents: List of ScheduleChromosome to crossover
         :return: List of offspring ScheduleChromosome
         """
+        def make_unassigned_gene(gene):
+            unassigned_gene = copy.deepcopy(gene)
+            for attr_name, attr_value in (
+                ("timeslot_id", None),
+                ("room_id", None),
+                ("instructor_id", None),
+                ("active_weeks", []),
+            ):
+                if hasattr(unassigned_gene, attr_name):
+                    setattr(unassigned_gene, attr_name, attr_value)
+            return unassigned_gene
+
+        def pick_safe_gene(
+            primary_gene,
+            primary_resources,
+            secondary_gene,
+            secondary_resources,
+            used_resources,
+        ):
+            primary_safe = not any(
+                resource in used_resources for resource in primary_resources
+            )
+            if primary_safe:
+                return copy.deepcopy(primary_gene), primary_resources
+
+            secondary_safe = not any(
+                resource in used_resources for resource in secondary_resources
+            )
+            if secondary_safe:
+                return copy.deepcopy(secondary_gene), secondary_resources
+
+            return make_unassigned_gene(primary_gene), []
+
         if len(parents) < 2:
             return [
                 models.ScheduleChromosome(genes=copy.deepcopy(parent.genes))
@@ -102,19 +135,42 @@ class EvolutionEngine:
                 g1_res = get_resources(g1)
                 g2_res = get_resources(g2)
 
+                default_c1_safe = not any(res in c1_used_resources for res in g1_res)
+                default_c2_safe = not any(res in c2_used_resources for res in g2_res)
                 swap_c1_safe = not any(res in c1_used_resources for res in g2_res)
                 swap_c2_safe = not any(res in c2_used_resources for res in g1_res)
 
-                if random.random() < 0.5 and swap_c1_safe and swap_c2_safe:
-                    child1_genes.append(copy.deepcopy(g2))
-                    child2_genes.append(copy.deepcopy(g1))
-                    c1_used_resources.update(g2_res)
-                    c2_used_resources.update(g1_res)
+                default_pair_safe = default_c1_safe and default_c2_safe
+                swap_pair_safe = swap_c1_safe and swap_c2_safe
+                prefer_swap = random.random() < 0.5
+
+                if prefer_swap and swap_pair_safe:
+                    child1_gene = copy.deepcopy(g2)
+                    child2_gene = copy.deepcopy(g1)
+                    child1_resources = g2_res
+                    child2_resources = g1_res
+                elif default_pair_safe:
+                    child1_gene = copy.deepcopy(g1)
+                    child2_gene = copy.deepcopy(g2)
+                    child1_resources = g1_res
+                    child2_resources = g2_res
+                elif swap_pair_safe:
+                    child1_gene = copy.deepcopy(g2)
+                    child2_gene = copy.deepcopy(g1)
+                    child1_resources = g2_res
+                    child2_resources = g1_res
                 else:
-                    child1_genes.append(copy.deepcopy(g1))
-                    child2_genes.append(copy.deepcopy(g2))
-                    c1_used_resources.update(g1_res)
-                    c2_used_resources.update(g2_res)
+                    child1_gene, child1_resources = pick_safe_gene(
+                        g1, g1_res, g2, g2_res, c1_used_resources
+                    )
+                    child2_gene, child2_resources = pick_safe_gene(
+                        g2, g2_res, g1, g1_res, c2_used_resources
+                    )
+
+                child1_genes.append(child1_gene)
+                child2_genes.append(child2_gene)
+                c1_used_resources.update(child1_resources)
+                c2_used_resources.update(child2_resources)
 
             offspring.append(models.ScheduleChromosome(genes=child1_genes))
             offspring.append(models.ScheduleChromosome(genes=child2_genes))
