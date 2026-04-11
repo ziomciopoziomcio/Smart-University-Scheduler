@@ -48,6 +48,7 @@ class EvolutionEngine:
         :param parents: List of ScheduleChromosome to crossover
         :return: List of offspring ScheduleChromosome
         """
+
         def make_unassigned_gene(gene):
             unassigned_gene = copy.deepcopy(gene)
             for attr_name, attr_value in (
@@ -189,41 +190,49 @@ class EvolutionEngine:
         for chrom in population:
             for gene in chrom.genes:
                 if random.random() < self.mutation_rate:
-                    gene.timeslot_id = random.randint(1, self.max_timeslots)
-                if random.random() < self.mutation_rate:
-                    allowed_rooms = getattr(gene, "allowed_rooms", None)
-                    candidate_rooms = allowed_rooms or self.available_rooms
-                    if candidate_rooms:
-                        gene.room_id = random.choice(candidate_rooms)
-                if random.random() < self.mutation_rate:
-                    allowed_instructors = getattr(
-                        gene, "allowed_instructors", None
-                    )
-                    candidate_instructors = (
-                        allowed_instructors or self.available_instructors
-                    )
-                    if candidate_instructors:
-                        if (
-                            hasattr(self, "instructor_assignments")
-                            and self.instructor_assignments
-                        ):
-                            weights = []
-                            for instr_id in candidate_instructors:
-                                target_hours = self.instructor_assignments.get(
-                                    (instr_id, gene.course_code, gene.class_type), 0
-                                )
-                                weights.append(max(1, target_hours))
-                            gene.instructor_id = random.choices(
-                                candidate_instructors, weights=weights, k=1
-                            )[0]
-                        else:
-                            gene.instructor_id = random.choice(candidate_instructors)
-                if random.random() < self.mutation_rate:
+
+                    mutation_targets = ["timeslot", "room", "instructor"]
                     if (
                         gene.allowed_week_patterns
                         and len(gene.allowed_week_patterns) > 1
                     ):
-                        gene.selected_pattern_index = random.randint(
+                        mutation_targets.append("pattern")
+
+                    target = random.choice(mutation_targets)
+
+                    if target == "timeslot":
+                        gene.timeslot_id = random.randint(1, self.max_timeslots)
+                    elif target == "room":
+                        allowed_rooms = getattr(gene, "allowed_rooms", None)
+                        candidate_rooms = allowed_rooms or self.available_rooms
+                        if candidate_rooms:
+                            gene.room_id = random.choice(candidate_rooms)
+                    elif target == "instructor":
+                        allowed_instructors = getattr(gene, "allowed_instructors", None)
+                        candidate_instructors = (
+                            allowed_instructors or self.available_instructors
+                        )
+
+                        if candidate_instructors:
+                            if (
+                                hasattr(self, "instructor_assignments")
+                                and self.instructor_assignments
+                            ):
+                                weights = []
+                                for instr_id in candidate_instructors:
+                                    target_hours = self.instructor_assignments.get(
+                                        (instr_id, gene.course_code, gene.class_type), 0
+                                    )
+                                    weights.append(max(1, target_hours))
+                                gene.instructor_id = random.choices(
+                                    candidate_instructors, weights=weights, k=1
+                                )[0]
+                            else:
+                                gene.instructor_id = random.choice(
+                                    candidate_instructors
+                                )
+                    elif target == "pattern":
+                        gene.selected_pattern = random.randint(
                             0, len(gene.allowed_week_patterns) - 1
                         )
 
