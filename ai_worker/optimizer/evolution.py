@@ -14,13 +14,14 @@ class EvolutionEngine:
         max_timeslots: int = 60,
         tournament_size: int = 3,
         mutation_rate: float = 0.05,
-        instructor_assignments: dict[int, list[tuple[int, str]]] | None = None,
+        instructor_assignments: dict[tuple[int, int, str], int] | None = None,
     ):
         self.available_instructors = available_instructors
         self.available_rooms = available_rooms
         self.max_timeslots = max_timeslots
         self.tournament_size = tournament_size
         self.mutation_rate = mutation_rate
+        self.instructor_assignments = instructor_assignments
 
     def tournament_selection(
         self, population: list[models.ScheduleChromosome]
