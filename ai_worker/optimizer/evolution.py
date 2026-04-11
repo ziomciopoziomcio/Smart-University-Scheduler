@@ -14,6 +14,7 @@ class EvolutionEngine:
         max_timeslots: int = 60,
         tournament_size: int = 3,
         mutation_rate: float = 0.05,
+        instructor_assignments: dict[int, list[tuple[int, str]]] | None = None,
     ):
         self.available_instructors = available_instructors
         self.available_rooms = available_rooms
@@ -120,7 +121,21 @@ class EvolutionEngine:
                         gene.room_id = random.choice(gene.allowed_rooms)
                 if random.random() < self.mutation_rate:
                     if gene.allowed_instructors:
-                        gene.instructor_id = random.choice(gene.allowed_instructors)
+                        if (
+                            hasattr(self, "instructor_assignments")
+                            and self.instructor_assignments
+                        ):
+                            weights = []
+                            for instr_id in gene.allowed_instructors:
+                                target_hours = self.instructor_assignments.get(
+                                    (instr_id, gene.course_code, gene.class_type), 0
+                                )
+                                weights.append(max(1, target_hours))
+                            gene.instructor_id = random.choices(
+                                gene.allowed_instructors, weights=weights, k=1
+                            )[0]
+                        else:
+                            gene.instructor_id = random.choice(gene.allowed_instructors)
                 if random.random() < self.mutation_rate:
                     if (
                         gene.allowed_week_patterns

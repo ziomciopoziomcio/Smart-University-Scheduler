@@ -21,6 +21,7 @@ BestTuple: TypeAlias = tuple[float, int, int, int, int, list[int]]
 class GreedyContext:
     rooms_lookup: RoomsLookup
     instructors_lookup: InstructorsLookup
+    instructor_assignments: dict
     competencies_map: CompetenciesMap
     conflicting_groups: ConflictsMap
     room_ids_sorted: list[int]
@@ -136,16 +137,7 @@ def build_lookups(
         data["employees"].set_index("id").to_dict("index")
     )
 
-    competencies_map: CompetenciesMap = {}
-    comp_df = data.get("competencies")
-    if comp_df is not None and not comp_df.empty:
-        for _, r in comp_df.iterrows():
-            class_type_raw = r.get("class_type")
-            class_type_norm = (
-                "" if class_type_raw is None else str(class_type_raw).strip().upper()
-            )
-            key = (int(r["course_code"]), class_type_norm)
-            competencies_map.setdefault(key, set()).add(int(r["employee_id"]))
+    instructor_assignments = data.get("instructor_assignments", {})
 
     conflicting_groups: ConflictsMap = {}
     conflicts_df = data.get("conflicting_groups")
@@ -156,7 +148,7 @@ def build_lookups(
             conflicting_groups.setdefault(a, set()).add(b)
             conflicting_groups.setdefault(b, set()).add(a)
 
-    return rooms_lookup, instructors_lookup, competencies_map, conflicting_groups
+    return rooms_lookup, instructors_lookup, instructor_assignments, conflicting_groups
 
 
 def _gene_priority(g: ClassSessionGene) -> tuple:
@@ -212,7 +204,7 @@ def greedy_assign(
         find_best_assignment_for_gene,
     )
 
-    rooms_lookup, instructors_lookup, competencies_map, conflicting_groups = (
+    rooms_lookup, instructors_lookup, instructor_assignments, conflicting_groups = (
         build_lookups(data)
     )
 
@@ -226,7 +218,7 @@ def greedy_assign(
     ctx = GreedyContext(
         rooms_lookup=rooms_lookup,
         instructors_lookup=instructors_lookup,
-        competencies_map=competencies_map,
+        instructor_assignments=instructor_assignments,
         conflicting_groups=conflicting_groups,
         room_ids_sorted=room_ids_sorted,
         randomize=randomize,
