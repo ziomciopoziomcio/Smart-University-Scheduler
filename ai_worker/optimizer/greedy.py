@@ -22,7 +22,6 @@ class GreedyContext:
     rooms_lookup: RoomsLookup
     instructors_lookup: InstructorsLookup
     instructor_assignments: dict
-    competencies_map: CompetenciesMap
     conflicting_groups: ConflictsMap
     room_ids_sorted: list[int]
     randomize: bool
