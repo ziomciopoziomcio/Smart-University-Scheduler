@@ -118,25 +118,29 @@ class EvolutionEngine:
                 if random.random() < self.mutation_rate:
                     gene.timeslot_id = random.randint(1, self.max_timeslots)
                 if random.random() < self.mutation_rate:
-                    if gene.allowed_rooms:
-                        gene.room_id = random.choice(gene.allowed_rooms)
+                    candidate_rooms = gene.allowed_rooms or self.available_rooms
+                    if candidate_rooms:
+                        gene.room_id = random.choice(candidate_rooms)
                 if random.random() < self.mutation_rate:
-                    if gene.allowed_instructors:
+                    candidate_instructors = (
+                        gene.allowed_instructors or self.available_instructors
+                    )
+                    if candidate_instructors:
                         if (
                             hasattr(self, "instructor_assignments")
                             and self.instructor_assignments
                         ):
                             weights = []
-                            for instr_id in gene.allowed_instructors:
+                            for instr_id in candidate_instructors:
                                 target_hours = self.instructor_assignments.get(
                                     (instr_id, gene.course_code, gene.class_type), 0
                                 )
                                 weights.append(max(1, target_hours))
                             gene.instructor_id = random.choices(
-                                gene.allowed_instructors, weights=weights, k=1
+                                candidate_instructors, weights=weights, k=1
                             )[0]
                         else:
-                            gene.instructor_id = random.choice(gene.allowed_instructors)
+                            gene.instructor_id = random.choice(candidate_instructors)
                 if random.random() < self.mutation_rate:
                     if (
                         gene.allowed_week_patterns
