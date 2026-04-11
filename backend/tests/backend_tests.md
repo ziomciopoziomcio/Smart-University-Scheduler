@@ -21,6 +21,7 @@ tests
 │   └───test_user.py
 └───test_main.py
 ```
+
 ## 1 Integration Tests
 
 ### 1.1 Execution
@@ -101,7 +102,6 @@ def test_employee_absence_create_dates():
         EmployeeAbsenceCreate(**base_data, start_date=today, end_date=yesterday)
     assert "Start date must be before end date" in str(exc.value)
 ```
-
 
 ## 3 Health tests
 

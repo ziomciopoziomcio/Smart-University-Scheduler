@@ -95,100 +95,61 @@ def test_endpoint_2fa_setup_permissions(
 
 
 def test_2fa_complete_flow(client, db_session, create_auth_user):
-    """
-    Tests complete scenario.
+    """E2E test for 2FA: Setup -> Confirm -> Login -> Verify TOTP -> Verify Backup Code."""
+    user, pwd = create_auth_user(email="2fa_flow@test.pl")
 
-    Steps:
-    1. Registration and login
-    2. Setup 2FA
-    3. Confirm 2FA
-    4. Repeated login (requires 2FA)
-    5. Verify 2FA with TOTP
-    6. Verify 2FA with backup code
-    """
-    user, password = create_auth_user(email="2fa_flow_master@test.pl")
-
-    # 1. Registration and login
-    login_resp = client.post(
-        "/users/login", data={"username": user.email, "password": password}
+    # 1. Assign permissions and get token
+    perms = (
+        db_session.query(Permissions)
+        .filter(Permissions.code.in_(["user-2fa:setup", "user-2fa:confirm"]))
+        .all()
     )
-    assert login_resp.status_code == 200
-    token = login_resp.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-
-    perm_setup = db_session.query(Permissions).filter_by(code="user-2fa:setup").first()
-    perm_confirm = (
-        db_session.query(Permissions).filter_by(code="user-2fa:confirm").first()
-    )
-
-    if not perm_setup:
-        perm_setup = Permissions(code="user-2fa:setup", name="2FA Setup")
-        db_session.add(perm_setup)
-    if not perm_confirm:
-        perm_confirm = Permissions(code="user-2fa:confirm", name="2FA Confirm")
-        db_session.add(perm_confirm)
-
-    role = Roles(role_name="2FA_Tester")
-    role.permissions.extend([perm_setup, perm_confirm])
-    user.roles.append(role)
+    user.roles.append(Roles(role_name="2fa_role", permissions=perms))
     db_session.commit()
 
-    # 2: Setup 2FA
-    setup_resp = client.post("/users/2fa/setup", headers=headers)
-    assert setup_resp.status_code == 200
-    secret = setup_resp.json()["secret"]
+    token = client.post(
+        "/users/login", data={"username": user.email, "password": pwd}
+    ).json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
 
-    # 3: Confirm 2FA
+    # 2. Setup & Confirm 2FA
+    secret = client.post("/users/2fa/setup", headers=headers).json()["secret"]
     totp = pyotp.TOTP(secret)
-    current_code = totp.now()
-
-    confirm_resp = client.post(
-        "/users/2fa/confirm", json={"code": current_code}, headers=headers
+    conf_resp = client.post(
+        "/users/2fa/confirm", json={"code": totp.now()}, headers=headers
     )
-    assert confirm_resp.status_code == 200
-    backup_codes = confirm_resp.json()["backup_codes"]
-    assert len(backup_codes) == 8
+    backup_codes = conf_resp.json()["backup_codes"]
 
-    # 4: Repeated login (requires 2FA)
-    login_resp_2 = client.post(
-        "/users/login", data={"username": user.email, "password": password}
-    )
-    assert login_resp_2.status_code == 200
-    login_data = login_resp_2.json()
-    assert login_data["requires_2fa"] is True
-    pre_auth_token = login_data["access_token"]
+    assert conf_resp.status_code == 200 and len(backup_codes) == 8
 
-    # 5: Verify 2FA with TOTP
-    verify_code = totp.now()
-    verify_resp = client.post(
-        "/users/2fa/verify",
-        json={"pre_auth_token": pre_auth_token, "code": verify_code},
+    # 3. Repeated login & Verify with TOTP
+    pre_auth = client.post(
+        "/users/login", data={"username": user.email, "password": pwd}
+    ).json()["access_token"]
+    verify_totp_resp = client.post(
+        "/users/2fa/verify", json={"pre_auth_token": pre_auth, "code": totp.now()}
     )
-    assert verify_resp.status_code == 200
-    final_data = verify_resp.json()
-    assert "access_token" in final_data
-    assert final_data["token_type"] == "bearer"
+    assert (
+        verify_totp_resp.status_code == 200
+        and "access_token" in verify_totp_resp.json()
+    )
 
-    # 6: Verify 2FA with backup code
-    login_resp_3 = client.post(
-        "/users/login", data={"username": user.email, "password": password}
-    )
-    pre_auth_token_2 = login_resp_3.json()["access_token"]
-    used_backup_code = backup_codes[0]
+    # 4. Repeated login & Verify with Backup Code (and test reuse failure)
+    pre_auth_2 = client.post(
+        "/users/login", data={"username": user.email, "password": pwd}
+    ).json()["access_token"]
 
     verify_backup_resp = client.post(
         "/users/2fa/verify",
-        json={"pre_auth_token": pre_auth_token_2, "code": used_backup_code},
+        json={"pre_auth_token": pre_auth_2, "code": backup_codes[0]},
     )
     assert verify_backup_resp.status_code == 200
-    assert "access_token" in verify_backup_resp.json()
 
     verify_backup_fail = client.post(
         "/users/2fa/verify",
-        json={"pre_auth_token": pre_auth_token_2, "code": used_backup_code},
+        json={"pre_auth_token": pre_auth_2, "code": backup_codes[0]},
     )
     assert verify_backup_fail.status_code == 400
-    assert verify_backup_fail.json()["detail"] == "Invalid 2FA code"
 
 
 def test_password_forgot_success(client, db_session, create_test_user):

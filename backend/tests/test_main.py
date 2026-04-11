@@ -13,6 +13,6 @@ def test_docs_accessible(client):
 
 
 def test_redoc_accessible(client):
-    """Checks ReDoc endpoint"""
+    """Checks ReDoc endpoint."""
     response = client.get("/redoc")
     assert response.status_code == 200
