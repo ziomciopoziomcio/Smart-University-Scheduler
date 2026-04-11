@@ -204,6 +204,11 @@ def run_ai_optimizer_sync(
     """
     logger.info(f"Starting AI optimizer for {faculty_id}")
 
+    if "competencies" in data and "instructor_assignments" not in data:
+        data["instructor_assignments"] = DataProvider.get_instructor_assignments(
+            data["competencies"]
+        )
+
     calculator = _create_fitness_calculator(data)
     population_size = 50
     population = _generate_initial_population(base_genes, population_size, data)
