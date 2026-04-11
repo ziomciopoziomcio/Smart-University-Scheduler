@@ -41,7 +41,7 @@ class EvolutionEngine:
         parents: list[models.ScheduleChromosome],
     ) -> list[models.ScheduleChromosome]:
         """
-        Conflict-Aware Uniform Crossover
+        Conflict-Aware Uniform Crossover.
         Crossover between parents to create offspring.
         :param parents: List of ScheduleChromosome to crossover
         :return: List of offspring ScheduleChromosome
