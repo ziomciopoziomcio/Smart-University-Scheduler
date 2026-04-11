@@ -91,7 +91,7 @@ def seed_roles_and_permissions(db: Session, role_mapping: dict) -> None:
     unique_perm_codes = {code for perms in role_mapping.values() for code in perms}
     db_permissions = _get_or_create_permissions(db, unique_perm_codes)
     _get_or_create_roles(db, role_mapping, db_permissions)
-    logger.info("Successfully seed roles and permissions")
+    logger.info("Successfully seeded roles and permissions")
 
 
 def create_admin_user(db: Session, admin_data: dict, hashed_password: str) -> Users:
