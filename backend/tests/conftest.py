@@ -49,7 +49,6 @@ from helpers.db_seeder.generators.roles_perms import (
     generate_roles_from_excel_file,
 )
 
-
 TEST_DB_URL = "sqlite:///:memory:"
 engine = create_engine(
     TEST_DB_URL,
