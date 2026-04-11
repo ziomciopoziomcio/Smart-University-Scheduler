@@ -87,7 +87,7 @@ These tests run completely in memory without setting up the database or the Fast
 * **Date Logic:** Ensuring `start_date` is strictly before or equal to `end_date` (e.g., in `EmployeeAbsenceCreate`).
 * **String/Regex Constraints:** Verifying identical passwords during signup or checking if academic years follow the `YYYY/YYYY` regex.
 
-### 2.3 Example Tnit Test
+### 2.3 Example Unit Test
 
 ```python
 def test_employee_absence_create_dates():
