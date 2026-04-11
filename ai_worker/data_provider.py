@@ -204,7 +204,7 @@ class DataProvider:
             .apply(lambda x: x.split(".")[-1].strip().upper())
         )
         competencies_dict = (
-            competencies_df.groupby(["cource_code", "normalized_class_type"])[
+            competencies_df.groupby(["course_code", "normalized_class_type"])[
                 "employee_id"
             ]
             .apply(lambda x: x.unique().tolist())
