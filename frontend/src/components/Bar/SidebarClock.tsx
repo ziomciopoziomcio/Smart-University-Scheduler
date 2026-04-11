@@ -10,12 +10,18 @@ export default function SidebarClock({open}: { open: boolean }) {
     useEffect(() => {
         const timer = setInterval(() => {
             setCurrentTime(new Date());
-        }, 1000);
+        if (!open) {
+            return;
+        }
 
-        return () => {
-            clearInterval(timer)
-        };
-    }, []);
+        setCurrentTime(new Date());
+
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 60000);
+
+        return () => clearInterval(timer);
+    }, [open]);
 
     if (!open) {
         return (
