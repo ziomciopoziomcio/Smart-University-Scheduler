@@ -7,10 +7,9 @@ import ResetPasswordPage from './pages/Auth/ResetPasswordPage.tsx'
 import MyPlan from './pages/Plan/MyPlan.tsx';
 import ProtectedRoute from './components/Login/ProtectedRoute';
 import {useAuthStore} from '@store/useAuthStore';
-import type { AuthState } from '@store/useAuthStore';
 
 function AppRoute() {
-    const isAuthenticated = useAuthStore((state: AuthState) => state.isAuthenticated);
+    const isAuthenticated = useAuthStore((state) => state.token !== null);
 
     return (
         <BrowserRouter>

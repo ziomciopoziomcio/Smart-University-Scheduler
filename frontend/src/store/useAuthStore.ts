@@ -9,8 +9,6 @@ export interface AuthState {
     loading: boolean;
     error: string | null;
 
-    isAuthenticated: () => boolean;
-
     login: (email: string, password: string) => Promise<AuthResponse>;
     logout: () => void;
     initialize: () => Promise<void>;
@@ -24,7 +22,6 @@ export const useAuthStore = create<AuthState>()(
             loading: false,
             error: null,
 
-            isAuthenticated: () => !!get().token,
 
             login: async (email, password) => {
                 set({loading: true, error: null});
