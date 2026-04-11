@@ -28,7 +28,7 @@ export default function Sidebar() {
     const intl = useIntl();
 
     const menuItems = [
-        {id: 'sidebar.my_plan', icon: <PersonOutlined/>},
+        {id: 'sidebar.myPlan', icon: <PersonOutlined/>},
         {id: 'sidebar.plans', icon: <GroupsOutlined/>},
         {id: 'sidebar.chat', icon: <ChatBubbleOutline/>},
         {id: 'sidebar.suggestions', icon: <InboxOutlined/>},
