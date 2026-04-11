@@ -18,7 +18,9 @@ export default function SidebarClock({open}: { open: boolean }) {
             setCurrentTime(new Date());
         }, 60000);
 
-        return () => clearInterval(timer);
+        return () => {
+            clearInterval(timer)
+        };
     }, [open]);
 
     if (!open) {
