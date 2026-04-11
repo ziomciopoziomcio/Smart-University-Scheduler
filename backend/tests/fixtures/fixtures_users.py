@@ -1,6 +1,6 @@
 import pytest
 from src.users.models import Users, Permissions, Roles
-from src.users.auth import create_access_token, hash_password
+from src.users.auth import hash_password
 
 
 @pytest.fixture

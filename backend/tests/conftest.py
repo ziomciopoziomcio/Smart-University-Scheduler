@@ -42,7 +42,7 @@ from main import app
 from src.database.database import get_db
 from src.database.base import Base
 from src.users import models as user_models
-from src.users.auth import create_access_token, hash_password
+from src.users.auth import create_access_token
 
 from helpers.db_seeder.generators.roles_perms import (
     generate_permissions_from_excel_file,

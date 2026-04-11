@@ -1,6 +1,6 @@
 import pytest
 from datetime import date
-from src.users.models import Users, Permissions, Roles
+from src.users.models import Users, Roles
 from src.academics.models import (
     Students,
     Employees,
@@ -13,7 +13,6 @@ from src.academics.models import (
 from src.courses.models import (
     Study_program,
     Study_fields,
-    Major,
     Elective_block,
     Course_type_detail,
     ClassType,

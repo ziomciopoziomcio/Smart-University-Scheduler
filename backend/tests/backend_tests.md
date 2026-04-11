@@ -114,4 +114,3 @@ They are located in `test_main.py`
 * **Root Endpoint (`/`):** Verifies that the API successfully boots up and returns the standard `{"status": "SUS API is running!"}` response.
 * **Swagger UI (`/docs`):** Checks if the interactive API documentation is accessible and returns the standard HTTP 200 with the `swagger-ui` payload.
 * **ReDoc (`/redoc`):** Verifies that the alternative OpenAPI documentation renders correctly.
-
