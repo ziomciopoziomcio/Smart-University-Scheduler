@@ -51,14 +51,10 @@ class EvolutionEngine:
 
         def make_unassigned_gene(gene):
             unassigned_gene = copy.deepcopy(gene)
-            for attr_name, attr_value in (
-                ("timeslot_id", None),
-                ("room_id", None),
-                ("instructor_id", None),
-                ("active_weeks", []),
-            ):
-                if hasattr(unassigned_gene, attr_name):
-                    setattr(unassigned_gene, attr_name, attr_value)
+            unassigned_gene.timeslot_id = None
+            unassigned_gene.room_id = None
+            unassigned_gene.instructor_id = None
+            unassigned_gene.selected_pattern_index = 0
             return unassigned_gene
 
         def pick_safe_gene(
