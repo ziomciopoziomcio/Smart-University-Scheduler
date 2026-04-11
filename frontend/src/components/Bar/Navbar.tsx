@@ -1,6 +1,6 @@
 import {AppBar, Toolbar, Box, Typography, Avatar} from '@mui/material';
 import {useAuthStore} from '@store/useAuthStore';
-import {useIntl} from "react-intl";
+import {useIntl} from 'react-intl';
 
 //TODO : LOGOUT!!
 export default function Navbar() {
