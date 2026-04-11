@@ -166,9 +166,11 @@ def _create_evolution_engine(data: dict) -> evolution.EvolutionEngine:
     instructor_ids = (
         data["employees"]["id"].tolist() if "id" in data["employees"] else []
     )
-    instructor_assignments = DataProvider.get_instructor_assignments(
-        data["competencies"]
-    )
+    instructor_assignments = data.get("instructor_assignments")
+    if instructor_assignments is None:
+        instructor_assignments = DataProvider.get_instructor_assignments(
+            data["competencies"]
+        )
     return evolution.EvolutionEngine(
         available_rooms=room_ids,
         available_instructors=instructor_ids,
