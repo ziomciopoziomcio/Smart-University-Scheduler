@@ -87,6 +87,9 @@
     "suggestions": "Suggestions",
     "settings": "Settings"
   },
+  "navbar": {
+    "guest": "Guest"
+  },
   "calendar": {
     "month": "Month",
     "week": "Week",

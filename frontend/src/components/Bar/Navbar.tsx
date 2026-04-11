@@ -1,9 +1,16 @@
 import {AppBar, Toolbar, Box, Typography, Avatar} from '@mui/material';
+import {useAuthStore} from '@store/useAuthStore';
+import {useIntl} from "react-intl";
 
-//TODO: TAKE INITIALS FROM STORE
-//TODO: TAKE ROLE FROM STORE
-
+//TODO : LOGOUT!!
 export default function Navbar() {
+    const intl = useIntl();
+    const {user} = useAuthStore();
+    const initials = user
+        ? `${user.name.charAt(0)}${user.surname.charAt(0)}`.toUpperCase()
+        : '??';
+    const role = user?.degree || ''; //TODO: Here should be role, but for now we dont have any endpoint/knowledge where to find it
+
     return (
         <AppBar position="fixed" sx={{
             zIndex: (theme) => theme.zIndex.drawer + 1,
@@ -29,7 +36,7 @@ export default function Navbar() {
                             m: 0
                         }}
                     >
-                        Jan Kowalski
+                        {user ? `${user.name} ${user.surname}` : intl.formatMessage({id: 'navbar.guest'})}
                     </Typography>
                     <Typography
                         variant="caption"
@@ -40,10 +47,12 @@ export default function Navbar() {
                             m: 0
                         }}
                     >
-                        Student
+                        {role}
                     </Typography>
                 </Box>
-                <Avatar sx={{bgcolor: '#ddd', width: 50, height: 50, border: '2px solid white'}}>JK</Avatar>
+                <Avatar sx={{bgcolor: '#ddd', width: 50, height: 50, border: '2px solid white', color: '#005a8d'}}>
+                    {initials}
+                </Avatar>
             </Toolbar>
         </AppBar>
     );
