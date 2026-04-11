@@ -116,11 +116,11 @@ class EvolutionEngine:
                 if random.random() < self.mutation_rate:
                     gene.timeslot_id = random.randint(1, self.max_timeslots)
                 if random.random() < self.mutation_rate:
-                    if self.available_rooms:  # TODO: check data
-                        gene.room_id = random.choice(self.available_rooms)
+                    if gene.allowed_rooms:
+                        gene.room_id = random.choice(gene.allowed_rooms)
                 if random.random() < self.mutation_rate:
-                    if self.available_instructors:  # TODO: check data
-                        gene.instructor_id = random.choice(self.available_instructors)
+                    if gene.allowed_instructors:
+                        gene.instructor_id = random.choice(gene.allowed_instructors)
                 if random.random() < self.mutation_rate:
                     if (
                         gene.allowed_week_patterns

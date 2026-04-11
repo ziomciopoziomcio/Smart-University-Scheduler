@@ -196,6 +196,13 @@ class DataProvider:
         """
 
         requirements_df = data["requirements"]
+        rooms_df = data["rooms"]
+        competencies_df = data["competencies"].copy()
+        competencies_df["normalized_class_type"] = (
+            competencies_df["class_type"]
+            .astype(str)
+            .apply(lambda x: x.split(".")[-1].strip().upper())
+        )
         genes = []
 
         for _, row in requirements_df.iterrows():
@@ -204,6 +211,23 @@ class DataProvider:
 
             raw_class_type = str(row["class_type"])
             normalized_class_type = raw_class_type.split(".")[-1].strip().upper()
+
+            room_mask = rooms_df["room_capacity"] >= row["members_amount"]
+            if row["pc_needed"]:
+                room_mask &= rooms_df["pc_needed"] > 0  # TODO: check
+
+            if row["projector_needed"]:
+                room_mask &= rooms_df["projector_availability"].astype(bool)
+
+            allowed_rooms = rooms_df[room_mask]["room_id"].tolist()
+
+            instructor_mask = (competencies_df["course_code"] == row["course_code"]) & (
+                competencies_df["normalized_class_type"] == normalized_class_type
+            )
+
+            allowed_instructors = (
+                competencies_df[instructor_mask]["employee_id"].unique().tolist()
+            )
 
             gene = ClassSessionGene(
                 course_code=row["course_code"],
@@ -215,6 +239,8 @@ class DataProvider:
                 group_size=row["members_amount"],
                 allowed_week_patterns=patterns,
                 selected_pattern_index=0,
+                allowed_rooms=allowed_rooms,
+                allowed_instructors=allowed_instructors,
             )
             genes.append(gene)
 

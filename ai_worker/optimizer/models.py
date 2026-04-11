@@ -13,6 +13,8 @@ class ClassSessionGene:
     projector_needed: bool
     group_size: int
 
+    allowed_rooms: list[int] = field(default_factory=list)
+    allowed_instructors: list[int] = field(default_factory=list)
     allowed_week_patterns: list[list[int]] = field(default_factory=list)
 
     timeslot_id: int | None = None
