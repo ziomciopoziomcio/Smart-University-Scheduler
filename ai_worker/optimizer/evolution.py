@@ -118,12 +118,22 @@ class EvolutionEngine:
                 if random.random() < self.mutation_rate:
                     gene.timeslot_id = random.randint(1, self.max_timeslots)
                 if random.random() < self.mutation_rate:
-                    candidate_rooms = gene.allowed_rooms or self.available_rooms
+                    allowed_rooms = getattr(gene, "allowed_rooms", None)
+                    candidate_rooms = (
+                        self.available_rooms
+                        if allowed_rooms is None
+                        else allowed_rooms
+                    )
                     if candidate_rooms:
                         gene.room_id = random.choice(candidate_rooms)
                 if random.random() < self.mutation_rate:
+                    allowed_instructors = getattr(
+                        gene, "allowed_instructors", None
+                    )
                     candidate_instructors = (
-                        gene.allowed_instructors or self.available_instructors
+                        self.available_instructors
+                        if allowed_instructors is None
+                        else allowed_instructors
                     )
                     if candidate_instructors:
                         if (
