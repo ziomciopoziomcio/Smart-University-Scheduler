@@ -77,10 +77,27 @@ class EvolutionEngine:
             for g1, g2 in zip(parent1.genes, parent2.genes):
 
                 def get_resources(gene):
-                    return [
-                        f"ROOM_{gene.room_id}_TIME_{gene.timeslot_id}",
-                        f"INSTR_{gene.instructor_id}_TIME_{gene.timeslot_id}",
-                    ]
+                    resources = []
+                    timeslot_id = getattr(gene, "timeslot_id", None)
+                    if timeslot_id is None:
+                        return resources
+
+                    duration_slots = max(1, getattr(gene, "duration_slots", 1) or 1)
+                    active_weeks = getattr(gene, "active_weeks", None) or [None]
+
+                    for week in active_weeks:
+                        for slot_offset in range(duration_slots):
+                            occupied_timeslot = timeslot_id + slot_offset
+                            if getattr(gene, "room_id", None) is not None:
+                                resources.append(
+                                    f"ROOM_{gene.room_id}_WEEK_{week}_TIME_{occupied_timeslot}"
+                                )
+                            if getattr(gene, "instructor_id", None) is not None:
+                                resources.append(
+                                    f"INSTR_{gene.instructor_id}_WEEK_{week}_TIME_{occupied_timeslot}"
+                                )
+
+                    return resources
 
                 g1_res = get_resources(g1)
                 g2_res = get_resources(g2)
