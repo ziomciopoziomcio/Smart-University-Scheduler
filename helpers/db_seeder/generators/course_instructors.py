@@ -4,8 +4,8 @@ import math
 
 
 from sqlalchemy.orm import Session
-from src.courses.models import Course, ClassType, Courses_instructors
-from src.users.models import Users
+from backend.src.courses.models import Course, ClassType, Courses_instructors
+from backend.src.users.models import Users
 
 PATH_TO_FINAL_PROGRAMS = "../../data_collector/final-programy.json"
 
