@@ -506,11 +506,10 @@ def generate_course_instructors(
     session.flush()
     return db_course_instructors
 
-
 # if __name__ == "__main__":
-    # teachers = extract_teachers()
-    # print(teachers)
-    #
-    # generate_course_instructors(
-    #     sourcefile=PATH_TO_FINAL_PROGRAMS, num_of_groups=5, debug=True
-    # )  # missing args: session, db_teachers, db_courses
+#     teachers = extract_teachers()
+#     print(teachers)
+#
+#     generate_course_instructors(
+#         sourcefile=PATH_TO_FINAL_PROGRAMS, num_of_groups=5, debug=True
+#     )  # missing args: session, db_teachers, db_courses
