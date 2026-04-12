@@ -1,9 +1,11 @@
+// src/AppRoute.tsx
 import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom';
+import MainLayout from '@components/Layout/MainLayout';
 import LoginPage from './pages/Auth/LoginPage';
 import RegisterPage from './pages/Auth/RegisterPage';
-import ActivationPage from './pages/Auth/ActivationPage.tsx'
-import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage.tsx'
-import ResetPasswordPage from './pages/Auth/ResetPasswordPage.tsx'
+import ActivationPage from './pages/Auth/ActivationPage.tsx';
+import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage.tsx';
+import ResetPasswordPage from './pages/Auth/ResetPasswordPage.tsx';
 import MyPlan from './pages/Plan/MyPlan.tsx';
 import ProtectedRoute from './components/Login/ProtectedRoute';
 import {useAuthStore} from '@store/useAuthStore';
@@ -19,9 +21,13 @@ function AppRoute() {
                 <Route path="/activate" element={<ActivationPage/>}/>
                 <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
                 <Route path="/reset-password" element={<ResetPasswordPage/>}/>
+
                 <Route element={<ProtectedRoute/>}>
-                    <Route path="/plan" element={<MyPlan/>}/>
+                    <Route element={<MainLayout/>}>
+                        <Route path="/plan" element={<MyPlan/>}/>
+                    </Route>
                 </Route>
+
                 <Route
                     path="/"
                     element={
