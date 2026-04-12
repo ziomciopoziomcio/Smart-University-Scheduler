@@ -5,10 +5,20 @@ PATH_TO_FINAL_PROGRAMS = "../../data_collector/final-programy.json"
 
 
 def _normalize_whitespace(text: str) -> str:
+    """
+    Normalize whitespace
+    :param text: input text
+    :return: normalized text
+    """
     return re.sub(r"\s+", " ", text).strip()
 
 
 def clean_teacher_txt(text: str) -> str:
+    """
+    Cleans and normalizes a raw teacher text string.
+    :param text: input text
+    :return: cleaned text
+    """
     if not text:
         return ""
 
@@ -51,6 +61,11 @@ def extract_degree_and_name(text: str) -> tuple[str, str]:
 
 
 def rank_degree(degree: str) -> int:
+    """
+    Returns a numeric rank representing the academic degree hierarchy.
+    :param degree: degree as string
+    :return: rank
+    """
     ranking = {
         "prof. dr hab. inż.": 8,
         "prof. dr hab.": 7,
@@ -67,6 +82,11 @@ def rank_degree(degree: str) -> int:
 
 
 def split_name(name: str) -> tuple[str, str]:
+    """
+     Splits a full name string into first name(s) and last name.
+    :param name: Full name as string
+    :return: splitted name and last name
+    """
     name = _normalize_whitespace(name)
     if not name:
         return "", ""
@@ -81,6 +101,12 @@ def split_name(name: str) -> tuple[str, str]:
 
 
 def _add_person(people: dict[str, dict], raw_person: str) -> None:
+    """
+    Adds or updates a person entry in the `people` dictionary based on raw text input.
+    :param people: people data
+    :param raw_person: raw input string representing a person
+    :return: None
+    """
     cleaned = clean_teacher_txt(raw_person)
     if not cleaned:
         return
@@ -112,6 +138,11 @@ def _add_person(people: dict[str, dict], raw_person: str) -> None:
 def extract_teachers(
     sourcefile: str = PATH_TO_FINAL_PROGRAMS,
 ) -> list[dict[str, str]]:
+    """
+    Extracts unique teachers from a JSON file.
+    :param sourcefile: path to JSON file containing study field data
+    :return: a sorted list of unique teachers
+    """
     with open(sourcefile, "r", encoding="utf-8") as f:
         data = json.load(f)
 
