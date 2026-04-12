@@ -1,5 +1,10 @@
 import json
 import re
+import math
+
+from sqlalchemy.orm import Session
+from src.courses.models import Course, ClassType, Courses_instructors
+from src.users.models import Users
 
 PATH_TO_FINAL_PROGRAMS = "../../data_collector/final-programy.json"
 
@@ -85,7 +90,7 @@ def split_name(name: str) -> tuple[str, str]:
     """
      Splits a full name string into first name(s) and last name.
     :param name: Full name as string
-    :return: splitted name and last name
+    :return: separated name and last name
     """
     name = _normalize_whitespace(name)
     if not name:
@@ -133,6 +138,218 @@ def _add_person(people: dict[str, dict], raw_person: str) -> None:
     old_rank = rank_degree(people[key]["degree"])
     if new_rank > old_rank:
         people[key]["degree"] = degree
+
+
+def _parse_course_code(course_code: str) -> int:
+    """
+    Extracts digits from a course code string and converts them to an integer.
+    :param course_code: String containing a course code.
+    :return: Course code as an integer.
+    """
+
+    digits = re.sub(r"\D", "", course_code)
+    return int(digits) if digits else 0
+
+
+def _round_up_to_multiple(x: float, y: int) -> int:
+    """
+    Rounds x up to multiple of y.
+    :param x: float number.
+    :param y: int number to round to.
+    :return: rounded number.
+    """
+    return math.ceil(x / y) * y
+
+
+def _find_teachers(
+    teachers: list[dict[str, str]], string: str
+) -> dict[str, str] | None:
+    """
+    Finds a teacher in the list of teachers based on the presence of their first and last name in the given string.
+    :param teachers: list of teachers.
+    :param string: string containing name and surname of the teacher
+    :return: dictionary representing the teacher if found, otherwise None.
+    """
+    for el in teachers:
+        name = el.get("first_name", None)
+        lastname = el.get("last_name", None)
+
+        if name is None or lastname is None:
+            continue
+
+        if name in string and lastname in string:
+            return el
+
+    return None
+
+
+def _get_hours_dict(subject) -> dict[str, str]:
+    """
+    Extracts hours information for different class types from the subject dictionary.
+    :param subject: subject dictionary.
+    :return: dictionary with class types as keys and corresponding hours as values.
+    """
+    hours_dict: dict[str, str] = {}
+    forms = ["W", "Ć", "L", "S", "I", "E-Learn."]
+    for form in forms:
+        hour = subject.get(form, None)
+        if hour is not None:
+            hours_dict[form] = hour
+    return hours_dict
+
+
+def _get_hours_needed(subject: dict, num_of_groups: int) -> dict[str, int]:
+    """
+    Computes the required number of teaching hours for each class type in a subject.
+    The function:
+    - Retrieves a dictionary of base hours per class type using `_get_hours_dict`.
+    - Multiplies hours by the number of groups for all non-lecture classes.
+    - Keeps lecture ("W") hours unchanged (multiplied by 1).
+    - Skips entries with empty hour values.
+
+    :param subject: dictionary containing subject data
+    :param num_of_groups: number of groups
+    :return: directory with class types as keys and required hours as values
+    """
+    hours: dict[str, str] = _get_hours_dict(subject)
+    res: dict[str, int] = {}
+    for k, v in zip(hours.keys(), hours.values()):
+        if v == "":
+            continue
+
+        if k.upper() != "W":
+            res[k] = int(v) * num_of_groups
+        else:
+            res[k] = int(v) * 1
+
+    return res
+
+
+def _get_all_teachers(
+    subject: dict, teachers: list[dict[str, str]]
+) -> list[dict[str, str]]:
+    """
+    Gets all teachers (course leader and instructors) in one list
+    :param subject: dictionary representing subject data
+    :param teachers: teacher list
+    :return: all teachers for the subject in one list
+    """
+    all_teachers = [subject.get("kierownik", "")] + subject.get("realizatorzy", [])
+
+    all_teachers_dict: list[dict[str, str]] = []
+    for el in all_teachers:
+        found = _find_teachers(teachers, el)
+        if found is not None and found not in all_teachers_dict:
+            all_teachers_dict.append(found)
+
+    return all_teachers_dict
+
+
+def _find_teacher_obj(
+    degree: str,
+    name: str,
+    lastname: str,
+    teachers: list[dict[tuple[str | None, str, str, str, str], Users]],
+) -> Users | None:
+    """
+    Searches for a teacher object in a nested teacher structure based on degree, name, and surname.
+    :param degree: degree of the teacher
+    :param name: name of the teacher
+    :param lastname: lastname of the teacher
+    :param teachers: teachers list
+    :return: found teacher object or None if not found
+    """
+    for teacher_dict in teachers:
+        for user_key, user in teacher_dict.items():
+            d, n, s, _, _ = user_key
+            if d == degree and n == name and s == lastname:
+                return user
+    return None
+
+
+def _map_course_type(type: str) -> ClassType | None:
+    """
+    Maps course types
+    :param type: Course type as string
+    :return: Course type as enum
+    """
+    if type == "W":
+        return ClassType.LECTURE
+    elif type == "Ć":
+        return ClassType.TUTORIALS
+    elif type == "L":
+        return ClassType.LABORATORY
+    elif type == "S":
+        return ClassType.SEMINAR
+    elif type == "E-Learn.":
+        return ClassType.ELEARNING
+    elif type == "I":
+        return ClassType.OTHER
+    return None
+
+
+def _add_course_instructors_to_db(
+    session: Session,
+    entries: dict[tuple[str, str, str, int, str], int],
+    teachers: list[dict[tuple[str | None, str, str, str, str], Users]],
+    courses: dict[int, Course],
+) -> dict[tuple[str, str, str, int, str], Courses_instructors]:
+    """
+    Inserts course instructor assignments into the database session based on
+    aggregated teaching entries.
+    :param session: database session
+    :param entries: dict mapping of (name, surname, degree, course_code, class_form) to hours.
+    :param teachers: teachers data generated by generate_users function
+    :param courses: courses data generated by generate_courses function
+    :return: dict mapping of (name, surname, degree, course_code, class_form) to created Courses_instructors objects
+    """
+    db_course_instructors: dict[tuple[str, str, str, int, str], Courses_instructors] = (
+        {}
+    )
+    for k, v in zip(entries.keys(), entries.values()):
+        name, lastname, degree, cc, form = k
+        # get course
+        course_obj: Course | None = courses.get(cc, None)
+        if course_obj is None:
+            print(f"Course not found for course code {cc}")
+            continue
+        course_id = course_obj.course_code
+
+        # get teacher
+        teacher_obj: Users | None = _find_teacher_obj(degree, name, lastname, teachers)
+        if teacher_obj is None:
+            print(f"Teacher not found for {name} {lastname} with degree {degree}")
+            continue
+        teacher_id = teacher_obj.id
+
+        # get form
+        type: ClassType | None = _map_course_type(form)
+        if type is None:
+            print(f"Unknown class type {form} for course code {cc}")
+            continue
+
+        # get hours
+        hours: int = v
+
+        # course_instructor object
+        ci_obj = Courses_instructors(
+            employee=teacher_id, course=course_id, class_type=type, hours=hours
+        )
+        session.add(ci_obj)
+        db_course_instructors[k] = ci_obj
+
+    return db_course_instructors
+
+
+def _debug_print(debug: bool, text: str) -> None:
+    """
+    Prints a debug message if debugging mode is enabled.
+    :param debug: flag indicating whether to print the message
+    :param text: text to print
+    :return: None
+    """
+    if debug:
+        print(text)
 
 
 def extract_teachers(
