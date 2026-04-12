@@ -210,7 +210,7 @@ def _get_hours_needed(subject: dict, num_of_groups: int) -> dict[str, int]:
 
     :param subject: dictionary containing subject data
     :param num_of_groups: number of groups
-    :return: directory with class types as keys and required hours as values
+    :return: dictionary with class types as keys and required hours as values
     """
     hours: dict[str, str] = _get_hours_dict(subject)
     res: dict[str, int] = {}
