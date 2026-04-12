@@ -2,6 +2,7 @@ import json
 import re
 import math
 
+
 from sqlalchemy.orm import Session
 from src.courses.models import Course, ClassType, Courses_instructors
 from src.users.models import Users
@@ -380,6 +381,47 @@ def extract_teachers(
     )
 
 
+def _get_course_instructor_key(
+    teacher: dict[str, str], course_code: int, course_type: str
+) -> tuple[str, str, str, int, str]:
+    """
+    Generates course instructor key
+    :param teacher: teacher dict
+    :param course_code: course code
+    :param course_type: course type
+    :return: key representing course_instructor
+    """
+    key = (
+        teacher["first_name"],
+        teacher["last_name"],
+        teacher["degree"],
+        course_code,
+        course_type,
+    )
+    return key
+
+
+def _update_unique_entries(
+    key: tuple[str, str, str, int, str],
+    unique_entries: dict[tuple[str, str, str, int, str], int],
+    curr_hours: int,
+) -> dict[tuple[str, str, str, int, str], int]:
+    """
+    Updates unique entries
+    :param key: current key
+    :param unique_entries: dict containing unique entries
+    :param curr_hours: new hours
+    :return: updated unique entries
+    """
+    if key in unique_entries.keys():
+        curr = unique_entries[key]
+        curr += curr_hours
+        unique_entries[key] = curr
+    else:
+        unique_entries[key] = curr_hours
+    return unique_entries
+
+
 def generate_course_instructors(
     session: Session,
     sourcefile: str,
@@ -405,7 +447,7 @@ def generate_course_instructors(
         data = json.load(f)
 
     unique_entries: dict[tuple[str, str, str, int, str], int] = {}
-    # name, lastname, degree, course_code, form, hours
+    # name, lastname, degree, course_code, class_type, hours
 
     for kierunek in data:
         for semestr in kierunek.get("semestry", []):
@@ -429,19 +471,13 @@ def generate_course_instructors(
                         if num_of_teachers > 0:
                             curr_hours = hours_needed[form]
                             _debug_print(debug, f"{all_teachers[0]} : {curr_hours}")
-                            key = (
-                                all_teachers[0]["first_name"],
-                                all_teachers[0]["last_name"],
-                                all_teachers[0]["degree"],
-                                course_code,
-                                form,
+
+                            key: tuple[str, str, str, int, str] = (
+                                _get_course_instructor_key(
+                                    all_teachers[0], course_code, form
+                                )
                             )
-                            if key in unique_entries.keys():
-                                curr = unique_entries[key]
-                                curr += curr_hours
-                                unique_entries[key] = curr
-                            else:
-                                unique_entries[key] = curr_hours
+                            _update_unique_entries(key, unique_entries, curr_hours)
 
                     else:
                         for t in all_teachers:
@@ -450,19 +486,11 @@ def generate_course_instructors(
                                 int(hours_dict[form]),
                             )
                             _debug_print(debug, f"{t} : {curr_hours}")
-                            key = (
-                                t["first_name"],
-                                t["last_name"],
-                                t["degree"],
-                                course_code,
-                                form,
+
+                            key: tuple[str, str, str, int, str] = (
+                                _get_course_instructor_key(t, course_code, form)
                             )
-                            if key in unique_entries.keys():
-                                curr = unique_entries[key]
-                                curr += curr_hours
-                                unique_entries[key] = curr
-                            else:
-                                unique_entries[key] = curr_hours
+                            _update_unique_entries(key, unique_entries, curr_hours)
 
                 _debug_print(debug, "")
                 _debug_print(debug, "")
@@ -480,6 +508,9 @@ def generate_course_instructors(
 
 
 # if __name__ == "__main__":
-#     teachers = extract_teachers()
-#
-#     print(teachers)
+    # teachers = extract_teachers()
+    # print(teachers)
+    #
+    # generate_course_instructors(
+    #     sourcefile=PATH_TO_FINAL_PROGRAMS, num_of_groups=5, debug=True
+    # )  # missing args: session, db_teachers, db_courses
