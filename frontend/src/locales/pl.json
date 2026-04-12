@@ -79,5 +79,48 @@
     "successMailSent": "Jeśli konto istnieje, link do resetowania został wysłany.",
     "errorSending": "Błąd podczas wysyłania kodu resetującego.",
     "errorInvalidToken": "Link resetujący jest nieprawidłowy lub wygasł."
+  },
+  "sidebar": {
+    "myPlan": "Mój plan",
+    "plans": "Plany",
+    "chat": "Czat",
+    "suggestions": "Sugestie",
+    "settings": "Ustawienia"
+  },
+  "navbar": {
+    "guest": "Gość"
+  },
+  "calendar": {
+    "month": "Miesiąc",
+    "week": "Tydzień",
+    "day": "Dzień",
+    "agenda": "Terminarz",
+    "today": "Dzisiaj",
+    "monday": "Poniedziałek",
+    "tuesday": "Wtorek",
+    "wednesday": "Środa",
+    "thursday": "Czwartek",
+    "friday": "Piątek",
+    "saturday": "Sobota",
+    "sunday": "Niedziela",
+    "january": "Styczeń",
+    "february": "Luty",
+    "march": "Marzec",
+    "april": "Kwiecień",
+    "may": "Maj",
+    "june": "Czerwiec",
+    "july": "Lipiec",
+    "august": "Sierpień",
+    "september": "Wrzesień",
+    "october": "Październik",
+    "november": "Listopad",
+    "december": "Grudzień",
+    "mondayShort": "Pon",
+    "tuesdayShort": "Wt",
+    "wednesdayShort": "Śr",
+    "thursdayShort": "Czw",
+    "fridayShort": "Pt",
+    "saturdayShort": "Sob",
+    "sundayShort": "Niedz"
   }
 }
