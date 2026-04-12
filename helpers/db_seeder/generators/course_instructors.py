@@ -480,17 +480,23 @@ def generate_course_instructors(
                             _update_unique_entries(key, unique_entries, curr_hours)
 
                     else:
-                        for t in all_teachers:
-                            curr_hours = _round_up_to_multiple(
-                                hours_needed[form] / num_of_teachers,
-                                int(hours_dict[form]),
-                            )
-                            _debug_print(debug, f"{t} : {curr_hours}")
+                        if num_of_teachers > 0:
+                            for t in all_teachers:
+                                curr_hours = _round_up_to_multiple(
+                                    hours_needed[form] / num_of_teachers,
+                                    int(hours_dict[form]),
+                                )
+                                _debug_print(debug, f"{t} : {curr_hours}")
 
-                            key: tuple[str, str, str, int, str] = (
-                                _get_course_instructor_key(t, course_code, form)
+                                key: tuple[str, str, str, int, str] = (
+                                    _get_course_instructor_key(t, course_code, form)
+                                )
+                                _update_unique_entries(key, unique_entries, curr_hours)
+                        else:
+                            _debug_print(
+                                debug,
+                                f"Skipping form {form} for {subject_name} - {course_code}: no teachers assigned",
                             )
-                            _update_unique_entries(key, unique_entries, curr_hours)
 
                 _debug_print(debug, "")
                 _debug_print(debug, "")
