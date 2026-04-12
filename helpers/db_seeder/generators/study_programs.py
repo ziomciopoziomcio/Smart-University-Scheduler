@@ -40,7 +40,7 @@ def generate_study_programs(
                 program_name=description,
             )
             session.add(sp_obj)
-            db_study_programmes[study_field_name, start_year] = sp_obj
+            db_study_programmes[(study_field_name, start_year)] = sp_obj
 
     session.flush()
     return db_study_programmes
