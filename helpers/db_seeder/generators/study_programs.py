@@ -28,15 +28,9 @@ def generate_study_programs(
     db_study_programmes: dict[tuple[str, str], Study_program] = {}
     # study_field_name, start_year
 
-    for study_field_name in db_study_fields.keys():
+    for study_field_name, study_field_obj in db_study_fields.items():
         for start_year in start_years:
             description = _create_description(study_field_name, start_year)
-
-            study_field_obj = db_study_fields.get(study_field_name, None)
-            if study_field_obj is None:
-                print(f"Study field {study_field_name} not found in database")
-                continue
-
             study_field_id = study_field_obj.id
 
             # add to db
