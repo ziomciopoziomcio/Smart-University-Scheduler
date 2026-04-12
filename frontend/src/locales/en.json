@@ -79,5 +79,48 @@
     "successMailSent": "If the account exists, a reset link has been sent.",
     "errorSending": "Error sending the reset code.",
     "errorInvalidToken": "The reset link is invalid or has expired."
+  },
+  "sidebar": {
+    "myPlan": "My plan",
+    "plans": "Plans",
+    "chat": "Chat",
+    "suggestions": "Suggestions",
+    "settings": "Settings"
+  },
+  "navbar": {
+    "guest": "Guest"
+  },
+  "calendar": {
+    "month": "Month",
+    "week": "Week",
+    "day": "Day",
+    "agenda": "Agenda",
+    "today": "Today",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December",
+    "mondayShort": "Mon",
+    "tuesdayShort": "Tue",
+    "wednesdayShort": "Wed",
+    "thursdayShort": "Thu",
+    "fridayShort": "Fri",
+    "saturdayShort": "Sat",
+    "sundayShort": "Sun"
   }
 }
