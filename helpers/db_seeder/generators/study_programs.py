@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from backend.src.courses.models import Study_fields, Study_program
 
 
-def _create_description(study_field_name: str, start_year: str):
+def _create_description(study_field_name: str, start_year: str) -> str:
     """
     Generates a description of a study field.
     :param study_field_name: study field name
