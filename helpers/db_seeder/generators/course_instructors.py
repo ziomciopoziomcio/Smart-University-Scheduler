@@ -268,23 +268,23 @@ def _find_teacher_obj(
     return None
 
 
-def _map_course_type(type: str) -> ClassType | None:
+def _map_course_type(class_type: str) -> ClassType | None:
     """
     Maps course types
-    :param type: Course type as string
+    :param class_type: Course type as string
     :return: Course type as enum
     """
-    if type == "W":
+    if class_type == "W":
         return ClassType.LECTURE
-    elif type == "Ć":
+    elif class_type == "Ć":
         return ClassType.TUTORIALS
-    elif type == "L":
+    elif class_type == "L":
         return ClassType.LABORATORY
-    elif type == "S":
+    elif class_type == "S":
         return ClassType.SEMINAR
-    elif type == "E-Learn.":
+    elif class_type == "E-Learn.":
         return ClassType.ELEARNING
-    elif type == "I":
+    elif class_type == "I":
         return ClassType.OTHER
     return None
 
