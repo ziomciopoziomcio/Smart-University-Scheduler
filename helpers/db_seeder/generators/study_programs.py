@@ -25,7 +25,7 @@ def generate_study_programs(
     """
     start_years = ["2023/24"]
 
-    db_study_programmes: dict[tuple[str, str], Study_program] = {}
+    db_study_programs: dict[tuple[str, str], Study_program] = {}
     # study_field_name, start_year
 
     for study_field_name, study_field_obj in db_study_fields.items():
@@ -40,7 +40,7 @@ def generate_study_programs(
                 program_name=description,
             )
             session.add(sp_obj)
-            db_study_programmes[(study_field_name, start_year)] = sp_obj
+            db_study_programs[(study_field_name, start_year)] = sp_obj
 
     session.flush()
-    return db_study_programmes
+    return db_study_programs
