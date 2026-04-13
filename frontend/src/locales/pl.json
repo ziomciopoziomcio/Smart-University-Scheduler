@@ -15,8 +15,11 @@
     "validation": {
       "error": "Niepoprawny email lub hasło",
       "success": "Pomyślnie zalogowano",
-      "2faRequired": "Wymagana weryfikacja dwuetapowa",
-      "providerError": "Błąd dostawcy uwierzytelniania"
+      "providerError": "Błąd dostawcy uwierzytelniania",
+      "2fa": {
+        "2faRequired": "Wymagana weryfikacja dwuetapowa",
+        "2faDescription": "Wysłaliśmy na twój e-mail kod 6-cyfrowy. Wpisz go poniżej."
+      }
     }
   },
   "register": {

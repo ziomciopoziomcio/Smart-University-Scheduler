@@ -15,8 +15,11 @@
     "validation": {
       "error": "Incorrect email or password",
       "success": "Successfully logged in",
-      "2faRequired": "Two-factor authentication required",
-      "providerError": "Authentication provider error"
+      "providerError": "Authentication provider error",
+      "2fa": {
+        "2faRequired": "Two-factor authentication required",
+        "2faDescription": "We sent a 6-digit code to your e-mail. Please enter it below."
+      }
     }
   },
   "register": {

@@ -1,19 +1,31 @@
 import {useState} from 'react';
-import {Button, Stack, TextField, Alert, CircularProgress, InputAdornment} from '@mui/material';
+import {Button, Stack, TextField, Alert, CircularProgress, InputAdornment, Typography} from '@mui/material';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useNavigate} from 'react-router-dom';
 import AuthLayout from '@components/Login/AuthLayout';
 import AuthPasswordField from '@components/Login/AuthPasswordField';
 import {useAuthStore} from '@store/useAuthStore';
 import {Email} from "@mui/icons-material";
+import OtpInput from '@components/Login/OtpInput';
+import {verify2FA} from '@api/auth';
 
 function LoginPage() {
     const intl = useIntl();
     const navigate = useNavigate();
-    const {login, loading, error} = useAuthStore();
+
+
+    const {login, finalizeLogin, loading, error} = useAuthStore();
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    // DEBUG: SET initialState to '2fa' to view 2FA verification step
+    const [step, setStep] = useState<'login' | '2fa'>('2fa');
+
+    const [preToken, setPreToken] = useState('');
+    const [totpCode, setTotpCode] = useState('');
+    const [verifyLoading, setVerifyLoading] = useState(false);
+    const [verifyError, setVerifyError] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -21,7 +33,8 @@ function LoginPage() {
             try {
                 const data = await login(email, password);
                 if (data.requires_2fa) {
-                    alert(intl.formatMessage({id: 'login.validation.2faRequired'}));
+                    setPreToken(data.access_token);
+                    setStep('2fa');
                 } else {
                     navigate('/plan', {replace: true});
                 }
@@ -32,6 +45,62 @@ function LoginPage() {
 
         void executeLogin();
     };
+
+    const handle2FASubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setVerifyLoading(true);
+        setVerifyError('');
+        try {
+            const data = await verify2FA(totpCode, preToken);
+            await finalizeLogin(data.access_token);
+            navigate('/plan', {replace: true});
+        } catch (err: any) {
+            setVerifyError(err.message || 'Invalid 2FA code');
+        } finally {
+            setVerifyLoading(false);
+        }
+    };
+
+    if (step === '2fa') {
+        return (
+            <AuthLayout title={intl.formatMessage({id: 'login.validation.2fa.2faRequired', defaultMessage: 'Weryfikacja 2FA'})}>
+                <Typography variant="body2" sx={{mb: 3, textAlign: 'center', color: 'text.secondary'}}>
+                    {intl.formatMessage({
+                        id: 'login.validation.2fa.2faDescription',
+                        defaultMessage: 'Enter code'
+                    })}
+                </Typography>
+                <Stack component="form" spacing={4} width="100%" onSubmit={handle2FASubmit}>
+                    {verifyError && <Alert severity="error">{verifyError}</Alert>}
+
+                    <OtpInput
+                        value={totpCode}
+                        onChange={(newCode) => setTotpCode(newCode)}
+                        disabled={verifyLoading}
+                    />
+
+                    <Stack spacing={2}>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            disabled={verifyLoading || totpCode.length !== 6}
+                            size="large"
+                            startIcon={verifyLoading && <CircularProgress size={20} color="inherit"/>}
+                        >
+                            {verifyLoading ? 'Sprawdzanie...' : 'Weryfikuj kod'}
+                        </Button>
+                        <Button
+                            variant="text"
+                            onClick={() => setStep('login')}
+                            disabled={verifyLoading}
+                        >
+                            Wróć do logowania
+                        </Button>
+                    </Stack>
+                </Stack>
+            </AuthLayout>
+        );
+    }
 
     return (
         <AuthLayout title={<FormattedMessage id="login.title"/>}>
