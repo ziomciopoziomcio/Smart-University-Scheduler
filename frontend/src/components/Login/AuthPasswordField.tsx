@@ -42,7 +42,7 @@ function AuthPasswordField({
             ) : null,
             endAdornment: (
                 <InputAdornment position="end">
-                    <IconButton onClick={onTogglePassword} edge="end" disabled={disabled}>
+                    <IconButton onClick={onTogglePassword} edge="end" disabled={disabled} >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                 </InputAdornment>
