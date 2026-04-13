@@ -11,6 +11,16 @@ declare module '@mui/material/styles' {
             brand: string;
         };
     }
+    interface Theme {
+        iconSizes: {
+            textFieldDecorator?: string;
+        };
+    }
+    interface ThemeOptions {
+        iconSizes?: {
+            textFieldDecorator?: string;
+        };
+    }
 }
 
 export const theme = createTheme({
@@ -26,6 +36,9 @@ export const theme = createTheme({
         gradients: {
             brand: 'linear-gradient(135deg, #045f8d 0%, #004566 100%)',
         },
+    },
+    iconSizes: {
+        textFieldDecorator: '16px'
     },
     shape: {
         borderRadius: 12,

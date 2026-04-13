@@ -1,10 +1,11 @@
 import {useState} from 'react';
-import {Button, Stack, TextField, Alert, CircularProgress} from '@mui/material';
+import {Button, Stack, TextField, Alert, CircularProgress, InputAdornment} from '@mui/material';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useNavigate} from 'react-router-dom';
 import AuthLayout from '@components/Login/AuthLayout';
 import AuthPasswordField from '@components/Login/AuthPasswordField';
 import {useAuthStore} from '@store/useAuthStore';
+import {Email} from "@mui/icons-material";
 
 function LoginPage() {
     const intl = useIntl();
@@ -49,6 +50,15 @@ function LoginPage() {
                     type="email"
                     disabled={loading}
                     required
+                    slotProps={{
+        input: {
+            startAdornment: !email ? (
+                <InputAdornment position="start">
+                    <Email sx={{ fontSize: (theme) => theme.iconSizes.textFieldDecorator }} />
+                </InputAdornment>
+            ) : null,
+        }
+    }}
                 />
 
                 <AuthPasswordField
