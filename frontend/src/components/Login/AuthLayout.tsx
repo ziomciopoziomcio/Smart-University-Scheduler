@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import {Box, Paper, Typography} from '@mui/material';
 import Logo from '@assets/Logo.svg';
+import {theme} from "../../theme/theme.ts";
 
 type Props = {
     title: ReactNode;
@@ -15,7 +16,7 @@ function AuthLayout({title, children}: Props) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: (theme) => `linear-gradient(90deg, ${theme.palette.background.default} 0%, ${theme.palette.primary.dark} 100%)`,
+                background: theme.palette.gradients.brand,
                 p: 2,
             }}
         >

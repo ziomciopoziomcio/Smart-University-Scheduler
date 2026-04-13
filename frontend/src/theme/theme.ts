@@ -1,14 +1,30 @@
 import {createTheme} from '@mui/material/styles';
 
+declare module '@mui/material/styles' {
+    interface Palette {
+        gradients: {
+            brand: string;
+        };
+    }
+    interface PaletteOptions {
+        gradients?: {
+            brand: string;
+        };
+    }
+}
+
 export const theme = createTheme({
     palette: {
         primary: {
-            main: '#045f8d',
-            dark: '#004566',
+            main: '#045f8d'
         },
         background: {
-            default: '#006494',
+            // default: '#eaedf5',
+            default: '#f5f7fb',
             paper: '#ffffff',
+        },
+        gradients: {
+            brand: 'linear-gradient(135deg, #045f8d 0%, #004566 100%)',
         },
     },
     shape: {

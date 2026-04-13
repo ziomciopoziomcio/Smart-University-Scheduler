@@ -36,7 +36,7 @@ export default function SidebarClock({open}: { open: boolean }) {
             display: 'flex',
             alignItems: 'center',
             gap: 1.5,
-            bgcolor: 'white',
+            color: 'white',
             p: '10px 15px',
             borderRadius: '16px',
             width: '100%',

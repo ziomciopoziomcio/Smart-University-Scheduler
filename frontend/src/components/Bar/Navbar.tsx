@@ -1,6 +1,7 @@
 import {AppBar, Toolbar, Box, Typography, Avatar} from '@mui/material';
 import {useAuthStore} from '@store/useAuthStore';
 import {useIntl} from 'react-intl';
+import {theme} from "../../theme/theme.ts";
 
 //TODO : LOGOUT!!
 export default function Navbar() {
@@ -14,10 +15,11 @@ export default function Navbar() {
     return (
         <AppBar position="fixed" sx={{
             zIndex: (theme) => theme.zIndex.drawer + 1,
-            bgcolor: '#005a8d',
+            background: theme.palette.gradients.brand,
             height: 80,
             justifyContent: 'center',
-            boxShadow: 'none'
+            boxShadow: 'none',
+            borderRadius: 0
         }}>
             <Toolbar sx={{justifyContent: 'flex-end', gap: 2}}>
                 <Box sx={{
@@ -50,7 +52,7 @@ export default function Navbar() {
                         {role}
                     </Typography>
                 </Box>
-                <Avatar sx={{bgcolor: '#ddd', width: 50, height: 50, border: '2px solid white', color: '#005a8d'}}>
+                <Avatar sx={{color: '#ddd', width: 50, height: 50, border: '2px solid white', background: '#005a8d'}}>
                     {initials}
                 </Avatar>
             </Toolbar>
