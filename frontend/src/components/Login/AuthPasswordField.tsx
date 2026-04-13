@@ -1,6 +1,5 @@
 import {IconButton, InputAdornment, TextField} from '@mui/material';
 import { Lock, Visibility, VisibilityOff } from '@mui/icons-material';
-import {theme} from "../../theme/theme.ts"
 
 type Props = {
     label: string;
@@ -35,6 +34,7 @@ function AuthPasswordField({
 
             slotProps={{
         input: {
+            sx: { fontSize: (theme) => theme.fontSizes.medium },
             startAdornment: !value ? (
                 <InputAdornment position="start">
                     <Lock sx={{ fontSize: (theme) => theme.iconSizes.textFieldDecorator }}/>
@@ -47,6 +47,9 @@ function AuthPasswordField({
                     </IconButton>
                 </InputAdornment>
             ),
+        },
+        inputLabel: {
+            sx: { fontSize: (theme) => theme.fontSizes.small }
         }
     }}
         />

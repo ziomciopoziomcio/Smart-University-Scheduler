@@ -60,6 +60,7 @@ function AuthLayout({title, children}: Props) {
                         mb: 4,
                         fontWeight: 700,
                         textAlign: 'center',
+                        fontSize: theme.fontSizes.huge,
                     }}
                 >
                     {title}

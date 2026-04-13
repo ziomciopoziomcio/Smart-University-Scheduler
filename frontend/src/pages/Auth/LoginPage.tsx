@@ -52,11 +52,15 @@ function LoginPage() {
                     required
                     slotProps={{
         input: {
+            sx: { fontSize: (theme) => theme.fontSizes.medium },
             startAdornment: !email ? (
                 <InputAdornment position="start">
                     <Email sx={{ fontSize: (theme) => theme.iconSizes.textFieldDecorator }} />
                 </InputAdornment>
             ) : null,
+        },
+        inputLabel: {
+            sx: { fontSize: (theme) => theme.fontSizes.small }
         }
     }}
                 />

@@ -15,11 +15,25 @@ declare module '@mui/material/styles' {
         iconSizes: {
             textFieldDecorator?: string;
         };
+        fontSizes:{
+            tiny: string;
+            small: string;
+            medium: string;
+            large: string;
+            huge: string;
+        }
     }
     interface ThemeOptions {
         iconSizes?: {
             textFieldDecorator?: string;
         };
+        fontSizes:{
+            tiny: string;
+            small: string;
+            medium: string;
+            large: string;
+            huge: string;
+        }
     }
 }
 
@@ -39,6 +53,13 @@ export const theme = createTheme({
     },
     iconSizes: {
         textFieldDecorator: '16px'
+    },
+    fontSizes: {
+        tiny: '0.75rem',
+        small: '0.875rem',
+        medium: '1rem',
+        large: '1.25rem',
+        huge: '1.5rem',
     },
     shape: {
         borderRadius: 12,
