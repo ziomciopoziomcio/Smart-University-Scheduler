@@ -34,7 +34,7 @@ function AuthPasswordField({
 
             slotProps={{
         input: {
-            sx: { fontSize: (theme) => theme.fontSizes.medium },
+            sx: { fontSize: (theme) => theme.fontSizes.small },
             startAdornment: !value ? (
                 <InputAdornment position="start">
                     <Lock sx={{ fontSize: (theme) => theme.iconSizes.textFieldDecorator }}/>

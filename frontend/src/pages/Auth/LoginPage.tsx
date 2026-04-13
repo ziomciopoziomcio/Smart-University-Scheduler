@@ -51,18 +51,18 @@ function LoginPage() {
                     disabled={loading}
                     required
                     slotProps={{
-        input: {
-            sx: { fontSize: (theme) => theme.fontSizes.medium },
-            startAdornment: !email ? (
-                <InputAdornment position="start">
-                    <Email sx={{ fontSize: (theme) => theme.iconSizes.textFieldDecorator }} />
-                </InputAdornment>
-            ) : null,
-        },
-        inputLabel: {
-            sx: { fontSize: (theme) => theme.fontSizes.small }
-        }
-    }}
+                        input: {
+                            sx: { fontSize: (theme) => theme.fontSizes.small },
+                            startAdornment: !email ? (
+                                <InputAdornment position="start">
+                                    <Email sx={{ fontSize: (theme) => theme.iconSizes.textFieldDecorator }} />
+                                </InputAdornment>
+                            ) : null,
+                        },
+                        inputLabel: {
+                            sx: { fontSize: (theme) => theme.fontSizes.small }
+                        }
+                    }}
                 />
 
                 <AuthPasswordField
@@ -88,7 +88,7 @@ function LoginPage() {
                 </Button>
 
                 <Stack direction="row" justifyContent="space-between">
-                    <Button variant="text" disabled={loading} onClick={() => navigate('/register')}>
+                    <Button variant="text" disabled={true} onClick={() => navigate('/register')}>
                         <FormattedMessage id="login.createAccount"/>
                     </Button>
                     <Button variant="text" disabled={loading} onClick={() => navigate('/forgot-password')}>

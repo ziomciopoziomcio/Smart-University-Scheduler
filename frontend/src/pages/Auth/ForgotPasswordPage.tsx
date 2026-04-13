@@ -6,6 +6,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AuthLayout from '@components/Login/AuthLayout';
 import {forgotPassword} from '@api/auth';
+import {Email} from "@mui/icons-material";
 
 function ForgotPasswordPage() {
     const intl = useIntl();
@@ -50,12 +51,18 @@ function ForgotPasswordPage() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 type="email"
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <PersonIcon color="action"/>
-                                        </InputAdornment>
-                                    ),
+                                slotProps={{
+                                    input: {
+                                        sx: { fontSize: (theme) => theme.fontSizes.small },
+                                        startAdornment: !email ? (
+                                            <InputAdornment position="start">
+                                                <Email sx={{ fontSize: (theme) => theme.iconSizes.textFieldDecorator }} />
+                                            </InputAdornment>
+                                        ) : null,
+                                    },
+                                    inputLabel: {
+                                        sx: { fontSize: (theme) => theme.fontSizes.small }
+                                    }
                                 }}
                             />
 
