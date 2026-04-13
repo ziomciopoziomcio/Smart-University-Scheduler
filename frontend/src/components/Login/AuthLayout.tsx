@@ -15,7 +15,7 @@ function AuthLayout({title, children}: Props) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                bgcolor: '#015e8b',
+                background: (theme) => `linear-gradient(90deg, ${theme.palette.background.default} 0%, ${theme.palette.primary.dark} 100%)`,
                 p: 2,
             }}
         >
@@ -29,7 +29,7 @@ function AuthLayout({title, children}: Props) {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    borderRadius: 5,
+                    // borderRadius: 5,
                 }}
             >
                 <Box
