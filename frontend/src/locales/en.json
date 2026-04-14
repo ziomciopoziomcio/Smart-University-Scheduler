@@ -15,8 +15,11 @@
     "validation": {
       "error": "Incorrect email or password",
       "success": "Successfully logged in",
-      "2faRequired": "Two-factor authentication required",
-      "providerError": "Authentication provider error"
+      "providerError": "Authentication provider error",
+      "2fa": {
+        "2faRequired": "Two-factor authentication required",
+        "2faDescription": "Please, enter the 2 Factor Authentication code below."
+      }
     }
   },
   "register": {
@@ -71,6 +74,7 @@
   },
   "forgotPassword": {
     "title": "Reset password",
+    "description": "Enter your email. We will send you the link to reset your password.",
     "instruction": "Your new password should:",
     "newPassword": "new password",
     "confirmNewPassword": "repeat new password",
