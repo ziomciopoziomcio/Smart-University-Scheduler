@@ -132,6 +132,22 @@ def _get_courses_common_for_all_majors(
     return sem_dict
 
 
+def _display_courses_common_for_all_majors(
+    sem_dict: DefaultDict[str, list[tuple[str, str]]],
+) -> None:
+    print("Courses common for all majors:")
+
+    for sem in sorted(sem_dict.keys()):
+        print(f"{sem}:")
+        for p in sem_dict[sem]:
+            course_name = p[0]
+            course_code = p[1]
+            print(f"  - {course_name} ({course_code})")
+
+    print()
+    print()
+
+
 if __name__ == "__main__":
     path = "../../data_collector/final-programy.json"
 
@@ -143,3 +159,6 @@ if __name__ == "__main__":
     print(len(kierunki))
 
     przedmioty_dict = _prepare_courses_dict(kierunki)
+
+    common = _get_courses_common_for_all_majors(przedmioty_dict)
+    _display_courses_common_for_all_majors(common)
