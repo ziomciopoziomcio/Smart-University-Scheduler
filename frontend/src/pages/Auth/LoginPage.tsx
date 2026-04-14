@@ -1,13 +1,14 @@
 import {useState} from 'react';
-import {Button, Stack, TextField, Alert, CircularProgress, InputAdornment, Typography} from '@mui/material';
+import {Button, Stack, Alert, CircularProgress, Typography} from '@mui/material';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useNavigate} from 'react-router-dom';
 import AuthLayout from '@components/Login/AuthLayout';
 import AuthPasswordField from '@components/Login/AuthPasswordField';
 import {useAuthStore} from '@store/useAuthStore';
-import {Email} from "@mui/icons-material";
 import OtpInput from '@components/Login/OtpInput';
 import {verify2FA} from '@api/auth';
+import EmailInput from "@components/Login/EmailInput.tsx";
+import BackToLoginButton from "@components/Login/BackToLoginButton.tsx";
 
 function LoginPage() {
     const intl = useIntl();
@@ -19,7 +20,6 @@ function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    // DEBUG: SET initialState to '2fa' to view 2FA verification step
     const [step, setStep] = useState<'login' | '2fa'>('login');
 
     const [preToken, setPreToken] = useState('');
@@ -46,19 +46,24 @@ function LoginPage() {
         void executeLogin();
     };
 
-    const handle2FASubmit = async (e: React.FormEvent) => {
+    const handle2FASubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setVerifyLoading(true);
-        setVerifyError('');
-        try {
-            const data = await verify2FA(totpCode, preToken);
-            await finalizeLogin(data.access_token);
-            navigate('/plan', {replace: true});
-        } catch (err: any) {
-            setVerifyError(err.message || 'Invalid 2FA code');
-        } finally {
-            setVerifyLoading(false);
-        }
+
+        const executeVerify = async () => {
+            setVerifyLoading(true);
+            setVerifyError('');
+            try {
+                const data = await verify2FA(totpCode, preToken);
+                await finalizeLogin(data.access_token);
+                navigate('/plan', {replace: true});
+            } catch (err: any) {
+                setVerifyError(err.message || 'Invalid 2FA code');
+            } finally {
+                setVerifyLoading(false);
+            }
+        };
+
+        void executeVerify();
     };
 
     if (step === '2fa') {
@@ -89,13 +94,7 @@ function LoginPage() {
                         >
                             {verifyLoading ? 'Sprawdzanie...' : 'Weryfikuj kod'}
                         </Button>
-                        <Button
-                            variant="text"
-                            onClick={() => setStep('login')}
-                            disabled={verifyLoading}
-                        >
-                            Wróć do logowania
-                        </Button>
+                        <BackToLoginButton disabled={verifyLoading} onClick={() => setStep('login')} />
                     </Stack>
                 </Stack>
             </AuthLayout>
@@ -110,28 +109,11 @@ function LoginPage() {
                         {error}
                     </Alert>
                 )}
-                <TextField
-                    label={intl.formatMessage({id: 'login.email'})}
-                    placeholder={intl.formatMessage({id: 'login.emailPlaceholder'})}
-                    fullWidth
+
+                <EmailInput
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    type="email"
+                    onChange={setEmail}
                     disabled={loading}
-                    required
-                    slotProps={{
-                        input: {
-                            sx: { fontSize: (theme) => theme.fontSizes.small },
-                            startAdornment: !email ? (
-                                <InputAdornment position="start">
-                                    <Email sx={{ fontSize: (theme) => theme.iconSizes.textFieldDecorator }} />
-                                </InputAdornment>
-                            ) : null,
-                        },
-                        inputLabel: {
-                            sx: { fontSize: (theme) => theme.fontSizes.small }
-                        }
-                    }}
                 />
 
                 <AuthPasswordField

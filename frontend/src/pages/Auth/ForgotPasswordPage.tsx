@@ -1,16 +1,12 @@
 import {useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {Stack, Typography, TextField, Button, Alert, InputAdornment, CircularProgress} from '@mui/material';
-import {FormattedMessage, useIntl} from 'react-intl';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import {Stack, Typography, Button, Alert, CircularProgress} from '@mui/material';
+import {FormattedMessage} from 'react-intl';
 import AuthLayout from '@components/Login/AuthLayout';
 import {forgotPassword} from '@api/auth';
-import {Email} from "@mui/icons-material";
+import EmailInput from "@components/Login/EmailInput.tsx";
+import BackToLoginButton from "@components/Login/BackToLoginButton.tsx";
 
 function ForgotPasswordPage() {
-    const intl = useIntl();
-    const navigate = useNavigate();
-
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [errorMsg, setErrorMsg] = useState<string | React.ReactNode>('');
@@ -42,27 +38,10 @@ function ForgotPasswordPage() {
                 ) : (
                     <form onSubmit={handleSubmit} style={{width: '100%'}}>
                         <Stack spacing={3}>
-                            <TextField
-                                fullWidth
-                                label={intl.formatMessage({id: 'login.username'})}
-                                placeholder={intl.formatMessage({id: 'login.usernamePlaceholder'})}
+                            <EmailInput
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                type="email"
-                                slotProps={{
-                                    input: {
-                                        sx: { fontSize: (theme) => theme.fontSizes.small },
-                                        startAdornment: !email ? (
-                                            <InputAdornment position="start">
-                                                <Email sx={{ fontSize: (theme) => theme.iconSizes.textFieldDecorator }} />
-                                            </InputAdornment>
-                                        ) : null,
-                                    },
-                                    inputLabel: {
-                                        sx: { fontSize: (theme) => theme.fontSizes.small }
-                                    }
-                                }}
+                                onChange={setEmail}
+                                disabled={status === 'loading'}
                             />
 
                             {status === 'error' && (
@@ -86,13 +65,7 @@ function ForgotPasswordPage() {
                     </form>
                 )}
 
-                <Button
-                    startIcon={<ArrowBackIcon/>}
-                    onClick={() => navigate('/login')}
-                    sx={{textTransform: 'none', color: '#004d71'}}
-                >
-                    <FormattedMessage id="register.backToLogin"/>
-                </Button>
+                <BackToLoginButton disabled={status === 'loading'} />
             </Stack>
         </AuthLayout>
     );
