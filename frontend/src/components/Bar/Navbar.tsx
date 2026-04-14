@@ -78,7 +78,7 @@ export default function Navbar() {
                         width: 50,
                         height: 50,
                         border: '2px solid white',
-                        background: '#005a8d',
+                        background: theme.palette.primary.main,
                         cursor: 'pointer'
                     }}>
                         {initials}
