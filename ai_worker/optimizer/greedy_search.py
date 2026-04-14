@@ -95,8 +95,7 @@ def _cost_gap_penalty_for_day_span(
     penalty: float,
 ) -> float:
     """
-    Return a gap penalty if the proposed [start, finish] lies strictly inside
-    an existing span of occupied slots for that entity in the same day.
+    Return a gap penalty if the proposed [start, finish] lies strictly inside an existing span of occupied slots for that entity in the same day.
     """
     if not taken_slots:
         return 0.0
