@@ -48,7 +48,7 @@ def _iter_gene_weeks(gene: ClassSessionGene, pattern_index: int) -> list[int]:
 
 
 def _cost_early_start(start_slot: int) -> float:
-    """Small penalty for starting earlier in the day (encourages balanced starts)."""
+    """Small penalty for starting later in the day (favors earlier starts)."""
     return 0.20 * _slot_in_day(start_slot)
 
 
