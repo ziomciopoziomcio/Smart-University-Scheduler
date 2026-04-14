@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import {Box, Paper, Typography} from '@mui/material';
-import Logo from '@assets/Logo.svg';
+import logo from '@assets/logotype_no_bg_no_label.png'
 import {theme} from "../../theme/theme.ts";
 
 type Props = {
@@ -30,7 +30,6 @@ function AuthLayout({title, children}: Props) {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    // borderRadius: 5,
                 }}
             >
                 <Box
@@ -43,15 +42,15 @@ function AuthLayout({title, children}: Props) {
                 >
                     <Box
                         component="img"
-                        src={Logo}
-                        alt="Page Logo"
+                        src={logo}
+                        alt="Logo"
                         sx={{
-                            width: '100%',
-                            maxWidth: 220,
+                            width: '140px',
                             height: 'auto',
                             display: 'block',
+                            mx: 'auto'
                         }}
-                    />
+            />
                 </Box>
 
                 <Typography
