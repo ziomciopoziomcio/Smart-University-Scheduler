@@ -1,16 +1,12 @@
 import {useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {Stack, Typography, TextField, Button, Alert, InputAdornment} from '@mui/material';
-import {FormattedMessage, useIntl} from 'react-intl';
-import PersonIcon from '@mui/icons-material/Person';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import {Stack, Typography, Button, Alert, CircularProgress} from '@mui/material';
+import {FormattedMessage} from 'react-intl';
 import AuthLayout from '@components/Login/AuthLayout';
 import {forgotPassword} from '@api/auth';
+import EmailInput from "@components/Login/EmailInput.tsx";
+import BackToLoginButton from "@components/Login/BackToLoginButton.tsx";
 
 function ForgotPasswordPage() {
-    const intl = useIntl();
-    const navigate = useNavigate();
-
     const [email, setEmail] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [errorMsg, setErrorMsg] = useState<string | React.ReactNode>('');
@@ -32,7 +28,7 @@ function ForgotPasswordPage() {
         <AuthLayout title={<FormattedMessage id="login.forgotPassword"/>}>
             <Stack spacing={3} alignItems="center" width="100%">
                 <Typography variant="body2" textAlign="center" color="text.secondary">
-                    <FormattedMessage id="activate.description"/>
+                    <FormattedMessage id="forgotPassword.description"/>
                 </Typography>
 
                 {status === 'success' ? (
@@ -42,21 +38,10 @@ function ForgotPasswordPage() {
                 ) : (
                     <form onSubmit={handleSubmit} style={{width: '100%'}}>
                         <Stack spacing={3}>
-                            <TextField
-                                fullWidth
-                                label={intl.formatMessage({id: 'login.username'})}
-                                placeholder={intl.formatMessage({id: 'login.usernamePlaceholder'})}
+                            <EmailInput
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                type="email"
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <PersonIcon color="action"/>
-                                        </InputAdornment>
-                                    ),
-                                }}
+                                onChange={setEmail}
+                                disabled={status === 'loading'}
                             />
 
                             {status === 'error' && (
@@ -64,26 +49,23 @@ function ForgotPasswordPage() {
                             )}
 
                             <Button
+                                type="submit"
                                 variant="contained"
                                 fullWidth
-                                size="large"
-                                type="submit"
                                 disabled={status === 'loading'}
-                                sx={{backgroundColor: '#004d71', '&:hover': {backgroundColor: '#003a55'}}}
+                                startIcon={status === 'loading' && <CircularProgress size={20} color="inherit"/>}
                             >
-                                <FormattedMessage id="forgotPassword.sendResetLink"/>
+                                {status === 'loading'
+                                    ? <FormattedMessage id="forgotPassword.sending" defaultMessage="Wysyłanie..."/>
+                                    : <FormattedMessage id="forgotPassword.sendResetLink"/>
+                                }
                             </Button>
+
                         </Stack>
                     </form>
                 )}
 
-                <Button
-                    startIcon={<ArrowBackIcon/>}
-                    onClick={() => navigate('/login')}
-                    sx={{textTransform: 'none', color: '#004d71'}}
-                >
-                    <FormattedMessage id="register.backToLogin"/>
-                </Button>
+                <BackToLoginButton disabled={status === 'loading'} />
             </Stack>
         </AuthLayout>
     );
