@@ -44,9 +44,9 @@ def send_password_reset_email(
     """
     Build reset link and send password reset email.
     """
-    base = (base_url or os.getenv("PUBLIC_BASE_URL", "")).rstrip("/")
+    base = (base_url or os.getenv("FRONTEND_BASE_URL", "")).rstrip("/")
     if not base:
-        raise RuntimeError("PUBLIC_BASE_URL is not configured")
+        raise RuntimeError("FRONTEND_BASE_URL is not configured")
 
     reset_link = f"{base}/reset-password?token={token}"
     subject = "Password reset"
