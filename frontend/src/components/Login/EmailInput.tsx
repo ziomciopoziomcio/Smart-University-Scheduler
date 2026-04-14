@@ -4,9 +4,9 @@ import { useIntl } from 'react-intl';
 
 interface Props {
     value: string;
-    onChange: (value: string) => void;
+    onChange: (_value: string) => void;
     disabled?: boolean;
-};
+}
 
 function EmailInput({ value, onChange, disabled = false }: Props) {
     const intl = useIntl();

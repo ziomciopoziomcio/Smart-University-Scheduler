@@ -3,10 +3,10 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 import { FormattedMessage } from 'react-intl';
 
-type Props = {
+interface Props {
     disabled?: boolean;
     onClick?: () => void;
-};
+}
 
 function BackToLoginButton({ disabled = false, onClick }: Props) {
     const navigate = useNavigate();

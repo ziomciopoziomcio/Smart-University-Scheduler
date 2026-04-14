@@ -80,7 +80,7 @@ function LoginPage() {
 
                     <OtpInput
                         value={totpCode}
-                        onChange={(newCode) => setTotpCode(newCode)}
+                        onChange={(newCode) => { setTotpCode(newCode); }}
                         disabled={verifyLoading}
                     />
 
@@ -94,7 +94,7 @@ function LoginPage() {
                         >
                             {verifyLoading ? 'Sprawdzanie...' : 'Weryfikuj kod'}
                         </Button>
-                        <BackToLoginButton disabled={verifyLoading} onClick={() => setStep('login')} />
+                        <BackToLoginButton disabled={verifyLoading} onClick={() => { setStep('login'); }} />
                     </Stack>
                 </Stack>
             </AuthLayout>
@@ -139,7 +139,7 @@ function LoginPage() {
                 </Button>
 
                 <Stack direction="row" justifyContent="space-between">
-                    <Button variant="text" disabled={true} onClick={() => navigate('/register')}>
+                    <Button variant="text" disabled={true} onClick={() => { navigate('/register'); }}>
                         <FormattedMessage id="login.createAccount"/>
                     </Button>
                     <Button variant="text" disabled={loading} onClick={() => navigate('/forgot-password')}>

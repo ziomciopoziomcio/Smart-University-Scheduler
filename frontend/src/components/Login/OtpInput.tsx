@@ -4,9 +4,9 @@ import { Stack, TextField } from '@mui/material';
 interface Props {
     length?: number;
     value: string;
-    onChange: (value: string) => void;
+    onChange: (_value: string) => void;
     disabled?: boolean;
-};
+}
 
 function OtpInput({ length = 6, value, onChange, disabled = false }: Props) {
     const [otp, setOtp] = useState<string[]>(new Array(length).fill(''));
@@ -18,10 +18,7 @@ function OtpInput({ length = 6, value, onChange, disabled = false }: Props) {
             setOtp(new Array(length).fill(''));
         }
         else if (value && value !== otp.join('')) {
-            const newOtp = new Array(length).fill('');
-            value.split('').forEach((char, i) => {
-                if (i < length) newOtp[i] = char;
-            });
+            const newOtp = Array.from({ length }, (_, i) => value.charAt(i) || '');
             setOtp(newOtp);
         }
     }, [value, length, otp]);
