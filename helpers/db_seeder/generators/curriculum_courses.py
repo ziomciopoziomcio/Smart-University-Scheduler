@@ -1,4 +1,6 @@
 import json
+from collections import defaultdict
+from typing import DefaultDict
 
 
 def _get_study_field_major_degree_from_file(
@@ -104,6 +106,30 @@ def _prepare_courses_dict(study_fields: list) -> dict[str, dict[tuple[str, str],
                 # add to dict
                 courses_dict[major][(course_name, course_code)] = sem_name
     return courses_dict
+
+
+def _get_courses_common_for_all_majors(
+    courses_dict: dict[str, dict[tuple[str, str], str]],
+) -> DefaultDict[str, list[tuple[str, str]]]:
+    """
+    Find courses that are common across all majors and group them by semester.
+    :param courses_dict: a dictionary where:
+            - key: major (specialization)
+            - value: dictionary mapping (course_name, course_code) -> semester_name
+    :return: a dictionary mapping semester names to lists of courses that are
+            present in all majors
+    """
+    sets = [set(courses.keys()) for courses in courses_dict.values()]
+    common_courses = set.intersection(*sets)
+
+    first_major = next(iter(courses_dict))
+    sem_dict = defaultdict(list)
+
+    for course in common_courses:
+        sem = courses_dict[first_major][course]
+        sem_dict[sem].append(course)
+
+    return sem_dict
 
 
 if __name__ == "__main__":
