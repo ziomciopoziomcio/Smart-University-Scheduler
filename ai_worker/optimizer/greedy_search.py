@@ -159,10 +159,17 @@ def _candidate_cost(
 
 def _pattern_indices(gene: ClassSessionGene, ctx: GreedyContext) -> list[int]:
     """
-    Return a (possibly shuffled) sequence of pattern indices for the gene.
-    When randomization is enabled the order is shuffled to diversify choices.
+    Return a sequence of pattern indices for the gene.
+
+    If gene.allowed_week_patterns is None, treat it as a single implicit
+    pattern (index 0) representing "all weeks". If it's an actual list,
+    return range(len(list)). When randomization is enabled, shuffle indices.
     """
-    idxs = list(range(len(gene.allowed_week_patterns)))
+    awp = getattr(gene, "allowed_week_patterns", None)
+    if awp is None:
+        idxs = [0]
+    else:
+        idxs = list(range(len(awp)))
     if ctx.randomize:
         ctx.rng.shuffle(idxs)
     return idxs
@@ -541,7 +548,8 @@ def find_best_assignment_for_gene(
     and current occupancy indexes. Returns a BestTuple or None if no feasible
     assignment exists.
     """
-    if not getattr(gene, "allowed_week_patterns", None):
+    awp = getattr(gene, "allowed_week_patterns", None)
+    if awp is not None and not awp:
         return None
 
     duration = max(1, int(getattr(gene, "duration_slots", 1)))
