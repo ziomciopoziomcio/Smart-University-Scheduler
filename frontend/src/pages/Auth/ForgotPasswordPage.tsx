@@ -2,7 +2,6 @@ import {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Stack, Typography, TextField, Button, Alert, InputAdornment, CircularProgress} from '@mui/material';
 import {FormattedMessage, useIntl} from 'react-intl';
-import PersonIcon from '@mui/icons-material/Person';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AuthLayout from '@components/Login/AuthLayout';
 import {forgotPassword} from '@api/auth';
