@@ -165,6 +165,11 @@ def _get_courses_unique_at_the_major_level(
 def _display_courses_common_for_all_majors(
     sem_dict: DefaultDict[str, list[tuple[str, str]]],
 ) -> None:
+    """
+    Print courses that are common across all majors, grouped by semester.
+    :param sem_dict: a dictionary mapping semester names to lists of courses.
+    :return: None
+    """
     print("Courses common for all majors:")
 
     for sem in sorted(sem_dict.keys()):
@@ -174,6 +179,31 @@ def _display_courses_common_for_all_majors(
             course_code = p[1]
             print(f"  - {course_name} ({course_code})")
 
+    print()
+    print()
+
+
+def _display_courses_unique_at_the_major_level(
+    unique: dict[str, DefaultDict[str, list[tuple[str, str]]]],
+) -> None:
+    """
+    Print courses that are unique to each major, grouped by semester.
+    :param unique: a dictionary where:
+            - key: major (specialization)
+            - value: dictionary mapping semester names to lists of courses
+    :return: None
+    """
+    print("Courses from major:")
+    for major, sem_dict in sorted(unique.items()):
+        print(f"MAJOR: {major}")
+
+        for semester, course_clist in sem_dict.items():
+            print(f"  {semester}:")
+            for p in course_clist:
+                course_name = p[0]
+                course_code = p[1]
+                print(f"  - {course_name} ({course_code})")
+        print()
     print()
     print()
 
@@ -192,3 +222,6 @@ if __name__ == "__main__":
 
     common = _get_courses_common_for_all_majors(przedmioty_dict)
     _display_courses_common_for_all_majors(common)
+
+    unique = _get_courses_unique_at_the_major_level(przedmioty_dict)
+    _display_courses_unique_at_the_major_level(unique)
