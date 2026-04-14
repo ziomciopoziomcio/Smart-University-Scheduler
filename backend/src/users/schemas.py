@@ -45,6 +45,26 @@ class UserRead(UserBase):
     created_at: datetime
     roles: list[str] = Field(default_factory=list)
 
+    @classmethod
+    def _parse_single_role(cls, role: Any) -> str:
+        """
+        Helper method to parse a single role object/dictionary and extract the role name.
+        :param role: The input role, which can be a string, a dictionary with a 'role_name' key, or an object with a 'role_name' attribute.
+        :return: The extracted role name as a string.
+        """
+        if isinstance(role, str):
+            return role
+        if isinstance(role, dict):
+            role_name = role.get("role_name")
+            if not isinstance(role_name, str):
+                raise ValueError("Each role dictionary must contain a 'role_name'")
+            return role_name
+        if hasattr(role, "role_name"):
+            role_name = getattr(role, "role_name")
+            if not isinstance(role_name, str):
+                raise ValueError("Each role object must have a 'role_name' attribute")
+            return role_name
+
     @field_validator("roles", mode="before")
     @classmethod
     def extract_role_names(cls, v: Any) -> list[str]:
@@ -59,28 +79,7 @@ class UserRead(UserBase):
         if not isinstance(v, list):
             raise ValueError("roles must be provided as a list")
 
-        role_names: list[str] = []
-        for role in v:
-            if isinstance(role, str):
-                role_names.append(role)
-            elif isinstance(role, dict):
-                role_name = role.get("role_name")
-                if not isinstance(role_name, str):
-                    raise ValueError(
-                        "each role dictionary must contain a string 'role_name'"
-                    )
-                role_names.append(role_name)
-            elif hasattr(role, "role_name"):
-                role_name = getattr(role, "role_name")
-                if not isinstance(role_name, str):
-                    raise ValueError("each role object must have a string 'role_name'")
-                role_names.append(role_name)
-            else:
-                raise ValueError(
-                    "each role must be a string, a dictionary with 'role_name', or an object with a 'role_name' attribute"
-                )
-
-        return role_names
+        return [cls._parse_single_role(role) for role in v]
 
 
 class UserUpdate(BaseModel):
