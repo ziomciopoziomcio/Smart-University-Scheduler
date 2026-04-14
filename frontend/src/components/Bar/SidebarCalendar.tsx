@@ -40,7 +40,7 @@ export default function SidebarCalendar({open}: { open: boolean }) {
 
     return (
         <Box sx={{
-            color: 'white',
+            background: 'white',
             p: 2,
             borderRadius: '24px',
             width: '100%',
