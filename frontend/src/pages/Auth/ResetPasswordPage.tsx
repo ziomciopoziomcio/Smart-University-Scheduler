@@ -25,13 +25,38 @@ interface StrengthProps {
     intl: IntlShape;
 }
 
-function PasswordStrengthIndicator({ len, isMinLength, isMatching, intl }: StrengthProps) {
+interface StatusRowProps {
+    isValid: boolean;
+    messageId: string;
+}
+
+const StatusRow = ({ isValid, messageId }: StatusRowProps) => (
+    <Stack direction="row" spacing={1} alignItems="center">
+        {isValid ? <Check color="success" sx={{ fontSize: 14 }} /> : <Close color="error" sx={{ fontSize: 14 }} />}
+        <Typography variant="caption" color={isValid ? "success.main" : "error.main"}>
+            <FormattedMessage id={messageId} />
+        </Typography>
+    </Stack>
+);
+
+const StrengthBar = ({ len }: { len: number }) => {
     const strengthValue = Math.min((len / 16) * 100, 100);
-    const strengthColor = len < 8 ? 'error' : len < 12 ? 'warning' : 'success';
+    const strengthColor = len < 8 ? 'error' : len < 12 ? 'warning' : 'success' as 'error' | 'warning' | 'success';
 
     return (
+        <LinearProgress
+            variant="determinate"
+            value={strengthValue}
+            color={strengthColor}
+            sx={{ height: 4, borderRadius: 2, mb: 2 }}
+        />
+    );
+};
+
+function PasswordStrengthIndicator({ len, isMinLength, isMatching, intl }: StrengthProps) {
+    return (
         <Box>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{mb: 1}}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
                 <Typography variant="caption" color="text.secondary">
                     <FormattedMessage id="forgotPassword.passwordStrength" defaultMessage="Siła hasła" />
                 </Typography>
@@ -42,29 +67,15 @@ function PasswordStrengthIndicator({ len, isMinLength, isMatching, intl }: Stren
                     })}
                     arrow
                 >
-                    <InfoOutlined sx={{fontSize: 14, color: 'text.disabled', cursor: 'pointer'}} />
+                    <InfoOutlined sx={{ fontSize: 14, color: 'text.disabled', cursor: 'pointer' }} />
                 </Tooltip>
             </Stack>
-            <LinearProgress
-                variant="determinate"
-                value={strengthValue}
-                color={strengthColor}
-                sx={{ height: 4, borderRadius: 2, mb: 2 }}
-            />
+
+            <StrengthBar len={len} />
 
             <Stack spacing={0.5}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                    {isMinLength ? <Check color="success" sx={{fontSize: 14}}/> : <Close color="error" sx={{fontSize: 14}}/>}
-                    <Typography variant="caption" color={isMinLength ? "success.main" : "error.main"}>
-                        <FormattedMessage id="register.validation.length" />
-                    </Typography>
-                </Stack>
-                <Stack direction="row" spacing={1} alignItems="center">
-                    {isMatching ? <Check color="success" sx={{fontSize: 14}}/> : <Close color="error" sx={{fontSize: 14}}/>}
-                    <Typography variant="caption" color={isMatching ? "success.main" : "error.main"}>
-                        <FormattedMessage id="register.validation.match" />
-                    </Typography>
-                </Stack>
+                <StatusRow isValid={isMinLength} messageId="register.validation.length" />
+                <StatusRow isValid={isMatching} messageId="register.validation.match" />
             </Stack>
         </Box>
     );

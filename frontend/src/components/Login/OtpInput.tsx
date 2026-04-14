@@ -4,7 +4,7 @@ import { Stack, TextField } from '@mui/material';
 interface Props {
     length?: number;
     value: string;
-    onChange: (_value: string) => void;
+    onChange(value: string): void;
     disabled?: boolean;
 }
 

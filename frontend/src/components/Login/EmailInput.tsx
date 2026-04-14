@@ -4,7 +4,7 @@ import { useIntl } from 'react-intl';
 
 interface Props {
     value: string;
-    onChange: (_value: string) => void;
+    onChange(value: string): void;
     disabled?: boolean;
 }
 
