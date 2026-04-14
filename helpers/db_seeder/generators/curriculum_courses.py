@@ -208,20 +208,53 @@ def _display_courses_unique_at_the_major_level(
     print()
 
 
+def _add_curriculum_course(
+    course_code,
+    major_name,  # or NONE  # studyPrograms_DB, courses_DB, majors_DB, session
+):
+    pass
+
+
+def generate_curriculum_courses(sourcefile: str):
+    combs = _get_study_field_major_degree_from_file(sourcefile, with_major=False)
+
+    for comb in combs:
+        study_field_name = comb[0]
+        study_degree = comb[1]
+
+        if study_field_name != "informatyka." or study_degree != 1:
+            continue  # todo delete
+
+        print(
+            f" PROCESSING: {study_field_name}, degree {study_degree}. ======================================================================"
+        )
+
+        study_fields = _get_unique_study_fields(path, study_field_name, study_degree)
+
+        courses_dict = _prepare_courses_dict(study_fields)
+        common = _get_courses_common_for_all_majors(courses_dict)
+        unique = _get_courses_unique_at_the_major_level(courses_dict)
+
+        # _display_courses_common_for_all_majors(common)
+        # _display_courses_unique_at_the_major_level(unique)
+
+        # common
+        for semester, courses in sorted(common.items()):
+            print(f"{semester}:")
+            for course in courses:
+                print(f"  - {course}")
+                # add to db
+
+        # unique
+        for major, dict in sorted(unique.items()):
+            print(f"{major}:")
+            for semester, courses in sorted(dict.items()):
+                print(f"{semester}:")
+                for course in courses:
+                    print(f"  - {course} ({major})")
+                    # add to db
+
+
 if __name__ == "__main__":
     path = "../../data_collector/final-programy.json"
-
-    combs = _get_study_field_major_degree_from_file(path, with_major=False)
-    for el in combs:
-        print(el)
-
-    kierunki = _get_unique_study_fields(path, "informatyka.", 1)
-    print(len(kierunki))
-
-    przedmioty_dict = _prepare_courses_dict(kierunki)
-
-    common = _get_courses_common_for_all_majors(przedmioty_dict)
-    _display_courses_common_for_all_majors(common)
-
-    unique = _get_courses_unique_at_the_major_level(przedmioty_dict)
-    _display_courses_unique_at_the_major_level(unique)
+    generate_curriculum_courses(path)
