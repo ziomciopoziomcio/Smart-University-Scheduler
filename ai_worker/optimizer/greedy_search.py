@@ -507,7 +507,8 @@ def _iter_feasible_instructors(
 def _update_best(
     best: BestTuple | None, cand: BestTuple
 ) -> tuple[BestTuple | None, bool]:
-    """Compare and update best candidate tuple; return (new_best, changed_flag).
+    """
+    Compare and update best candidate tuple; return (new_best, changed_flag).
 
     :param best: Current best candidate tuple or None.
     :param cand: Candidate tuple to compare.
