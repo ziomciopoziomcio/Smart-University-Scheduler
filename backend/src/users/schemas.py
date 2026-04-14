@@ -2,8 +2,9 @@
 Data validation schemas
 """
 
-from typing import Optional, Annotated, List
 from datetime import datetime
+from typing import Optional, Annotated, List, Any
+
 from pydantic import (
     BaseModel,
     StringConstraints,
@@ -11,6 +12,7 @@ from pydantic import (
     EmailStr,
     model_validator,
     Field,
+    field_validator,
 )
 
 
@@ -41,6 +43,44 @@ class UserCreate(UserBase):
 class UserRead(UserBase):
     id: int
     created_at: datetime
+    roles: list[str] = Field(default_factory=list)
+
+    @classmethod
+    def _parse_single_role(cls, role: Any) -> str:
+        """
+        Helper method to parse a single role object/dictionary and extract the role name.
+        :param role: The input role, which can be a string, a dictionary with a 'role_name' key, or an object with a 'role_name' attribute.
+        :return: The extracted role name as a string.
+        """
+        if isinstance(role, str):
+            return role
+        if isinstance(role, dict):
+            role_name = role.get("role_name")
+            if not isinstance(role_name, str):
+                raise ValueError("Each role dictionary must contain a 'role_name'")
+            return role_name
+        if hasattr(role, "role_name"):
+            role_name = getattr(role, "role_name")
+            if not isinstance(role_name, str):
+                raise ValueError("Each role object must have a 'role_name' attribute")
+            return role_name
+
+    @field_validator("roles", mode="before")
+    @classmethod
+    def extract_role_names(cls, v: Any) -> list[str]:
+        """
+        Extract role names from a list of role objects.
+
+        :param v: The input value, expected to be a list of role objects/dictionaries.
+        :return: A list of role names extracted from the input list of role objects/dictionaries.
+        """
+        if v is None:
+            return []
+
+        if not isinstance(v, list):
+            raise ValueError("roles must be provided as a list")
+
+        return [cls._parse_single_role(role) for role in v]
 
 
 class UserUpdate(BaseModel):
