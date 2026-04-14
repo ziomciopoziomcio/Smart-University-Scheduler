@@ -18,8 +18,9 @@ function OtpInput({ length = 6, onChange, disabled = false }: Props) {
 
         if (newValue && isNaN(Number(newValue))) return;
 
-        const newOtp = [...otp];
-        newOtp[index] = newValue.substring(newValue.length - 1);
+        const newOtp = otp.map((digit, i) =>
+            i === index ? newValue.substring(newValue.length - 1) : digit
+        );
         setOtp(newOtp);
 
         onChange(newOtp.join(''));
@@ -30,8 +31,11 @@ function OtpInput({ length = 6, onChange, disabled = false }: Props) {
     };
 
     const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e.key === 'Backspace' && !otp[index] && index > 0 && inputRefs.current[index - 1]) {
-            inputRefs.current[index - 1]?.focus();
+        const currentDigit = otp.at(index);
+        const prevInput = inputRefs.current.at(index - 1);
+
+        if (e.key === 'Backspace' && !currentDigit && index > 0 && prevInput) {
+            prevInput.focus();
         }
     };
 
@@ -43,10 +47,8 @@ function OtpInput({ length = 6, onChange, disabled = false }: Props) {
 
         if (pasteData.some((char) => isNaN(Number(char)))) return;
 
-        const newOtp = [...otp];
-        pasteData.forEach((char, i) => {
-            newOtp[i] = char;
-        });
+        const newOtp = [...pasteData, ...otp.slice(pasteData.length)];
+        setOtp(newOtp);
 
         setOtp(newOtp);
         onChange(newOtp.join(''));
@@ -63,7 +65,7 @@ function OtpInput({ length = 6, onChange, disabled = false }: Props) {
                     inputRef={(el) => (inputRefs.current[index] = el)}
                     value={digit}
                     onChange={(e) => handleChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    onKeyDown={(e) => { handleKeyDown(index, e); }}
                     onPaste={handlePaste}
                     disabled={disabled}
                     sx={{
