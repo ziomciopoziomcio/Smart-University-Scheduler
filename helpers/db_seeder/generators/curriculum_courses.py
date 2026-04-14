@@ -132,6 +132,36 @@ def _get_courses_common_for_all_majors(
     return sem_dict
 
 
+def _get_courses_unique_at_the_major_level(
+    courses_dict: dict[str, dict[tuple[str, str], str]],
+) -> dict[str, DefaultDict[str, list[tuple[str, str]]]]:
+    """
+    Extract courses that are unique to each major and group them by semester.
+    :param courses_dict: a dictionary where:
+            - key: major (specialization)
+            - value: dictionary mapping (course_name, course_code) -> semester_name
+    :return: a dictionary where:
+            - key: major
+            - value: dictionary mapping semester names to lists of unique courses
+    """
+    result: dict[str, DefaultDict[str, list[tuple[str, str]]]] = {}
+    sets = [set(courses.keys()) for courses in courses_dict.values()]
+    common_courses = set.intersection(*sets)
+
+    for major, courses in courses_dict.items():
+        # print(f"MAJOR: {major}")
+
+        semester_dict = defaultdict(list)
+
+        for course, semester in courses.items():
+            if course not in common_courses:
+                semester_dict[semester].append(course)
+
+        result[major] = semester_dict
+
+    return result
+
+
 def _display_courses_common_for_all_majors(
     sem_dict: DefaultDict[str, list[tuple[str, str]]],
 ) -> None:
