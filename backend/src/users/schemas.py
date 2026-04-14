@@ -42,7 +42,7 @@ class UserCreate(UserBase):
 class UserRead(UserBase):
     id: int
     created_at: datetime
-    roles: list[str] = []
+    roles: list[str] = Field(default_factory=list)
 
     @field_validator("roles", mode="before")
     @classmethod
