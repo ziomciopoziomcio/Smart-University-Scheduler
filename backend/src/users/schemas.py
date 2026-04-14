@@ -42,7 +42,7 @@ class UserCreate(UserBase):
 class UserRead(UserBase):
     id: int
     created_at: datetime
-    roles: list[str] = []
+    roles: list[str] = Field(default_factory=list)
 
     @field_validator("roles", mode="before")
     @classmethod
@@ -52,11 +52,32 @@ class UserRead(UserBase):
         :param v: The input value, expected to be a list of role objects/dictionaries.
         :return: A list of role names extracted from the input list of role objects/dictionaries.
         """
-        if v and isinstance(v, list) and hasattr(v[0], "role_name"):
-            return [role.role_name for role in v]
-        return v
+        if v is None:
+            return []
 
+        if not isinstance(v, list):
+            raise ValueError("roles must be provided as a list")
 
+        role_names: list[str] = []
+        for role in v:
+            if isinstance(role, str):
+                role_names.append(role)
+            elif isinstance(role, dict):
+                role_name = role.get("role_name")
+                if not isinstance(role_name, str):
+                    raise ValueError("each role dictionary must contain a string 'role_name'")
+                role_names.append(role_name)
+            elif hasattr(role, "role_name"):
+                role_name = getattr(role, "role_name")
+                if not isinstance(role_name, str):
+                    raise ValueError("each role object must have a string 'role_name'")
+                role_names.append(role_name)
+            else:
+                raise ValueError(
+                    "each role must be a string, a dictionary with 'role_name', or an object with a 'role_name' attribute"
+                )
+
+        return role_names
 class UserUpdate(BaseModel):
     email: Optional[Annotated[EmailStr, StringConstraints(max_length=255)]] = None
     phone_number: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
