@@ -18,7 +18,7 @@
       "providerError": "Authentication provider error",
       "2fa": {
         "2faRequired": "Two-factor authentication required",
-        "2faDescription": "We sent a 6-digit code to your e-mail. Please enter it below."
+        "2faDescription": "Please, enter the 2 Factor Authentication code below."
       }
     }
   },

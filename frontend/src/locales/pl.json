@@ -18,7 +18,7 @@
       "providerError": "Błąd dostawcy uwierzytelniania",
       "2fa": {
         "2faRequired": "Wymagana weryfikacja dwuetapowa",
-        "2faDescription": "Wysłaliśmy na twój e-mail kod 6-cyfrowy. Wpisz go poniżej."
+        "2faDescription": "Wpisz poniżej kod Weryfikacji dwuetapowej."
       }
     }
   },
