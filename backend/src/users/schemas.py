@@ -2,8 +2,9 @@
 Data validation schemas
 """
 
-from typing import Optional, Annotated, List, Any
 from datetime import datetime
+from typing import Optional, Annotated, List, Any
+
 from pydantic import (
     BaseModel,
     StringConstraints,
@@ -65,7 +66,9 @@ class UserRead(UserBase):
             elif isinstance(role, dict):
                 role_name = role.get("role_name")
                 if not isinstance(role_name, str):
-                    raise ValueError("each role dictionary must contain a string 'role_name'")
+                    raise ValueError(
+                        "each role dictionary must contain a string 'role_name'"
+                    )
                 role_names.append(role_name)
             elif hasattr(role, "role_name"):
                 role_name = getattr(role, "role_name")
@@ -78,6 +81,8 @@ class UserRead(UserBase):
                 )
 
         return role_names
+
+
 class UserUpdate(BaseModel):
     email: Optional[Annotated[EmailStr, StringConstraints(max_length=255)]] = None
     phone_number: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
