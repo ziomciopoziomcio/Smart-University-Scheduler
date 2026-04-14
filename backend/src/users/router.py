@@ -64,7 +64,6 @@ def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer", "requires_2fa": False}
 
 
-# for tests
 @router.get("/me", response_model=schemas.UserRead)
 def read_own_user(
     current_user: models.Users = Depends(get_current_user),
