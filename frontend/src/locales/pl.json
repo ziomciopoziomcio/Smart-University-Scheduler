@@ -7,7 +7,7 @@
     "emailPlaceholder": "example@edu.p.lodz.pl",
     "password": "hasło",
     "passwordPlaceholder": "hasło",
-    "submit": "zaloguj się",
+    "submit": "Zaloguj się",
     "createAccount": "Utwórz konto",
     "forgotPassword": "Nie pamiętam hasła",
     "pageLabel": "Logowanie",
@@ -74,6 +74,7 @@
   },
   "forgotPassword": {
     "title": "Resetowanie hasła",
+    "description": "Wprowadź swój adres e-mail, a wyślemy Ci link do zresetowania hasła.",
     "instruction": "Twoje nowe hasło powinno:",
     "newPassword": "nowe hasło",
     "confirmNewPassword": "powtórz nowe hasło",

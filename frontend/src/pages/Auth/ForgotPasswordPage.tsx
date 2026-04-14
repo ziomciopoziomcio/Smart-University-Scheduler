@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Stack, Typography, TextField, Button, Alert, InputAdornment} from '@mui/material';
+import {Stack, Typography, TextField, Button, Alert, InputAdornment, CircularProgress} from '@mui/material';
 import {FormattedMessage, useIntl} from 'react-intl';
 import PersonIcon from '@mui/icons-material/Person';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -33,7 +33,7 @@ function ForgotPasswordPage() {
         <AuthLayout title={<FormattedMessage id="login.forgotPassword"/>}>
             <Stack spacing={3} alignItems="center" width="100%">
                 <Typography variant="body2" textAlign="center" color="text.secondary">
-                    <FormattedMessage id="activate.description"/>
+                    <FormattedMessage id="forgotPassword.description"/>
                 </Typography>
 
                 {status === 'success' ? (
@@ -71,15 +71,18 @@ function ForgotPasswordPage() {
                             )}
 
                             <Button
+                                type="submit"
                                 variant="contained"
                                 fullWidth
-                                size="large"
-                                type="submit"
                                 disabled={status === 'loading'}
-                                sx={{backgroundColor: '#004d71', '&:hover': {backgroundColor: '#003a55'}}}
+                                startIcon={status === 'loading' && <CircularProgress size={20} color="inherit"/>}
                             >
-                                <FormattedMessage id="forgotPassword.sendResetLink"/>
+                                {status === 'loading'
+                                    ? <FormattedMessage id="forgotPassword.sending" defaultMessage="Wysyłanie..."/>
+                                    : <FormattedMessage id="forgotPassword.sendResetLink"/>
+                                }
                             </Button>
+
                         </Stack>
                     </form>
                 )}

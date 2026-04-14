@@ -74,6 +74,7 @@
   },
   "forgotPassword": {
     "title": "Reset password",
+    "description": "Enter your email. We will send you the link to reset your password.",
     "instruction": "Your new password should:",
     "newPassword": "new password",
     "confirmNewPassword": "repeat new password",
