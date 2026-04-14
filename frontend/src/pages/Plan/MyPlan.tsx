@@ -25,7 +25,7 @@ export default function MyPlan() {
                     gridTemplateColumns: '60px repeat(7, 1fr)',
                     border: '1px solid #e0e0e0'
                 }}>
-                    <Box sx={{borderBottom: '1px solid #e0e0e0', bgcolor: '#fafafa'}}/>
+                    <Box sx={{borderBottom: '1px solid #e0e0e0', background: '#fafafa'}}/>
                     {['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'].map((day) => (
                         <Box key={day} sx={{
                             p: 1.5,
@@ -33,7 +33,7 @@ export default function MyPlan() {
                             fontWeight: 'bold',
                             borderBottom: '1px solid #e0e0e0',
                             borderLeft: '1px solid #e0e0e0',
-                            bgcolor: '#fafafa'
+                            background: '#fafafa'
                         }}>
                             {day}
                         </Box>
@@ -53,7 +53,7 @@ export default function MyPlan() {
                         position: 'relative'
                     }}>
                         <Box sx={{
-                            bgcolor: '#c8e6c9',
+                            background: '#c8e6c9',
                             p: 1,
                             borderRadius: 1,
                             fontSize: '10px',
