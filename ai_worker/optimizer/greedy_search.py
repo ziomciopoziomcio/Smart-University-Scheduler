@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from .fitness import MAX_SLOT_ID, SLOTS_PER_DAY
 from .models import ClassSessionGene
 from .greedy import (
@@ -308,8 +306,8 @@ def _iter_feasible_instructors(
 
 
 def _update_best(
-    best: Optional[BestTuple], cand: BestTuple
-) -> tuple[Optional[BestTuple], bool]:
+    best: BestTuple | None, cand: BestTuple
+) -> tuple[BestTuple | None, bool]:
     if best is None or cand[0] < best[0]:
         return cand, True
     return best, False
@@ -317,8 +315,8 @@ def _update_best(
 
 def _evaluate_candidates_for_start_slot(
     inp: EvalInput, *, ctx: GreedyContext, occ: Occupancy
-) -> Optional[BestTuple]:
-    best_local: Optional[BestTuple] = None
+) -> BestTuple | None:
+    best_local: BestTuple | None = None
 
     for rid in inp.feasible_rooms:
         for iid in inp.feasible_instr:
@@ -349,7 +347,7 @@ def _evaluate_candidates_for_start_slot(
 
 def _best_for_start_slot(
     inp: StartSlotInput, *, ctx: GreedyContext, occ: Occupancy
-) -> Optional[BestTuple]:
+) -> BestTuple | None:
     feasible_rooms = _iter_feasible_rooms(
         inp.candidate_rooms, inp.weeks, inp.start_slot, inp.duration, occ
     )
@@ -384,8 +382,8 @@ def _best_for_weeks(
     instr_candidates: list[int],
     ctx: GreedyContext,
     occ: Occupancy,
-) -> Optional[BestTuple]:
-    best: Optional[BestTuple] = None
+) -> BestTuple | None:
+    best: BestTuple | None = None
 
     for start_slot in _iter_feasible_start_slots(duration, ctx):
         if not _is_start_slot_valid_for_day_boundary(start_slot, duration):
@@ -429,8 +427,8 @@ def _best_over_patterns(
     instr_candidates: list[int],
     ctx: GreedyContext,
     occ: Occupancy,
-) -> Optional[BestTuple]:
-    best: Optional[BestTuple] = None
+) -> BestTuple | None:
+    best: BestTuple | None = None
 
     for pidx in _pattern_indices(gene, ctx):
         weeks = _iter_gene_weeks(gene, pidx)
@@ -462,7 +460,7 @@ def find_best_assignment_for_gene(
     *,
     ctx: GreedyContext,
     occ: Occupancy,
-) -> Optional[BestTuple]:
+) -> BestTuple | None:
     """
     Returns a BestTuple or None.
     """
