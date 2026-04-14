@@ -2,7 +2,7 @@
 Data validation schemas
 """
 
-from typing import Optional, Annotated, List
+from typing import Optional, Annotated, List, Any
 from datetime import datetime
 from pydantic import (
     BaseModel,
@@ -11,6 +11,7 @@ from pydantic import (
     EmailStr,
     model_validator,
     Field,
+    field_validator,
 )
 
 
@@ -41,6 +42,19 @@ class UserCreate(UserBase):
 class UserRead(UserBase):
     id: int
     created_at: datetime
+    roles: list[str] = []
+
+    @field_validator("roles", mode="before")
+    @classmethod
+    def extract_role_names(cls, v: Any) -> list[str]:
+        """
+        Extract role names from a list of role objects.
+        :param v: The input value, expected to be a list of role objects/dictionaries.
+        :return: A list of role names extracted from the input list of role objects/dictionaries.
+        """
+        if v and isinstance(v, list) and hasattr(v[0], "role_name"):
+            return [role.role_name for role in v]
+        return v
 
 
 class UserUpdate(BaseModel):
