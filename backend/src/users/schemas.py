@@ -70,6 +70,7 @@ class UserRead(UserBase):
     def extract_role_names(cls, v: Any) -> list[str]:
         """
         Extract role names from a list of role objects.
+
         :param v: The input value, expected to be a list of role objects/dictionaries.
         :return: A list of role names extracted from the input list of role objects/dictionaries.
         """
