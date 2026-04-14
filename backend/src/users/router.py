@@ -1,7 +1,7 @@
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 import pyotp
 import json
 import logging
@@ -369,7 +369,7 @@ def list_users(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("users:view")),
 ):
-    query = db.query(models.Users)
+    query = db.query(models.Users).options(selectinload(models.Users.roles))
 
     if email is not None:
         query = query.filter(models.Users.email.ilike(f"%{email}%"))
