@@ -65,6 +65,47 @@ def _get_unique_study_fields(
     return records
 
 
+def _prepare_courses_dict(study_fields: list) -> dict[str, dict[tuple[str, str], str]]:
+    """
+    Build a nested dictionary of courses grouped by specialization (major).
+    :param study_fields: a list of study field records (dictionaries) containing course information.
+    :return: a dictionary structured as:
+            {
+                major: {
+                    (course_name, course_code): semester_name
+                }
+            }
+    """
+    courses_dict: dict[str, dict[tuple[str, str], str]] = {}
+    # dict[major, dict[tuple[course_name, course_code], semester]]
+
+    for study_field in study_fields:
+        major = study_field["specjalizacja"]
+
+        if major not in courses_dict:
+            courses_dict[major] = {}
+
+        for semester in study_field["semestry"]:
+            if "obieralne" in semester["nazwa"]:  # todo be aware of english names
+                continue
+
+            sem_name = semester["nazwa"]
+            # print(sem_name)
+
+            for course in semester["przedmioty"]:
+                course_name = course["Nazwa przedmiotu w języku polskim"]
+                course_code = course["Kod przedmiotu"]
+
+                if "obieralne" in course_name:  # todo be aware of english names
+                    continue
+
+                # print(nazwa_przedmiotu)
+
+                # add to dict
+                courses_dict[major][(course_name, course_code)] = sem_name
+    return courses_dict
+
+
 if __name__ == "__main__":
     path = "../../data_collector/final-programy.json"
 
@@ -74,3 +115,5 @@ if __name__ == "__main__":
 
     kierunki = _get_unique_study_fields(path, "informatyka.", 1)
     print(len(kierunki))
+
+    przedmioty_dict = _prepare_courses_dict(kierunki)
