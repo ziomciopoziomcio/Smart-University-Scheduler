@@ -1,14 +1,14 @@
 import {useState, useRef, useEffect} from 'react';
-import { Stack, TextField } from '@mui/material';
+import {Stack, TextField} from '@mui/material';
 
 interface Props {
     length?: number;
     value: string;
-    onChange(value: string): void;
+    onChange: (value: string) => void;
     disabled?: boolean;
 }
 
-function OtpInput({ length = 6, value, onChange, disabled = false }: Props) {
+function OtpInput({length = 6, value, onChange, disabled = false}: Props) {
     const [otp, setOtp] = useState<string[]>(new Array(length).fill(''));
 
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -16,12 +16,11 @@ function OtpInput({ length = 6, value, onChange, disabled = false }: Props) {
     useEffect(() => {
         if (value === '') {
             setOtp(new Array(length).fill(''));
-        }
-        else if (value && value !== otp.join('')) {
-            const newOtp = Array.from({ length }, (_, i) => value.charAt(i) || '');
+        } else if (value && value !== otp.join('')) {
+            const newOtp = Array.from({length}, (_, i) => value.charAt(i) || '');
             setOtp(newOtp);
         }
-    }, [value, length, otp]);
+    }, [value, length]);
 
     const handleChange = (index: number, newValue: string) => {
 
@@ -71,10 +70,16 @@ function OtpInput({ length = 6, value, onChange, disabled = false }: Props) {
             {otp.map((digit, index) => (
                 <TextField
                     key={index}
-                    inputRef={(el) => {inputRefs.current.splice(index, 1, el);}}
+                    inputRef={(el) => {
+                        inputRefs.current.splice(index, 1, el);
+                    }}
                     value={digit}
-                    onChange={(e) => { handleChange(index, e.target.value); }}
-                    onKeyDown={(e) => { handleKeyDown(index, e); }}
+                    onChange={(e) => {
+                        handleChange(index, e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                        handleKeyDown(index, e);
+                    }}
                     onPaste={handlePaste}
                     disabled={disabled}
                     sx={{
