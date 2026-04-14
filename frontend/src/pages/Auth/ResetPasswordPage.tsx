@@ -3,18 +3,83 @@ import {useSearchParams, useNavigate} from 'react-router-dom';
 import {
     Stack,
     Typography,
-    TextField,
     Button,
     Alert,
-    InputAdornment,
-    IconButton,
     Box,
-    CircularProgress
+    CircularProgress,
+    LinearProgress,
+    Tooltip
 } from '@mui/material';
-import {FormattedMessage, useIntl} from 'react-intl';
-import {Visibility, VisibilityOff, Lock, Check, Close} from '@mui/icons-material';
+import {Check, Close, InfoOutlined} from '@mui/icons-material';
+import {FormattedMessage, useIntl, type IntlShape} from 'react-intl';
 import AuthLayout from '@components/Login/AuthLayout';
+import AuthPasswordField from '@components/Login/AuthPasswordField';
+import BackToLoginButton from '@components/Login/BackToLoginButton';
 import {resetPassword} from '@api/auth';
+
+
+interface StrengthProps {
+    len: number;
+    isMinLength: boolean;
+    isMatching: boolean;
+    intl: IntlShape;
+}
+
+interface StatusRowProps {
+    isValid: boolean;
+    messageId: string;
+}
+
+const StatusRow = ({ isValid, messageId }: StatusRowProps) => (
+    <Stack direction="row" spacing={1} alignItems="center">
+        {isValid ? <Check color="success" sx={{ fontSize: 14 }} /> : <Close color="error" sx={{ fontSize: 14 }} />}
+        <Typography variant="caption" color={isValid ? "success.main" : "error.main"}>
+            <FormattedMessage id={messageId} />
+        </Typography>
+    </Stack>
+);
+
+const StrengthBar = ({ len }: { len: number }) => {
+    const strengthValue = Math.min((len / 16) * 100, 100);
+    const strengthColor = len < 8 ? 'error' : len < 12 ? 'warning' : 'success' as 'error' | 'warning' | 'success';
+
+    return (
+        <LinearProgress
+            variant="determinate"
+            value={strengthValue}
+            color={strengthColor}
+            sx={{ height: 4, borderRadius: 2, mb: 2 }}
+        />
+    );
+};
+
+function PasswordStrengthIndicator({ len, isMinLength, isMatching, intl }: StrengthProps) {
+    return (
+        <Box>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                <Typography variant="caption" color="text.secondary">
+                    <FormattedMessage id="forgotPassword.passwordStrength" defaultMessage="Siła hasła" />
+                </Typography>
+                <Tooltip
+                    title={intl.formatMessage({
+                        id: 'forgotPassword.passwordStrengthTooltip',
+                        defaultMessage: 'Wymagane min. 8 znaków. Zalecane 12-16 dla maksymalnego bezpieczeństwa.'
+                    })}
+                    arrow
+                >
+                    <InfoOutlined sx={{ fontSize: 14, color: 'text.disabled', cursor: 'pointer' }} />
+                </Tooltip>
+            </Stack>
+
+            <StrengthBar len={len} />
+
+            <Stack spacing={0.5}>
+                <StatusRow isValid={isMinLength} messageId="register.validation.length" />
+                <StatusRow isValid={isMatching} messageId="register.validation.match" />
+            </Stack>
+        </Box>
+    );
+}
 
 function ResetPasswordPage() {
     const intl = useIntl();
@@ -25,127 +90,107 @@ function ResetPasswordPage() {
     const [password, setPassword] = useState('');
     const [password2, setPassword2] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [countdown, setCountdown] = useState(3);
 
-    const [pageStatus, setPageStatus] = useState<'verifying' | 'form' | 'success'>('form');
+    const [pageStatus, setPageStatus] = useState<'form' | 'loading' | 'success'>('form');
     const [errorMsg, setErrorMsg] = useState<string | React.ReactNode>('');
 
-    useEffect(() => {
-        if (!token || token.length < 10) {
-            setErrorMsg(<FormattedMessage id="activate.error.invalid"/>);
-        }
-    }, [token]);
-
-    const isLongEnough = password.length >= 8;
+    const isMinLength = password.length >= 8;
     const isMatching = password === password2 && password !== '';
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!isLongEnough || !isMatching || !token) return;
-
-        setPageStatus('verifying');
-        setErrorMsg('');
-
-        try {
-            await resetPassword({token, password, password2});
-            setPageStatus('success');
-            setTimeout(() => navigate('/login'), 3000);
-        } catch (err: any) {
-            setPageStatus('form');
-            setErrorMsg(err.message || <FormattedMessage id="activate.error.generic"/>);
+    useEffect(() => {
+        if (!token || token.length < 43) {
+            setErrorMsg(intl.formatMessage({ id: 'forgotPassword.errorInvalidToken' }));
         }
+    }, [token, intl]);
+
+    useEffect(() => {
+        if (pageStatus === 'success' && countdown > 0) {
+            const timer = setInterval(() => { setCountdown(prev => prev - 1); }, 1000);
+            return () => { clearInterval(timer); };
+        } else if (pageStatus === 'success' && countdown === 0) {
+            navigate('/login');
+        }
+    }, [pageStatus, countdown, navigate]);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!isMinLength || !isMatching || !token) return;
+
+        const executeReset = async () => {
+            setPageStatus('loading');
+            try {
+                await resetPassword({token, password, password2});
+                setPageStatus('success');
+            } catch (err: any) {
+                setPageStatus('form');
+                setErrorMsg(err.message || intl.formatMessage({ id: 'activate.error.generic' }));
+            }
+        };
+
+        void executeReset();
     };
 
-    const ValidationRow = ({labelId, isValid}: { labelId: string, isValid: boolean }) => (
-        <Stack direction="row" spacing={1} alignItems="center">
-            {isValid ? <Check color="success" sx={{fontSize: 16}}/> : <Close color="error" sx={{fontSize: 16}}/>}
-            <Typography variant="caption" color={isValid ? "success.main" : "error.main"}>
-                <FormattedMessage id={labelId}/>
-            </Typography>
-        </Stack>
-    );
-
     return (
-        <AuthLayout title={<FormattedMessage id="forgotPassword.title"/>}>
-            <Stack spacing={3} width="100%" alignItems="center">
+        <AuthLayout title={<FormattedMessage id="forgotPassword.title" />}>
+            <Stack spacing={3} width="100%">
                 {pageStatus === 'success' ? (
-                    <Alert severity="success" sx={{width: '100%'}}>
-                        <FormattedMessage id="login.validation.success"/>
+                    <Alert severity="success">
+                        <FormattedMessage
+                            id="forgotPassword.successRedirect"
+                            defaultMessage="Hasło zmienione. Powrót za {countdown}s..."
+                            values={{ countdown }}
+                        />
                     </Alert>
                 ) : (
                     <>
-                        {errorMsg && (
-                            <Alert severity="error" sx={{width: '100%'}}>
-                                {errorMsg}
-                            </Alert>
-                        )}
+                        {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
 
-                        <Box sx={{width: '100%'}}>
-                            <Typography variant="body2" textAlign="center" sx={{mb: 2}}>
-                                <FormattedMessage id="forgotPassword.instruction"/>
-                            </Typography>
-                            <Stack spacing={0.5} sx={{mb: 2}}>
-                                <ValidationRow labelId="register.validation.length" isValid={isLongEnough}/>
-                                <ValidationRow labelId="register.validation.match" isValid={isMatching}/>
-                            </Stack>
-                        </Box>
+                        <PasswordStrengthIndicator
+                            len={password.length}
+                            isMinLength={isMinLength}
+                            isMatching={isMatching}
+                            intl={intl}
+                        />
 
-                        <form onSubmit={handleSubmit} style={{width: '100%'}}>
+                        <form onSubmit={handleSubmit}>
                             <Stack spacing={2}>
-                                <TextField
-                                    fullWidth
-                                    disabled={pageStatus === 'verifying'}
-                                    type={showPassword ? 'text' : 'password'}
-                                    label={intl.formatMessage({id: 'forgotPassword.newPassword'})}
+                                <AuthPasswordField
+                                    label={intl.formatMessage({ id: 'forgotPassword.newPassword' })}
+                                    placeholder={intl.formatMessage({ id: 'forgotPassword.newPassword' })}
                                     value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    InputProps={{
-                                        startAdornment: <InputAdornment position="start"><Lock/></InputAdornment>,
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                                                    {showPassword ? <VisibilityOff/> : <Visibility/>}
-                                                </IconButton>
-                                            </InputAdornment>
-                                        ),
-                                    }}
+                                    onChange={(e) => { setPassword(e.target.value); }}
+                                    showPassword={showPassword}
+                                    onTogglePassword={() => { setShowPassword(!showPassword); }}
+                                    disabled={pageStatus === 'loading'}
                                 />
-                                <TextField
-                                    fullWidth
-                                    disabled={pageStatus === 'verifying'}
-                                    type={showPassword ? 'text' : 'password'}
-                                    label={intl.formatMessage({id: 'forgotPassword.confirmNewPassword'})}
+                                <AuthPasswordField
+                                    label={intl.formatMessage({ id: 'forgotPassword.confirmNewPassword' })}
+                                    placeholder={intl.formatMessage({ id: 'forgotPassword.confirmNewPassword' })}
                                     value={password2}
-                                    onChange={(e) => setPassword2(e.target.value)}
-                                    InputProps={{
-                                        startAdornment: <InputAdornment position="start"><Lock/></InputAdornment>,
-                                    }}
+                                    onChange={(e) => { setPassword2(e.target.value); }}
+                                    showPassword={showPassword}
+                                    onTogglePassword={() => { setShowPassword(!showPassword); }}
+                                    disabled={pageStatus === 'loading'}
                                 />
                                 <Button
                                     variant="contained"
                                     fullWidth
-                                    size="large"
                                     type="submit"
-                                    disabled={pageStatus === 'verifying' || !isLongEnough || !isMatching || !!(token && token.length < 10)}
-                                    sx={{mt: 2, backgroundColor: '#004d71'}}
+                                    disabled={pageStatus === 'loading' || !isMinLength || !isMatching || !token}
+                                    sx={{mt: 1}}
                                 >
-                                    {pageStatus === 'verifying' ? (
-                                        <CircularProgress size={24} color="inherit"/>
-                                    ) : (
-                                        <FormattedMessage id="forgotPassword.submitNew"/>
-                                    )}
+                                    {pageStatus === 'loading'
+                                        ? <CircularProgress size={24}/>
+                                        : <FormattedMessage id="forgotPassword.submitNew" />
+                                    }
                                 </Button>
+
+                                <BackToLoginButton disabled={pageStatus === 'loading'} />
                             </Stack>
                         </form>
                     </>
                 )}
-
-                <Button
-                    onClick={() => navigate('/login')}
-                    sx={{textTransform: 'none'}}
-                    disabled={pageStatus === 'verifying'}
-                >
-                    <FormattedMessage id="register.backToLogin"/>
-                </Button>
             </Stack>
         </AuthLayout>
     );
