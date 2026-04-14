@@ -55,10 +55,7 @@ def _cost_early_start(start_slot: int) -> float:
 def _cost_room_waste(
     gene: ClassSessionGene, room_id: int, rooms_lookup: RoomsLookup
 ) -> float:
-    """
-    Penalize room waste: larger rooms than needed get a cost proportional
-    to unused capacity.
-    """
+    """Penalize room waste: larger rooms than needed get a cost proportional to unused capacity."""
     cap = int(rooms_lookup[room_id].get("room_capacity", 0) or 0)
     return 0.05 * max(0, cap - int(gene.group_size))
 
