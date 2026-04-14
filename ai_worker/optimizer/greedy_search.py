@@ -14,17 +14,32 @@ from .greedy import (
 
 
 def _day(slot_id: int) -> int:
+    """Return zero-based day index for an absolute slot id."""
     return (slot_id - 1) // SLOTS_PER_DAY
 
 
 def _slot_in_day(slot_id: int) -> int:
+    """Return zero-based slot index inside a day for an absolute slot id."""
     return (slot_id - 1) % SLOTS_PER_DAY
 
 
 def _iter_gene_weeks(gene: ClassSessionGene, pattern_index: int) -> list[int]:
-    if not gene.allowed_week_patterns:
+    """
+    Return list of week numbers for a given gene pattern index.
+
+    Behavior:
+    - If gene.allowed_week_patterns is None -> means "all weeks" -> return 1..15.
+    - If gene.allowed_week_patterns is an empty list -> no weeks -> return [].
+    - If the selected pattern is None -> means "all weeks" -> return 1..15.
+    - If the selected pattern is an empty/falsey sequence -> return [].
+    - Otherwise return a concrete list of weeks.
+    """
+    awp = getattr(gene, "allowed_week_patterns", None)
+    if awp is None:
+        return list(range(1, 16))
+    if not awp:
         return []
-    weeks = gene.allowed_week_patterns[pattern_index]
+    weeks = awp[pattern_index]
     if weeks is None:
         return list(range(1, 16))
     if not weeks:
@@ -33,17 +48,23 @@ def _iter_gene_weeks(gene: ClassSessionGene, pattern_index: int) -> list[int]:
 
 
 def _cost_early_start(start_slot: int) -> float:
+    """Small penalty for starting earlier in the day (encourages balanced starts)."""
     return 0.20 * _slot_in_day(start_slot)
 
 
 def _cost_room_waste(
     gene: ClassSessionGene, room_id: int, rooms_lookup: RoomsLookup
 ) -> float:
+    """
+    Penalize room waste: larger rooms than needed get a cost proportional
+    to unused capacity.
+    """
     cap = int(rooms_lookup[room_id].get("room_capacity", 0) or 0)
     return 0.05 * max(0, cap - int(gene.group_size))
 
 
 def _cost_late_finish(start_slot: int, duration: int) -> float:
+    """Penalty for finishing late in the day (after a threshold slot)."""
     finish = start_slot + duration - 1
     return 0.10 * max(0, _slot_in_day(finish) - 7)
 
@@ -57,7 +78,8 @@ def _taken_slots_for_day_indexed(
 ) -> list[int]:
     """
     Fast retrieval of slot_in_day list for given (week, entity_id, day).
-    entity_type in {"group", "instr", "room"}.
+
+    entity_type must be one of {"group", "instr", "room"}.
     Returns a sorted list (may be empty).
     """
     if entity_type == "group":
@@ -75,6 +97,10 @@ def _cost_gap_penalty_for_day_span(
     taken_slots: list[int],
     penalty: float,
 ) -> float:
+    """
+    Return a gap penalty if the proposed [start, finish] lies strictly inside
+    an existing span of occupied slots for that entity in the same day.
+    """
     if not taken_slots:
         return 0.0
 
@@ -99,7 +125,9 @@ def _candidate_cost(
     occ: Occupancy,
 ) -> float:
     """
-    Compute candidate cost using occupancy indexes (occ) for gap penalties.
+    Compute heuristic cost for a candidate assignment (start_slot, room, instructor).
+    Cost combines early-start, room-waste, late-finish, and gap penalties for
+    group and instructor occupancy across the requested weeks.
     """
     duration = max(1, int(getattr(gene, "duration_slots", 1)))
 
@@ -134,6 +162,10 @@ def _candidate_cost(
 
 
 def _pattern_indices(gene: ClassSessionGene, ctx: GreedyContext) -> list[int]:
+    """
+    Return a (possibly shuffled) sequence of pattern indices for the gene.
+    When randomization is enabled the order is shuffled to diversify choices.
+    """
     idxs = list(range(len(gene.allowed_week_patterns)))
     if ctx.randomize:
         ctx.rng.shuffle(idxs)
@@ -141,6 +173,11 @@ def _pattern_indices(gene: ClassSessionGene, ctx: GreedyContext) -> list[int]:
 
 
 def _get_instructor_candidates(gene: ClassSessionGene, ctx: GreedyContext) -> list[int]:
+    """
+    Return an ordered list of instructor candidate ids for the gene.
+    If randomize is enabled a weighted randomization based on past assignments
+    is used; otherwise instructors are ordered by historical assignment counts.
+    """
     allowed = getattr(gene, "allowed_instructors", [])
     if not allowed:
         allowed = list(ctx.instructors_lookup.keys())
@@ -179,6 +216,10 @@ def _get_instructor_candidates(gene: ClassSessionGene, ctx: GreedyContext) -> li
 
 
 def _room_satisfies_requirements(gene: ClassSessionGene, room: dict) -> bool:
+    """
+    Check whether a room fulfills the size and equipment requirements of the gene.
+    Compares capacity and required PC/projector counts if present on the gene.
+    """
     if int(room.get("room_capacity", 0) or 0) < int(gene.group_size):
         return False
 
@@ -197,6 +238,10 @@ def _room_satisfies_requirements(gene: ClassSessionGene, room: dict) -> bool:
 
 
 def _collect_candidate_rooms(gene: ClassSessionGene, ctx: GreedyContext) -> list[int]:
+    """
+    Return candidate room ids for a gene. If gene.allowed_rooms is set,
+    return it directly; otherwise filter all rooms by requirements.
+    """
     if getattr(gene, "allowed_rooms", None):
         return gene.allowed_rooms
 
@@ -210,11 +255,15 @@ def _collect_candidate_rooms(gene: ClassSessionGene, ctx: GreedyContext) -> list
 def _maybe_shuffle(
     items: list[int], ctx: GreedyContext, probability: float = 0.2
 ) -> None:
+    """
+    Shuffle a list in-place with given probability when randomize is enabled.
+    """
     if ctx.randomize and items and ctx.rng.random() < probability:
         ctx.rng.shuffle(items)
 
 
 def _get_candidate_rooms(gene: ClassSessionGene, ctx: GreedyContext) -> list[int]:
+    """Collect and possibly shuffle candidate rooms for the gene."""
     candidate_rooms = _collect_candidate_rooms(gene, ctx)
     _maybe_shuffle(candidate_rooms, ctx, probability=0.2)
     return candidate_rooms
@@ -228,6 +277,10 @@ def _is_group_ok(
     occupied_group: set[tuple[int, int, int]],
     conflicting_groups: ConflictsMap,
 ) -> bool:
+    """
+    Check that the group and its conflicting groups are free for all weeks
+    and all slots in the requested interval.
+    """
     for w in weeks:
         for s in range(start_slot, start_slot + duration):
             if (w, s, gene.group_id) in occupied_group:
@@ -245,6 +298,7 @@ def _is_room_ok(
     duration: int,
     occupied_room: set[tuple[int, int, int]],
 ) -> bool:
+    """Return True if the room is free for the given weeks and slots."""
     for w in weeks:
         for s in range(start_slot, start_slot + duration):
             if (w, s, rid) in occupied_room:
@@ -259,6 +313,7 @@ def _is_instructor_ok(
     duration: int,
     occupied_instr: set[tuple[int, int, int]],
 ) -> bool:
+    """Return True if the instructor is free for the given weeks and slots."""
     for w in weeks:
         for s in range(start_slot, start_slot + duration):
             if (w, s, iid) in occupied_instr:
@@ -267,6 +322,11 @@ def _is_instructor_ok(
 
 
 def _iter_feasible_start_slots(duration: int, ctx: GreedyContext) -> list[int]:
+    """
+    Iterate feasible absolute start slots for the given duration.
+    When randomize is enabled the list is sorted with randomness within equal
+    slot-in-day categories to diversify choices.
+    """
     slots = list(range(1, MAX_SLOT_ID - duration + 2))
     if ctx.randomize:
         slots = sorted(slots, key=lambda x: (_slot_in_day(x), ctx.rng.random()))
@@ -274,6 +334,7 @@ def _iter_feasible_start_slots(duration: int, ctx: GreedyContext) -> list[int]:
 
 
 def _is_start_slot_valid_for_day_boundary(start_slot: int, duration: int) -> bool:
+    """Return True if the start_slot + duration does not cross day boundary."""
     return _slot_in_day(start_slot) + duration <= SLOTS_PER_DAY
 
 
@@ -284,6 +345,7 @@ def _iter_feasible_rooms(
     duration: int,
     occ: Occupancy,
 ) -> list[int]:
+    """Return subset of candidate_rooms free for the given weeks and slots."""
     return [
         rid
         for rid in candidate_rooms
@@ -298,6 +360,7 @@ def _iter_feasible_instructors(
     duration: int,
     occ: Occupancy,
 ) -> list[int]:
+    """Return subset of instructor candidates free for the given weeks and slots."""
     return [
         iid
         for iid in instr_candidates
@@ -308,6 +371,7 @@ def _iter_feasible_instructors(
 def _update_best(
     best: BestTuple | None, cand: BestTuple
 ) -> tuple[BestTuple | None, bool]:
+    """Compare and update best candidate tuple; return (new_best, changed_flag)."""
     if best is None or cand[0] < best[0]:
         return cand, True
     return best, False
@@ -316,6 +380,11 @@ def _update_best(
 def _evaluate_candidates_for_start_slot(
     inp: EvalInput, *, ctx: GreedyContext, occ: Occupancy
 ) -> BestTuple | None:
+    """
+    Evaluate all (room, instructor) pairs for a given start slot and return
+    the best candidate (cost, start_slot, room_id, instr_id, pattern_index, weeks)
+    or None if no feasible candidate was found.
+    """
     best_local: BestTuple | None = None
 
     for rid in inp.feasible_rooms:
@@ -348,6 +417,10 @@ def _evaluate_candidates_for_start_slot(
 def _best_for_start_slot(
     inp: StartSlotInput, *, ctx: GreedyContext, occ: Occupancy
 ) -> BestTuple | None:
+    """
+    For a particular start slot, compute feasible rooms/instructors and evaluate
+    their candidates returning the best found tuple or None.
+    """
     feasible_rooms = _iter_feasible_rooms(
         inp.candidate_rooms, inp.weeks, inp.start_slot, inp.duration, occ
     )
@@ -383,6 +456,9 @@ def _best_for_weeks(
     ctx: GreedyContext,
     occ: Occupancy,
 ) -> BestTuple | None:
+    """
+    Find the best assignment over all feasible start slots for a fixed weeks set.
+    """
     best: BestTuple | None = None
 
     for start_slot in _iter_feasible_start_slots(duration, ctx):
@@ -428,6 +504,9 @@ def _best_over_patterns(
     ctx: GreedyContext,
     occ: Occupancy,
 ) -> BestTuple | None:
+    """
+    Try each week-pattern (possibly shuffled) and return the overall best candidate.
+    """
     best: BestTuple | None = None
 
     for pidx in _pattern_indices(gene, ctx):
@@ -462,9 +541,11 @@ def find_best_assignment_for_gene(
     occ: Occupancy,
 ) -> BestTuple | None:
     """
-    Returns a BestTuple or None.
+    Public entry: find the best assignment for a gene given the search context
+    and current occupancy indexes. Returns a BestTuple or None if no feasible
+    assignment exists.
     """
-    if not gene.allowed_week_patterns:
+    if not getattr(gene, "allowed_week_patterns", None):
         return None
 
     duration = max(1, int(getattr(gene, "duration_slots", 1)))
