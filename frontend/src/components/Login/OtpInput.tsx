@@ -1,32 +1,46 @@
-import { useState, useRef } from 'react';
+import {useState, useRef, useEffect} from 'react';
 import { Stack, TextField } from '@mui/material';
 
-type Props = {
+interface Props {
     length?: number;
     value: string;
     onChange: (value: string) => void;
     disabled?: boolean;
 };
 
-function OtpInput({ length = 6, onChange, disabled = false }: Props) {
+function OtpInput({ length = 6, value, onChange, disabled = false }: Props) {
     const [otp, setOtp] = useState<string[]>(new Array(length).fill(''));
 
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+    useEffect(() => {
+        if (value === '') {
+            setOtp(new Array(length).fill(''));
+        }
+        else if (value && value !== otp.join('')) {
+            const newOtp = new Array(length).fill('');
+            value.split('').forEach((char, i) => {
+                if (i < length) newOtp[i] = char;
+            });
+            setOtp(newOtp);
+        }
+    }, [value, length, otp]);
+
     const handleChange = (index: number, newValue: string) => {
+
         if (disabled) return;
+        const char = newValue.slice(-1);
 
-        if (newValue && isNaN(Number(newValue))) return;
+        if (!/^\d*$/.test(char)) return;
 
-        const newOtp = otp.map((digit, i) =>
-            i === index ? newValue.substring(newValue.length - 1) : digit
-        );
+        const newOtp = [...otp];
+        newOtp.splice(index, 1, char);
+
         setOtp(newOtp);
-
         onChange(newOtp.join(''));
 
-        if (newValue && index < length - 1 && inputRefs.current[index + 1]) {
-            inputRefs.current[index + 1]?.focus();
+        if (char && index < length - 1) {
+            inputRefs.current.at(index + 1)?.focus();
         }
     };
 
@@ -49,12 +63,10 @@ function OtpInput({ length = 6, onChange, disabled = false }: Props) {
 
         const newOtp = [...pasteData, ...otp.slice(pasteData.length)];
         setOtp(newOtp);
-
-        setOtp(newOtp);
         onChange(newOtp.join(''));
 
         const focusIndex = Math.min(length - 1, pasteData.length - 1);
-        inputRefs.current[focusIndex]?.focus();
+        inputRefs.current.at(focusIndex)?.focus();
     };
 
     return (
@@ -62,9 +74,9 @@ function OtpInput({ length = 6, onChange, disabled = false }: Props) {
             {otp.map((digit, index) => (
                 <TextField
                     key={index}
-                    inputRef={(el) => (inputRefs.current[index] = el)}
+                    inputRef={(el) => {inputRefs.current.splice(index, 1, el);}}
                     value={digit}
-                    onChange={(e) => handleChange(index, e.target.value)}
+                    onChange={(e) => { handleChange(index, e.target.value); }}
                     onKeyDown={(e) => { handleKeyDown(index, e); }}
                     onPaste={handlePaste}
                     disabled={disabled}
