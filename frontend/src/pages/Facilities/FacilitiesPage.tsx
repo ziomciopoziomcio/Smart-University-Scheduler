@@ -5,7 +5,7 @@ import {useIntl} from 'react-intl';
 
 import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
 import SearchBar from "@components/Common/SearchBar.tsx";
-import {fetchCampuses, fetchBuildings, fetchRooms} from '@api/facilities.ts';
+import {fetchCampuses, fetchBuildings, fetchRooms, getBuilding, getCampus} from '@api/facilities.ts';
 import CreateCampusModal from "@components/Facilities/CreateCampusModal.tsx";
 import {type Campus, type Building, type Room} from '@api/types';
 import CampusView from '@components/Facilities/CampusView';
@@ -29,6 +29,8 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
     const [error, setError] = useState<string | null>(null);
     const [dummySearch, setDummySearch] = useState('');
     const [isCampusModalOpen, setIsCampusModalOpen] = useState(false);
+    const [currentCampus, setCurrentCampus] = useState<Campus | null>(null);
+    const [currentBuilding, setCurrentBuilding] = useState<Building | null>(null);
 
     const getBreadcrumbs = () => {
 
@@ -38,13 +40,15 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
         }];
 
         if (view === 'buildings' || view === 'rooms') {
+            const campusLabel = currentCampus ? currentCampus.campus_short : campusId;
             items.push({
-                label: `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${campusId}`,
+                label: `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${campusLabel}`,
                 path: `/facilities/campus/${campusId}`
             });
         }
         if (view === 'rooms') {
-            items.push({label: `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${buildingId}`});
+            const buildingLabel = currentBuilding ? currentBuilding.building_number : buildingId;
+            items.push({label: `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${buildingLabel}`});
         }
         return items;
     };
@@ -56,13 +60,29 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
             if (view === 'campuses') {
                 const res = await fetchCampuses();
                 setData(res.items);
+                setCurrentCampus(null);
+                setCurrentBuilding(null);
+
             } else if (view === 'buildings' && campusId) {
-                const res = await fetchBuildings(Number(campusId));
-                setData(res.items);
-            } else if (view === 'rooms' && buildingId) {
-                const res = await fetchRooms(Number(buildingId));
-                setData(res.items);
+                const [buildingsRes, campusData] = await Promise.all([
+                    fetchBuildings(Number(campusId)),
+                    getCampus(Number(campusId))
+                ]);
+                setData(buildingsRes.items);
+                setCurrentCampus(campusData);
+                setCurrentBuilding(null);
+
+            } else if (view === 'rooms' && buildingId && campusId) {
+                const [roomsRes, campusData, buildingData] = await Promise.all([
+                    fetchRooms(Number(buildingId)),
+                    getCampus(Number(campusId)),
+                    getBuilding(Number(buildingId))
+                ]);
+                setData(roomsRes.items);
+                setCurrentCampus(campusData);
+                setCurrentBuilding(buildingData);
             }
+
         } catch (err: any) {
             setError(err.message);
         } finally {

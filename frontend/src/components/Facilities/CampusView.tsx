@@ -79,9 +79,15 @@ export default function CampusView({data, onAddClick, onRefresh}: CampusViewProp
                     key={item.id}
                     onClick={() => navigate(`/facilities/campus/${item.id}`)}
                     sx={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        width: 320, p: 2, border: '1px solid rgba(0,0,0,0.1)',
-                        borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        width: 320,
+                        p: 2,
+                        border: '1px solid rgba(0,0,0,0.1)',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
                         '&:hover': {
                             borderColor: 'rgba(0,0,0,0.2)',
                             background: '#fbfbfb',
@@ -90,10 +96,24 @@ export default function CampusView({data, onAddClick, onRefresh}: CampusViewProp
                     }}
                 >
                     <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
-                        <SvgIcon component={buildingIcon} inheritViewBox/>
-                        <Typography fontWeight={500} color="text.secondary">
-                            {item.campus_name || item.campus_short}
-                        </Typography>
+                        <SvgIcon component={buildingIcon}
+                                 inheritViewBox
+                                 sx={{
+                                     fontSize: 56,
+                                     color: 'rgba(0,0,0,0.5)'
+                                 }}
+                        />
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start'}}>
+                            <Typography fontWeight={600}>
+                                {intl.formatMessage({ id: 'facilities.breadcrumbs.campus' })} {item.campus_short}
+                            </Typography>
+
+                            {item.campus_name && (
+                                <Typography variant="body2" color="text.secondary">
+                                    {item.campus_name}
+                                </Typography>
+                            )}
+                        </Box>
                     </Box>
 
                     <IconButton size="small" onClick={(e) => handleMenuOpen(e, item)}>
