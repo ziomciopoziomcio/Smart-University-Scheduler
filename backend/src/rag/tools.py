@@ -18,7 +18,7 @@ class RescheduleSuggestionTool(BaseModel):
         None,
         description="The proposed timeslot id of the class to reschedule",
     )
-    proposed_room_id: int = Field(
+    proposed_room_id: int | None = Field(
         None,
         description="The proposed room id of the class to reschedule",
     )
