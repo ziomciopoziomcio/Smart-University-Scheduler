@@ -1,49 +1,59 @@
-import json
 from groq import Groq
 from groq.types.chat import (
     ChatCompletionMessageParam,
     ChatCompletionToolParam,
-    ChatCompletionSystemMessageParam,
-    ChatCompletionUserMessageParam,
 )
 
-from .tools import RescheduleSuggestionTool
+from .tools import RescheduleSuggestionTool, CheckAvailabilityTool
 
 client = Groq()
 
 
-def process_chat_message(user_message: str, schedule_context: str) -> dict:
+def get_system_prompt(schedule_context: str) -> str:
     """
-    Process a chat message
-    :param user_message: The message from the user
-    :param schedule_context: The context of the schedule
-    :return: A dictionary containing the response from the LLM, including any tool suggestions
-    """
-    tools: list[ChatCompletionToolParam] = [
-        {
-            "type": "function",
-            "function": {
-                "name": "create_reschedule_suggestion",
-                "description": "Use this tool ONLY when the user explicitly asks to move, reschedule, or cancel a specific class session.",
-                "parameters": RescheduleSuggestionTool.model_json_schema(),
-            },
-        }
-    ]
+    Generate the system prompt containing the user's schedule context and agent rules.
 
-    system_prompt = f"""
+    :param schedule_context: The text representation of the user's schedule.
+    :return: The formatted system prompt string.
+    """
+    return f"""
     You are an intelligent university schedule assistant.
 
     HERE IS THE USER'S CURRENT SCHEDULE (CONTEXT):
     {schedule_context}
 
-    Your task is to help the user manage this schedule.
-    If they want to move or cancel a class, use the 'create_reschedule_suggestion' tool.
-    ALWAYS use the Class Session IDs provided in the context above.
+    RULES:
+    1. If the user wants to reschedule or move a class, you MUST ALWAYS call 'check_availability' first to check for conflicts and find available rooms.
+    2. If 'check_availability' returns a CONFLICT or NO ROOMS, inform the user and ask them to select a different time. DO NOT call 'create_reschedule_suggestion'.
+    3. If 'check_availability' returns OK, use one of the available Room IDs provided in the tool response and then call 'create_reschedule_suggestion'.
+    4. ALWAYS use the Class Session IDs provided in the context above.
     """
 
-    messages: list[ChatCompletionMessageParam] = [
-        ChatCompletionSystemMessageParam(role="system", content=system_prompt),
-        ChatCompletionUserMessageParam(role="user", content=user_message),
+
+def call_agent(messages: list[ChatCompletionMessageParam]):
+    """
+    Call the LLM with a sequence of messages and available tools.
+
+    :param messages: The message history including system, user, assistant, and tool messages.
+    :return: The response message object from the LLM, containing either text content or tool calls.
+    """
+    tools: list[ChatCompletionToolParam] = [
+        {
+            "type": "function",
+            "function": {
+                "name": "check_availability",
+                "description": "Check if a proposed timeslot has any group or instructor conflicts, and find available rooms. Always use this before suggesting a reschedule.",
+                "parameters": CheckAvailabilityTool.model_json_schema(),
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "create_reschedule_suggestion",
+                "description": "Submit a formal request to reschedule a class session. Call this ONLY after verifying availability with check_availability.",
+                "parameters": RescheduleSuggestionTool.model_json_schema(),
+            },
+        },
     ]
 
     response = client.chat.completions.create(
@@ -54,26 +64,4 @@ def process_chat_message(user_message: str, schedule_context: str) -> dict:
         temperature=0.0,
     )
 
-    response_message = response.choices[0].message
-    if response_message.tool_calls:
-        tool_calls = response_message.tool_calls[0]
-        try:
-            arguments = json.loads(tool_calls.function.arguments)
-        except (json.JSONDecodeError, TypeError, AttributeError):
-            arguments = None
-
-        if isinstance(arguments, dict):
-            generated_reply = arguments.get(
-                "confirmation_message",
-                "Your request has been forwarded for approval.",
-            )
-            return {
-                "type": "tool_call",
-                "content": generated_reply,
-                "suggestion_data": arguments,
-            }
-    return {
-        "type": "text",
-        "content": response_message.content,
-        "suggestion_data": None,
-    }
+    return response.choices[0].message
