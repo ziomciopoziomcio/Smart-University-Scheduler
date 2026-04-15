@@ -31,6 +31,7 @@ export const useAuthStore = create<AuthState>()(
 
                     if (!authData.requires_2fa && authData.access_token) {
                         const userData = await fetchUserData(authData.access_token);
+
                         set({
                             token: authData.access_token,
                             user: userData,
