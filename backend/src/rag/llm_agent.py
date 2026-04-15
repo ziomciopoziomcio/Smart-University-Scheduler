@@ -12,10 +12,11 @@ from .tools import RescheduleSuggestionTool
 client = Groq()
 
 
-def process_chat_message(user_message: str) -> dict:
+def process_chat_message(user_message: str, schedule_context: str) -> dict:
     """
     Process a chat message
     :param user_message: The message from the user
+    :param schedule_context: The context of the schedule
     :return: A dictionary containing the response from the LLM, including any tool suggestions
     """
     tools: list[ChatCompletionToolParam] = [
@@ -29,13 +30,17 @@ def process_chat_message(user_message: str) -> dict:
         }
     ]
 
-    system_prompt = (
-        "You are an intelligent university schedule assistant. "
-        "Your primary task is to help students and instructors manage their academic schedules. "
-        "If the user asks to move, reschedule, or cancel a class, ALWAYS use the 'create_reschedule_suggestion' tool. "
-        "Do not hallucinate class IDs or timeslots. If the user didn't provide enough context, ask them for details first. "
-        "IMPORTANT: You must always mirror the user's language. If the user writes in English, reply in English. If they write in Polish, reply in Polish. If Spanish, reply in Spanish, etc."
-    )
+    system_prompt = f"""
+    You are an intelligent university schedule assistant.
+
+    HERE IS THE USER'S CURRENT SCHEDULE (CONTEXT):
+    {schedule_context}
+
+    Your task is to help the user manage this schedule.
+    If they want to move or cancel a class, use the 'create_reschedule_suggestion' tool.
+    ALWAYS use the Class Session IDs provided in the context above.
+    """
+
     messages: list[ChatCompletionMessageParam] = [
         ChatCompletionSystemMessageParam(role="system", content=system_prompt),
         ChatCompletionUserMessageParam(role="user", content=user_message),
