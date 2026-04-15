@@ -1,13 +1,6 @@
-import {Paper} from '@mui/material';
-import {useMemo, useState} from 'react';
+import {Box, CircularProgress, Paper} from '@mui/material';
 import type {WeekScheduleProps} from '@api/types';
-import {
-    addWeeks,
-    formatWeekRange,
-    getStartOfWeek,
-    isDateInWeek,
-    parseIsoDate,
-} from './utils/dateUtils.ts';
+import {formatWeekRange} from './utils/dateUtils';
 import {WeekScheduleGrid} from './WeekScheduleGrid';
 import {WeekScheduleHeader} from './WeekScheduleHeader';
 import {useIntl} from "react-intl";
@@ -27,36 +20,17 @@ const monthMessageIds = [
     'calendar.december',
 ] as const;
 
-export function WeekSchedule({entries}: WeekScheduleProps) {
+export function WeekSchedule({
+                                 entries,
+                                 currentWeekStart,
+                                 isLoading,
+                                 onPrevWeek,
+                                 onNextWeek,
+                             }: WeekScheduleProps) {
     const {formatMessage} = useIntl();
-
-    const [currentWeekStart, setCurrentWeekStart] = useState(() =>
-        getStartOfWeek(new Date()),
-    );
-
-    const currentDateLabel = useMemo(() => {
-        const monthId = monthMessageIds[currentWeekStart.getMonth()];
-        return `${formatMessage({id: monthId})} ${currentWeekStart.getFullYear()}`;
-    }, [currentWeekStart]);
-
-    const rangeLabel = useMemo(() => {
-        return formatWeekRange(currentWeekStart);
-    }, [currentWeekStart]);
-
-    const visibleEntries = useMemo(() => {
-        return entries.filter((entry) => {
-            const entryDate = parseIsoDate(entry.date);
-            return isDateInWeek(entryDate, currentWeekStart);
-        });
-    }, [entries, currentWeekStart]);
-
-    const handlePrevWeek = () => {
-        setCurrentWeekStart((prev) => addWeeks(prev, -1));
-    };
-
-    const handleNextWeek = () => {
-        setCurrentWeekStart((prev) => addWeeks(prev, 1));
-    };
+    const monthId = monthMessageIds[currentWeekStart.getMonth()];
+    const currentDateLabel = `${formatMessage({id: monthId})} ${currentWeekStart.getFullYear()}`;
+    const rangeLabel = formatWeekRange(currentWeekStart);
 
     return (
         <Paper
@@ -67,16 +41,35 @@ export function WeekSchedule({entries}: WeekScheduleProps) {
                 bgcolor: 'transparent',
                 borderRadius: 0,
                 overflow: 'hidden',
+                position: 'relative',
             }}
         >
             <WeekScheduleHeader
                 currentDateLabel={currentDateLabel}
                 rangeLabel={rangeLabel}
-                onPrevWeek={handlePrevWeek}
-                onNextWeek={handleNextWeek}
+                onPrevWeek={onPrevWeek}
+                onNextWeek={onNextWeek}
             />
 
-            <WeekScheduleGrid entries={visibleEntries}/>
+            <Box sx={{position: 'relative'}}>
+                <WeekScheduleGrid entries={entries}/>
+
+                {isLoading && (
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            inset: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            bgcolor: 'rgba(255,255,255,0.35)',
+                            zIndex: 30,
+                        }}
+                    >
+                        <CircularProgress size={34}/>
+                    </Box>
+                )}
+            </Box>
         </Paper>
     );
 }

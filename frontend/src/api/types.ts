@@ -51,4 +51,8 @@ export interface ScheduleEntry {
 
 export interface WeekScheduleProps {
     entries: ScheduleEntry[];
+    currentWeekStart: Date;
+    isLoading: boolean;
+    onPrevWeek: () => void;
+    onNextWeek: () => void;
 }
