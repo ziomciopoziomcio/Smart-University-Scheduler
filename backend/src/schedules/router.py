@@ -132,11 +132,10 @@ def get_schedule_suggestion(suggestion_id: int, db: Session = Depends(get_db)):
 @router.patch(
     "/suggestions/{suggestion_id}", response_model=schemas.ScheduleSuggestionRead
 )
-def resolve_schedule_suggestion(
+async def resolve_schedule_suggestion(
     suggestion_id: int,
     payload: schemas.ScheduleSuggestionUpdate,
     db: Session = Depends(get_db),
-    # TODO: neo4j_driver
 ):
     obj = _get_or_404(
         db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
@@ -164,7 +163,31 @@ def resolve_schedule_suggestion(
     obj.status = payload.status
     obj.resolved_at = datetime.now(timezone.utc)
 
-    # TODO: Neo4j implementation
+    if payload.status == models.SuggestionStatus.ACCEPTED:
+        event_message = {
+            "suggestion_id": suggestion_id,
+            "class_session_id": str(obj.target_class_session_id),
+            "new_room_id": obj.state_after.get("proposed_room_id"),
+            "new_timeslot_id": obj.state_after.get("proposed_timeslot_id"),
+        }
+
+        try:
+            success = await send_event(
+                topic="schedule.session.reschedule",
+                msg=event_message,
+            )
+            if not success:
+                logger.error(f"Failed to reschedule: {event_message}")
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Failed to queue schedule update request",
+                )
+        except Exception:
+            logger.exception(f"Failed to reschedule {suggestion_id}: {event_message}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Failed to queue schedule update request",
+            )
 
     db.add(obj)
     _commit_or_rollback(db)
