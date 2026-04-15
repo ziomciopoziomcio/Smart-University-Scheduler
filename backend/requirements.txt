@@ -14,3 +14,4 @@ aiokafka
 bcrypt>=4.0.1
 cffi>=1.16.0
 wheel
+groq
