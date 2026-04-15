@@ -73,3 +73,31 @@ export const getBuilding = async (id: number): Promise<Building> => {
     if (!response.ok) throw new Error('Nie udało się pobrać budynku');
     return response.json();
 };
+
+export const createBuilding = async (data: { building_number: string; building_name?: string; campus_id: number }): Promise<Building> => {
+    const response = await fetch(`${BASE_URL}/buildings`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Nie udało się utworzyć budynku');
+    return response.json();
+};
+
+export const updateBuilding = async (id: number, data: { building_number?: string; building_name?: string; campus_id?: number }): Promise<Building> => {
+    const response = await fetch(`${BASE_URL}/buildings/${id}`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Nie udało się zaktualizować budynku');
+    return response.json();
+};
+
+export const deleteBuilding = async (id: number): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/buildings/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Nie udało się usunąć budynku');
+};
