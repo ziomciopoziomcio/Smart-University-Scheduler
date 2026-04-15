@@ -1,13 +1,13 @@
 import {useState} from 'react';
-// @ts-ignore
+// @ts-expect-error
 import backpack_icon from '@assets/icons/backpack.svg?react';
-// @ts-ignore
+// @ts-expect-error
 import building_icon from '@assets/icons/building.svg?react';
-// @ts-ignore
+// @ts-expect-error
 import key_icon from '@assets/icons/key.svg?react';
-// @ts-ignore
+// @ts-expect-error
 import diagram_icon from '@assets/icons/diagram.svg?react';
-// @ts-ignore
+// @ts-expect-error
 import easel_icon from '@assets/icons/easel.svg?react';
 
 import {
@@ -51,7 +51,7 @@ const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.myPlan',
         icon: <PersonOutlined/>,
-        path: '/', // TODO: change to real path and add allowedRoles
+        path: '/plan', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
@@ -115,11 +115,11 @@ export default function Sidebar() {
     const drawerWidth = open ? 310 : 80;
     const intl = useIntl();
 
-    const { user } = useAuthStore();
+    const {user} = useAuthStore();
 
     const canView = (allowedRoles?: string[]) => {
         if (!allowedRoles || allowedRoles.length === 0) return true;
-        if (!user || !user.roles) return false;
+        if (!user?.roles) return false;
         return user.roles.some((role) => allowedRoles.includes(role));
     };
 
@@ -168,51 +168,51 @@ export default function Sidebar() {
                 {menuConfig
                     .filter((item) => canView(item.allowedRoles))
                     .map((item) => (
-                    <ListItem key={item.id} disablePadding
-                              sx={{display: 'block', mb: open ? 0.5 : 1.5}}>
-                        <NavLink
-                            to={item.path}
-                            style={({isActive}) => ({
-                                textDecoration: 'none',
-                                color: isActive ? '#005a8d' : '#555',
-                                display: 'block'
-                            })}>
-                            <ListItemButton
-                                sx={{
-                                    minHeight: 30,
-                                    justifyContent: open ? 'initial' : 'center',
-                                    px: 2.5,
-                                    borderRadius: '12px',
-                                }}
-                            >
-                                <ListItemIcon
+                        <ListItem key={item.id} disablePadding
+                                  sx={{display: 'block', mb: open ? 0.5 : 1.5}}>
+                            <NavLink
+                                to={item.path}
+                                style={({isActive}) => ({
+                                    textDecoration: 'none',
+                                    color: isActive ? '#005a8d' : '#555',
+                                    display: 'block'
+                                })}>
+                                <ListItemButton
                                     sx={{
-                                        minWidth: 0,
-                                        mr: open ? 2 : 'auto',
-                                        justifyContent: 'center',
-                                        color: '#555',
-                                        '& svg': {
-                                            fontSize: open ? 20 : 25,
-                                        }
+                                        minHeight: 30,
+                                        justifyContent: open ? 'initial' : 'center',
+                                        px: 2.5,
+                                        borderRadius: '12px',
                                     }}
                                 >
-                                    {item.icon}
-                                </ListItemIcon>
-
-                                {open && (
-                                    <ListItemText
-                                        primary={intl.formatMessage({id: item.id})}
-                                        primaryTypographyProps={{
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500,
+                                    <ListItemIcon
+                                        sx={{
+                                            minWidth: 0,
+                                            mr: open ? 2 : 'auto',
+                                            justifyContent: 'center',
+                                            color: '#555',
+                                            '& svg': {
+                                                fontSize: open ? 20 : 25,
+                                            }
                                         }}
-                                        sx={{opacity: 1}}
-                                    />
-                                )}
-                            </ListItemButton>
-                        </NavLink>
-                    </ListItem>
-                ))}
+                                    >
+                                        {item.icon}
+                                    </ListItemIcon>
+
+                                    {open && (
+                                        <ListItemText
+                                            primary={intl.formatMessage({id: item.id})}
+                                            primaryTypographyProps={{
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500,
+                                            }}
+                                            sx={{opacity: 1}}
+                                        />
+                                    )}
+                                </ListItemButton>
+                            </NavLink>
+                        </ListItem>
+                    ))}
             </List>
 
             <Box sx={{mt: 'auto', mb: open ? 1 : 4, width: '100%', display: 'flex', justifyContent: 'center'}}>

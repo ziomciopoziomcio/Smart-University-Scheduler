@@ -1,16 +1,16 @@
-import { useState } from 'react';
-import { AppBar, Toolbar, Box, Typography, Avatar, Menu, MenuItem, IconButton, ListItemIcon } from '@mui/material';
-import { Logout } from '@mui/icons-material';
-import { useAuthStore } from '@store/useAuthStore';
-import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
-import { theme } from "../../theme/theme.ts";
+import {useState} from 'react';
+import {AppBar, Toolbar, Box, Typography, Avatar, Menu, MenuItem, IconButton, ListItemIcon} from '@mui/material';
+import {Logout} from '@mui/icons-material';
+import {useAuthStore} from '@store/useAuthStore';
+import {useIntl} from 'react-intl';
+import {useNavigate} from 'react-router-dom';
+import {theme} from "../../theme/theme.ts";
 
 export default function Navbar() {
     const intl = useIntl();
     const navigate = useNavigate();
 
-    const { user, logout } = useAuthStore();
+    const {user, logout} = useAuthStore();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -54,13 +54,13 @@ export default function Navbar() {
                 }}>
                     <Typography
                         variant="subtitle2"
-                        sx={{ fontWeight: 'bold', fontSize: 18, lineHeight: 1.1, m: 0 }}
+                        sx={{fontWeight: 'bold', fontSize: 18, lineHeight: 1.1, m: 0}}
                     >
                         {user ? `${user.name} ${user.surname}` : intl.formatMessage({id: 'navbar.guest'})}
                     </Typography>
                     <Typography
                         variant="caption"
-                        sx={{ opacity: 0.8, lineHeight: 1, display: 'block', m: 0 }}
+                        sx={{opacity: 0.8, lineHeight: 1, display: 'block', m: 0}}
                     >
                         {role}
                     </Typography>
@@ -68,7 +68,7 @@ export default function Navbar() {
 
                 <IconButton
                     onClick={handleOpenMenu}
-                    sx={{ p: 0 }}
+                    sx={{p: 0}}
                     aria-controls={open ? 'account-menu' : undefined}
                     aria-haspopup="true"
                     aria-expanded={open ? 'true' : undefined}
@@ -91,8 +91,8 @@ export default function Navbar() {
                     open={open}
                     onClose={handleCloseMenu}
                     onClick={handleCloseMenu}
-                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                    transformOrigin={{horizontal: 'right', vertical: 'top'}}
+                    anchorOrigin={{horizontal: 'right', vertical: 'bottom'}}
                     slotProps={{
                         paper: {
                             elevation: 0,
@@ -118,7 +118,7 @@ export default function Navbar() {
                 >
                     <MenuItem onClick={handleLogout}>
                         <ListItemIcon>
-                            <Logout fontSize="small" />
+                            <Logout fontSize="small"/>
                         </ListItemIcon>
                         {intl.formatMessage({id: 'navbar.logout', defaultMessage: 'Wyloguj się'})}
                     </MenuItem>

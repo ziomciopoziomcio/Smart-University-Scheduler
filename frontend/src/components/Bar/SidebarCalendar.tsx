@@ -156,7 +156,9 @@ export default function SidebarCalendar({open}: { open: boolean }) {
                     </IconButton>
                     <IconButton
                         size="small"
-                        onClick={() => changeMonth(1)}
+                        onClick={() => {
+                            changeMonth(1);
+                        }}
                         disabled={month === 8}
                         sx={{
                             p: 0.5,
