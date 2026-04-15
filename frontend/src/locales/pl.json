@@ -165,11 +165,21 @@
         "namePlaceholder": "Wpisz nazwę kampusu (opcjonalnie)",
         "submit": "Dodaj kampus",
         "cancel": "Anuluj",
-        "error": "Błąd podczas dodawania kampusu.",
-        "campusEdit": {
-          "title": "Edytuj kampus",
-          "submit": "Zapisz zmiany"
-        }
+        "error": "Błąd podczas dodawania kampusu."
+      },
+      "campusEdit": {
+        "title": "Edytuj kampus",
+        "submit": "Zapisz zmiany"
+      },
+      "building": {
+        "titleAdd": "Dodaj budynek",
+        "titleEdit": "Edytuj budynek",
+        "numberLabel": "Numer budynku",
+        "numberPlaceholder": "Wpisz numer (np. B18)",
+        "nameLabel": "Nazwa budynku",
+        "namePlaceholder": "Wpisz nazwę (opcjonalnie)",
+        "submitAdd": "Dodaj budynek",
+        "submitEdit": "Zapisz zmiany"
       }
     }
   }

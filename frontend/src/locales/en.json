@@ -165,11 +165,21 @@
         "namePlaceholder": "Enter campus name (optional)",
         "submit": "Add campus",
         "cancel": "Cancel",
-        "error": "Error while adding campus.",
-        "campusEdit": {
-          "title": "Edit campus",
-          "submit": "Save changes"
-        }
+        "error": "Error adding campus."
+      },
+      "campusEdit": {
+        "title": "Edit campus",
+        "submit": "Save changes"
+      },
+      "building": {
+        "titleAdd": "Add building",
+        "titleEdit": "Edit building",
+        "numberLabel": "Building number",
+        "numberPlaceholder": "Enter number",
+        "nameLabel": "Building name",
+        "namePlaceholder": "Enter name (optional)",
+        "submitAdd": "Add building",
+        "submitEdit": "Save changes"
       }
     }
   }

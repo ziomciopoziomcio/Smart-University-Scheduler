@@ -116,7 +116,13 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
                                 onAddClick={() => setIsCampusModalOpen(true)}
                                 onRefresh={() => loadData()}
                             />}
-                        {view === 'buildings' && <BuildingView data={data}/>}
+                        {view === 'buildings' && (
+                            <BuildingView
+                                data={data as Building[]}
+                                campusId={Number(campusId)}
+                                onRefresh={() => loadData()}
+                            />
+                        )}
                         {view === 'rooms' && <RoomView data={data}/>}
                     </>
                 )}
