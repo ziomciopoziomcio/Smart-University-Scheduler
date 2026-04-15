@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy.orm import Session
 
@@ -165,7 +167,7 @@ async def create_message(
         new_suggestion = ScheduleSuggestion(
             source="AI_CHAT",
             reason=sugg_data["reason"],
-            target_class_session_id=sugg_data["target_class_session_id"],
+            target_class_session_id=uuid.UUID(sugg_data["target_class_session_id"]),
             state_before={
                 "info": "Data to be fetched from scheduler",
                 "context_snapshot": user_context,
