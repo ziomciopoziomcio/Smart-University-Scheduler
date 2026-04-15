@@ -1,6 +1,7 @@
 import {Box, Button, Paper, Stack, Typography} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 
+//TODO: THIS IS AI GENERATED PAGE -P PLACEHOLDER
 export default function ChoosePlanPage() {
     const navigate = useNavigate();
 
@@ -29,8 +30,8 @@ export default function ChoosePlanPage() {
                         </Button>
 
                         <Button
-                            variant="outlined"
-                            disabled
+                            variant="contained"
+                            onClick={() => navigate('/plans/lecturers/department')}
                             sx={{borderRadius: '12px', px: 3}}
                         >
                             Plan wykładowców
