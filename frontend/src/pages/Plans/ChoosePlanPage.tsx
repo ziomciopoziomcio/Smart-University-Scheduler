@@ -1,8 +1,7 @@
 import {Box, Button, Paper, Stack, Typography} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 
-//TODO: It is AI generated page, so it is just a placeholder for now. It should be replaced with real content in the future.
-export default function RoomOrLecturerPlanPage() {
+export default function ChoosePlanPage() {
     const navigate = useNavigate();
 
     return (
@@ -20,7 +19,7 @@ export default function RoomOrLecturerPlanPage() {
                         Wybierz typ planu
                     </Typography>
 
-                    <Stack direction="row" spacing={2}>
+                    <Stack direction="row" spacing={2} flexWrap="wrap">
                         <Button
                             variant="contained"
                             onClick={() => navigate('/plans/rooms/campus')}
@@ -35,6 +34,14 @@ export default function RoomOrLecturerPlanPage() {
                             sx={{borderRadius: '12px', px: 3}}
                         >
                             Plan wykładowców
+                        </Button>
+
+                        <Button
+                            variant="contained"
+                            onClick={() => navigate('/plans/study/year')}
+                            sx={{borderRadius: '12px', px: 3}}
+                        >
+                            Plan zajęć
                         </Button>
                     </Stack>
                 </Stack>
