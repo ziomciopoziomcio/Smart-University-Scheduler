@@ -120,7 +120,53 @@ class Neo4jProvider:
         :param session_data: A dictionary containing class session details
         :return: None
         """
-        raise NotImplementedError("save_class_session is not implemented yet.")
+        class_session_id = str(session_data.get("class_session_id"))
+        new_room_id = session_data.get("new_room_id")
+        new_timeslot_id = session_data.get("new_timeslot_id")
+
+        if not class_session_id:
+            raise ValueError("class_session_id is required")
+
+        queries = []
+        parameters = {"session_id": class_session_id}
+        if new_room_id is not None:
+            queries.append("""
+            MATCH (s:ClassSession {sessionId: $session_id})
+            MATCH (old_r:Room)<-[old_rel:HELD_IN]-(s)
+            MATCH (new_r:Room {roomId: $new_room_id})
+            DELETE old_rel
+            MERGE (s)-[:HELD_IN]->(new_r)
+            """)
+            parameters["new_room_id"] = int(new_room_id)
+
+        if new_timeslot_id is not None:
+            queries.append("""
+            MATCH (s:ClassSession {sessionId: $session_id})
+            MATCH (old_t:TimeSlot)<-[old_rel:AT_TIME]-(s)
+            MATCH (new_t:TimeSlot {timeSlotId: $new_timeslot_id})
+            DELETE old_rel
+            MERGE (s)-[:AT_TIME]->(new_t)
+            """)
+            parameters["new_timeslot_id"] = int(new_timeslot_id)
+
+        if not queries:
+            logger.info(
+                f"No valid updates provided for ClassSession {class_session_id}."
+            )
+            return
+
+        try:
+            async with self.driver.session() as session:
+                for q in queries:
+                    await session.run(Query(q), **parameters)
+                logger.info(
+                    f"Successfully updated ClassSession {class_session_id} in Neo4j."
+                )
+        except Exception as e:
+            logger.exception(
+                f"Failed to update ClassSession {class_session_id} in Neo4j: {e}"
+            )
+            raise ValueError(f"Failed to update ClassSession {class_session_id}: {e}")
 
     async def load_infrastructure(self, rooms_df: pd.DataFrame) -> None:
         """
