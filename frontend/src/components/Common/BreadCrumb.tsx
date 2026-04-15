@@ -1,4 +1,4 @@
-import { Breadcrumbs, Typography, Box } from '@mui/material';
+import {Breadcrumbs, Typography, Box, type Theme, type SxProps} from '@mui/material';
 import { NavigateNext } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 
@@ -9,9 +9,10 @@ export interface BreadcrumbItem {
 
 interface PageBreadcrumbsProps {
     items: BreadcrumbItem[];
+    sx?: SxProps<Theme>;
 }
 
-export default function PageBreadcrumbs({ items }: PageBreadcrumbsProps) {
+export default function PageBreadcrumbs({ items, sx }: PageBreadcrumbsProps) {
     return (
         <Box sx={{
             p: 2,
@@ -20,7 +21,8 @@ export default function PageBreadcrumbs({ items }: PageBreadcrumbsProps) {
             background: 'white',
             display: 'flex',
             alignItems: 'center',
-            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
+            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
+            ...sx
         }}>
             <Breadcrumbs
                 separator={<NavigateNext fontSize="small" />}
