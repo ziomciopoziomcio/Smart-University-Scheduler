@@ -1,13 +1,17 @@
 import {useState} from 'react';
-import {Box, Typography, IconButton} from '@mui/material';
+import {Box, Typography, IconButton, MenuItem, Menu} from '@mui/material';
 import {CalendarToday, ChevronLeft, ChevronRight, ArrowDropDown} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
+import {theme} from "../../theme/theme.ts";
 
 //TODO: USER CAN CHOOSE WEEK TO SEE PLAN
 export default function SidebarCalendar({open}: { open: boolean }) {
     const intl = useIntl();
     const [viewDate, setViewDate] = useState(new Date());
     const today = new Date();
+
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const menuOpen = Boolean(anchorEl);
 
     if (!open) {
         return (
@@ -23,6 +27,8 @@ export default function SidebarCalendar({open}: { open: boolean }) {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const daysInPrevMonth = new Date(year, month, 0).getDate();
     const offset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+    const academicStartYear = month < 9 ? year - 1 : year;
+
 
     const daysHeaderKeys = [
         'calendar.mondayShort',
@@ -38,6 +44,14 @@ export default function SidebarCalendar({open}: { open: boolean }) {
         setViewDate(new Date(year, month + step, 1));
     };
 
+    const handleOpenMenu = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleCloseMenu = () => {
+        setAnchorEl(null);
+    };
+
     return (
         <Box sx={{
             background: 'white',
@@ -47,21 +61,108 @@ export default function SidebarCalendar({open}: { open: boolean }) {
             boxShadow: '0px 2px 12px rgba(0,0,0,0.06)'
         }}>
             <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5}}>
-                <Box sx={{display: 'flex', alignItems: 'center', cursor: 'pointer', gap: 0.5}}>
-                    <Typography sx={{fontWeight: 800, fontSize: '15px', textTransform: 'capitalize'}}>
+
+                <Box onClick={handleOpenMenu} sx={{display: 'flex', alignItems: 'center', cursor: 'pointer', gap: 0.5}}>
+
+                    <Typography sx={{
+                        fontWeight: 500,
+                        fontSize: theme.fontSizes.small,
+                        textTransform: 'capitalize'
+                    }}>
                         {intl.formatDate(viewDate, {month: 'long', year: 'numeric'})}
                     </Typography>
+
                     <ArrowDropDown fontSize="small"/>
                 </Box>
+
+                <Menu
+                    anchorEl={anchorEl}
+                    open={menuOpen}
+                    onClose={handleCloseMenu}
+                    slotProps={{
+                        paper: {
+                            sx: {
+                                maxHeight: 250,
+                                mt: 1,
+                                boxShadow: '0px 4px 20px rgba(0,0,0,0.1)',
+                                overflowY: 'auto',
+                                msOverflowStyle: 'none',
+                                scrollbarWidth: 'none',
+                                '&::-webkit-scrollbar': {
+                                    display: 'none',
+                                },
+                            }
+                        }
+                    }}
+                >
+                    {Array.from({length: 12}).map((_, index) => {
+                        const monthDate = new Date(academicStartYear, 9 + index, 1);
+
+                        const isSelected = monthDate.getMonth() === month && monthDate.getFullYear() === year;
+
+                        const isActualCurrentMonth =
+                            monthDate.getMonth() === today.getMonth() &&
+                            monthDate.getFullYear() === today.getFullYear();
+
+                        return (
+                            <MenuItem
+                                key={index}
+                                selected={isSelected}
+                                onClick={() => {
+                                    setViewDate(new Date(monthDate.getFullYear(), monthDate.getMonth(), 1));
+                                    handleCloseMenu();
+                                }}
+                                sx={{
+                                    textTransform: 'capitalize',
+                                    fontSize: theme.fontSizes.tiny,
+                                    position: 'relative',
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    py: 1.25,
+                                    ...(isActualCurrentMonth && {
+                                        '&::after': {
+                                            content: '""',
+                                            position: 'absolute',
+                                            bottom: '4px',
+                                            left: '50%',
+                                            transform: 'translateX(-50%)',
+                                            width: '4px',
+                                            height: '4px',
+                                            background: '#005a8d',
+                                            borderRadius: '50%'
+                                        }
+                                    })
+                                }}
+                            >
+                                {intl.formatDate(monthDate, {month: 'long', year: 'numeric'})}
+                            </MenuItem>
+                        );
+                    })}
+                </Menu>
+
                 <Box sx={{display: 'flex', gap: 0.5}}>
-                    <IconButton size="small" onClick={() => {
-                        changeMonth(-1)
-                    }} sx={{p: 0.5}}>
+                    <IconButton size="small"
+                                onClick={() => {
+                                    changeMonth(-1)
+                                }}
+                                disabled={month === 9}
+                                sx={{
+                                    p: 0.5,
+                                    "&.Mui-disabled": {
+                                        opacity: 0.3
+                                    }
+                                }}>
                         <ChevronLeft fontSize="small"/>
                     </IconButton>
-                    <IconButton size="small" onClick={() => {
-                        changeMonth(1)
-                    }} sx={{p: 0.5}}>
+                    <IconButton
+                        size="small"
+                        onClick={() => changeMonth(1)}
+                        disabled={month === 8}
+                        sx={{
+                            p: 0.5,
+                            "&.Mui-disabled": {opacity: 0.3}
+                        }}
+                    >
                         <ChevronRight fontSize="small"/>
                     </IconButton>
                 </Box>
@@ -104,10 +205,10 @@ export default function SidebarCalendar({open}: { open: boolean }) {
                                 color: isCurrentDay ? '#005a8d' : '#333',
                                 cursor: 'pointer',
                                 borderRadius: '50%',
-                                '&:hover': {bgcolor: '#f0f4f8'},
+                                '&:hover': {background: '#f0f4f8'},
                                 position: 'relative',
                                 ...(isCurrentDay && {
-                                    bgcolor: 'rgba(0, 90, 141, 0.1)',
+                                    background: 'rgba(0, 90, 141, 0.1)',
                                     '&::after': {
                                         content: '""',
                                         position: 'absolute',
@@ -116,7 +217,7 @@ export default function SidebarCalendar({open}: { open: boolean }) {
                                         transform: 'translateX(-50%)',
                                         width: '4px',
                                         height: '4px',
-                                        bgcolor: '#005a8d',
+                                        background: '#005a8d',
                                         borderRadius: '50%'
                                     }
                                 })
