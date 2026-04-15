@@ -34,8 +34,8 @@ import {useIntl} from 'react-intl';
 import SidebarClock from './SidebarClock';
 import SidebarCalendar from './SidebarCalendar';
 import {NavLink} from 'react-router-dom';
-import {theme} from "../../theme/theme.ts";
-import {useAuthStore} from "@store/useAuthStore.ts";
+import {theme} from "../../theme/theme";
+import {useAuthStore} from "@store/useAuthStore";
 
 // const allRoles = ['Administrator', 'Schedule Manager', "Dean's office",
 //     'Head of unit', 'Instructor', 'Student', 'Administrative Staff', 'Guest'];

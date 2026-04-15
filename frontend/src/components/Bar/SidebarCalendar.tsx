@@ -4,6 +4,7 @@ import {CalendarToday, ChevronLeft, ChevronRight, ArrowDropDown} from '@mui/icon
 import {useIntl} from 'react-intl';
 import {theme} from "../../theme/theme.ts";
 
+// TODO: ACCESSIBLE CALENDAR (ARIA ATTRIBUTES, KEYBOARD NAVIGATION)
 //TODO: USER CAN CHOOSE WEEK TO SEE PLAN
 export default function SidebarCalendar({open}: { open: boolean }) {
     const intl = useIntl();
