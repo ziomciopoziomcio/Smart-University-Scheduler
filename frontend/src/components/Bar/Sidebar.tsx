@@ -1,4 +1,15 @@
 import {useState} from 'react';
+// @ts-expect-error: some internal issue with svgr types, but it works
+import backpack_icon from '@assets/icons/backpack.svg?react';
+// @ts-expect-error: some internal issue with svgr types, but it works
+import building_icon from '@assets/icons/building.svg?react';
+// @ts-expect-error: some internal issue with svgr types, but it works
+import key_icon from '@assets/icons/key.svg?react';
+// @ts-expect-error: some internal issue with svgr types, but it works
+import diagram_icon from '@assets/icons/diagram.svg?react';
+// @ts-expect-error: some internal issue with svgr types, but it works
+import easel_icon from '@assets/icons/easel.svg?react';
+
 import {
     Drawer,
     List,
@@ -7,7 +18,8 @@ import {
     ListItemIcon,
     ListItemText,
     Box,
-    IconButton
+    IconButton,
+    SvgIcon
 } from '@mui/material';
 import {
     PersonOutlined,
@@ -22,19 +34,94 @@ import {useIntl} from 'react-intl';
 import SidebarClock from './SidebarClock';
 import SidebarCalendar from './SidebarCalendar';
 import {NavLink} from 'react-router-dom';
+import {theme} from "../../theme/theme";
+import {useAuthStore} from "@store/useAuthStore";
+
+// const allRoles = ['Administrator', 'Schedule Manager', "Dean's office",
+//     'Head of unit', 'Instructor', 'Student', 'Administrative Staff', 'Guest'];
+
+interface SidebarMenuItem {
+    id: string;
+    icon: React.ReactNode;
+    path: string;
+    allowedRoles?: string[];
+}
+
+const menuConfig: SidebarMenuItem[] = [
+    {
+        id: 'sidebar.myPlan',
+        icon: <PersonOutlined/>,
+        path: '/plan', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.employees', // employees or maybe "staff"?
+        icon: <SvgIcon component={easel_icon} inheritViewBox/>,
+        path: '/', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.facilities', // facilities (buildings, rooms, campuses)
+        icon: <SvgIcon component={building_icon} inheritViewBox/>,
+        path: '/', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.structures', // structures (units, faculties)
+        icon: <SvgIcon component={diagram_icon} inheritViewBox/>,
+        path: '/', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.students', // students
+        icon: <SvgIcon component={backpack_icon} inheritViewBox/>,
+        path: '/', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.plans', // plans (study plans, course plans)
+        icon: <GroupsOutlined/>,
+        path: '/',  // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.chat',
+        icon: <ChatBubbleOutline/>,
+        path: '/',  // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.suggestions',
+        icon: <InboxOutlined/>,
+        path: '/',  // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.permissions', // uprawnienia
+        icon: <SvgIcon component={key_icon} inheritViewBox/>,
+        path: '/', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.settings',
+        icon: <SettingsOutlined/>,
+        path: '/',  // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+];
 
 export default function Sidebar() {
     const [open, setOpen] = useState(false);
     const drawerWidth = open ? 310 : 80;
     const intl = useIntl();
 
-    const menuItems = [
-        {id: 'sidebar.myPlan', icon: <PersonOutlined/>, path: '/'},
-        {id: 'sidebar.plans', icon: <GroupsOutlined/>, path: '/'},
-        {id: 'sidebar.chat', icon: <ChatBubbleOutline/>, path: '/'},
-        {id: 'sidebar.suggestions', icon: <InboxOutlined/>, path: '/'},
-        {id: 'sidebar.settings', icon: <SettingsOutlined/>, path: '/'},
-    ];
+    const {user} = useAuthStore();
+
+    const canView = (allowedRoles?: string[]) => {
+        if (!allowedRoles || allowedRoles.length === 0) return true;
+        if (!user?.roles) return false;
+        return user.roles.some((role) => allowedRoles.includes(role));
+    };
 
     return (
         <Drawer
@@ -47,13 +134,20 @@ export default function Sidebar() {
                     width: drawerWidth,
                     transition: 'width 0.3s ease',
                     overflowX: 'hidden',
-                    bgcolor: '#f0f2f5',
+                    background: theme.palette.background.default,
                     borderRight: 'none',
                     pt: '100px',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: open ? 'flex-start' : 'center',
                     px: open ? 2 : 0,
+                    boxShadow: 'none',
+                    overflowY: 'auto',
+                    msOverflowStyle: 'none',
+                    scrollbarWidth: 'none',
+                    '&::-webkit-scrollbar': {
+                        display: 'none',
+                    },
                 },
             }}
         >
@@ -62,8 +156,8 @@ export default function Sidebar() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: open ? 1 : 6,
-                mb: open ? 0 : 19,
+                gap: open ? 1 : 3,
+                mb: open ? 0 : 2,
                 px: open ? 1 : 0
             }}>
                 <SidebarClock open={open}/>
@@ -71,52 +165,54 @@ export default function Sidebar() {
             </Box>
 
             <List sx={{width: '100%', px: open ? 0 : 1}}>
-                {menuItems.map((item) => (
-                    <ListItem key={item.id} disablePadding
-                              sx={{display: 'block', mb: open ? 0.5 : 1.5}}>
-                        <NavLink
-                            to={item.path}
-                            style={({isActive}) => ({
-                                textDecoration: 'none',
-                                color: isActive ? '#005a8d' : '#555',
-                                display: 'block'
-                            })}>
-                            <ListItemButton
-                                sx={{
-                                    minHeight: 30,
-                                    justifyContent: open ? 'initial' : 'center',
-                                    px: 2.5,
-                                    borderRadius: '12px',
-                                }}
-                            >
-                                <ListItemIcon
+                {menuConfig
+                    .filter((item) => canView(item.allowedRoles))
+                    .map((item) => (
+                        <ListItem key={item.id} disablePadding
+                                  sx={{display: 'block', mb: open ? 0.5 : 1.5}}>
+                            <NavLink
+                                to={item.path}
+                                style={({isActive}) => ({
+                                    textDecoration: 'none',
+                                    color: isActive ? '#005a8d' : '#555',
+                                    display: 'block'
+                                })}>
+                                <ListItemButton
                                     sx={{
-                                        minWidth: 0,
-                                        mr: open ? 2 : 'auto',
-                                        justifyContent: 'center',
-                                        color: '#555',
-                                        '& svg': {
-                                            fontSize: open ? 20 : 25,
-                                        }
+                                        minHeight: 30,
+                                        justifyContent: open ? 'initial' : 'center',
+                                        px: 2.5,
+                                        borderRadius: '12px',
                                     }}
                                 >
-                                    {item.icon}
-                                </ListItemIcon>
-
-                                {open && (
-                                    <ListItemText
-                                        primary={intl.formatMessage({id: item.id})}
-                                        primaryTypographyProps={{
-                                            fontSize: '0.875rem',
-                                            fontWeight: 500,
+                                    <ListItemIcon
+                                        sx={{
+                                            minWidth: 0,
+                                            mr: open ? 2 : 'auto',
+                                            justifyContent: 'center',
+                                            color: '#555',
+                                            '& svg': {
+                                                fontSize: open ? 20 : 25,
+                                            }
                                         }}
-                                        sx={{opacity: 1}}
-                                    />
-                                )}
-                            </ListItemButton>
-                        </NavLink>
-                    </ListItem>
-                ))}
+                                    >
+                                        {item.icon}
+                                    </ListItemIcon>
+
+                                    {open && (
+                                        <ListItemText
+                                            primary={intl.formatMessage({id: item.id})}
+                                            primaryTypographyProps={{
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500,
+                                            }}
+                                            sx={{opacity: 1}}
+                                        />
+                                    )}
+                                </ListItemButton>
+                            </NavLink>
+                        </ListItem>
+                    ))}
             </List>
 
             <Box sx={{mt: 'auto', mb: open ? 1 : 4, width: '100%', display: 'flex', justifyContent: 'center'}}>

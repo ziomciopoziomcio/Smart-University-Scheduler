@@ -89,7 +89,12 @@
     "plans": "Plans",
     "chat": "Chat",
     "suggestions": "Suggestions",
-    "settings": "Settings"
+    "settings": "Settings",
+    "employees": "Employees",
+    "permissions": "Permissions",
+    "facilities": "Facilities",
+    "students": "Students",
+    "structures": "Structures"
   },
   "navbar": {
     "guest": "Guest"
