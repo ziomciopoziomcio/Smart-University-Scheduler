@@ -1,16 +1,18 @@
 import CloseRounded from '@mui/icons-material/CloseRounded';
 import {Box, IconButton, Paper, Typography} from '@mui/material';
-import type {ScheduleEntry} from '@api/types';
+import type {ScheduleEntry, ScheduleEntryDetails} from '@api/types';
 import {getTilePaletteByVariant} from './utils/tileColorUtils';
-import {useIntl} from "react-intl";
+import {useIntl} from 'react-intl';
 
 interface SubjectDetailsPopupProps {
     entry: ScheduleEntry;
+    details: ScheduleEntryDetails;
     onClose: () => void;
 }
 
 export function SubjectDetailsPopup({
                                         entry,
+                                        details,
                                         onClose,
                                     }: SubjectDetailsPopupProps) {
     const palette = getTilePaletteByVariant(entry.variant);
@@ -69,7 +71,7 @@ export function SubjectDetailsPopup({
                         mb: 2.5,
                     }}
                 >
-                    {entry.details.typeLabel}
+                    {details.typeLabel}
                 </Typography>
             </Box>
 
@@ -79,7 +81,7 @@ export function SubjectDetailsPopup({
                         {formatMessage({id: 'schedule.details.time'})}
                     </Typography>
                     <Typography sx={{fontSize: '13px'}}>
-                        {entry.details.timeLabel}
+                        {details.timeLabel}
                     </Typography>
                 </Box>
 
@@ -88,13 +90,13 @@ export function SubjectDetailsPopup({
                         {formatMessage({id: 'schedule.details.location'})}
                     </Typography>
                     <Typography sx={{fontSize: '13px'}}>
-                        {entry.details.location.campus}
+                        {details.location.campus}
                     </Typography>
                     <Typography sx={{fontSize: '13px'}}>
-                        {entry.details.location.building}
+                        {details.location.building}
                     </Typography>
                     <Typography sx={{fontSize: '13px'}}>
-                        {entry.details.location.room}
+                        {details.location.room}
                     </Typography>
                 </Box>
 
@@ -103,7 +105,7 @@ export function SubjectDetailsPopup({
                         {formatMessage({id: 'schedule.details.lecturer'})}
                     </Typography>
                     <Typography sx={{fontSize: '13px'}}>
-                        {entry.details.lecturer}
+                        {details.lecturer}
                     </Typography>
                 </Box>
 
@@ -113,7 +115,7 @@ export function SubjectDetailsPopup({
                     </Typography>
 
                     <Box sx={{display: 'flex', flexDirection: 'column', gap: 0.5}}>
-                        {entry.details.audience.map((item, index) => (
+                        {details.audience.map((item, index) => (
                             <Typography key={`${entry.id}-audience-${index}`} sx={{fontSize: '12.5px'}}>
                                 {item.fieldOfStudy} | {item.semester} | {item.specialization}
                             </Typography>

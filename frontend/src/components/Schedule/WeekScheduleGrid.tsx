@@ -1,11 +1,12 @@
 import {Box, Typography} from '@mui/material';
-import type {ScheduleEntry} from '@api/types';
-import {SCHEDULE_LAYOUT, scheduleHours, weekdayMessageIds} from '@constants/schedule';
-import {ScheduleTileFactory} from './Tile/ScheduleTileFactory.tsx';
-import {getGridHeight} from './utils/utils.ts';
-import {useIntl} from "react-intl";
 import {useMemo, useState} from 'react';
-import {SubjectDetailsPopup} from "@components/Schedule/SubjectDetailsPopup.tsx";
+import type {ScheduleEntry, ScheduleEntryDetails} from '@api/types';
+import {SCHEDULE_LAYOUT, scheduleHours, weekdayMessageIds} from '@constants/schedule';
+import {ScheduleTileFactory} from './Tile/ScheduleTileFactory';
+import {SubjectDetailsPopup} from './SubjectDetailsPopup';
+import {getGridHeight} from './utils/utils';
+import {scheduleDetailsMock} from '../../mocks/scheduleDetailsMock';
+import {useIntl} from "react-intl";
 
 interface WeekScheduleGridProps {
     entries: ScheduleEntry[];
@@ -13,12 +14,28 @@ interface WeekScheduleGridProps {
 
 export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
     const [selectedEntry, setSelectedEntry] = useState<ScheduleEntry | null>(null);
-    const gridHeight = getGridHeight();
+    const [selectedDetails, setSelectedDetails] = useState<ScheduleEntryDetails | null>(null);
     const {formatMessage} = useIntl();
+    const gridHeight = getGridHeight();
 
     const orderedEntries = useMemo(() => {
         return [...entries].sort((a, b) => a.startHour - b.startHour);
     }, [entries]);
+
+    const handleTileClick = (entry: ScheduleEntry) => {
+        setSelectedEntry(entry);
+
+        const details = scheduleDetailsMock[entry.id] ?? null;
+        setSelectedDetails(details);
+
+        // TODO: Connect with backend
+        // fetchScheduleDetails(entry.id).then(setSelectedDetails)
+    };
+
+    const handleClosePopup = () => {
+        setSelectedEntry(null);
+        setSelectedDetails(null);
+    };
 
     return (
         <Box sx={{position: 'relative', px: 0, pb: 0}}>
@@ -124,14 +141,15 @@ export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
                         <ScheduleTileFactory
                             key={entry.id}
                             entry={entry}
-                            onClick={setSelectedEntry}
+                            onClick={handleTileClick}
                         />
                     ))}
 
-                    {selectedEntry && (
+                    {selectedEntry && selectedDetails && (
                         <SubjectDetailsPopup
                             entry={selectedEntry}
-                            onClose={() => setSelectedEntry(null)}
+                            details={selectedDetails}
+                            onClose={handleClosePopup}
                         />
                     )}
                 </Box>
