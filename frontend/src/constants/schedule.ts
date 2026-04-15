@@ -26,24 +26,24 @@ export const weekdayMessageIds = [
 
 export const tilePalette = {
     lecture: {
-        background: '#86E0E4',
-        border: '#72D6DB',
-        watermark: 'rgba(82, 198, 205, 0.16)',
+        background: '#FFDEB2',
+        border: '#F0BC77',
+        watermark: 'rgba(240, 188, 119, 0.27)',
     },
     lab: {
-        background: '#F2D0A1',
-        border: '#E7BE83',
-        watermark: 'rgba(211, 153, 62, 0.16)',
+        background: '#93F4F8',
+        border: '#68C8CC',
+        watermark: 'rgba(104, 200, 204, 0.27)',
     },
     exercise: {
-        background: '#B8B5FF',
-        border: '#A3A0F0',
-        watermark: 'rgba(98, 90, 210, 0.14)',
+        background: '#C2C1FF',
+        border: '#8481FC',
+        watermark: 'rgba(132, 129, 252, 0.27)',
     },
     project: {
-        background: '#7CCB80',
-        border: '#66BA6B',
-        watermark: 'rgba(62, 143, 68, 0.15)',
+        background: '#76CB7F',
+        border: '#3D7D44',
+        watermark: 'rgba(61, 125, 68, 0.27)',
     },
     seminar: {
         background: '#B6E8EB',
