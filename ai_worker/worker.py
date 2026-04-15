@@ -465,7 +465,7 @@ async def main() -> None:
         async for msg in consumer:
             if msg.topic == "schedule.optimization.requests":
                 await process_task(
-                    msg.value, data_provider, neo4j_provider, neo4j_provider, producer
+                    msg.value, data_provider, neo4j_provider, producer
                 )
             elif msg.topic == "schedule.session.reschedule":
                 await process_reschedule_task(msg.value, neo4j_provider, producer)
