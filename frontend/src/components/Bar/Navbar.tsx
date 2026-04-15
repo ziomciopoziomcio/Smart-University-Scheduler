@@ -33,7 +33,7 @@ export default function Navbar() {
         ? `${user.name.charAt(0)}${user.surname.charAt(0)}`.toUpperCase()
         : '??';
 
-    const role = user?.degree || ''; // TODO: change degree to role when available
+    const role = user?.roles || '';
 
     return (
         <AppBar position="fixed" sx={{
