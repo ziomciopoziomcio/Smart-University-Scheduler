@@ -417,7 +417,7 @@ async def process_reschedule_task(
             )
         except Exception as ex:
             logger.exception(
-                f"Failed to publish failure result for reshedule task: {ex}"
+                f"Failed to publish failure result for reschedule task: {ex}"
             )
 
 
