@@ -18,8 +18,10 @@ import StudyPlanElectiveBlockPage from "./pages/Plans/GeneralPlans/StudyPlanElec
 import StudyPlanFieldPage from "./pages/Plans/GeneralPlans/StudyPlanFieldPage.tsx";
 import StudyPlanSemesterPage from "./pages/Plans/GeneralPlans/StudyPlanSemesterPage.tsx";
 import StudyPlanSpecializationPage from "./pages/Plans/GeneralPlans/StudyPlanSpecializationPage.tsx";
+import EmployeesPage from "./pages/Management/Employees/EmployeesPage.tsx";
 
 import {useAuthStore} from '@store/useAuthStore';
+
 import LecturerDepartmentSelectPage from "./pages/Plans/LecturerPlan/LecturerDepartmentSelectPage.tsx";
 import LecturerSelectPage from "./pages/Plans/LecturerPlan/LecturerSelectPage.tsx";
 import LecturerSchedulePage from "./pages/Plans/LecturerPlan/LecturerSchedulePage.tsx";
@@ -39,6 +41,7 @@ function AppRoute() {
                 <Route element={<ProtectedRoute/>}>
                     <Route element={<MainLayout/>}>
                         <Route path="/plan" element={<MyPlan/>}/>
+                        <Route path="/employees" element={<EmployeesPage/>}/>
 
                         <Route path="/plans" element={<ChoosePlanPage/>}/>
 
