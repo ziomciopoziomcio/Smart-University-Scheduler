@@ -26,3 +26,16 @@ class RescheduleSuggestionTool(BaseModel):
         ...,
         description="A short, polite confirmation message telling the user that their request has been sent to the dean's office for approval. MUST be written in the EXACT same language as the user's prompt.",
     )
+
+
+class CheckAvailabilityTool(BaseModel):
+    """RAG tool for checking availability of a class session."""
+
+    session_id: str = Field(
+        ...,
+        description="The session id of the class to check",
+    )
+    proposed_timeslot_id: int = Field(
+        ...,
+        description="The proposed timeslot id of the class to check",
+    )
