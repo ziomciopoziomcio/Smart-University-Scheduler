@@ -327,7 +327,7 @@ def generate_curriculum_courses(
     db_courses: dict[int, Course],
     db_majors: dict[tuple[str, str], Major],
 ):
-    all_added: major_dict[
+    db_curr_courses: major_dict[
         tuple[str | None, int, int, str | None, str | None], Curriculum_course
     ] = {}
 
@@ -379,7 +379,7 @@ def generate_curriculum_courses(
                     session=session,
                 )
                 if added:
-                    all_added.update(added)
+                    db_curr_courses.update(added)
 
         # unique
         for major, major_dict in sorted(unique.items()):
@@ -407,7 +407,7 @@ def generate_curriculum_courses(
                         session=session,
                     )
                     if added:
-                        all_added.update(added)
+                        db_curr_courses.update(added)
 
     session.flush()
-    return all_added
+    return db_curr_courses
