@@ -92,7 +92,10 @@ def _prepare_courses_dict(study_fields: list) -> dict[str, dict[tuple[str, str],
             courses_dict[major] = {}
 
         for semester in study_field["semestry"]:
-            if "obieralne" in semester["nazwa"]:  # todo be aware of english names
+            if (
+                "obieralne" in semester["nazwa"].lower()
+                or "elective" in semester["nazwa"].lower()
+            ):
                 continue
 
             sem_name = semester["nazwa"]
@@ -102,7 +105,10 @@ def _prepare_courses_dict(study_fields: list) -> dict[str, dict[tuple[str, str],
                 course_name = course["Nazwa przedmiotu w języku polskim"]
                 course_code = course["Kod przedmiotu"]
 
-                if "obieralne" in course_name:  # todo be aware of english names
+                if (
+                    "obieralne" in course_name.lower()
+                    or "elective" in course_name.lower()
+                ):
                     continue
 
                 # print(nazwa_przedmiotu)
