@@ -7,12 +7,12 @@ import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage.tsx';
 import ResetPasswordPage from './pages/Auth/ResetPasswordPage.tsx';
 import MyPlan from './pages/Plan/MyPlan.tsx';
 import ProtectedRoute from './components/Login/ProtectedRoute';
-import RoomSchedulePage from "./pages/Plans/RoomSchedulePage.tsx";
+import RoomSchedulePage from "./pages/Plans/RoomPlan/RoomSchedulePage.tsx";
 import PlansPage from "./pages/Plans/PlansPage.tsx";
 import RoomOrLecturerPlanPage from "./pages/Plans/RoomOrLecturerPlanPage.tsx";
-import CampusSelectPage from "./pages/Plans/CampusSelectPage.tsx";
-import BuildingSelectPage from "./pages/Plans/BuildingSelectPage.tsx";
-import RoomSelectPage from "./pages/Plans/RoomSelectPage.tsx";
+import CampusSelectPage from "./pages/Plans/RoomPlan/CampusSelectPage.tsx";
+import BuildingSelectPage from "./pages/Plans/RoomPlan/BuildingSelectPage.tsx";
+import RoomSelectPage from "./pages/Plans/RoomPlan/RoomSelectPage.tsx";
 
 import {useAuthStore} from '@store/useAuthStore';
 

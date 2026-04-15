@@ -1,10 +1,10 @@
 import {Box} from '@mui/material';
 import {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
-import type {ScheduleEntry} from '@api/types';
-import {WeekSchedule} from '@components/Schedule/WeekSchedule';
-import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
-import {roomScheduleMock} from '../../mocks/roomPlansMock';
+import type {ScheduleEntry} from '@api/types.ts';
+import {WeekSchedule} from '@components/Schedule/WeekSchedule.tsx';
+import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils.ts';
+import {roomScheduleMock} from '../../../mocks/roomPlansMock.tsx';
 
 // TODO: Replace with backend API call for room schedule
 async function getRoomScheduleForWeek(
