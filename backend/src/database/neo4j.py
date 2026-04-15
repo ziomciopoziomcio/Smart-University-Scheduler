@@ -6,8 +6,10 @@ logger = logging.getLogger(__name__)
 
 URI = f"bolt://{os.getenv('NEO4J_HOST', 'neo4j')}:{os.getenv('NEO4J_PORT', '7687')}"
 USER = os.getenv("NEO4J_USER", "neo4j")
-PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
+PASSWORD = os.getenv("NEO4J_PASSWORD")
 
+if not PASSWORD:
+    raise RuntimeError("NEO4J_PASSWORD environment variable must be set.")
 try:
     neo4j_driver = AsyncGraphDatabase.driver(URI, auth=(USER, PASSWORD))
     logger.info("Backend successfully connected to Neo4j")
