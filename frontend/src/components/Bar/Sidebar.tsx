@@ -1,4 +1,15 @@
 import {useState} from 'react';
+// @ts-ignore
+import backpack_icon from '@assets/icons/backpack.svg?react';
+// @ts-ignore
+import building_icon from '@assets/icons/building.svg?react';
+// @ts-ignore
+import key_icon from '@assets/icons/key.svg?react';
+// @ts-ignore
+import diagram_icon from '@assets/icons/diagram.svg?react';
+// @ts-ignore
+import easel_icon from '@assets/icons/easel.svg?react';
+
 import {
     Drawer,
     List,
@@ -7,7 +18,8 @@ import {
     ListItemIcon,
     ListItemText,
     Box,
-    IconButton
+    IconButton,
+    SvgIcon
 } from '@mui/material';
 import {
     PersonOutlined,
@@ -22,19 +34,85 @@ import {useIntl} from 'react-intl';
 import SidebarClock from './SidebarClock';
 import SidebarCalendar from './SidebarCalendar';
 import {NavLink} from 'react-router-dom';
+import {theme} from "../../theme/theme.ts";
+
+// const allRoles = ['Administrator', 'Schedule Manager', "Dean's office",
+//     'Head of unit', 'Instructor', 'Student', 'Administrative Staff', 'Guest'];
+
+interface SidebarMenuItem {
+    id: string;
+    icon: React.ReactNode;
+    path: string;
+    allowedRoles?: string[];
+}
+
+const menuConfig: SidebarMenuItem[] = [
+    {
+        id: 'sidebar.myPlan',
+        icon: <PersonOutlined/>,
+        path: '/', // TODO: change to real path
+        allowedRoles: ['Instructor', 'Student']
+    },
+    {
+        id: 'sidebar.employees', // employees or maybe "staff"?
+        icon: <SvgIcon component={easel_icon} inheritViewBox />,
+        path: '/', // TODO: change to real path
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.facilities', // facilities (buildings, rooms, campuses)
+        icon: <SvgIcon component={building_icon} inheritViewBox />,
+        path: '/', // TODO: change to real path
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.structures', // structures (units, faculties)
+        icon: <SvgIcon component={diagram_icon} inheritViewBox />,
+        path: '/', // TODO: change to real path
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.students', // students
+        icon: <SvgIcon component={backpack_icon} inheritViewBox />,
+        path: '/', // TODO: change to real path
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.plans', // plans (study plans, course plans)
+        icon: <GroupsOutlined/>,
+        path: '/',  // TODO: change to real path
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.chat',
+        icon: <ChatBubbleOutline/>,
+        path: '/',  // TODO: change to real path
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.suggestions',
+        icon: <InboxOutlined/>,
+        path: '/',  // TODO: change to real path
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.permissions', // uprawnienia
+        icon: <SvgIcon component={key_icon} inheritViewBox />,
+        path: '/', // TODO: change to real path
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.settings',
+        icon: <SettingsOutlined/>,
+        path: '/',  // TODO: change to real path
+        allowedRoles: []
+    },
+];
 
 export default function Sidebar() {
     const [open, setOpen] = useState(false);
     const drawerWidth = open ? 310 : 80;
     const intl = useIntl();
-
-    const menuItems = [
-        {id: 'sidebar.myPlan', icon: <PersonOutlined/>, path: '/'},
-        {id: 'sidebar.plans', icon: <GroupsOutlined/>, path: '/'},
-        {id: 'sidebar.chat', icon: <ChatBubbleOutline/>, path: '/'},
-        {id: 'sidebar.suggestions', icon: <InboxOutlined/>, path: '/'},
-        {id: 'sidebar.settings', icon: <SettingsOutlined/>, path: '/'},
-    ];
 
     return (
         <Drawer
@@ -47,13 +125,21 @@ export default function Sidebar() {
                     width: drawerWidth,
                     transition: 'width 0.3s ease',
                     overflowX: 'hidden',
-                    bgcolor: '#f0f2f5',
+                    background: theme.palette.background.default,
                     borderRight: 'none',
                     pt: '100px',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: open ? 'flex-start' : 'center',
                     px: open ? 2 : 0,
+                    boxShadow: 'none',
+                    // borderRight: '1px solid rgba(0,0,0,0.05)',
+                    overflowY: 'auto',
+                    msOverflowStyle: 'none',
+                    scrollbarWidth: 'none',
+                    '&::-webkit-scrollbar': {
+                        display: 'none',
+                    },
                 },
             }}
         >
@@ -62,8 +148,8 @@ export default function Sidebar() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: open ? 1 : 6,
-                mb: open ? 0 : 19,
+                gap: open ? 1 : 3,
+                mb: open ? 0 : 2,
                 px: open ? 1 : 0
             }}>
                 <SidebarClock open={open}/>
@@ -71,7 +157,7 @@ export default function Sidebar() {
             </Box>
 
             <List sx={{width: '100%', px: open ? 0 : 1}}>
-                {menuItems.map((item) => (
+                {menuConfig.map((item) => (
                     <ListItem key={item.id} disablePadding
                               sx={{display: 'block', mb: open ? 0.5 : 1.5}}>
                         <NavLink
