@@ -35,6 +35,7 @@ import SidebarClock from './SidebarClock';
 import SidebarCalendar from './SidebarCalendar';
 import {NavLink} from 'react-router-dom';
 import {theme} from "../../theme/theme.ts";
+import {useAuthStore} from "@store/useAuthStore.ts";
 
 // const allRoles = ['Administrator', 'Schedule Manager', "Dean's office",
 //     'Head of unit', 'Instructor', 'Student', 'Administrative Staff', 'Guest'];
@@ -50,61 +51,61 @@ const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.myPlan',
         icon: <PersonOutlined/>,
-        path: '/', // TODO: change to real path
-        allowedRoles: ['Instructor', 'Student']
+        path: '/', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
     },
     {
         id: 'sidebar.employees', // employees or maybe "staff"?
-        icon: <SvgIcon component={easel_icon} inheritViewBox />,
-        path: '/', // TODO: change to real path
+        icon: <SvgIcon component={easel_icon} inheritViewBox/>,
+        path: '/', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
         id: 'sidebar.facilities', // facilities (buildings, rooms, campuses)
-        icon: <SvgIcon component={building_icon} inheritViewBox />,
-        path: '/', // TODO: change to real path
+        icon: <SvgIcon component={building_icon} inheritViewBox/>,
+        path: '/', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
         id: 'sidebar.structures', // structures (units, faculties)
-        icon: <SvgIcon component={diagram_icon} inheritViewBox />,
-        path: '/', // TODO: change to real path
+        icon: <SvgIcon component={diagram_icon} inheritViewBox/>,
+        path: '/', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
         id: 'sidebar.students', // students
-        icon: <SvgIcon component={backpack_icon} inheritViewBox />,
-        path: '/', // TODO: change to real path
+        icon: <SvgIcon component={backpack_icon} inheritViewBox/>,
+        path: '/', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
         id: 'sidebar.plans', // plans (study plans, course plans)
         icon: <GroupsOutlined/>,
-        path: '/',  // TODO: change to real path
+        path: '/',  // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
         id: 'sidebar.chat',
         icon: <ChatBubbleOutline/>,
-        path: '/',  // TODO: change to real path
+        path: '/',  // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
         id: 'sidebar.suggestions',
         icon: <InboxOutlined/>,
-        path: '/',  // TODO: change to real path
+        path: '/',  // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
         id: 'sidebar.permissions', // uprawnienia
-        icon: <SvgIcon component={key_icon} inheritViewBox />,
-        path: '/', // TODO: change to real path
+        icon: <SvgIcon component={key_icon} inheritViewBox/>,
+        path: '/', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
         id: 'sidebar.settings',
         icon: <SettingsOutlined/>,
-        path: '/',  // TODO: change to real path
+        path: '/',  // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
 ];
@@ -113,6 +114,14 @@ export default function Sidebar() {
     const [open, setOpen] = useState(false);
     const drawerWidth = open ? 310 : 80;
     const intl = useIntl();
+
+    const { user } = useAuthStore();
+
+    const canView = (allowedRoles?: string[]) => {
+        if (!allowedRoles || allowedRoles.length === 0) return true;
+        if (!user || !user.roles) return false;
+        return user.roles.some((role) => allowedRoles.includes(role));
+    };
 
     return (
         <Drawer
@@ -133,7 +142,6 @@ export default function Sidebar() {
                     alignItems: open ? 'flex-start' : 'center',
                     px: open ? 2 : 0,
                     boxShadow: 'none',
-                    // borderRight: '1px solid rgba(0,0,0,0.05)',
                     overflowY: 'auto',
                     msOverflowStyle: 'none',
                     scrollbarWidth: 'none',
@@ -157,7 +165,9 @@ export default function Sidebar() {
             </Box>
 
             <List sx={{width: '100%', px: open ? 0 : 1}}>
-                {menuConfig.map((item) => (
+                {menuConfig
+                    .filter((item) => canView(item.allowedRoles))
+                    .map((item) => (
                     <ListItem key={item.id} disablePadding
                               sx={{display: 'block', mb: open ? 0.5 : 1.5}}>
                         <NavLink
