@@ -103,9 +103,9 @@ export default function CampusView({data, onAddClick, onRefresh}: CampusViewProp
                                      color: 'rgba(0,0,0,0.5)'
                                  }}
                         />
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'start'}}>
+                        <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'start'}}>
                             <Typography fontWeight={600}>
-                                {intl.formatMessage({ id: 'facilities.breadcrumbs.campus' })} {item.campus_short}
+                                {intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} {item.campus_short}
                             </Typography>
 
                             {item.campus_name && (

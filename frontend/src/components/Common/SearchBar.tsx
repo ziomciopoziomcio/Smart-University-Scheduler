@@ -1,6 +1,6 @@
-import { Paper, InputBase } from '@mui/material';
-import { Search } from '@mui/icons-material';
-import { theme } from '../../theme/theme.ts';
+import {Paper, InputBase} from '@mui/material';
+import {Search} from '@mui/icons-material';
+import {theme} from '../../theme/theme.ts';
 
 interface SearchBarProps {
     value: string;
@@ -8,7 +8,7 @@ interface SearchBarProps {
     placeholder?: string;
 }
 
-export default function SearchBar({ value, onChange, placeholder = 'Szukaj...' }: SearchBarProps) {
+export default function SearchBar({value, onChange, placeholder = 'Szukaj...'}: SearchBarProps) {
     return (
         <Paper
             elevation={0}
@@ -23,9 +23,9 @@ export default function SearchBar({ value, onChange, placeholder = 'Szukaj...' }
                 background: 'white'
             }}
         >
-            <Search sx={{ color: 'text.secondary', mr: 1 }} />
+            <Search sx={{color: 'text.secondary', mr: 1}}/>
             <InputBase
-                sx={{ ml: 1, flex: 1, fontSize: theme.fontSizes.medium }}
+                sx={{ml: 1, flex: 1, fontSize: theme.fontSizes.medium}}
                 placeholder={placeholder}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
