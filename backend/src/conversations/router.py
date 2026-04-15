@@ -15,6 +15,9 @@ from ..users.models import Users
 from ..common.require_permission import require_permission
 from ..users import models as user_models
 
+from src.rag.llm_agent import process_chat_message
+from src.schedules.models import ScheduleSuggestion, SuggestionStatus
+
 router = APIRouter(prefix="/chats", tags=["chats"])
 
 CHAT_LIMIT = 50
@@ -132,11 +135,39 @@ def create_message(
             status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found"
         )
 
-    obj = models.Messages(chat_id=chat_id, **payload.model_dump())
-    db.add(obj)
+    user_msg = models.Messages(chat_id=chat_id, **payload.model_dump())
+    db.add(user_msg)
+    db.flush()
+
+    agent_response = process_chat_message(payload.content)
+
+    ai_msg = models.Messages(
+        chat_id=chat_id,
+        role=models.MessageRole.ASSISTANT,
+        content=agent_response["content"],
+    )
+    db.add(ai_msg)
+
+    if agent_response["type"] == "tool_call":
+        sugg_data = agent_response["suggestion_data"]
+
+        new_suggestion = ScheduleSuggestion(
+            source="AI_CHAT",
+            reason=sugg_data["reason"],
+            target_class_session_id=sugg_data["target_class_session_id"],
+            state_before={"info": "Data to be fetched from scheduler"},
+            state_after={
+                "proposed_timeslot_id": sugg_data.get("proposed_timeslot_id"),
+                "proposed_room_id": sugg_data.get("proposed_room_id"),
+            },
+            status=SuggestionStatus.PENDING,
+        )
+        db.add(new_suggestion)
+
     _commit_or_rollback(db)
-    db.refresh(obj)
-    return obj
+    db.refresh(ai_msg)
+
+    return ai_msg
 
 
 @router.get(
