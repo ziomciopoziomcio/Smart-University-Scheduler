@@ -8,6 +8,7 @@ interface LabTileProps {
     leftPercent: number;
     widthPercent: number;
     height: number;
+    onClick?: () => void;
 }
 
 export function LabTile(props: LabTileProps) {

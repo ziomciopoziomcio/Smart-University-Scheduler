@@ -11,6 +11,7 @@ interface BaseScheduleTileProps {
     watermarkColor: string;
     watermarkText?: string;
     horizontalGap?: number;
+    onClick?: () => void;
 }
 
 export function BaseScheduleTile({
@@ -24,9 +25,11 @@ export function BaseScheduleTile({
                                      watermarkColor,
                                      watermarkText = 'W',
                                      horizontalGap = 8,
+                                     onClick,
                                  }: BaseScheduleTileProps) {
     return (
         <Box
+            onClick={onClick}
             sx={{
                 position: 'absolute',
                 top,
@@ -44,6 +47,12 @@ export function BaseScheduleTile({
                 textAlign: 'center',
                 px: 1,
                 boxShadow: '0 1px 0 rgba(0,0,0,0.03)',
+                cursor: 'pointer',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                '&:hover': {
+                    transform: 'scale(1.01)',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
+                },
             }}
         >
             <Typography

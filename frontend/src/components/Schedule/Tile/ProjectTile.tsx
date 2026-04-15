@@ -8,6 +8,7 @@ interface ProjectTileProps {
     leftPercent: number;
     widthPercent: number;
     height: number;
+    onClick?: () => void;
 }
 
 export function ProjectTile(props: ProjectTileProps) {

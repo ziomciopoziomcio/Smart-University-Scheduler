@@ -8,6 +8,7 @@ interface ExerciseTileProps {
     leftPercent: number;
     widthPercent: number;
     height: number;
+    onClick?: () => void;
 }
 
 export function ExerciseTile(props: ExerciseTileProps) {

@@ -4,14 +4,21 @@ import {SCHEDULE_LAYOUT, scheduleHours, weekdayMessageIds} from '@constants/sche
 import {ScheduleTileFactory} from './Tile/ScheduleTileFactory.tsx';
 import {getGridHeight} from './utils/utils.ts';
 import {useIntl} from "react-intl";
+import {useMemo, useState} from 'react';
+import {SubjectDetailsPopup} from "@components/Schedule/SubjectDetailsPopup.tsx";
 
 interface WeekScheduleGridProps {
     entries: ScheduleEntry[];
 }
 
 export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
+    const [selectedEntry, setSelectedEntry] = useState<ScheduleEntry | null>(null);
     const gridHeight = getGridHeight();
     const {formatMessage} = useIntl();
+
+    const orderedEntries = useMemo(() => {
+        return [...entries].sort((a, b) => a.startHour - b.startHour);
+    }, [entries]);
 
     return (
         <Box sx={{position: 'relative', px: 0, pb: 0}}>
@@ -113,9 +120,20 @@ export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
                         />
                     ))}
 
-                    {entries.map((entry) => (
-                        <ScheduleTileFactory key={entry.id} entry={entry}/>
+                    {orderedEntries.map((entry) => (
+                        <ScheduleTileFactory
+                            key={entry.id}
+                            entry={entry}
+                            onClick={setSelectedEntry}
+                        />
                     ))}
+
+                    {selectedEntry && (
+                        <SubjectDetailsPopup
+                            entry={selectedEntry}
+                            onClose={() => setSelectedEntry(null)}
+                        />
+                    )}
                 </Box>
             </Box>
         </Box>

@@ -2,7 +2,7 @@ import type {ScheduleEntry} from '@api/types.ts';
 import {
     getDayIndexFromDate,
     parseIsoDate,
-} from '../utils/dateUtils.ts';
+} from '../utils/dateUtils';
 import {
     getTileHeight,
     getTileLeftPercent,
@@ -17,9 +17,13 @@ import {SeminarTile} from './SeminarTile.tsx';
 
 interface ScheduleTileFactoryProps {
     entry: ScheduleEntry;
+    onClick: (entry: ScheduleEntry) => void;
 }
 
-export function ScheduleTileFactory({entry}: ScheduleTileFactoryProps) {
+export function ScheduleTileFactory({
+                                        entry,
+                                        onClick,
+                                    }: ScheduleTileFactoryProps) {
     const entryDate = parseIsoDate(entry.date);
     const dayIndex = getDayIndexFromDate(entryDate);
 
@@ -29,6 +33,7 @@ export function ScheduleTileFactory({entry}: ScheduleTileFactoryProps) {
         leftPercent: getTileLeftPercent(dayIndex),
         widthPercent: getTileWidthPercent(),
         height: getTileHeight(entry.startHour, entry.endHour),
+        onClick: () => onClick(entry),
     };
 
     switch (entry.variant) {

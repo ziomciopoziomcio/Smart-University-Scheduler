@@ -8,6 +8,7 @@ interface LectureTileProps {
     leftPercent: number;
     widthPercent: number;
     height: number;
+    onClick?: () => void;
 }
 
 export function LectureTile(props: LectureTileProps) {
