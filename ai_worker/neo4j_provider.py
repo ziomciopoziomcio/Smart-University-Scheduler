@@ -1,5 +1,6 @@
 import logging
 import os
+import uuid
 
 import pandas as pd
 from neo4j import AsyncGraphDatabase, Query
@@ -21,7 +22,7 @@ SAVE_SCHEDULE_QUERY = Query("""
         MATCH (g:Group {groupId: row.group_id})
         MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
 
-        CREATE (s:ClassSession {weeks: row.weeks, facultyId: $faculty_id, createdAt: datetime()})
+        CREATE (s:ClassSession {sessionId: row.session_id, weeks: row.weeks, facultyId: $faculty_id, createdAt: datetime()})
         MERGE (s)-[:TAUGHT_BY]->(i)
         MERGE (s)-[:HELD_IN]->(r)
         MERGE (s)-[:FOR_GROUP]->(g)
@@ -318,6 +319,7 @@ class Neo4jProvider:
         """
         return [
             {
+                "session_id": str(uuid.uuid4()),
                 "instructor_id": int(gene.instructor_id),
                 "room_id": int(gene.room_id),
                 "group_id": int(gene.group_id),
