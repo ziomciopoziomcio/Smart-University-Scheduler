@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
@@ -152,7 +153,9 @@ async def create_message(
     schedule_user_id = employee.id if employee is not None else current_user.id
     user_context = await get_user_schedule_context(schedule_user_id, neo4j_session)
 
-    agent_response = process_chat_message(payload.content, user_context)
+    agent_response = await asyncio.to_thread(
+        process_chat_message, payload.content, user_context
+    )
 
     ai_msg = models.Messages(
         chat_id=chat_id,
