@@ -98,6 +98,10 @@ services:
       SMTP_FROM: ${SMTP_FROM}
       SETUP_SECURITY_TOKEN: ${SETUP_SECURITY_TOKEN}
       GROQ_API_KEY: ${GROQ_API_KEY}
+      NEO4J_HOST: ${NEO4J_HOST:-neo4j}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+      NEO4J_USER: ${NEO4J_USER:-neo4j}
+      NEO4J_PORT: ${NEO4J_PORT:-7687}
     depends_on:
       - postgres
       - kafka
