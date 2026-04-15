@@ -19,3 +19,18 @@ export interface AuthResponse {
 export interface LoginError {
     detail: string | { msg: string }[];
 }
+
+export type ScheduleTileVariant = 'lecture' | 'lab' | 'exercise' | 'project' | 'seminar';
+
+export interface ScheduleEntry {
+    id: string;
+    title: string;
+    date: string;
+    startHour: number;
+    endHour: number;
+    variant: ScheduleTileVariant;
+}
+
+export interface WeekScheduleProps {
+    entries: ScheduleEntry[];
+}
