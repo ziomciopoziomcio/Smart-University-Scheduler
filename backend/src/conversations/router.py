@@ -142,7 +142,13 @@ async def create_message(
     db.add(user_msg)
     db.flush()
 
-    user_context = await get_user_schedule_context(current_user.id, neo4j_session)
+    employee = (
+        db.query(user_models.Employees)
+        .filter(user_models.Employees.user_id == current_user.id)
+        .first()
+    )
+    schedule_user_id = employee.id if employee is not None else current_user.id
+    user_context = await get_user_schedule_context(schedule_user_id, neo4j_session)
 
     agent_response = process_chat_message(payload.content, user_context)
 
