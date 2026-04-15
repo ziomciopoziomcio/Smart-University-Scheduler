@@ -57,16 +57,21 @@ def process_chat_message(user_message: str, schedule_context: str) -> dict:
     response_message = response.choices[0].message
     if response_message.tool_calls:
         tool_calls = response_message.tool_calls[0]
-        arguments = json.loads(tool_calls.function.arguments)
-        generated_reply = arguments.get(
-            "confirmation_message", "Your request has been forwarded for approval."
-        )
-        return {
-            "type": "tool_call",
-            "content": generated_reply,
-            "suggestion_data": arguments,
-        }
+        try:
+            arguments = json.loads(tool_calls.function.arguments)
+        except (json.JSONDecodeError, TypeError, AttributeError):
+            arguments = None
 
+        if isinstance(arguments, dict):
+            generated_reply = arguments.get(
+                "confirmation_message",
+                "Your request has been forwarded for approval.",
+            )
+            return {
+                "type": "tool_call",
+                "content": generated_reply,
+                "suggestion_data": arguments,
+            }
     return {
         "type": "text",
         "content": response_message.content,
