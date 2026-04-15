@@ -161,7 +161,8 @@ class Neo4jProvider:
         try:
             async with self.driver.session() as session:
                 for q in queries:
-                    await session.run(Query(q), **parameters)
+                    result = await session.run(Query(q), **parameters)
+                    await result.consume()
                 logger.info(
                     f"Successfully updated ClassSession {class_session_id} in Neo4j."
                 )
