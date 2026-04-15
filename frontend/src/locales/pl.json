@@ -131,5 +131,46 @@
     "fridayShort": "Pt",
     "saturdayShort": "Sob",
     "sundayShort": "Niedz"
+  },
+  "facilities": {
+    "searchPlaceholder": "Szukaj...",
+    "breadcrumbs": {
+      "facilities": "Obiekty",
+      "campus": "Kampus",
+      "building": "Budynek"
+    },
+    "noData": "Brak danych do wyświetlenia.",
+    "addCampus": "Dodaj kampus...",
+    "addBuilding": "Dodaj budynek",
+    "addRoom": "Dodaj salę",
+    "noName": "Brak nazwy",
+    "seats": "miejsc",
+    "pcs": "PC",
+    "menu": {
+      "edit": "Edytuj kampus",
+      "delete": "Usuń kampus"
+    },
+    "deleteConfirm": {
+      "title": "Usuń kampus",
+      "description": "Czy na pewno chcesz usunąć ten kampus? Tej operacji nie można cofnąć.",
+      "confirm": "Usuń",
+      "cancel": "Anuluj"
+    },
+    "modal": {
+      "campus": {
+        "title": "Dodaj kampus",
+        "shortNameLabel": "Identyfikator kampusu",
+        "shortNamePlaceholder": "Wpisz identyfikator kampusu",
+        "nameLabel": "Nazwa kampusu",
+        "namePlaceholder": "Wpisz nazwę kampusu (opcjonalnie)",
+        "submit": "Dodaj kampus",
+        "cancel": "Anuluj",
+        "error": "Błąd podczas dodawania kampusu.",
+        "campusEdit": {
+          "title": "Edytuj kampus",
+          "submit": "Zapisz zmiany"
+        }
+      }
+    }
   }
 }

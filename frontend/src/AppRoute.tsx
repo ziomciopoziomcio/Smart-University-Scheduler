@@ -9,7 +9,7 @@ import ResetPasswordPage from './pages/Auth/ResetPasswordPage.tsx';
 import MyPlan from './pages/Plan/MyPlan.tsx';
 import ProtectedRoute from './components/Login/ProtectedRoute';
 import {useAuthStore} from '@store/useAuthStore';
-import EmployeesPage from "./pages/Management/Employees/EmployeesPage.tsx";
+import FacilitiesPage from "./pages/Facilities/FacilitiesPage.tsx";
 
 function AppRoute() {
     const isAuthenticated = useAuthStore((state) => state.token !== null);
@@ -26,7 +26,9 @@ function AppRoute() {
                 <Route element={<ProtectedRoute/>}>
                     <Route element={<MainLayout/>}>
                         <Route path="/plan" element={<MyPlan/>}/>
-                        <Route path="/employees" element={<EmployeesPage/>}/>
+                        <Route path="/facilities" element={<FacilitiesPage view="campuses" />}/>
+                        <Route path="/facilities/campus/:campusId" element={<FacilitiesPage view="buildings" />}/>
+                        <Route path="/facilities/building/:buildingId" element={<FacilitiesPage view="rooms" />}/>
                     </Route>
                 </Route>
 
