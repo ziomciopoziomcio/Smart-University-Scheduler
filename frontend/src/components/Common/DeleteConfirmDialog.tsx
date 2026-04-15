@@ -42,7 +42,7 @@ export default function DeleteConfirmDialog({
             }}
         >
             <DialogTitle fontWeight="bold">
-                <DialogContent  sx={{p: 0, textAlign: 'center', fontSize: '1.25rem', color: "#000"}}>
+                <DialogContent sx={{p: 0, textAlign: 'center', fontSize: '1.25rem', color: "#000"}}>
                     {title}
                 </DialogContent>
             </DialogTitle>

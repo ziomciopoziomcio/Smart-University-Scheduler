@@ -63,13 +63,13 @@ export const deleteCampus = async (id: number): Promise<void> => {
 };
 
 export const getCampus = async (id: number): Promise<Campus> => {
-    const response = await fetch(`${BASE_URL}/campuses/${id}`, { headers: getHeaders() });
+    const response = await fetch(`${BASE_URL}/campuses/${id}`, {headers: getHeaders()});
     if (!response.ok) throw new Error('Nie udało się pobrać kampusu');
     return response.json();
 };
 
 export const getBuilding = async (id: number): Promise<Building> => {
-    const response = await fetch(`${BASE_URL}/buildings/${id}`, { headers: getHeaders() });
+    const response = await fetch(`${BASE_URL}/buildings/${id}`, {headers: getHeaders()});
     if (!response.ok) throw new Error('Nie udało się pobrać budynku');
     return response.json();
 };

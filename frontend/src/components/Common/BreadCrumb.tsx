@@ -1,6 +1,6 @@
 import {Breadcrumbs, Typography, Box, type Theme, type SxProps} from '@mui/material';
-import { NavigateNext } from '@mui/icons-material';
-import { Link } from 'react-router-dom';
+import {NavigateNext} from '@mui/icons-material';
+import {Link} from 'react-router-dom';
 
 export interface BreadcrumbItem {
     label: string;
@@ -12,7 +12,7 @@ interface PageBreadcrumbsProps {
     sx?: SxProps<Theme>;
 }
 
-export default function PageBreadcrumbs({ items, sx }: PageBreadcrumbsProps) {
+export default function PageBreadcrumbs({items, sx}: PageBreadcrumbsProps) {
     return (
         <Box sx={{
             p: 2,
@@ -25,7 +25,7 @@ export default function PageBreadcrumbs({ items, sx }: PageBreadcrumbsProps) {
             ...sx
         }}>
             <Breadcrumbs
-                separator={<NavigateNext fontSize="small" />}
+                separator={<NavigateNext fontSize="small"/>}
                 aria-label="breadcrumb"
             >
                 {items.map((item, index) => {
@@ -39,9 +39,9 @@ export default function PageBreadcrumbs({ items, sx }: PageBreadcrumbsProps) {
                         <Link
                             key={index}
                             to={item.path}
-                            style={{ textDecoration: 'none', color: '#555' }}
+                            style={{textDecoration: 'none', color: '#555'}}
                         >
-                            <Typography sx={{ fontSize: '0.9rem', '&:hover': { textDecoration: 'underline' } }}>
+                            <Typography sx={{fontSize: '0.9rem', '&:hover': {textDecoration: 'underline'}}}>
                                 {item.label}
                             </Typography>
                         </Link>
