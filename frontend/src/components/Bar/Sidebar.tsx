@@ -1,13 +1,13 @@
 import {useState} from 'react';
-// @ts-expect-error
+// @ts-expect-error: some internal issue with svgr types, but it works
 import backpack_icon from '@assets/icons/backpack.svg?react';
-// @ts-expect-error
+// @ts-expect-error: some internal issue with svgr types, but it works
 import building_icon from '@assets/icons/building.svg?react';
-// @ts-expect-error
+// @ts-expect-error: some internal issue with svgr types, but it works
 import key_icon from '@assets/icons/key.svg?react';
-// @ts-expect-error
+// @ts-expect-error: some internal issue with svgr types, but it works
 import diagram_icon from '@assets/icons/diagram.svg?react';
-// @ts-expect-error
+// @ts-expect-error: some internal issue with svgr types, but it works
 import easel_icon from '@assets/icons/easel.svg?react';
 
 import {
