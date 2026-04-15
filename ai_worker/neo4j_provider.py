@@ -120,13 +120,16 @@ class Neo4jProvider:
         :param session_data: A dictionary containing class session details
         :return: None
         """
-        class_session_id = str(session_data.get("class_session_id"))
+        raw_class_session_id = session_data.get("class_session_id")
         new_room_id = session_data.get("new_room_id")
         new_timeslot_id = session_data.get("new_timeslot_id")
 
-        if not class_session_id:
+        if raw_class_session_id is None or (
+            isinstance(raw_class_session_id, str) and not raw_class_session_id.strip()
+        ):
             raise ValueError("class_session_id is required")
 
+        class_session_id = str(raw_class_session_id)
         queries = []
         parameters = {"session_id": class_session_id}
         if new_room_id is not None:
