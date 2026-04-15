@@ -7,7 +7,7 @@ import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrum
 import SearchBar from "@components/Common/SearchBar.tsx";
 import {fetchCampuses, fetchBuildings, fetchRooms} from '@api/facilities.ts';
 import CreateCampusModal from "@components/Facilities/CreateCampusModal.tsx";
-
+import {type Campus, type Building, type Room} from '@api/types';
 import CampusView from '@components/Facilities/CampusView';
 import BuildingView from '@components/Facilities/BuildingView';
 import RoomView from '@components/Facilities/RoomView';
@@ -24,7 +24,7 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
     const {campusId, buildingId} = useParams();
     const intl = useIntl();
 
-    const [data, setData] = useState<any[]>([]);
+    const [data, setData] = useState<(Campus | Building | Room)[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [dummySearch, setDummySearch] = useState('');
