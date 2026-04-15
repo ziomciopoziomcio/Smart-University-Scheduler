@@ -397,7 +397,7 @@ async def process_reschedule_task(
             {
                 "task_id": suggestion_id,
                 "status": "COMPLETED",
-                "message": f"Sucessfully rescheduled {suggestion_id} for session {class_session_id}",
+                "message": f"Successfully rescheduled {suggestion_id} for session {class_session_id}",
                 "type": "RESCHEDULE_UPDATE",
             },
         )
