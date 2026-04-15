@@ -10,6 +10,8 @@ from src.common.router_utils import (
 )
 from . import models, schemas
 from ..database.database import get_db
+from ..database.neo4j import get_neo4j_session
+from ..rag.retriever import get_user_schedule_context
 from ..users.auth import get_current_user
 from ..users.models import Users
 from ..common.require_permission import require_permission
@@ -121,10 +123,11 @@ def delete_chat(
     response_model=schemas.MessageRead,
     status_code=status.HTTP_201_CREATED,
 )
-def create_message(
+async def create_message(
     chat_id: int,
     payload: schemas.MessageCreate,
     db: Session = Depends(get_db),
+    neo4j_session=Depends(get_neo4j_session),
     current_user: Users = Depends(get_current_user),
     _current_user: user_models.Users = Depends(require_permission("message:create")),
 ):
@@ -139,7 +142,9 @@ def create_message(
     db.add(user_msg)
     db.flush()
 
-    agent_response = process_chat_message(payload.content)
+    user_context = await get_user_schedule_context(current_user.id, neo4j_session)
+
+    agent_response = process_chat_message(payload.content, user_context)
 
     ai_msg = models.Messages(
         chat_id=chat_id,
@@ -155,7 +160,10 @@ def create_message(
             source="AI_CHAT",
             reason=sugg_data["reason"],
             target_class_session_id=sugg_data["target_class_session_id"],
-            state_before={"info": "Data to be fetched from scheduler"},
+            state_before={
+                "info": "Data to be fetched from scheduler",
+                "context_snapshot": user_context,
+            },
             state_after={
                 "proposed_timeslot_id": sugg_data.get("proposed_timeslot_id"),
                 "proposed_room_id": sugg_data.get("proposed_room_id"),
