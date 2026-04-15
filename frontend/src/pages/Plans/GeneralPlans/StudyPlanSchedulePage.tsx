@@ -3,10 +3,11 @@ import {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
 import type {ScheduleEntry} from '@api/types';
 import {WeekSchedule} from '@components/Schedule/WeekSchedule';
-import {addWeeks, getStartOfWeek} from '@components/Schedule/utils/dateUtils';
-import {studyPlanScheduleMock} from '../../../mocks/studyPlansMock';
+import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
+import {getMockStudyPlanScheduleEntries} from '../../../mocks/studyPlansMock';
 
-async function getStudyPlanScheduleForWeek(
+// TODO: Replace with backend API call
+export async function getStudyPlanScheduleForWeek(
     curriculumYearId: string,
     fieldOfStudyId: string,
     semesterId: string,
@@ -14,20 +15,25 @@ async function getStudyPlanScheduleForWeek(
     electiveBlockId: string | null,
     weekStart: Date,
 ): Promise<ScheduleEntry[]> {
-    console.log('Fetch study plan schedule', {
-        curriculumYearId,
-        fieldOfStudyId,
-        semesterId,
-        specializationId,
-        electiveBlockId,
-        weekStart,
-    });
-
-    const key = `${curriculumYearId}|${fieldOfStudyId}|${semesterId}|${specializationId ?? 'null'}|${electiveBlockId ?? 'null'}`;
+    const weekEnd = addDays(weekStart, 6);
+    const startIso = toIsoDate(weekStart);
+    const endIso = toIsoDate(weekEnd);
 
     return new Promise((resolve) => {
         setTimeout(() => {
-            resolve(studyPlanScheduleMock[key] ?? []);
+            const allEntries = getMockStudyPlanScheduleEntries({
+                curriculumYearId,
+                fieldOfStudyId,
+                semesterId,
+                specializationId,
+                electiveBlockId,
+            });
+
+            const filtered = allEntries.filter((entry) => {
+                return entry.date >= startIso && entry.date <= endIso;
+            });
+
+            resolve(filtered);
         }, 700);
     });
 }
@@ -45,14 +51,14 @@ export default function StudyPlanSchedulePage() {
         getStartOfWeek(new Date()),
     );
     const [entries, setEntries] = useState<ScheduleEntry[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     useEffect(() => {
         if (!curriculumYearId || !fieldOfStudyId || !semesterId) return;
 
-        let cancelled = false;
+        let isCancelled = false;
 
-        const fetchData = async () => {
+        const fetchWeekSchedule = async () => {
             setIsLoading(true);
 
             try {
@@ -65,24 +71,24 @@ export default function StudyPlanSchedulePage() {
                     currentWeekStart,
                 );
 
-                if (!cancelled) {
+                if (!isCancelled) {
                     setEntries(response);
                 }
             } catch (error) {
-                if (!cancelled) {
+                if (!isCancelled) {
                     setEntries([]);
                 }
             } finally {
-                if (!cancelled) {
+                if (!isCancelled) {
                     setIsLoading(false);
                 }
             }
         };
 
-        fetchData();
+        fetchWeekSchedule();
 
         return () => {
-            cancelled = true;
+            isCancelled = true;
         };
     }, [
         curriculumYearId,

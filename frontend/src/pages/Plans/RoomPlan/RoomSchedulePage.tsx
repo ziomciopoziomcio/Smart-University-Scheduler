@@ -4,28 +4,32 @@ import {useParams} from 'react-router-dom';
 import type {ScheduleEntry} from '@api/types.ts';
 import {WeekSchedule} from '@components/Schedule/WeekSchedule.tsx';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils.ts';
-import {roomScheduleMock} from '../../../mocks/roomPlansMock.tsx';
+import {getMockRoomScheduleEntries} from '../../../mocks/roomPlansMock.tsx';
 
-// TODO: Replace with backend API call for room schedule
-async function getRoomScheduleForWeek(
+// TODO: Replace with backend API call
+export async function getRoomScheduleForWeek(
     campusId: string,
     buildingId: string,
     roomId: string,
     weekStart: Date,
 ): Promise<ScheduleEntry[]> {
     const weekEnd = addDays(weekStart, 6);
-    const weekStartIso = toIsoDate(weekStart);
-    const weekEndIso = toIsoDate(weekEnd);
+    const startIso = toIsoDate(weekStart);
+    const endIso = toIsoDate(weekEnd);
 
     return new Promise((resolve) => {
         setTimeout(() => {
-            const roomEntries = roomScheduleMock[roomId] ?? [];
-
-            const filteredEntries = roomEntries.filter((entry) => {
-                return entry.date >= weekStartIso && entry.date <= weekEndIso;
+            const allEntries = getMockRoomScheduleEntries({
+                campusId,
+                buildingId,
+                roomId,
             });
 
-            resolve(filteredEntries);
+            const filtered = allEntries.filter((entry) => {
+                return entry.date >= startIso && entry.date <= endIso;
+            });
+
+            resolve(filtered);
         }, 700);
     });
 }
@@ -37,14 +41,14 @@ export default function RoomSchedulePage() {
         getStartOfWeek(new Date()),
     );
     const [entries, setEntries] = useState<ScheduleEntry[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     useEffect(() => {
         if (!campusId || !buildingId || !roomId) return;
 
-        let cancelled = false;
+        let isCancelled = false;
 
-        const fetchData = async () => {
+        const fetchWeekSchedule = async () => {
             setIsLoading(true);
 
             try {
@@ -55,24 +59,24 @@ export default function RoomSchedulePage() {
                     currentWeekStart,
                 );
 
-                if (!cancelled) {
+                if (!isCancelled) {
                     setEntries(response);
                 }
             } catch (error) {
-                if (!cancelled) {
+                if (!isCancelled) {
                     setEntries([]);
                 }
             } finally {
-                if (!cancelled) {
+                if (!isCancelled) {
                     setIsLoading(false);
                 }
             }
         };
 
-        fetchData();
+        fetchWeekSchedule();
 
         return () => {
-            cancelled = true;
+            isCancelled = true;
         };
     }, [campusId, buildingId, roomId, currentWeekStart]);
 

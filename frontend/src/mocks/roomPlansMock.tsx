@@ -1,4 +1,5 @@
 import type {ScheduleEntry} from '@api/types';
+import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 
 export interface CampusItem {
     id: string;
@@ -18,76 +19,365 @@ export interface RoomItem {
     name: string;
 }
 
+interface RoomScheduleParams {
+    campusId: string;
+    buildingId: string;
+    roomId: string;
+}
+
+interface MockEntrySeed {
+    id: string;
+    title: string;
+    weekOffset: number;
+    dayOffset: number;
+    startHour: number;
+    endHour: number;
+    variant: ScheduleEntry['variant'];
+}
+
+const currentWeekStart = getStartOfWeek(new Date());
+
+const createIsoDate = (weekOffset: number, dayOffset: number) => {
+    return toIsoDate(addDays(addWeeks(currentWeekStart, weekOffset), dayOffset));
+};
+
+const mapSeedsToEntries = (prefix: string, seeds: MockEntrySeed[]): ScheduleEntry[] => {
+    return seeds.map((seed) => ({
+        id: `${prefix}-${seed.id}`,
+        title: seed.title,
+        date: createIsoDate(seed.weekOffset, seed.dayOffset),
+        startHour: seed.startHour,
+        endHour: seed.endHour,
+        variant: seed.variant,
+    }));
+};
+
+const humanizeRoomId = (roomId: string) => {
+    return roomId.toUpperCase();
+};
+
 export const campusesMock: CampusItem[] = [
     {id: 'a', name: 'Kampus A'},
     {id: 'b', name: 'Kampus B'},
+    {id: 'c', name: 'Kampus C'},
 ];
 
 export const buildingsMock: BuildingItem[] = [
     {id: 'a1', campusId: 'a', name: 'Budynek A1'},
     {id: 'a11', campusId: 'a', name: 'Budynek A11'},
+    {id: 'a12', campusId: 'a', name: 'Budynek A12'},
     {id: 'b2', campusId: 'b', name: 'Budynek B2'},
+    {id: 'b4', campusId: 'b', name: 'Budynek B4'},
+    {id: 'c1', campusId: 'c', name: 'Budynek C1'},
 ];
 
 export const roomsMock: RoomItem[] = [
     {id: 'e5', campusId: 'a', buildingId: 'a11', name: 'Aula E5'},
     {id: 'l2', campusId: 'a', buildingId: 'a11', name: 'Sala L2'},
+    {id: 'f3', campusId: 'a', buildingId: 'a12', name: 'Sala F3'},
     {id: '204', campusId: 'b', buildingId: 'b2', name: 'Sala 204'},
+    {id: '301', campusId: 'b', buildingId: 'b4', name: 'Sala 301'},
+    {id: '18', campusId: 'c', buildingId: 'c1', name: 'Sala 18'},
 ];
 
-export const roomScheduleMock: Record<string, ScheduleEntry[]> = {
+const roomScheduleSeedsByRoom: Record<string, MockEntrySeed[]> = {
     e5: [
         {
-            id: 'r1',
+            id: '1',
             title: 'Programowanie\nsieciowe 1',
-            date: '2026-04-13',
+            weekOffset: 0,
+            dayOffset: 0,
             startHour: 10,
             endHour: 12,
             variant: 'lecture',
         },
         {
-            id: 'r2',
+            id: '2',
             title: 'Matematyka\ndyskretna',
-            date: '2026-04-15',
+            weekOffset: 0,
+            dayOffset: 2,
             startHour: 12,
             endHour: 14,
             variant: 'exercise',
         },
         {
-            id: 'r3',
-            title: 'Analiza\ndanych',
-            date: '2026-04-20',
+            id: '3',
+            title: 'Architektura\noprogramowania',
+            weekOffset: 1,
+            dayOffset: 1,
             startHour: 8,
             endHour: 10,
             variant: 'lecture',
         },
+        {
+            id: '4',
+            title: 'Seminarium\ndyplomowe',
+            weekOffset: -1,
+            dayOffset: 4,
+            startHour: 14,
+            endHour: 16,
+            variant: 'seminar',
+        },
     ],
     l2: [
         {
-            id: 'r4',
+            id: '1',
             title: 'Programowanie\nsieciowe 1',
-            date: '2026-04-14',
+            weekOffset: 0,
+            dayOffset: 1,
             startHour: 11,
             endHour: 13,
             variant: 'lab',
         },
         {
-            id: 'r5',
+            id: '2',
             title: 'Systemy\nrozproszone',
-            date: '2026-04-21',
+            weekOffset: 1,
+            dayOffset: 1,
             startHour: 9,
             endHour: 11,
+            variant: 'lab',
+        },
+        {
+            id: '3',
+            title: 'Inżynieria\noprogramowania',
+            weekOffset: 0,
+            dayOffset: 3,
+            startHour: 8,
+            endHour: 10,
+            variant: 'project',
+        },
+        {
+            id: '4',
+            title: 'Podstawy\nkonteneryzacji',
+            weekOffset: -1,
+            dayOffset: 2,
+            startHour: 15,
+            endHour: 17,
             variant: 'lab',
         },
     ],
     '204': [
         {
-            id: 'r6',
+            id: '1',
             title: 'Projektowanie\ninterfejsów aplikacji\nWWW',
-            date: '2026-04-14',
+            weekOffset: 0,
+            dayOffset: 1,
             startHour: 8,
             endHour: 10,
             variant: 'project',
         },
+        {
+            id: '2',
+            title: 'Analiza\ndanych',
+            weekOffset: 0,
+            dayOffset: 4,
+            startHour: 10,
+            endHour: 12,
+            variant: 'lecture',
+        },
+        {
+            id: '3',
+            title: 'Bazy\ndanych',
+            weekOffset: 1,
+            dayOffset: 2,
+            startHour: 12,
+            endHour: 14,
+            variant: 'exercise',
+        },
+        {
+            id: '4',
+            title: 'Uczenie\nmaszynowe',
+            weekOffset: -1,
+            dayOffset: 0,
+            startHour: 8,
+            endHour: 10,
+            variant: 'lecture',
+        },
+    ],
+    f3: [
+        {
+            id: '1',
+            title: 'Sieci\nkomputerowe',
+            weekOffset: 0,
+            dayOffset: 0,
+            startHour: 8,
+            endHour: 10,
+            variant: 'lab',
+        },
+        {
+            id: '2',
+            title: 'Systemy\noperacyjne',
+            weekOffset: 0,
+            dayOffset: 2,
+            startHour: 14,
+            endHour: 16,
+            variant: 'exercise',
+        },
+        {
+            id: '3',
+            title: 'Testowanie\noprogramowania',
+            weekOffset: 1,
+            dayOffset: 3,
+            startHour: 10,
+            endHour: 12,
+            variant: 'lab',
+        },
     ],
 };
+
+const roomScheduleSeedsByBuilding: Record<string, MockEntrySeed[]> = {
+    a11: [
+        {
+            id: '1',
+            title: 'Algebra\nliniowa',
+            weekOffset: 0,
+            dayOffset: 1,
+            startHour: 8,
+            endHour: 10,
+            variant: 'lecture',
+        },
+        {
+            id: '2',
+            title: 'Metody\nnumeryczne',
+            weekOffset: 0,
+            dayOffset: 3,
+            startHour: 10,
+            endHour: 12,
+            variant: 'exercise',
+        },
+        {
+            id: '3',
+            title: 'Warsztaty\nprojektowe',
+            weekOffset: 1,
+            dayOffset: 4,
+            startHour: 12,
+            endHour: 14,
+            variant: 'project',
+        },
+    ],
+    b2: [
+        {
+            id: '1',
+            title: 'Grafika\nkomputerowa',
+            weekOffset: 0,
+            dayOffset: 2,
+            startHour: 8,
+            endHour: 10,
+            variant: 'lab',
+        },
+        {
+            id: '2',
+            title: 'Bazy\ndanych',
+            weekOffset: 1,
+            dayOffset: 0,
+            startHour: 10,
+            endHour: 12,
+            variant: 'lecture',
+        },
+    ],
+};
+
+const roomScheduleSeedsByCampus: Record<string, MockEntrySeed[]> = {
+    a: [
+        {
+            id: '1',
+            title: 'Konsultacje\nwydziałowe',
+            weekOffset: 0,
+            dayOffset: 4,
+            startHour: 14,
+            endHour: 16,
+            variant: 'seminar',
+        },
+        {
+            id: '2',
+            title: 'Spotkanie\nkoła naukowego',
+            weekOffset: 1,
+            dayOffset: 2,
+            startHour: 16,
+            endHour: 18,
+            variant: 'seminar',
+        },
+    ],
+    b: [
+        {
+            id: '1',
+            title: 'Zajęcia\nwyrównawcze',
+            weekOffset: 0,
+            dayOffset: 0,
+            startHour: 16,
+            endHour: 18,
+            variant: 'exercise',
+        },
+        {
+            id: '2',
+            title: 'Laboratorium\nprojektowe',
+            weekOffset: -1,
+            dayOffset: 3,
+            startHour: 12,
+            endHour: 14,
+            variant: 'lab',
+        },
+    ],
+};
+
+const createFallbackRoomEntries = ({campusId, buildingId, roomId}: RoomScheduleParams): ScheduleEntry[] => {
+    const roomLabel = humanizeRoomId(roomId);
+
+    return mapSeedsToEntries(`${campusId}-${buildingId}-${roomId}`, [
+        {
+            id: 'fallback-1',
+            title: `Seminarium\nsala ${roomLabel}`,
+            weekOffset: 0,
+            dayOffset: 1,
+            startHour: 10,
+            endHour: 12,
+            variant: 'seminar',
+        },
+        {
+            id: 'fallback-2',
+            title: `Ćwiczenia\nsala ${roomLabel}`,
+            weekOffset: 0,
+            dayOffset: 3,
+            startHour: 12,
+            endHour: 14,
+            variant: 'exercise',
+        },
+        {
+            id: 'fallback-3',
+            title: `Projekt\n${buildingId.toUpperCase()}`,
+            weekOffset: 1,
+            dayOffset: 2,
+            startHour: 8,
+            endHour: 10,
+            variant: 'project',
+        },
+    ]);
+};
+
+export const roomScheduleMock: Record<string, ScheduleEntry[]> = Object.fromEntries(
+    Object.entries(roomScheduleSeedsByRoom).map(([roomId, seeds]) => [roomId, mapSeedsToEntries(roomId, seeds)]),
+);
+
+export function getMockRoomScheduleEntries({
+                                               campusId,
+                                               buildingId,
+                                               roomId,
+                                           }: RoomScheduleParams): ScheduleEntry[] {
+    const exactRoomEntries = roomScheduleSeedsByRoom[roomId];
+    if (exactRoomEntries) {
+        return mapSeedsToEntries(roomId, exactRoomEntries);
+    }
+
+    const buildingEntries = roomScheduleSeedsByBuilding[buildingId];
+    if (buildingEntries) {
+        return mapSeedsToEntries(`${buildingId}-${roomId}`, buildingEntries);
+    }
+
+    const campusEntries = roomScheduleSeedsByCampus[campusId];
+    if (campusEntries) {
+        return mapSeedsToEntries(`${campusId}-${buildingId}-${roomId}`, campusEntries);
+    }
+
+    return createFallbackRoomEntries({campusId, buildingId, roomId});
+}
