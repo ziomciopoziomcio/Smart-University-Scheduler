@@ -191,25 +191,25 @@ def list_employees(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("employees:view")),
 ):
-    count_q = db.query(models.Employees)
+    filters = []
     if user_id is not None:
-        count_q = count_q.filter(models.Employees.user_id == user_id)
+        filters.append(models.Employees.user_id == user_id)
     if faculty_id is not None:
-        count_q = count_q.filter(models.Employees.faculty_id == faculty_id)
+        filters.append(models.Employees.faculty_id == faculty_id)
     if unit_id is not None:
-        count_q = count_q.filter(models.Employees.unit_id == unit_id)
+        filters.append(models.Employees.unit_id == unit_id)
+
+    count_q = db.query(models.Employees)
+    if filters:
+        count_q = count_q.filter(*filters)
 
     joined_q = (
         db.query(models.Employees, user_models.Users, models.Units)
         .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
         .outerjoin(models.Units, models.Employees.unit_id == models.Units.id)
     )
-    if user_id is not None:
-        joined_q = joined_q.filter(models.Employees.user_id == user_id)
-    if faculty_id is not None:
-        joined_q = joined_q.filter(models.Employees.faculty_id == faculty_id)
-    if unit_id is not None:
-        joined_q = joined_q.filter(models.Employees.unit_id == unit_id)
+    if filters:
+        joined_q = joined_q.filter(*filters)
 
     paginated = paginate(
         joined_q,
