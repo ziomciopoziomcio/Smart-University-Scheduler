@@ -2,7 +2,7 @@ from datetime import date
 
 from sqlalchemy.orm import Session
 
-from src.academics.models import Academic_calendar, SemesterType
+from backend.src.academics.models import Academic_calendar, SemesterType
 
 
 def _get_2025_2026_summer_days() -> list[list[date]]:
