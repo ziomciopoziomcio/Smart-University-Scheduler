@@ -43,7 +43,7 @@ def create_student(
     return obj
 
 
-@router.get("/students", response_model=PaginatedResponse[schemas.StudentRead])
+@router.get("/students", response_model=PaginatedResponse[schemas.StudentNested])
 def list_students(
     user_id: int | None = Query(None),
     study_program: int | None = Query(None),
@@ -53,25 +53,85 @@ def list_students(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("students:view")),
 ):
-    query = db.query(models.Students)
-
+    count_q = db.query(models.Students)
     if user_id is not None:
-        query = query.filter(models.Students.user_id == user_id)
+        count_q = count_q.filter(models.Students.user_id == user_id)
     if study_program is not None:
-        query = query.filter(models.Students.study_program == study_program)
+        count_q = count_q.filter(models.Students.study_program == study_program)
     if major is not None:
-        query = query.filter(models.Students.major == major)
+        count_q = count_q.filter(models.Students.major == major)
 
-    return paginate(query, limit, offset, models.Students.id)
+    joined_q = db.query(models.Students, user_models.Users).join(
+        user_models.Users, models.Students.user_id == user_models.Users.id
+    )
+    if user_id is not None:
+        joined_q = joined_q.filter(models.Students.user_id == user_id)
+    if study_program is not None:
+        joined_q = joined_q.filter(models.Students.study_program == study_program)
+    if major is not None:
+        joined_q = joined_q.filter(models.Students.major == major)
+
+    paginated = paginate(
+        joined_q,
+        limit=limit,
+        offset=offset,
+        order_by=models.Students.id,
+        count_query=count_q,
+    )
+    rows = paginated.items
+    total = paginated.total
+
+    items = []
+    for student, user in rows:
+        items.append(
+            {
+                "id": student.id,
+                "user_id": student.user_id,
+                "study_program": student.study_program,
+                "major": student.major,
+                "user": {
+                    "id": user.id,
+                    "name": user.name,
+                    "surname": user.surname,
+                    "degree": user.degree,
+                    "created_at": getattr(user, "created_at", None),
+                },
+            }
+        )
+
+    return PaginatedResponse(items=items, total=total, limit=limit, offset=offset)
 
 
-@router.get("/students/{student_id}", response_model=schemas.StudentRead)
+@router.get("/students/{student_id}", response_model=schemas.StudentNested)
 def get_student(
     student_id: int,
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("student:view")),
 ):
-    return _get_or_404(db, models.Students, student_id, "Student")
+    row = (
+        db.query(models.Students, user_models.Users)
+        .join(user_models.Users, models.Students.user_id == user_models.Users.id)
+        .filter(models.Students.id == student_id)
+        .one_or_none()
+    )
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Student not found"
+        )
+    student, user = row
+    return {
+        "id": student.id,
+        "user_id": student.user_id,
+        "study_program": student.study_program,
+        "major": student.major,
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "surname": user.surname,
+            "degree": user.degree,
+            "created_at": getattr(user, "created_at", None),
+        },
+    }
 
 
 @router.patch("/students/{student_id}", response_model=schemas.StudentRead)
@@ -119,7 +179,7 @@ def create_employee(
     return obj
 
 
-@router.get("/employees", response_model=PaginatedResponse[schemas.EmployeeRead])
+@router.get("/employees", response_model=PaginatedResponse[schemas.EmployeeNested])
 def list_employees(
     user_id: int | None = Query(None),
     faculty_id: int | None = Query(None),
@@ -129,25 +189,105 @@ def list_employees(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("employees:view")),
 ):
-    query = db.query(models.Employees)
-
+    count_q = db.query(models.Employees)
     if user_id is not None:
-        query = query.filter(models.Employees.user_id == user_id)
+        count_q = count_q.filter(models.Employees.user_id == user_id)
     if faculty_id is not None:
-        query = query.filter(models.Employees.faculty_id == faculty_id)
+        count_q = count_q.filter(models.Employees.faculty_id == faculty_id)
     if unit_id is not None:
-        query = query.filter(models.Employees.unit_id == unit_id)
+        count_q = count_q.filter(models.Employees.unit_id == unit_id)
 
-    return paginate(query, limit, offset, models.Employees.id)
+    joined_q = (
+        db.query(models.Employees, user_models.Users, models.Units)
+        .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
+        .outerjoin(models.Units, models.Employees.unit_id == models.Units.id)
+    )
+    if user_id is not None:
+        joined_q = joined_q.filter(models.Employees.user_id == user_id)
+    if faculty_id is not None:
+        joined_q = joined_q.filter(models.Employees.faculty_id == faculty_id)
+    if unit_id is not None:
+        joined_q = joined_q.filter(models.Employees.unit_id == unit_id)
+
+    paginated = paginate(
+        joined_q,
+        limit=limit,
+        offset=offset,
+        order_by=models.Employees.id,
+        count_query=count_q,
+    )
+    rows = paginated.items
+    total = paginated.total
+
+    items = []
+    for emp, user, unit in rows:
+        unit_obj = None
+        if unit is not None:
+            unit_obj = {
+                "id": unit.id,
+                "unit_name": unit.unit_name,
+                "unit_short": unit.unit_short,
+            }
+        items.append(
+            {
+                "id": emp.id,
+                "user": {
+                    "id": user.id,
+                    "name": user.name,
+                    "surname": user.surname,
+                    "degree": user.degree,
+                    "created_at": getattr(user, "created_at", None),
+                },
+                "unit": unit_obj,
+                "faculty_id": emp.faculty_id,
+                "user_id": emp.user_id,
+                "unit_id": emp.unit_id,
+            }
+        )
+
+    return PaginatedResponse(items=items, total=total, limit=limit, offset=offset)
 
 
-@router.get("/employees/{employee_id}", response_model=schemas.EmployeeRead)
+@router.get("/employees/{employee_id}", response_model=schemas.EmployeeNested)
 def get_employee(
     employee_id: int,
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("employee:view")),
 ):
-    return _get_or_404(db, models.Employees, employee_id, "Employee")
+    row = (
+        db.query(models.Employees, user_models.Users, models.Units)
+        .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
+        .outerjoin(models.Units, models.Employees.unit_id == models.Units.id)
+        .filter(models.Employees.id == employee_id)
+        .one_or_none()
+    )
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found"
+        )
+    emp, user, unit = row
+    unit_obj = None
+    if unit is not None:
+        unit_obj = {
+            "id": unit.id,
+            "unit_name": unit.unit_name,
+            "unit_short": unit.unit_short,
+        }
+
+    return {
+        "id": emp.id,
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "surname": user.surname,
+            "degree": user.degree,
+            "created_at": getattr(user, "created_at", None),
+        },
+        "unit": unit_obj,
+        "faculty_id": emp.faculty_id,
+        "user_id": emp.user_id,
+        "unit_id": emp.unit_id,
+    }
 
 
 @router.patch("/employees/{employee_id}", response_model=schemas.EmployeeRead)
