@@ -74,7 +74,11 @@ export const getBuilding = async (id: number): Promise<Building> => {
     return response.json();
 };
 
-export const createBuilding = async (data: { building_number: string; building_name?: string; campus_id: number }): Promise<Building> => {
+export const createBuilding = async (data: {
+    building_number: string;
+    building_name?: string;
+    campus_id: number
+}): Promise<Building> => {
     const response = await fetch(`${BASE_URL}/buildings`, {
         method: 'POST',
         headers: getHeaders(),
@@ -84,7 +88,11 @@ export const createBuilding = async (data: { building_number: string; building_n
     return response.json();
 };
 
-export const updateBuilding = async (id: number, data: { building_number?: string; building_name?: string; campus_id?: number }): Promise<Building> => {
+export const updateBuilding = async (id: number, data: {
+    building_number?: string;
+    building_name?: string;
+    campus_id?: number
+}): Promise<Building> => {
     const response = await fetch(`${BASE_URL}/buildings/${id}`, {
         method: 'PATCH',
         headers: getHeaders(),
@@ -100,4 +108,59 @@ export const deleteBuilding = async (id: number): Promise<void> => {
         headers: getHeaders(),
     });
     if (!response.ok) throw new Error('Nie udało się usunąć budynku');
+};
+
+export const fetchFaculties = async (): Promise<PaginatedResponse<any>> => {
+    const response = await fetch(`${BASE_URL}/faculties`, {headers: getHeaders()});
+    if (!response.ok) throw new Error('Nie udało się pobrać wydziałów');
+    return response.json();
+};
+
+export const createRoom = async (data: {
+    room_name: string;
+    building_id: number;
+    faculty_id?: number | null;
+    unit_id?: number | null;
+    pc_amount: number;
+    room_capacity: number;
+    projector_availability: boolean;
+}): Promise<Room> => {
+    const response = await fetch(`${BASE_URL}/rooms`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Nie udało się utworzyć sali');
+    return response.json();
+};
+
+export const updateRoom = async (id: number, data: {
+    room_name?: string;
+    room_capacity?: number;
+    pc_amount?: number;
+    building_id?: number;
+    faculty_id?: number;
+    projector_availability?: boolean;
+}): Promise<Room> => {
+    const response = await fetch(`${BASE_URL}/rooms/${id}`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Nie udało się zaktualizować sali');
+    return response.json();
+};
+
+export const deleteRoom = async (id: number): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/rooms/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Nie udało się usunąć sali');
+};
+
+export const fetchUnits = async (): Promise<PaginatedResponse<any>> => {
+    const response = await fetch(`${BASE_URL}/units`, {headers: getHeaders()});
+    if (!response.ok) throw new Error('Nie udało się pobrać jednostek');
+    return response.json();
 };

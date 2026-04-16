@@ -38,7 +38,6 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
             path: '/facilities'
         }];
 
-        // Widok Budynków lub Sal
         if (campusId) {
             items.push({
                 label: currentCampus ? `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${currentCampus.campus_short}` : `Kampus ${campusId}`,
@@ -46,7 +45,6 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
             });
         }
 
-        // Widok Sal
         if (buildingId) {
             items.push({
                 label: currentBuilding ? `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${currentBuilding.building_number}` : `Budynek ${buildingId}`
@@ -125,7 +123,13 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
                                 onRefresh={() => loadData()}
                             />
                         )}
-                        {view === 'rooms' && <RoomView data={data}/>}
+                        {view === 'rooms' && (
+                            <RoomView
+                                data={data as Room[]}
+                                buildingId={Number(buildingId)}
+                                onRefresh={() => loadData()}
+                            />
+                        )}
                     </>
                 )}
             </Paper>

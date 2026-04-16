@@ -180,6 +180,16 @@
         "namePlaceholder": "Enter name (optional)",
         "submitAdd": "Add building",
         "submitEdit": "Save changes"
+      },
+      "room": {
+        "titleAdd": "Add room",
+        "titleEdit": "Edit room",
+        "nameLabel": "Room name",
+        "namePlaceholder": "Enter room name",
+        "capacityLabel": "Number of seats",
+        "pcLabel": "Number of PC stations",
+        "submitAdd": "Add room",
+        "submitEdit": "Save changes"
       }
     }
   },

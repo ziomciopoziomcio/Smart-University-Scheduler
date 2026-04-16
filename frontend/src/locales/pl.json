@@ -180,6 +180,16 @@
         "namePlaceholder": "Wpisz nazwę (opcjonalnie)",
         "submitAdd": "Dodaj budynek",
         "submitEdit": "Zapisz zmiany"
+      },
+      "room": {
+        "titleAdd": "Dodaj salę",
+        "titleEdit": "Edytuj salę",
+        "nameLabel": "Nazwa sali",
+        "namePlaceholder": "np. 101, Aula Główna",
+        "capacityLabel": "Liczba miejsc",
+        "pcLabel": "Liczba stanowisk PC",
+        "submitAdd": "Dodaj salę",
+        "submitEdit": "Zapisz zmiany"
       }
     }
   },
