@@ -231,6 +231,9 @@ def list_employees(
                 "unit_short": unit.unit_short,
                 "faculty_id": unit.faculty_id,
             }
+        user_created_at = (
+            user.created_at if getattr(user, "created_at", None) is not None else date.today()
+        )
         items.append(
             {
                 "id": emp.id,
@@ -238,8 +241,9 @@ def list_employees(
                     "id": user.id,
                     "name": user.name,
                     "surname": user.surname,
+                    "email": user.email,
                     "degree": user.degree,
-                    "created_at": getattr(user, "created_at", None),
+                    "created_at": user_created_at,
                 },
                 "unit": unit_obj,
                 "faculty_id": emp.faculty_id,
