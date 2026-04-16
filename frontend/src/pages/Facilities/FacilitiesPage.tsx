@@ -6,7 +6,6 @@ import {useIntl} from 'react-intl';
 import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
 import SearchBar from "@components/Common/SearchBar.tsx";
 import {fetchCampuses, fetchBuildings, fetchRooms, getBuilding, getCampus} from '@api/facilities.ts';
-import CreateCampusModal from "@components/Facilities/CreateCampusModal.tsx";
 import {type Campus, type Building, type Room} from '@api/types';
 import CampusView from '@components/Facilities/CampusView';
 import BuildingView from '@components/Facilities/BuildingView';
@@ -28,26 +27,42 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [dummySearch, setDummySearch] = useState('');
-    const [isCampusModalOpen, setIsCampusModalOpen] = useState(false);
     const [currentCampus, setCurrentCampus] = useState<Campus | null>(null);
     const [currentBuilding, setCurrentBuilding] = useState<Building | null>(null);
 
+    const getSearchPlaceholder = () => {
+        switch (view) {
+            case 'campuses':
+                return intl.formatMessage({ id: 'facilities.campus.searchPlaceholder' });
+            case 'buildings':
+                return intl.formatMessage({ id: 'facilities.building.searchPlaceholder' });
+            case 'rooms':
+                return intl.formatMessage({ id: 'facilities.room.searchPlaceholder' });
+            default:
+                return intl.formatMessage({ id: 'facilities.common.searchPlaceholder' });
+        }
+    };
+
     const getBreadcrumbs = () => {
         const items: BreadcrumbItem[] = [{
-            label: intl.formatMessage({id: 'facilities.breadcrumbs.facilities'}),
+            label: intl.formatMessage({id: 'facilities.breadcrumbs.main'}),
             path: '/facilities'
         }];
 
         if (campusId) {
             items.push({
-                label: currentCampus ? `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${currentCampus.campus_short}` : `Kampus ${campusId}`,
-                path: `/facilities/campus/${campusId}` // campusId pobrane bezpośrednio z URL!
+                label: currentCampus ?
+                    `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${currentCampus.campus_short}` :
+                    `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${campusId}`,
+                path: `/facilities/campus/${campusId}`
             });
         }
 
         if (buildingId) {
             items.push({
-                label: currentBuilding ? `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${currentBuilding.building_number}` : `Budynek ${buildingId}`
+                label: currentBuilding ?
+                    `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${currentBuilding.building_number}` :
+                    `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${buildingId}`
             });
         }
         return items;
@@ -97,7 +112,7 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, width: '100%'}}>
             <SearchBar
-                placeholder={intl.formatMessage({id: 'facilities.searchPlaceholder'})}
+                placeholder={getSearchPlaceholder()}
                 value={dummySearch}
                 onChange={setDummySearch}
             />
@@ -113,7 +128,6 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
                         {view === 'campuses' &&
                             <CampusView
                                 data={data}
-                                onAddClick={() => setIsCampusModalOpen(true)}
                                 onRefresh={() => loadData()}
                             />}
                         {view === 'buildings' && (
@@ -133,12 +147,6 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
                     </>
                 )}
             </Paper>
-
-            <CreateCampusModal
-                open={isCampusModalOpen}
-                onClose={() => setIsCampusModalOpen(false)}
-                onSuccess={() => loadData()}
-            />
         </Box>
     );
 }

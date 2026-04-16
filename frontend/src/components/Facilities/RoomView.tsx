@@ -1,59 +1,43 @@
 import { useState } from 'react';
-import { Box, Typography, Divider, Button, IconButton, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
-import { Add, MoreVert, EditOutlined, DeleteOutline, MeetingRoomOutlined } from '@mui/icons-material';
+import { Box } from '@mui/material';
+import { MeetingRoom, Chair, Computer, Videocam } from '@mui/icons-material';
 import { useIntl } from 'react-intl';
 
-import { type Room } from '@api/types';
 import { deleteRoom } from '@api/facilities';
 import RoomModal from './RoomModal';
-import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog';
+import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
+import ListView from "@components/Common/ListView.tsx";
+import ActionMenu from "@components/Common/ActionMenu.tsx";
 
 interface RoomViewProps {
-    data: Room[];
+    data: any[];
     buildingId: number;
     onRefresh: () => void;
 }
 
 export default function RoomView({ data, buildingId, onRefresh }: RoomViewProps) {
     const intl = useIntl();
-
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+    const [selectedRoom, setSelectedRoom] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, room: Room) => {
-        setAnchorEl(event.currentTarget);
-        setSelectedRoom(room);
+    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: any) => {
+        e.stopPropagation();
+        setAnchorEl(e.currentTarget);
+        setSelectedRoom(item);
     };
 
-    const handleMenuClose = () => setAnchorEl(null);
-
-    const handleOpenAdd = () => {
-        setSelectedRoom(null);
-        setIsModalOpen(true);
-    };
-
-    const handleOpenEdit = () => {
-        handleMenuClose();
-        setIsModalOpen(true);
-    };
-
-    const handleOpenDelete = () => {
-        handleMenuClose();
-        setIsDeleteModalOpen(true);
-    };
-
-    const confirmDelete = async () => {
+    const handleConfirmDelete = async () => {
         if (!selectedRoom) return;
         setIsDeleting(true);
         try {
             await deleteRoom(selectedRoom.id);
-            setIsDeleteModalOpen(false);
             onRefresh();
-        } catch (error) {
-            alert('Wystąpił błąd podczas usuwania sali.');
+            setIsDeleteModalOpen(false);
+        } catch (e) {
+            alert(intl.formatMessage({ id: 'facilities.room.errors.delete' }));
         } finally {
             setIsDeleting(false);
         }
@@ -61,54 +45,53 @@ export default function RoomView({ data, buildingId, onRefresh }: RoomViewProps)
 
     return (
         <Box>
-            {data.length === 0 && (
-                <Typography color="text.secondary" textAlign="center" py={4}>
-                    {intl.formatMessage({ id: 'facilities.noData' })}
-                </Typography>
-            )}
+            <ListView
+                items={data}
+                icon={MeetingRoom}
 
-            {data.map((item) => (
-                <Box key={item.id}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', py: 2, '&:hover': { bgcolor: '#fbfbfb' } }}>
-                        {/* Ikonka */}
-                        <Box sx={{ mr: 3, display: 'flex', alignItems: 'center' }}>
-                            <MeetingRoomOutlined sx={{ fontSize: 28, color: 'rgba(0,0,0,0.4)' }} />
-                        </Box>
+                getTitle={(item: any) => item.room_name}
+                titleWidth="180px"
 
-                        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
-                            {/* Nazwa sali */}
-                            <Typography fontWeight={600} sx={{ width: '150px' }}>
-                                {item.room_name}
-                            </Typography>
+                columns={[
+                    {
+                        render: (item: any) => `${item.room_capacity} ${intl.formatMessage({ id: 'facilities.common.seats' })}`,
+                        icon: Chair,
+                        variant: 'secondary',
+                        width: '120px'
+                    },
+                    {
+                        render: (item: any) => `${item.pc_amount} ${intl.formatMessage({ id: 'facilities.common.pcs' })}`,
+                        icon: Computer,
+                        variant: 'secondary',
+                        width: '100px'
+                    },
+                    {
+                        render: (item: any) => item.projector_availability ?
+                            intl.formatMessage({id: 'facilities.common.yes' }) :
+                            intl.formatMessage({ id: 'facilities.common.no' }),
+                        icon: Videocam,
+                        variant: 'secondary',
+                        width: '80px'
+                    }
+                ]}
 
-                            {/* Szczegóły sali */}
-                            <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
-                                {item.room_capacity} {intl.formatMessage({ id: 'facilities.seats' })} • {item.pc_amount} {intl.formatMessage({ id: 'facilities.pcs' })}
-                            </Typography>
-                        </Box>
+                onMenuOpen={handleMenuOpen}
+                onAddClick={() => {
+                    setSelectedRoom(null);
+                    setIsModalOpen(true);
+                }}
+                addLabel={intl.formatMessage({ id: 'facilities.room.add' })}
+                emptyMessage={intl.formatMessage({ id: 'facilities.common.noData' })}
+            />
 
-                        <IconButton size="small" onClick={(e) => handleMenuOpen(e, item)}>
-                            <MoreVert sx={{ color: '#aaa' }} />
-                        </IconButton>
-                    </Box>
-                    <Divider />
-                </Box>
-            ))}
-
-            <Button startIcon={<Add />} onClick={handleOpenAdd} sx={{ mt: 2, color: 'text.secondary', textTransform: 'none', fontWeight: 500 }}>
-                {intl.formatMessage({ id: 'facilities.addRoom' })}
-            </Button>
-
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose} PaperProps={{ sx: { borderRadius: '12px', minWidth: '180px', boxShadow: '0px 4px 20px rgba(0,0,0,0.08)' } }}>
-                <MenuItem onClick={handleOpenEdit} sx={{ py: 1.5 }}>
-                    <ListItemIcon><EditOutlined fontSize="small" /></ListItemIcon>
-                    <ListItemText>{intl.formatMessage({ id: 'facilities.menu.edit' })}</ListItemText>
-                </MenuItem>
-                <MenuItem onClick={handleOpenDelete} sx={{ py: 1.5, color: 'error.main' }}>
-                    <ListItemIcon><DeleteOutline fontSize="small" color="error" /></ListItemIcon>
-                    <ListItemText>{intl.formatMessage({ id: 'facilities.menu.delete' })}</ListItemText>
-                </MenuItem>
-            </Menu>
+            <ActionMenu
+                anchorEl={anchorEl}
+                onClose={() => setAnchorEl(null)}
+                onEdit={() => setIsModalOpen(true)}
+                onDelete={() => setIsDeleteModalOpen(true)}
+                editLabel={intl.formatMessage({ id: 'facilities.room.edit' })}
+                deleteLabel={intl.formatMessage({ id: 'facilities.room.delete' })}
+            />
 
             <RoomModal
                 open={isModalOpen}
@@ -121,10 +104,12 @@ export default function RoomView({ data, buildingId, onRefresh }: RoomViewProps)
             <DeleteConfirmDialog
                 open={isDeleteModalOpen}
                 loading={isDeleting}
-                title={intl.formatMessage({ id: 'facilities.deleteConfirm.titleRoom' })}
-                description={intl.formatMessage({ id: 'facilities.deleteConfirm.descriptionRoom' })}
+                title={intl.formatMessage({ id: 'facilities.room.deleteTitle' })}
+                description={intl.formatMessage({ id: 'facilities.room.deleteDesc' })}
+                cancelButtonLabel={intl.formatMessage({ id: 'facilities.common.cancel' })}
+                confirmButtonLabel={intl.formatMessage({ id: 'facilities.common.deleteConfirm' })}
+                onConfirm={handleConfirmDelete}
                 onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={confirmDelete}
             />
         </Box>
     );

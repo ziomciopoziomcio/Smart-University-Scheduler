@@ -39,7 +39,8 @@ export default function BuildingModal({open, campusId, building, onClose, onSucc
             onSuccess();
             onClose();
         } catch (err) {
-            alert('Wystąpił błąd podczas zapisywania budynku.');
+            // TODO: snackbar maybe
+            alert(intl.formatMessage({id: 'facilities.building.errors.add'}));
         } finally {
             setIsSubmitting(false);
         }
@@ -49,12 +50,12 @@ export default function BuildingModal({open, campusId, building, onClose, onSucc
         <Dialog open={open} onClose={onClose} PaperProps={{sx: {borderRadius: '24px', p: 1, minWidth: 400}}}>
             <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 3, mt: 2}}>
                 <Typography variant="h5" fontWeight="bold" textAlign="center" mb={1}>
-                    {intl.formatMessage({id: isEditMode ? 'facilities.modal.building.titleEdit' : 'facilities.modal.building.titleAdd'})}
+                    {intl.formatMessage({id: isEditMode ? 'facilities..building.edit' : 'facilities.building.edit'})}
                 </Typography>
 
                 <TextField
-                    label={intl.formatMessage({id: 'facilities.modal.building.numberLabel'})}
-                    placeholder={intl.formatMessage({id: 'facilities.modal.building.numberPlaceholder'})}
+                    label={intl.formatMessage({id: 'facilities.building.numberLabel'})}
+                    placeholder={intl.formatMessage({id: 'facilities.building.numberPlaceholder'})}
                     value={number}
                     onChange={(e) => setNumber(e.target.value)}
                     fullWidth
@@ -62,8 +63,8 @@ export default function BuildingModal({open, campusId, building, onClose, onSucc
                 />
 
                 <TextField
-                    label={intl.formatMessage({id: 'facilities.modal.building.nameLabel'})}
-                    placeholder={intl.formatMessage({id: 'facilities.modal.building.namePlaceholder'})}
+                    label={intl.formatMessage({id: 'facilities.building.nameLabel'})}
+                    placeholder={intl.formatMessage({id: 'facilities.building.namePlaceholder'})}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     fullWidth
@@ -75,17 +76,17 @@ export default function BuildingModal({open, campusId, building, onClose, onSucc
                             sx={{
                                 py: 1.5,
                                 borderRadius: '12px',
-                                bgcolor: '#2b5073',
+                                background: '#2b5073',
                                 textTransform: 'none',
                                 fontSize: '1rem',
                                 '&:hover': {bgcolor: '#1a3a56'}
                             }}>
                         {isSubmitting ? <CircularProgress size={24}
-                                                          color="inherit"/> : intl.formatMessage({id: isEditMode ? 'facilities.modal.building.submitEdit' : 'facilities.modal.building.submitAdd'})}
+                                                          color="inherit"/> : intl.formatMessage({id: isEditMode ? 'facilities.building.edit' : 'facilities.building.add'})}
                     </Button>
                     <Button variant="text" fullWidth onClick={onClose} disabled={isSubmitting}
                             sx={{color: '#2b5073', textTransform: 'none', fontWeight: 600}}>
-                        {intl.formatMessage({id: 'facilities.deleteConfirm.cancel'})}
+                        {intl.formatMessage({id: 'facilities.common.cancel'})}
                     </Button>
                 </Box>
             </DialogContent>

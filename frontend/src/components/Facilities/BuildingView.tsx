@@ -1,32 +1,16 @@
-// TODO: when available, replace alert with proper error handling (e.g. snackbar)
-// TODO: loading state for delete action, disable buttons while loading
-// TODO: visuals (justify better)
-// TODO: when endppoint available, show number of rooms in building in the list
-// TODO: searchbar
 import {useState} from 'react';
-import {
-    Box,
-    Typography,
-    Divider,
-    Button,
-    IconButton,
-    SvgIcon,
-    Menu,
-    MenuItem,
-    ListItemIcon,
-    ListItemText
-} from '@mui/material';
-import {Add, MoreVert, EditOutlined, DeleteOutline} from '@mui/icons-material';
+import {Box, Menu, MenuItem, ListItemIcon, ListItemText} from '@mui/material';
+import {EditOutlined, DeleteOutline} from '@mui/icons-material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 
 // @ts-expect-error
 import buildingIcon from '@assets/icons/building.svg?react';
-
 import {type Building} from '@api/types';
 import {deleteBuilding} from '@api/facilities';
 import BuildingModal from './BuildingModal.tsx';
 import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog';
+import ListView from '@components/Common/ListView';
 
 interface BuildingViewProps {
     data: Building[];
@@ -44,30 +28,13 @@ export default function BuildingView({data, campusId, onRefresh}: BuildingViewPr
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, building: Building) => {
-        event.stopPropagation();
-        setAnchorEl(event.currentTarget);
-        setSelectedBuilding(building);
+    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: any) => {
+        e.stopPropagation();
+        setAnchorEl(e.currentTarget);
+        setSelectedBuilding(item);
     };
 
     const handleMenuClose = () => setAnchorEl(null);
-
-    const handleOpenAdd = () => {
-        setSelectedBuilding(null);
-        setIsModalOpen(true);
-    };
-
-    const handleOpenEdit = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        handleMenuClose();
-        setIsModalOpen(true);
-    };
-
-    const handleOpenDelete = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        handleMenuClose();
-        setIsDeleteModalOpen(true);
-    };
 
     const confirmDelete = async () => {
         if (!selectedBuilding) return;
@@ -77,7 +44,7 @@ export default function BuildingView({data, campusId, onRefresh}: BuildingViewPr
             setIsDeleteModalOpen(false);
             onRefresh();
         } catch (error) {
-            alert('Wystąpił błąd podczas usuwania.');
+            alert(intl.formatMessage({id: 'facilities.building.errors.delete'}));
         } finally {
             setIsDeleting(false);
         }
@@ -85,54 +52,34 @@ export default function BuildingView({data, campusId, onRefresh}: BuildingViewPr
 
     return (
         <Box>
-            {data.length === 0 && (
-                <Typography color="text.secondary" textAlign="center" py={4}>
-                    {intl.formatMessage({id: 'facilities.noData'})}
-                </Typography>
-            )}
+            <ListView
+                items={data}
+                icon={buildingIcon}
+                getTitle={(item: any) => `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${item.building_number}`}
+                titleWidth="150px"
+                columns={[
+                    {
+                        render: (item: any) => item.building_name || intl.formatMessage({id: 'facilities.common.noName'}),
+                        variant: 'secondary',
+                        width: '250px'
+                    },
+                    {
+                        // TODO: get room count from API (waiting for endpoint)
+                        render: () => `? ${intl.formatMessage({id: 'facilities.room.rooms'})}`,
+                        variant: 'secondary',
+                        width: '100px'
+                    }
+                ]}
 
-            {data.map((item) => (
-                <Box key={item.id}>
-                    <Box
-                        onClick={() => navigate(`/facilities/campus/${campusId}/building/${item.id}`)} sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        py: 2,
-                        cursor: 'pointer',
-                        '&:hover': {bgcolor: '#fbfbfb'}
-                    }}
-                    >
-                        <Box sx={{mr: 3, display: 'flex', alignItems: 'center'}}>
-                            <SvgIcon component={buildingIcon} inheritViewBox
-                                     sx={{fontSize: 28, color: 'rgba(0,0,0,0.4)'}}/>
-                        </Box>
-
-                        <Box sx={{flexGrow: 1, display: 'flex', alignItems: 'center'}}>
-                            <Typography fontWeight={600} sx={{width: '150px'}}>
-                                {intl.formatMessage({id: 'facilities.breadcrumbs.building'})} {item.building_number}
-                            </Typography>
-
-                            <Typography variant="body2" color="text.secondary" sx={{flexGrow: 1}}>
-                                {item.building_name || intl.formatMessage({id: 'facilities.noName'})}
-                            </Typography>
-
-                            <Typography variant="body2" color="text.disabled" sx={{mr: 2}}>
-                                ? {intl.formatMessage({id: 'facilities.rooms'})}
-                            </Typography>
-                        </Box>
-
-                        <IconButton size="small" onClick={(e) => handleMenuOpen(e, item)}>
-                            <MoreVert sx={{color: '#aaa'}}/>
-                        </IconButton>
-                    </Box>
-                    <Divider/>
-                </Box>
-            ))}
-
-            <Button startIcon={<Add/>} onClick={handleOpenAdd}
-                    sx={{mt: 2, color: 'text.secondary', textTransform: 'none', fontWeight: 500}}>
-                {intl.formatMessage({id: 'facilities.addBuilding'})}
-            </Button>
+                onItemClick={(item: any) => navigate(`/facilities/campus/${campusId}/building/${item.id}`)}
+                onMenuOpen={handleMenuOpen}
+                onAddClick={() => {
+                    setSelectedBuilding(null);
+                    setIsModalOpen(true);
+                }}
+                addLabel={intl.formatMessage({id: 'facilities.building.add'})}
+                emptyMessage={intl.formatMessage({id: 'facilities.common.noData'})}
+            />
 
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose} PaperProps={{
                 sx: {
@@ -141,13 +88,19 @@ export default function BuildingView({data, campusId, onRefresh}: BuildingViewPr
                     boxShadow: '0px 4px 20px rgba(0,0,0,0.08)'
                 }
             }}>
-                <MenuItem onClick={handleOpenEdit} sx={{py: 1.5}}>
+                <MenuItem onClick={() => {
+                    handleMenuClose();
+                    setIsModalOpen(true);
+                }} sx={{py: 1.5}}>
                     <ListItemIcon><EditOutlined fontSize="small"/></ListItemIcon>
-                    <ListItemText>{intl.formatMessage({id: 'facilities.menu.edit'})}</ListItemText>
+                    <ListItemText>{intl.formatMessage({id: 'facilities.building.edit'})}</ListItemText>
                 </MenuItem>
-                <MenuItem onClick={handleOpenDelete} sx={{py: 1.5, color: 'error.main'}}>
+                <MenuItem onClick={() => {
+                    handleMenuClose();
+                    setIsDeleteModalOpen(true);
+                }} sx={{py: 1.5, color: 'error.main'}}>
                     <ListItemIcon><DeleteOutline fontSize="small" color="error"/></ListItemIcon>
-                    <ListItemText>{intl.formatMessage({id: 'facilities.menu.delete'})}</ListItemText>
+                    <ListItemText>{intl.formatMessage({id: 'facilities.building.delete'})}</ListItemText>
                 </MenuItem>
             </Menu>
 
@@ -162,8 +115,10 @@ export default function BuildingView({data, campusId, onRefresh}: BuildingViewPr
             <DeleteConfirmDialog
                 open={isDeleteModalOpen}
                 loading={isDeleting}
-                title={intl.formatMessage({id: 'facilities.deleteConfirm.titleBuilding'})}
-                description={intl.formatMessage({id: 'facilities.deleteConfirm.descriptionBuilding'})}
+                title={intl.formatMessage({id: 'facilities.building.deleteTitle'})}
+                description={intl.formatMessage({id: 'facilities.building.deleteDesc'})}
+                cancelButtonLabel={intl.formatMessage({id: 'facilities.common.cancel'})}
+                confirmButtonLabel={intl.formatMessage({id: 'facilities.building.delete'})}
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={confirmDelete}
             />

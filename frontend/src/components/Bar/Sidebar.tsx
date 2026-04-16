@@ -63,13 +63,13 @@ const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.facilities', // facilities (buildings, rooms, campuses)
         icon: <SvgIcon component={building_icon} inheritViewBox/>,
-        path: '/facilities', // TODO: change to real path and add allowedRoles
+        path: '/facilities', // TODO: add allowedRoles
         allowedRoles: []
     },
     {
         id: 'sidebar.structures', // structures (units, faculties)
         icon: <SvgIcon component={diagram_icon} inheritViewBox/>,
-        path: '/', // TODO: change to real path and add allowedRoles
+        path: '/structures', // TODO: add allowedRoles
         allowedRoles: []
     },
     {
