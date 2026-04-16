@@ -168,4 +168,4 @@ class EmployeeNested(BaseSchema):
     unit: Optional[UnitsRead] = None
     faculty_id: int
     user_id: int
-    unit_id: Optional[int] = None
+    unit_id: int
