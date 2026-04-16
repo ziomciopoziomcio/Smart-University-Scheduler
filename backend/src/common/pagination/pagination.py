@@ -10,7 +10,7 @@ def paginate(
     count_query: Any | None = None,
 ):
     """Paginate a SQLAlchemy query.
-    
+
     - query: query used to fetch page rows (can be a joined query returning tuples).
     - count_query: optional query used to compute total count (should be a base query without JOIN duplicates).
       If None, paginate will use `query` for counting (current behaviour).
