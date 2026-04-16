@@ -11,8 +11,8 @@ def _get_study_field_major_degree_from_file(
     sourcefile: str, with_major=True
 ) -> list[tuple[str, int, str | None]]:
     """
-    Load study program data from a JSON file and return unique combinations
-    of (study field name, degree, major).
+    Load study program data from a JSON file
+    and return unique combinations of (study field name, degree, major).
     :param sourcefile: path to JSON file containing study field data
     :param with_major: if True, includes major in the result.
             If False, major is set to None for all entries.
@@ -232,7 +232,6 @@ def _parse_course_code(course_code: str) -> int:
     :param course_code: String containing a course code.
     :return: Course code as an integer.
     """
-
     digits = re.sub(r"\D", "", course_code)
     return int(digits) if digits else 0
 
