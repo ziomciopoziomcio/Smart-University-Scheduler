@@ -132,6 +132,67 @@
     "saturdayShort": "Sob",
     "sundayShort": "Niedz"
   },
+  "facilities": {
+    "searchPlaceholder": "Szukaj...",
+    "breadcrumbs": {
+      "facilities": "Obiekty",
+      "campus": "Kampus",
+      "building": "Budynek"
+    },
+    "noData": "Brak danych do wyświetlenia.",
+    "addCampus": "Dodaj kampus...",
+    "addBuilding": "Dodaj budynek",
+    "addRoom": "Dodaj salę",
+    "noName": "Brak nazwy",
+    "seats": "miejsc",
+    "pcs": "PC",
+    "menu": {
+      "edit": "Edytuj kampus",
+      "delete": "Usuń kampus"
+    },
+    "deleteConfirm": {
+      "title": "Usuń kampus",
+      "description": "Czy na pewno chcesz usunąć ten kampus? Tej operacji nie można cofnąć.",
+      "confirm": "Usuń",
+      "cancel": "Anuluj"
+    },
+    "modal": {
+      "campus": {
+        "title": "Dodaj kampus",
+        "shortNameLabel": "Identyfikator kampusu",
+        "shortNamePlaceholder": "Wpisz identyfikator kampusu",
+        "nameLabel": "Nazwa kampusu",
+        "namePlaceholder": "Wpisz nazwę kampusu (opcjonalnie)",
+        "submit": "Dodaj kampus",
+        "cancel": "Anuluj",
+        "error": "Błąd podczas dodawania kampusu."
+      },
+      "campusEdit": {
+        "title": "Edytuj kampus",
+        "submit": "Zapisz zmiany"
+      },
+      "building": {
+        "titleAdd": "Dodaj budynek",
+        "titleEdit": "Edytuj budynek",
+        "numberLabel": "Numer budynku",
+        "numberPlaceholder": "Wpisz numer (np. B18)",
+        "nameLabel": "Nazwa budynku",
+        "namePlaceholder": "Wpisz nazwę (opcjonalnie)",
+        "submitAdd": "Dodaj budynek",
+        "submitEdit": "Zapisz zmiany"
+      },
+      "room": {
+        "titleAdd": "Dodaj salę",
+        "titleEdit": "Edytuj salę",
+        "nameLabel": "Nazwa sali",
+        "namePlaceholder": "np. 101, Aula Główna",
+        "capacityLabel": "Liczba miejsc",
+        "pcLabel": "Liczba stanowisk PC",
+        "submitAdd": "Dodaj salę",
+        "submitEdit": "Zapisz zmiany"
+      }
+    }
+  },
   "schedule": {
     "details": {
       "close": "Zamknij",
