@@ -24,7 +24,7 @@ const scheduleSeeds: MockEntrySeed[] = [
         weekOffset: 0,
         dayOffset: 0,
         startHour: 10,
-        endHour: 12,
+        endHour: 11.30,
         variant: 'lecture',
     },
     {
