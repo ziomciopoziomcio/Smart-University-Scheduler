@@ -159,17 +159,7 @@ def _are_duplicates(weeks: list[list[date]]) -> bool:
     """
     all_dates = [d for week in weeks for d in week]
 
-    duplicates = set([d for d in all_dates if all_dates.count(d) > 1])
-
-    if duplicates:
-        # print("Duplicates found:")
-        # for d in sorted(duplicates):
-        #     print(d)
-        return True
-    else:
-        return False
-
-
+    return len(all_dates) != len(set(all_dates))
 def _add_day_to_db(
     session: Session,
     calendar_date: date,
