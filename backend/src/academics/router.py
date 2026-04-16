@@ -275,6 +275,7 @@ def get_employee(
             "id": unit.id,
             "unit_name": unit.unit_name,
             "unit_short": unit.unit_short,
+            "faculty_id": unit.faculty_id,
         }
 
     return {
