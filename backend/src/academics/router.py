@@ -53,23 +53,23 @@ def list_students(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("students:view")),
 ):
-    count_q = db.query(models.Students)
+    filters = []
     if user_id is not None:
-        count_q = count_q.filter(models.Students.user_id == user_id)
+        filters.append(models.Students.user_id == user_id)
     if study_program is not None:
-        count_q = count_q.filter(models.Students.study_program == study_program)
+        filters.append(models.Students.study_program == study_program)
     if major is not None:
-        count_q = count_q.filter(models.Students.major == major)
+        filters.append(models.Students.major == major)
+
+    count_q = db.query(models.Students)
+    if filters:
+        count_q = count_q.filter(*filters)
 
     joined_q = db.query(models.Students, user_models.Users).join(
         user_models.Users, models.Students.user_id == user_models.Users.id
     )
-    if user_id is not None:
-        joined_q = joined_q.filter(models.Students.user_id == user_id)
-    if study_program is not None:
-        joined_q = joined_q.filter(models.Students.study_program == study_program)
-    if major is not None:
-        joined_q = joined_q.filter(models.Students.major == major)
+    if filters:
+        joined_q = joined_q.filter(*filters)
 
     paginated = paginate(
         joined_q,
