@@ -160,6 +160,8 @@ def _are_duplicates(weeks: list[list[date]]) -> bool:
     all_dates = [d for week in weeks for d in week]
 
     return len(all_dates) != len(set(all_dates))
+
+
 def _add_day_to_db(
     session: Session,
     calendar_date: date,
@@ -194,10 +196,12 @@ def _add_day_to_db(
 
 def generate_academic_calendar(
     session: Session,
+    debug: bool = False,
 ) -> dict[date, Academic_calendar] | None:
     """
     Generates Academic_calendar objects
     :param session: database session
+    :param debug: debug mode
     :return: added Academic_calendar objects
         or None if incorrect data
     """
@@ -217,7 +221,8 @@ def generate_academic_calendar(
     for week in weeks:
         for day in week:
             academic_day_of_week = day_of_week[day_of_week_idx]
-            print(day, academic_day_of_week, week_number)
+            if debug:
+                print(day, academic_day_of_week, week_number)
             # add to db
             added_obj = _add_day_to_db(
                 session=session,
