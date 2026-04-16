@@ -13,17 +13,13 @@ import ListView, {type ListColumn} from '@components/Common/ListView.tsx';
 import ListPagination from '@components/Common/ListPagination.tsx';
 
 import {getFaculty} from '@api/structures.ts';
-import {getStudyField} from '@api/courses.ts';
-import type {Faculty, StudyField} from '@api/types';
-import {
-    fetchMockStudyPlanSpecializations,
-    type StudyPlanSpecializationSummary,
-} from '../../../mocks/studyPlanSpecializationsMock';
+import {fetchStudyPlanGroups, getStudyField} from '@api/courses.ts';
+import type {Faculty, StudyField, StudyPlanGroupSummary} from '@api/types';
+import {fetchMockStudyPlanGroups} from '../../../mocks/studyPlanSemesterGroupsMock';
 
-// TODO: switch mock to api - specializations for now they are without group count so that i have to use mock!!
-//  (https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/138)
+//TODO: SWITCH MOCK WITH API - wyciaganie grup (https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/137)
 
-export default function StudyPlanSpecializationPage() {
+export default function StudyPlanSemesterGroupPage() {
     const navigate = useNavigate();
     const intl = useIntl();
 
@@ -31,7 +27,7 @@ export default function StudyPlanSpecializationPage() {
 
     const [faculty, setFaculty] = useState<Faculty | null>(null);
     const [field, setField] = useState<StudyField | null>(null);
-    const [specializations, setSpecializations] = useState<StudyPlanSpecializationSummary[]>([]);
+    const [groups, setGroups] = useState<StudyPlanGroupSummary[]>([]);
     const [searchValue, setSearchValue] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -55,7 +51,7 @@ export default function StudyPlanSpecializationPage() {
         ) {
             setError(
                 intl.formatMessage({
-                    id: 'plans.studentsPlan.studySpecialization.errors.invalidParams',
+                    id: 'plans.studentsPlan.studyGroup.errors.invalidParams',
                     defaultMessage: 'Invalid parameters.',
                 }),
             );
@@ -67,24 +63,22 @@ export default function StudyPlanSpecializationPage() {
         setError(null);
 
         try {
-            const [facultyResponse, fieldResponse, specializationsResponse] = await Promise.all([
+            const [facultyResponse, fieldResponse, groupsResponse] = await Promise.all([
                 getFaculty(numericFacultyId) as Promise<Faculty>,
                 getStudyField(numericFieldOfStudyId),
-                fetchMockStudyPlanSpecializations({
-                    fieldOfStudyId: numericFieldOfStudyId,
-                    semesterId: numericSemesterId,
-                }),
+                // fetchStudyPlanGroups(numericFieldOfStudyId, numericSemesterId),
+                fetchMockStudyPlanGroups(numericFieldOfStudyId, numericSemesterId),
             ]);
 
             setFaculty(facultyResponse);
             setField(fieldResponse);
-            setSpecializations(specializationsResponse);
+            setGroups(groupsResponse);
         } catch (err: any) {
             setError(
                 err?.message ??
                 intl.formatMessage({
-                    id: 'plans.studentsPlan.studySpecialization.errors.fetchFailed',
-                    defaultMessage: 'Failed to fetch specializations.',
+                    id: 'plans.studentsPlan.studyGroup.errors.fetchFailed',
+                    defaultMessage: 'Failed to fetch groups.',
                 }),
             );
         } finally {
@@ -108,24 +102,25 @@ export default function StudyPlanSpecializationPage() {
         setPage(1);
     }, [searchValue]);
 
-    const filteredSpecializations = useMemo(() => {
+    const filteredGroups = useMemo(() => {
         const query = searchValue.trim().toLowerCase();
-        if (!query) return specializations;
+        if (!query) return groups;
 
-        return specializations.filter((specialization) =>
-            specialization.name.toLowerCase().includes(query),
+        return groups.filter((group) =>
+            group.group_name.toLowerCase().includes(query) ||
+            group.group_code.toLowerCase().includes(query),
         );
-    }, [specializations, searchValue]);
+    }, [groups, searchValue]);
 
-    const paginatedSpecializations = useMemo(() => {
+    const paginatedGroups = useMemo(() => {
         const start = (page - 1) * pageSize;
         const end = start + pageSize;
-        return filteredSpecializations.slice(start, end);
-    }, [filteredSpecializations, page, pageSize]);
+        return filteredGroups.slice(start, end);
+    }, [filteredGroups, page, pageSize]);
 
     useEffect(() => {
-        setTotalItems(filteredSpecializations.length);
-    }, [filteredSpecializations]);
+        setTotalItems(filteredGroups.length);
+    }, [filteredGroups]);
 
     const breadcrumbs = useMemo((): BreadcrumbItem[] => {
         return [
@@ -150,54 +145,37 @@ export default function StudyPlanSpecializationPage() {
             },
             {
                 label: intl.formatMessage(
-                    {
-                        id: 'plans.studentsPlan.studySemester.semesterLabel',
-                    },
+                    {id: 'plans.studentsPlan.studySemester.semesterLabel'},
                     {number: numericSemesterId},
                 ),
                 path:
                     facultyId && fieldOfStudyId && semesterId
-                        ? `/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/specialization`
+                        ? `/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group`
                         : '/plans/study/faculty',
             },
         ];
     }, [intl, faculty, field, facultyId, fieldOfStudyId, semesterId, numericSemesterId]);
 
-    const columns: ListColumn<StudyPlanSpecializationSummary>[] = [
+    const columns: ListColumn<StudyPlanGroupSummary>[] = [
         {
-            width: 140,
-            render: (item) =>
-                intl.formatMessage(
-                    {
-                        id: 'plans.studentsPlan.studySpecialization.groupsCount',
-                        defaultMessage: '{count, plural, one {# group} other {# groups}}',
-                    },
-                    {count: item.groups_count},
-                ),
-            variant: 'secondary',
-        },
-        {
-            width: 220,
-            render: (item) => {
-                if ((item.elective_blocks_count ?? 0) <= 0) return '';
-                return intl.formatMessage(
-                    {
-                        id: 'plans.studentsPlan.studySemester.electiveBlocksCount',
-                        defaultMessage: '{count, plural, one {# elective block} other {# elective blocks}}',
-                    },
-                    {count: item.elective_blocks_count},
-                );
-            },
+            width: 180,
+            render: (item) => item.group_code,
             variant: 'secondary',
         },
     ];
+
+    const handleGroupClick = async (item: StudyPlanGroupSummary) => {
+        navigate(
+            `/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group/${item.id}/plan`,
+        );
+    };
 
     return (
         <Box sx={{width: '100%', display: 'flex', flexDirection: 'column', gap: 2}}>
             <SearchBar
                 placeholder={intl.formatMessage({
-                    id: 'plans.studentsPlan.studySpecialization.searchPlaceholder',
-                    defaultMessage: 'Search specialization...',
+                    id: 'plans.studentsPlan.studyGroup.searchPlaceholder',
+                    defaultMessage: 'Search group...',
                 })}
                 value={searchValue}
                 onChange={setSearchValue}
@@ -228,19 +206,15 @@ export default function StudyPlanSpecializationPage() {
 
                 {!loading && !error && (
                     <Box sx={{width: '100%'}}>
-                        <ListView<StudyPlanSpecializationSummary>
-                            items={paginatedSpecializations}
-                            getTitle={(item) => item.name}
-                            titleWidth={300}
+                        <ListView<StudyPlanGroupSummary>
+                            items={paginatedGroups}
+                            getTitle={(item) => item.group_name}
+                            titleWidth={240}
                             columns={columns}
-                            onItemClick={(item) => {
-                                navigate(
-                                    `/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/specialization/${item.id}/group`,
-                                );
-                            }}
+                            onItemClick={handleGroupClick}
                             emptyMessage={intl.formatMessage({
-                                id: 'plans.studentsPlan.studySpecialization.noSpecializations',
-                                defaultMessage: 'No specializations to display.',
+                                id: 'plans.studentsPlan.studyGroup.noGroups',
+                                defaultMessage: 'No groups to display.',
                             })}
                             hideDividerOnLastItem
                             rowSx={{

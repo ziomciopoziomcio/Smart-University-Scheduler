@@ -12,16 +12,16 @@ import ChoosePlanPage from "./pages/Plans/ChoosePlanPage.tsx";
 import CampusSelectPage from "./pages/Plans/RoomPlan/CampusSelectPage.tsx";
 import BuildingSelectPage from "./pages/Plans/RoomPlan/BuildingSelectPage.tsx";
 import RoomSelectPage from "./pages/Plans/RoomPlan/RoomSelectPage.tsx";
-import StudyPlanYearPage from "./pages/Plans/GeneralPlans/StudyPlanYearPage.tsx";
 import StudyPlanSchedulePage from "./pages/Plans/GeneralPlans/StudyPlanSchedulePage.tsx";
-import StudyPlanElectiveBlockPage from "./pages/Plans/GeneralPlans/StudyPlanElectiveBlockPage.tsx";
-import StudyPlanFieldPage from "./pages/Plans/GeneralPlans/StudyPlanFieldPage.tsx";
+import StudyPlanFacultyPage from "./pages/Plans/GeneralPlans/StudyPlanFacultyPage.tsx";
 import StudyPlanSemesterPage from "./pages/Plans/GeneralPlans/StudyPlanSemesterPage.tsx";
 import StudyPlanSpecializationPage from "./pages/Plans/GeneralPlans/StudyPlanSpecializationPage.tsx";
+import StudyPlanFieldPage from "./pages/Plans/GeneralPlans/StudyPlanFieldPage.tsx";
+import StudyPlanSemesterGroupPage from "./pages/Plans/GeneralPlans/StudyPlanSemesterGroupPage.tsx";
+import StudyPlanSpecializationGroupPage from "./pages/Plans/GeneralPlans/StudyPlanSpecializationGroupPage.tsx";
 import {useAuthStore} from '@store/useAuthStore';
 import FacilitiesPage from "./pages/Facilities/FacilitiesPage.tsx";
-
-import LecturerDepartmentSelectPage from "./pages/Plans/LecturerPlan/LecturerDepartmentSelectPage.tsx";
+import LecturerFacultySelectPage from "./pages/Plans/LecturerPlan/LecturerFacultySelectPage.tsx";
 import LecturerSelectPage from "./pages/Plans/LecturerPlan/LecturerSelectPage.tsx";
 import LecturerSchedulePage from "./pages/Plans/LecturerPlan/LecturerSchedulePage.tsx";
 import StructuresPage from "./pages/Structures/StructuresPage.tsx";
@@ -46,10 +46,16 @@ function AppRoute() {
                 <Route element={<ProtectedRoute/>}>
                     <Route element={<MainLayout/>}>
                         <Route path="/plan" element={<MyPlan/>}/>
+
                         <Route path="/facilities" element={<FacilitiesPage view="campuses"/>}/>
-                        <Route path="/facilities/campus/:campusId" element={<FacilitiesPage view="buildings"/>}/>
-                        <Route path="/facilities/campus/:campusId/building/:buildingId"
-                               element={<FacilitiesPage view="rooms"/>}/>
+                        <Route
+                            path="/facilities/campus/:campusId"
+                            element={<FacilitiesPage view="buildings"/>}
+                        />
+                        <Route
+                            path="/facilities/campus/:campusId/building/:buildingId"
+                            element={<FacilitiesPage view="rooms"/>}
+                        />
 
                         <Route path="/structures" element={<StructuresPage view="faculties"/>}/>
                         <Route path="/structures/faculty/:facultyId" element={<StructuresPage view="units"/>}/>
@@ -66,9 +72,12 @@ function AppRoute() {
 
                         <Route path="/plans" element={<ChoosePlanPage/>}/>
 
-
+                        {/* ROOM PLANS */}
                         <Route path="/plans/rooms/campus" element={<CampusSelectPage/>}/>
-                        <Route path="/plans/rooms/campus/:campusId/building" element={<BuildingSelectPage/>}/>
+                        <Route
+                            path="/plans/rooms/campus/:campusId/building"
+                            element={<BuildingSelectPage/>}
+                        />
                         <Route
                             path="/plans/rooms/campus/:campusId/building/:buildingId/room"
                             element={<RoomSelectPage/>}
@@ -78,53 +87,59 @@ function AppRoute() {
                             element={<RoomSchedulePage/>}
                         />
 
-
-                        <Route path="/plans/study/year" element={<StudyPlanYearPage/>}/>
+                        {/* STUDENTS PLANS */}
+                        <Route path="/plans/study/faculty" element={<StudyPlanFacultyPage/>}/>
                         <Route
-                            path="/plans/study/year/:curriculumYearId/field"
+                            path="/plans/study/faculty/:facultyId/field"
                             element={<StudyPlanFieldPage/>}
                         />
                         <Route
-                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester"
+                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester"
                             element={<StudyPlanSemesterPage/>}
                         />
+
                         <Route
-                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester/:semesterId/specialization"
+                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/specialization"
                             element={<StudyPlanSpecializationPage/>}
                         />
                         <Route
-                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester/:semesterId/elective-block"
-                            element={<StudyPlanElectiveBlockPage/>}
+                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/group"
+                            element={<StudyPlanSemesterGroupPage/>}
                         />
                         <Route
-                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/elective-block"
-                            element={<StudyPlanElectiveBlockPage/>}
-                        />
-                        <Route
-                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester/:semesterId/plan"
-                            element={<StudyPlanSchedulePage/>}
-                        />
-                        <Route
-                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/plan"
-                            element={<StudyPlanSchedulePage/>}
-                        />
-                        <Route
-                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester/:semesterId/elective-block/:electiveBlockId/plan"
-                            element={<StudyPlanSchedulePage/>}
-                        />
-                        <Route
-                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/elective-block/:electiveBlockId/plan"
+                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/plan"
                             element={<StudyPlanSchedulePage/>}
                         />
 
-
-                        <Route path="/plans/lecturers/department" element={<LecturerDepartmentSelectPage/>}/>
                         <Route
-                            path="/plans/lecturers/department/:departmentId/lecturer"
+                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/group"
+                            element={<StudyPlanSpecializationGroupPage/>}
+                        />
+                        <Route
+                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/plan"
+                            element={<StudyPlanSchedulePage/>}
+                        />
+
+                        <Route
+                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/group/:groupId/plan"
+                            element={<StudyPlanSchedulePage/>}
+                        />
+                        <Route
+                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/group/:groupId/plan"
+                            element={<StudyPlanSchedulePage/>}
+                        />
+
+                        {/* LECTURER PLANS */}
+                        <Route
+                            path="/plans/lecturers/faculty"
+                            element={<LecturerFacultySelectPage/>}
+                        />
+                        <Route
+                            path="/plans/lecturers/faculty/:facultyId/lecturer"
                             element={<LecturerSelectPage/>}
                         />
                         <Route
-                            path="/plans/lecturers/department/:departmentId/lecturer/:lecturerId"
+                            path="/plans/lecturers/faculty/:facultyId/lecturer/:lecturerId"
                             element={<LecturerSchedulePage/>}
                         />
                     </Route>

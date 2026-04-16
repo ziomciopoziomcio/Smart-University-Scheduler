@@ -1,74 +1,229 @@
-import {Box, Button, Paper, Stack, Typography} from '@mui/material';
-import {useMemo} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import {lecturerDepartmentsMock, lecturersMock} from '../../../mocks/lecturerPlansMock';
+import {
+    Alert,
+    Avatar,
+    Box,
+} from '@mui/material';
+import {useIntl} from 'react-intl';
 
-// TODO: AI GENERATED, PLACEHOLDER
+import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
+import SearchBar from '@components/Common/SearchBar.tsx';
+import ListPagination from '@components/Common/ListPagination.tsx';
+import ListView, {type ListColumn} from '@components/Common/ListView.tsx';
+
+import {getFaculty} from '@api/structures.ts';
+import type {CourseInstructor, Faculty} from '@api/types';
+
+// TODO: SWITCH MOCK TO API https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/151
+// TODO: TEMPORARY PROFILE PICS ARE FIRST LETTERS
+
+const mockedLecturersByFacultyId: Record<number, CourseInstructor[]> = {
+    1: [
+        {id: 1, name: 'Piotr', surname: 'Duch', degree: 'Dr inż.'},
+        {id: 2, name: 'Robert', surname: 'Kapturski', degree: 'Mgr inż.'},
+        {id: 3, name: 'Anna', surname: 'Nowak', degree: 'Dr hab. inż.'},
+    ],
+    24: [
+        {id: 1, name: 'Piotr', surname: 'Duch', degree: 'Dr inż.'},
+        {id: 2, name: 'Robert', surname: 'Kapturski', degree: 'Mgr inż.'},
+        {id: 4, name: 'Katarzyna', surname: 'Wójcik', degree: 'Dr inż.'},
+        {id: 5, name: 'Michał', surname: 'Zalewski', degree: null},
+    ],
+};
+
 export default function LecturerSelectPage() {
     const navigate = useNavigate();
-    const params = useParams();
-    const departmentId = params.departmentId?.trim();
+    const intl = useIntl();
+    const {facultyId} = useParams<{ facultyId: string }>();
 
-    const department = useMemo(
-        () => lecturerDepartmentsMock.find((item) => item.id === departmentId),
-        [departmentId],
-    );
+    const numericFacultyId = Number(facultyId);
 
-    const lecturers = useMemo(() => {
-        if (!departmentId) return [];
+    const [allItems, setAllItems] = useState<CourseInstructor[]>([]);
+    const [facultyName, setFacultyName] = useState<string>('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-        return lecturersMock.filter((item) => item.departmentId === departmentId);
-    }, [departmentId]);
+    const [search, setSearch] = useState('');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
+    useEffect(() => {
+        const loadData = async () => {
+            if (!numericFacultyId || Number.isNaN(numericFacultyId)) {
+                setError(intl.formatMessage({
+                    id: 'plans.lecturerPlan.lecturerSelect.errors.invalidFacultyId',
+                }));
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
+            setError(null);
+
+            try {
+                const faculty = await getFaculty(numericFacultyId) as Faculty;
+                setFacultyName(faculty.faculty_name);
+
+                const mockedData = mockedLecturersByFacultyId[numericFacultyId] ?? [];
+                setAllItems(mockedData);
+            } catch (err: any) {
+                setError(err.message ?? intl.formatMessage({
+                    id: 'plans.lecturerPlan.lecturerSelect.errors.fetchFacultyFailed',
+                }));
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, [numericFacultyId]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [search]);
+
+    const breadcrumbs = useMemo((): BreadcrumbItem[] => {
+        return [
+            {
+                label: intl.formatMessage({id: 'plans.plans'}),
+                path: '/plans',
+            },
+            {
+                label: intl.formatMessage({
+                    id: 'plans.lecturerPlan.title',
+                }),
+                path: '/plans/lecturers/faculty',
+            },
+            {
+                label: facultyName || facultyId || '...',
+                path: `/plans/lecturers/faculty/${facultyId}`,
+            },
+        ];
+    }, [intl, facultyId, facultyName]);
+
+    const filteredItems = useMemo(() => {
+        const normalizedSearch = search.trim().toLowerCase();
+
+        if (!normalizedSearch) {
+            return allItems;
+        }
+
+        return allItems.filter((item) => {
+            const fullName = `${item.name} ${item.surname}`.toLowerCase();
+            const degree = (item.degree ?? '').toLowerCase();
+
+            return fullName.includes(normalizedSearch) || degree.includes(normalizedSearch);
+        });
+    }, [allItems, search]);
+
+    const paginatedItems = useMemo(() => {
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize;
+        return filteredItems.slice(start, end);
+    }, [filteredItems, page, pageSize]);
+
+    const columns: ListColumn<CourseInstructor>[] = [
+        {
+            render: (item) => `${item.name} ${item.surname}`,
+            variant: 'primary',
+            width: 320,
+        },
+        {
+            render: (item) => item.degree ?? '—',
+            variant: 'secondary',
+            width: 140,
+        },
+    ];
 
     return (
-        <Box sx={{width: '100%'}}>
-            <Paper
-                elevation={0}
+        <Box sx={{width: '100%', display: 'flex', flexDirection: 'column', gap: 2}}>
+            <SearchBar
+                placeholder={intl.formatMessage({
+                    id: 'plans.lecturerPlan.lecturerSelect.searchPlaceholder',
+                })}
+                value={search}
+                onChange={setSearch}
+            />
+
+            <PageBreadcrumbs items={breadcrumbs}/>
+
+            <Box
                 sx={{
-                    p: 4,
-                    borderRadius: '20px',
-                    bgcolor: 'background.paper',
+                    px: {xs: 2, md: 3},
+                    py: {xs: 2.5, md: 3},
+                    borderRadius: 2,
+                    bgcolor: '#FBFCFF',
+                    minHeight: 420,
                 }}
             >
-                <Stack spacing={3}>
-                    <Typography sx={{fontSize: '28px', fontWeight: 600}}>
-                        Wybierz prowadzącego
-                    </Typography>
+                {error && !loading && (
+                    <Box sx={{width: '100%'}}>
+                        <Alert severity="error">{error}</Alert>
+                    </Box>
+                )}
 
-                    <Typography sx={{fontSize: '18px', color: 'text.secondary'}}>
-                        Wybrana jednostka: {department?.name ?? departmentId ?? 'brak parametru'}
-                    </Typography>
+                {!loading && !error && (
+                    <Box sx={{width: '100%'}}>
+                        <ListView<CourseInstructor>
+                            items={paginatedItems}
+                            getTitle={() => ''}
+                            titleWidth={48}
+                            emptyMessage={intl.formatMessage({
+                                id: 'plans.lecturerPlan.lecturerSelect.noData',
+                            })}
+                            columns={[
+                                {
+                                    render: (item) => (
+                                        <Avatar
+                                            component="span"
+                                            sx={{
+                                                width: 30,
+                                                height: 30,
+                                                fontSize: '12px',
+                                                bgcolor: '#DDE8C8',
+                                                color: '#3D5A1A',
+                                                display: 'inline-flex',
+                                            }}
+                                        >
+                                            {item.name[0]}
+                                            {item.surname[0]}
+                                        </Avatar>
+                                    ),
+                                    variant: 'secondary',
+                                    width: 48,
+                                },
+                                ...columns,
+                            ]}
+                            onItemClick={(item) =>
+                                navigate(`/plans/lecturers/faculty/${facultyId}/lecturer/${item.id}`)
+                            }
+                            hideDividerOnLastItem
+                            rowSx={{
+                                px: 1,
+                                minHeight: 58,
+                            }}
+                            titleSx={{
+                                minWidth: 0,
+                                width: 0,
+                                p: 0,
+                            }}
+                        />
 
-                    {!departmentId && (
-                        <Typography sx={{fontSize: '16px', color: 'error.main'}}>
-                            Brakuje parametru departmentId w URL.
-                        </Typography>
-                    )}
-
-                    {departmentId && lecturers.length === 0 && (
-                        <Typography sx={{fontSize: '16px', color: 'error.main'}}>
-                            Nie znaleziono prowadzących dla jednostki: {departmentId}
-                        </Typography>
-                    )}
-
-                    <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
-                        {lecturers.map((lecturer) => (
-                            <Button
-                                key={lecturer.id}
-                                variant="contained"
-                                onClick={() =>
-                                    navigate(
-                                        `/plans/lecturers/department/${departmentId}/lecturer/${lecturer.id}`,
-                                    )
-                                }
-                                sx={{borderRadius: '12px', px: 3}}
-                            >
-                                {lecturer.title} {lecturer.firstName} {lecturer.lastName}
-                            </Button>
-                        ))}
-                    </Stack>
-                </Stack>
-            </Paper>
+                        <ListPagination
+                            page={page}
+                            pageSize={pageSize}
+                            totalItems={filteredItems.length}
+                            onPageChange={setPage}
+                            onPageSizeChange={(value) => {
+                                setPageSize(value);
+                                setPage(1);
+                            }}
+                            pageSizeOptions={[10, 20, 50]}
+                        />
+                    </Box>
+                )}
+            </Box>
         </Box>
     );
 }

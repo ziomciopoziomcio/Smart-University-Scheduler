@@ -6,8 +6,8 @@ interface MockEntrySeed {
     title: string;
     weekOffset: number;
     dayOffset: number;
-    startHour: number;
-    endHour: number;
+    startTime: string;
+    endTime: string;
     variant: ScheduleEntry['variant'];
 }
 
@@ -23,8 +23,8 @@ const scheduleSeeds: MockEntrySeed[] = [
         title: 'Programowanie\nsieciowe 1',
         weekOffset: 0,
         dayOffset: 0,
-        startHour: 10,
-        endHour: 11.30,
+        startTime: '10:15',
+        endTime: '11:45',
         variant: 'lecture',
     },
     {
@@ -32,8 +32,8 @@ const scheduleSeeds: MockEntrySeed[] = [
         title: 'Projektowanie\ninterfejsów aplikacji\nWWW',
         weekOffset: 0,
         dayOffset: 1,
-        startHour: 8,
-        endHour: 10,
+        startTime: '08:15',
+        endTime: '09:45',
         variant: 'project',
     },
     {
@@ -41,8 +41,8 @@ const scheduleSeeds: MockEntrySeed[] = [
         title: 'Programowanie\nsieciowe 1',
         weekOffset: 0,
         dayOffset: 1,
-        startHour: 11,
-        endHour: 13,
+        startTime: '11:15',
+        endTime: '12:45',
         variant: 'lab',
     },
     {
@@ -50,8 +50,8 @@ const scheduleSeeds: MockEntrySeed[] = [
         title: 'Podstawy\nkonteneryzacji i\narchitektury\nmikroserwisów',
         weekOffset: 0,
         dayOffset: 2,
-        startHour: 8,
-        endHour: 16,
+        startTime: '08:15',
+        endTime: '15:45',
         variant: 'lab',
     },
     {
@@ -59,8 +59,8 @@ const scheduleSeeds: MockEntrySeed[] = [
         title: 'Matematyka\ndyskretna',
         weekOffset: 0,
         dayOffset: 3,
-        startHour: 12,
-        endHour: 14,
+        startTime: '12:15',
+        endTime: '13:45',
         variant: 'exercise',
     },
     {
@@ -68,8 +68,8 @@ const scheduleSeeds: MockEntrySeed[] = [
         title: 'Architektura\noprogramowania',
         weekOffset: 0,
         dayOffset: 4,
-        startHour: 9,
-        endHour: 11,
+        startTime: '09:15',
+        endTime: '10:45',
         variant: 'lecture',
     },
     {
@@ -77,8 +77,8 @@ const scheduleSeeds: MockEntrySeed[] = [
         title: 'Systemy\nrozproszone',
         weekOffset: 1,
         dayOffset: 1,
-        startHour: 10,
-        endHour: 12,
+        startTime: '10:15',
+        endTime: '11:45',
         variant: 'lab',
     },
     {
@@ -86,8 +86,8 @@ const scheduleSeeds: MockEntrySeed[] = [
         title: 'Seminarium\ndyplomowe',
         weekOffset: 1,
         dayOffset: 3,
-        startHour: 14,
-        endHour: 16,
+        startTime: '14:15',
+        endTime: '15:45',
         variant: 'seminar',
     },
     {
@@ -95,8 +95,8 @@ const scheduleSeeds: MockEntrySeed[] = [
         title: 'Bazy\ndanych',
         weekOffset: -1,
         dayOffset: 2,
-        startHour: 8,
-        endHour: 10,
+        startTime: '08:15',
+        endTime: '09:45',
         variant: 'lecture',
     },
     {
@@ -104,8 +104,8 @@ const scheduleSeeds: MockEntrySeed[] = [
         title: 'Uczenie\nmaszynowe',
         weekOffset: -1,
         dayOffset: 4,
-        startHour: 12,
-        endHour: 14,
+        startTime: '12:15',
+        endTime: '13:45',
         variant: 'project',
     },
 ];
@@ -114,7 +114,7 @@ export const scheduleMock: ScheduleEntry[] = scheduleSeeds.map((entry) => ({
     id: entry.id,
     title: entry.title,
     date: createIsoDate(entry.weekOffset, entry.dayOffset),
-    startHour: entry.startHour,
-    endHour: entry.endHour,
+    startTime: entry.startTime,
+    endTime: entry.endTime,
     variant: entry.variant,
 }));
