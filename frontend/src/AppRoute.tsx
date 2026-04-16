@@ -22,8 +22,6 @@ import EmployeesPage from "./pages/Management/Employees/EmployeesPage.tsx";
 import {useAuthStore} from '@store/useAuthStore';
 import FacilitiesPage from "./pages/Facilities/FacilitiesPage.tsx";
 
-import {useAuthStore} from '@store/useAuthStore';
-
 import LecturerDepartmentSelectPage from "./pages/Plans/LecturerPlan/LecturerDepartmentSelectPage.tsx";
 import LecturerSelectPage from "./pages/Plans/LecturerPlan/LecturerSelectPage.tsx";
 import LecturerSchedulePage from "./pages/Plans/LecturerPlan/LecturerSchedulePage.tsx";
@@ -43,10 +41,9 @@ function AppRoute() {
                 <Route element={<ProtectedRoute/>}>
                     <Route element={<MainLayout/>}>
                         <Route path="/plan" element={<MyPlan/>}/>
-                        <Route path="/facilities" element={<FacilitiesPage view="campuses" />}/>
-                        <Route path="/facilities/campus/:campusId" element={<FacilitiesPage view="buildings" />}/>
-                        <Route path="/facilities/building/:buildingId" element={<FacilitiesPage view="rooms" />}/>
-                        <Route path="/employees" element={<EmployeesPage/>}/>
+                        <Route path="/facilities" element={<FacilitiesPage view="campuses" />} />
+<Route path="/facilities/campus/:campusId" element={<FacilitiesPage view="buildings" />} />
+<Route path="/facilities/campus/:campusId/building/:buildingId" element={<FacilitiesPage view="rooms" />} />
 
                         <Route path="/plans" element={<ChoosePlanPage/>}/>
 

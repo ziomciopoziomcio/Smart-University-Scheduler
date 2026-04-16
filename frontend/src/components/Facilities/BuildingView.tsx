@@ -94,14 +94,13 @@ export default function BuildingView({data, campusId, onRefresh}: BuildingViewPr
             {data.map((item) => (
                 <Box key={item.id}>
                     <Box
-                        onClick={() => navigate(`/facilities/building/${item.id}`)}
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            py: 2,
-                            cursor: 'pointer',
-                            '&:hover': {bgcolor: '#fbfbfb'}
-                        }}
+                        onClick={() => navigate(`/facilities/campus/${campusId}/building/${item.id}`)} sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        py: 2,
+                        cursor: 'pointer',
+                        '&:hover': {bgcolor: '#fbfbfb'}
+                    }}
                     >
                         <Box sx={{mr: 3, display: 'flex', alignItems: 'center'}}>
                             <SvgIcon component={buildingIcon} inheritViewBox

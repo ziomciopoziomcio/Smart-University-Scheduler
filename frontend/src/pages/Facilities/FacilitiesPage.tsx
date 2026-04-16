@@ -33,22 +33,24 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
     const [currentBuilding, setCurrentBuilding] = useState<Building | null>(null);
 
     const getBreadcrumbs = () => {
-
         const items: BreadcrumbItem[] = [{
             label: intl.formatMessage({id: 'facilities.breadcrumbs.facilities'}),
             path: '/facilities'
         }];
 
-        if (view === 'buildings' || view === 'rooms') {
-            const campusLabel = currentCampus ? currentCampus.campus_short : campusId;
+        // Widok Budynków lub Sal
+        if (campusId) {
             items.push({
-                label: `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${campusLabel}`,
-                path: `/facilities/campus/${campusId}`
+                label: currentCampus ? `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${currentCampus.campus_short}` : `Kampus ${campusId}`,
+                path: `/facilities/campus/${campusId}` // campusId pobrane bezpośrednio z URL!
             });
         }
-        if (view === 'rooms') {
-            const buildingLabel = currentBuilding ? currentBuilding.building_number : buildingId;
-            items.push({label: `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${buildingLabel}`});
+
+        // Widok Sal
+        if (buildingId) {
+            items.push({
+                label: currentBuilding ? `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${currentBuilding.building_number}` : `Budynek ${buildingId}`
+            });
         }
         return items;
     };
