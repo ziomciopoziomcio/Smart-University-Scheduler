@@ -93,8 +93,9 @@ def list_students(
                     "id": user.id,
                     "name": user.name,
                     "surname": user.surname,
+                    "email": user.email,
                     "degree": user.degree,
-                    "created_at": getattr(user, "created_at", None),
+                    "created_at": user.created_at,
                 },
             }
         )
