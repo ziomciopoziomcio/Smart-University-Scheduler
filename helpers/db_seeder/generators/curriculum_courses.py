@@ -12,6 +12,7 @@ def _get_study_field_major_degree_from_file(
 ) -> list[tuple[str, int, str | None]]:
     """
     Load study program data from a JSON file.
+
     :param sourcefile: path to JSON file containing study field data
     :param with_major: if True, includes major in the result.
             If False, major is set to None for all entries.
@@ -334,7 +335,7 @@ def generate_curriculum_courses(
     db_majors: dict[tuple[str, str], Major],
 ):
     """
-    Generate curriculum courses
+    Generate curriculum courses.
     :param sourcefile: path to JSON file containing study field data
     :param session: database session
     :param db_study_programs: dictionary mapping (study_field_name, start_year)
