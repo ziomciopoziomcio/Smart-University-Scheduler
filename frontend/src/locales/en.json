@@ -131,5 +131,21 @@
     "fridayShort": "Fri",
     "saturdayShort": "Sat",
     "sundayShort": "Sun"
+  },
+  "schedule": {
+    "details": {
+      "close": "Close",
+      "time": "Time",
+      "location": "Location",
+      "lecturer": "Lecturer",
+      "audience": "For"
+    },
+    "subjectType": {
+      "lecture": "Lecture",
+      "lab": "Laboratory",
+      "exercise": "Classes",
+      "project": "Project",
+      "seminar": "Seminar"
+    }
   }
 }

@@ -1,4 +1,3 @@
-// src/AppRoute.tsx
 import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom';
 import MainLayout from '@components/Layout/MainLayout';
 import LoginPage from './pages/Auth/LoginPage';
@@ -8,7 +7,22 @@ import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage.tsx';
 import ResetPasswordPage from './pages/Auth/ResetPasswordPage.tsx';
 import MyPlan from './pages/Plan/MyPlan.tsx';
 import ProtectedRoute from './components/Login/ProtectedRoute';
+import RoomSchedulePage from "./pages/Plans/RoomPlan/RoomSchedulePage.tsx";
+import ChoosePlanPage from "./pages/Plans/ChoosePlanPage.tsx";
+import CampusSelectPage from "./pages/Plans/RoomPlan/CampusSelectPage.tsx";
+import BuildingSelectPage from "./pages/Plans/RoomPlan/BuildingSelectPage.tsx";
+import RoomSelectPage from "./pages/Plans/RoomPlan/RoomSelectPage.tsx";
+import StudyPlanYearPage from "./pages/Plans/GeneralPlans/StudyPlanYearPage.tsx";
+import StudyPlanSchedulePage from "./pages/Plans/GeneralPlans/StudyPlanSchedulePage.tsx";
+import StudyPlanElectiveBlockPage from "./pages/Plans/GeneralPlans/StudyPlanElectiveBlockPage.tsx";
+import StudyPlanFieldPage from "./pages/Plans/GeneralPlans/StudyPlanFieldPage.tsx";
+import StudyPlanSemesterPage from "./pages/Plans/GeneralPlans/StudyPlanSemesterPage.tsx";
+import StudyPlanSpecializationPage from "./pages/Plans/GeneralPlans/StudyPlanSpecializationPage.tsx";
+
 import {useAuthStore} from '@store/useAuthStore';
+import LecturerDepartmentSelectPage from "./pages/Plans/LecturerPlan/LecturerDepartmentSelectPage.tsx";
+import LecturerSelectPage from "./pages/Plans/LecturerPlan/LecturerSelectPage.tsx";
+import LecturerSchedulePage from "./pages/Plans/LecturerPlan/LecturerSchedulePage.tsx";
 
 function AppRoute() {
     const isAuthenticated = useAuthStore((state) => state.token !== null);
@@ -25,6 +39,70 @@ function AppRoute() {
                 <Route element={<ProtectedRoute/>}>
                     <Route element={<MainLayout/>}>
                         <Route path="/plan" element={<MyPlan/>}/>
+
+                        <Route path="/plans" element={<ChoosePlanPage/>}/>
+
+
+                        <Route path="/plans/rooms/campus" element={<CampusSelectPage/>}/>
+                        <Route path="/plans/rooms/campus/:campusId/building" element={<BuildingSelectPage/>}/>
+                        <Route
+                            path="/plans/rooms/campus/:campusId/building/:buildingId/room"
+                            element={<RoomSelectPage/>}
+                        />
+                        <Route
+                            path="/plans/rooms/campus/:campusId/building/:buildingId/room/:roomId"
+                            element={<RoomSchedulePage/>}
+                        />
+
+
+                        <Route path="/plans/study/year" element={<StudyPlanYearPage/>}/>
+                        <Route
+                            path="/plans/study/year/:curriculumYearId/field"
+                            element={<StudyPlanFieldPage/>}
+                        />
+                        <Route
+                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester"
+                            element={<StudyPlanSemesterPage/>}
+                        />
+                        <Route
+                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester/:semesterId/specialization"
+                            element={<StudyPlanSpecializationPage/>}
+                        />
+                        <Route
+                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester/:semesterId/elective-block"
+                            element={<StudyPlanElectiveBlockPage/>}
+                        />
+                        <Route
+                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/elective-block"
+                            element={<StudyPlanElectiveBlockPage/>}
+                        />
+                        <Route
+                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester/:semesterId/plan"
+                            element={<StudyPlanSchedulePage/>}
+                        />
+                        <Route
+                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/plan"
+                            element={<StudyPlanSchedulePage/>}
+                        />
+                        <Route
+                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester/:semesterId/elective-block/:electiveBlockId/plan"
+                            element={<StudyPlanSchedulePage/>}
+                        />
+                        <Route
+                            path="/plans/study/year/:curriculumYearId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/elective-block/:electiveBlockId/plan"
+                            element={<StudyPlanSchedulePage/>}
+                        />
+
+
+                        <Route path="/plans/lecturers/department" element={<LecturerDepartmentSelectPage/>}/>
+                        <Route
+                            path="/plans/lecturers/department/:departmentId/lecturer"
+                            element={<LecturerSelectPage/>}
+                        />
+                        <Route
+                            path="/plans/lecturers/department/:departmentId/lecturer/:lecturerId"
+                            element={<LecturerSchedulePage/>}
+                        />
                     </Route>
                 </Route>
 
