@@ -1,6 +1,5 @@
 import {useState} from 'react';
-import {Box, Menu, MenuItem, ListItemIcon} from '@mui/material';
-import {EditOutlined, DeleteOutline} from '@mui/icons-material';
+import {Box} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 
@@ -11,6 +10,7 @@ import {deleteCampus} from '@api/facilities';
 import CampusModal from './CampusModal';
 import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
 import TileView from "@components/Common/TileView.tsx";
+import ActionMenu from "@components/Common/ActionMenu.tsx";
 
 interface CampusViewProps {
     data: any[];
@@ -23,7 +23,7 @@ export default function CampusView({data, onRefresh}: CampusViewProps) {
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selectedCampus, setSelectedCampus] = useState<any>(null);
-
+    const handleMenuClose = () => setAnchorEl(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -60,22 +60,20 @@ export default function CampusView({data, onRefresh}: CampusViewProps) {
                 addLabel={intl.formatMessage({id: 'facilities.campus.add'})}
             />
 
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-                <MenuItem onClick={() => {
-                    setAnchorEl(null);
+            <ActionMenu
+                anchorEl={anchorEl}
+                onClose={handleMenuClose}
+                onEdit={() => {
+                    handleMenuClose();
                     setIsModalOpen(true);
-                }}>
-                    <ListItemIcon><EditOutlined fontSize="small"/></ListItemIcon>
-                    {intl.formatMessage({id: 'facilities.campus.edit'})}
-                </MenuItem>
-                <MenuItem onClick={() => {
-                    setAnchorEl(null);
+                }}
+                onDelete={() => {
+                    handleMenuClose();
                     setIsDeleteModalOpen(true);
-                }} sx={{color: 'error.main'}}>
-                    <ListItemIcon><DeleteOutline fontSize="small" color="error"/></ListItemIcon>
-                    {intl.formatMessage({id: 'facilities.common.deleteConfirm'})}
-                </MenuItem>
-            </Menu>
+                }}
+                editLabel={intl.formatMessage({id: 'facilities.campus.edit'})}
+                deleteLabel={intl.formatMessage({id: 'facilities.campus.delete'})}
+            />
 
             <CampusModal
                 open={isModalOpen}

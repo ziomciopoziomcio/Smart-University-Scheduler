@@ -1,6 +1,5 @@
 import {useState} from 'react';
-import {Box, Menu, MenuItem, ListItemIcon, ListItemText} from '@mui/material';
-import {EditOutlined, DeleteOutline} from '@mui/icons-material';
+import {Box} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 
@@ -11,6 +10,7 @@ import {deleteBuilding} from '@api/facilities';
 import BuildingModal from './BuildingModal.tsx';
 import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog';
 import ListView from '@components/Common/ListView';
+import ActionMenu from "@components/Common/ActionMenu.tsx";
 
 interface BuildingViewProps {
     data: Building[];
@@ -81,28 +81,20 @@ export default function BuildingView({data, campusId, onRefresh}: BuildingViewPr
                 emptyMessage={intl.formatMessage({id: 'facilities.common.noData'})}
             />
 
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose} PaperProps={{
-                sx: {
-                    borderRadius: '12px',
-                    minWidth: '180px',
-                    boxShadow: '0px 4px 20px rgba(0,0,0,0.08)'
-                }
-            }}>
-                <MenuItem onClick={() => {
+            <ActionMenu
+                anchorEl={anchorEl}
+                onClose={handleMenuClose}
+                onEdit={() => {
                     handleMenuClose();
                     setIsModalOpen(true);
-                }} sx={{py: 1.5}}>
-                    <ListItemIcon><EditOutlined fontSize="small"/></ListItemIcon>
-                    <ListItemText>{intl.formatMessage({id: 'facilities.building.edit'})}</ListItemText>
-                </MenuItem>
-                <MenuItem onClick={() => {
+                }}
+                onDelete={() => {
                     handleMenuClose();
                     setIsDeleteModalOpen(true);
-                }} sx={{py: 1.5, color: 'error.main'}}>
-                    <ListItemIcon><DeleteOutline fontSize="small" color="error"/></ListItemIcon>
-                    <ListItemText>{intl.formatMessage({id: 'facilities.building.delete'})}</ListItemText>
-                </MenuItem>
-            </Menu>
+                }}
+                editLabel={intl.formatMessage({id: 'facilities.building.edit'})}
+                deleteLabel={intl.formatMessage({id: 'facilities.building.delete'})}
+            />
 
             <BuildingModal
                 open={isModalOpen}
