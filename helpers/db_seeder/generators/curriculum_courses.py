@@ -137,11 +137,12 @@ def _get_courses_common_for_all_majors(
     :return: a dictionary mapping semester names to lists of courses that are
             present in all majors
     """
+    sem_dict = defaultdict(list)
+    if not courses_dict:
+        return sem_dict
     sets = [set(courses.keys()) for courses in courses_dict.values()]
     common_courses = set.intersection(*sets)
-
     first_major = next(iter(courses_dict))
-    sem_dict = defaultdict(list)
 
     for course in common_courses:
         sem = courses_dict[first_major][course]
@@ -163,6 +164,9 @@ def _get_courses_unique_at_the_major_level(
             - value: dictionary mapping semester names to lists of unique courses
     """
     result: dict[str, DefaultDict[str, list[tuple[str, str]]]] = {}
+    if not courses_dict:
+        return result
+
     sets = [set(courses.keys()) for courses in courses_dict.values()]
     common_courses = set.intersection(*sets)
 
