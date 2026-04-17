@@ -247,6 +247,37 @@ def _parse_course_code(course_code: str) -> int:
     return int(digits) if digits else 0
 
 
+def _get_major_id(
+    major_name: str | None,
+    db_majors: dict[tuple[str, str], Major],
+    study_field_name: str,
+) -> tuple[int | None, str | None]:
+    if major_name is None:
+        major_obj = None
+    else:
+        major_obj = db_majors.get((study_field_name, major_name), None)
+        if major_obj is None:
+            print(f"Cannot find major with name {major_name}")
+            return None, "error"
+    major_id = major_obj.id if major_obj else None
+    return major_id, None
+
+
+def _get_course_obj(
+    course_code: str | None, db_courses: dict[int, Course]
+) -> tuple[Course | None, int]:
+    if course_code is None:
+        print("Cannot add course - no course code provided")
+        return None, 0
+
+    course_code_int = _parse_course_code(course_code)
+    course_obj = db_courses.get(course_code_int, None)
+    if course_obj is None:
+        print(f"Cannot find course with code {course_code_int}")
+        return None, 0
+    return course_obj, course_code_int
+
+
 def _add_curriculum_course(
     course_code: str | None,
     major_name: str | None,
@@ -289,25 +320,14 @@ def _add_curriculum_course(
         return None
 
     # course obj
-    if course_code is None:
-        print("Cannot add course - no course code provided")
-        return None
-
-    course_code_int = _parse_course_code(course_code)
-    course_obj = db_courses.get(course_code_int, None)
+    course_obj, course_code_int = _get_course_obj(course_code, db_courses)
     if course_obj is None:
-        print(f"Cannot find course with code {course_code_int}")
         return None
 
     # major
-    if major_name is None:
-        major_obj = None
-    else:
-        major_obj = db_majors.get((study_field_name, major_name), None)
-        if major_obj is None:
-            print(f"Cannot find major with name {major_name}")
-            return None
-    major_id = major_obj.id if major_obj else None
+    major_id, err = _get_major_id(major_name, db_majors, study_field_name)
+    if err is not None:
+        return None
 
     # add to db
     added: dict[
