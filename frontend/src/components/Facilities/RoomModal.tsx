@@ -4,10 +4,19 @@ import {
     CircularProgress, FormControl, InputLabel, Select, MenuItem,
     FormControlLabel, Checkbox, ToggleButton, ToggleButtonGroup
 } from '@mui/material';
-import { useIntl } from 'react-intl';
+import {useIntl} from 'react-intl';
 import {createRoom, updateRoom, fetchFaculties, fetchUnits} from '@api/facilities';
+import {type Room} from '@api/types';
 
-export default function RoomModal({open, buildingId, room, onClose, onSuccess}: any) {
+interface RoomModalProps {
+    open: boolean;
+    buildingId: number;
+    room: Room | null;
+    onClose: () => void;
+    onSuccess: () => void;
+}
+
+export default function RoomModal({open, buildingId, room, onClose, onSuccess}: RoomModalProps) {
     const intl = useIntl();
 
     const [name, setName] = useState('');
@@ -23,20 +32,7 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        const loadOptions = async () => {
-            setIsLoadingOptions(true);
-            try {
-                const res = assignmentType === 'faculty' ? await fetchFaculties() : await fetchUnits();
-                setOptions(res.items);
-            } catch (e) {
-                console.error(e);
-            } finally {
-                setIsLoadingOptions(false);
-            }
-        };
-
         if (open) {
-            loadOptions();
             if (room) {
                 setName(room.room_name);
                 setCapacity(room.room_capacity);
@@ -49,18 +45,61 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
                     setAssignmentType('faculty');
                     setSelectedId(room.faculty_id);
                 }
+            } else {
+                setName('');
+                setCapacity(15);
+                setPcAmount(0);
+                setProjector(false);
+                setAssignmentType('faculty');
+                setSelectedId('');
             }
         }
-    }, [open, assignmentType, room]);
+    }, [open, room]);
+
+
+    useEffect(() => {
+        if (!open) return;
+        const loadOptions = async () => {
+            setIsLoadingOptions(true);
+            try {
+                const res = assignmentType === 'faculty' ? await fetchFaculties() : await fetchUnits();
+                setOptions(res.items);
+            } catch {
+                // TODO: snackbar maybe?
+                console.error("Failed to load options");
+            } finally {
+                setIsLoadingOptions(false);
+            }
+        };
+        loadOptions();
+    }, [open, assignmentType]);
 
     const handleSubmit = async () => {
         if (!name || !selectedId) return;
+
+        let actualFacultyId: number;
+
+        if (assignmentType === 'faculty') {
+            actualFacultyId = Number(selectedId);
+        } else {
+            const selectedUnitObj = options.find(opt => opt.id === selectedId);
+            if (selectedUnitObj) {
+                actualFacultyId = selectedUnitObj.faculty_id;
+            } else if (room?.faculty_id) {
+                actualFacultyId = room.faculty_id;
+            } else {
+
+                alert(intl.formatMessage({id: 'facilities.room.errors.add'}));
+                return;
+            }
+        }
+
         setIsSubmitting(true);
 
         const payload = {
             room_name: name,
             building_id: buildingId,
-            faculty_id: assignmentType === 'faculty' ? Number(selectedId) : 0,
+            faculty_id: actualFacultyId,
             unit_id: assignmentType === 'unit' ? Number(selectedId) : null,
             pc_amount: Number(pcAmount),
             room_capacity: Number(capacity),
@@ -68,11 +107,15 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
         };
 
         try {
-            room ? await updateRoom(room.id, payload) : await createRoom(payload);
+            if (room) {
+                await updateRoom(room.id, payload);
+            } else {
+                await createRoom(payload);
+            }
             onSuccess();
             onClose();
-        } catch (err) {
-            alert('Błąd zapisu');
+        } catch {
+            alert(intl.formatMessage({id: 'facilities.room.errors.add'}));
         } finally {
             setIsSubmitting(false);
         }
@@ -82,14 +125,25 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
         <Dialog open={open} onClose={onClose} PaperProps={{sx: {borderRadius: '24px', p: 1, minWidth: 420}}}>
             <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 3}}>
                 <Typography variant="h5" fontWeight="bold" textAlign="center">
-                    {room ? 'Edytuj salę' : 'Dodaj salę'}
+                    {room
+                        ? intl.formatMessage({id: 'facilities.room.edit'})
+                        : intl.formatMessage({id: 'facilities.room.add'})}
                 </Typography>
 
-                <TextField label="Nazwa sali" value={name} onChange={(e) => setName(e.target.value)} fullWidth/>
+                <TextField
+                    label={intl.formatMessage({id: 'facilities.room.nameLabel'})}
+                    placeholder={intl.formatMessage({id: 'facilities.room.namePlaceholder'})}
+                    value={name}
+                    onChange={(e) => {
+                        setName(e.target.value);
+                    }}
+                    fullWidth
+                    InputProps={{sx: {borderRadius: '12px'}}}
+                />
 
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1}}>
                     <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                        PRZYPISANIE SALI DO:
+                        {intl.formatMessage({id: 'facilities.room.assignment'})}
                     </Typography>
                     <ToggleButtonGroup
                         value={assignmentType}
@@ -102,17 +156,25 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
                         }}
                         fullWidth
                         size="small"
+                        sx={{'& .MuiToggleButton-root': {borderRadius: '8px', textTransform: 'none'}}}
                     >
-                        <ToggleButton value="faculty" sx={{textTransform: 'none'}}>Wydziału</ToggleButton>
-                        <ToggleButton value="unit" sx={{textTransform: 'none'}}>Jednostki</ToggleButton>
+                        <ToggleButton
+                            value="faculty">{intl.formatMessage({id: 'facilities.room.faculty'})}</ToggleButton>
+                        <ToggleButton value="unit">{intl.formatMessage({id: 'facilities.room.unit'})}</ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
 
-                <FormControl fullWidth>
-                    <InputLabel>{assignmentType === 'faculty' ? 'Wybierz wydział' : 'Wybierz jednostkę'}</InputLabel>
+                <FormControl fullWidth sx={{'& .MuiOutlinedInput-root': {borderRadius: '12px'}}}>
+                    <InputLabel>
+                        {assignmentType === 'faculty'
+                            ? intl.formatMessage({id: 'facilities.room.selectFaculty'})
+                            : intl.formatMessage({id: 'facilities.room.selectUnit'})}
+                    </InputLabel>
                     <Select
                         value={selectedId}
-                        label={assignmentType === 'faculty' ? 'Wybierz wydział' : 'Wybierz jednostkę'}
+                        label={assignmentType === 'faculty'
+                            ? intl.formatMessage({id: 'facilities.room.selectFaculty'})
+                            : intl.formatMessage({id: 'facilities.room.selectUnit'})}
                         onChange={(e) => setSelectedId(e.target.value as number)}
                         disabled={isLoadingOptions}
                     >
@@ -125,26 +187,61 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
                 </FormControl>
 
                 <Box sx={{display: 'flex', gap: 2}}>
-                    <TextField type="number" label="Miejsca" value={capacity}
-                               onChange={(e) => setCapacity(Number(e.target.value))} fullWidth/>
-                    <TextField type="number" label="Komputery" value={pcAmount}
-                               onChange={(e) => setPcAmount(Number(e.target.value))} fullWidth/>
+                    <TextField
+                        type="number"
+                        label={intl.formatMessage({id: 'facilities.room.capacityLabel'})}
+                        value={capacity}
+                        onChange={(e) => {
+                            setCapacity(Number(e.target.value));
+                        }}
+                        fullWidth
+                        InputProps={{sx: {borderRadius: '12px'}}}
+                    />
+                    <TextField
+                        type="number"
+                        label={intl.formatMessage({id: 'facilities.room.pcLabel'})}
+                        value={pcAmount}
+                        onChange={(e) => {
+                            setPcAmount(Number(e.target.value));
+                        }}
+                        fullWidth
+                        InputProps={{sx: {borderRadius: '12px'}}}
+                    />
                 </Box>
 
                 <FormControlLabel
                     control={<Checkbox checked={projector} onChange={(e) => setProjector(e.target.checked)}/>}
-                    label="Projektor dostępny"
+                    label={intl.formatMessage({id: 'facilities.room.projectorLabel'})}
                 />
 
-                <Button variant="contained" fullWidth onClick={handleSubmit} disabled={isSubmitting || !selectedId}
-                        sx={{py: 1.5, borderRadius: '12px', bgcolor: '#2b5073'}}>
-                    {isSubmitting ? <CircularProgress size={24} color="inherit"/> : 'Zapisz'}
-                </Button>
-                <Button variant="text" fullWidth onClick={onClose} disabled={isSubmitting}
-                        sx={{color: '#2b5073', textTransform: 'none', fontWeight: 600}}>
-                    {intl.formatMessage({id: 'facilities.deleteConfirm.cancel'})}
-                </Button>
-
+                <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
+                    <Button
+                        variant="contained"
+                        fullWidth
+                        onClick={() => {
+                            void handleSubmit();
+                        }} disabled={isSubmitting || !selectedId || !name}
+                        sx={{
+                            py: 1.5,
+                            borderRadius: '12px',
+                            bgcolor: '#2b5073',
+                            textTransform: 'none',
+                            fontSize: '1rem'
+                        }}
+                    >
+                        {isSubmitting ? <CircularProgress size={24}
+                                                          color="inherit"/> : intl.formatMessage({id: 'facilities.common.save'})}
+                    </Button>
+                    <Button
+                        variant="text"
+                        fullWidth
+                        onClick={onClose}
+                        disabled={isSubmitting}
+                        sx={{color: '#2b5073', textTransform: 'none', fontWeight: 600}}
+                    >
+                        {intl.formatMessage({id: 'facilities.common.cancel'})}
+                    </Button>
+                </Box>
             </DialogContent>
         </Dialog>
     );

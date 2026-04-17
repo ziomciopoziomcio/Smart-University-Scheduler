@@ -133,63 +133,120 @@
     "sundayShort": "Sun"
   },
   "facilities": {
-    "searchPlaceholder": "Search...",
+    "common": {
+      "searchPlaceholder": "Search...",
+      "noData": "No data to display.",
+      "noName": "No name",
+      "seats": "seats",
+      "pcs": "PCs",
+      "cancel": "Cancel",
+      "save": "Save changes",
+      "deleteConfirm": "Delete",
+      "yes": "Yes",
+      "no": "No"
+    },
     "breadcrumbs": {
-      "facilities": "Facilities",
+      "main": "Facilities",
       "campus": "Campus",
       "building": "Building"
     },
-    "noData": "No data to display.",
-    "addCampus": "Add campus...",
-    "addBuilding": "Add building",
-    "addRoom": "Add room",
-    "noName": "No name",
-    "seats": "seats",
-    "pcs": "PCs",
-    "menu": {
+    "campus": {
+      "searchPlaceholder": "Search campus...",
+      "add": "Add campus",
       "edit": "Edit campus",
-      "delete": "Delete campus"
+      "delete": "Delete campus",
+      "deleteTitle": "Delete campus",
+      "deleteDesc": "Are you sure you want to delete this campus? This action cannot be undone.",
+      "nameLabel": "Campus name",
+      "namePlaceholder": "Enter campus name (optional)",
+      "shortLabel": "Campus identifier",
+      "shortPlaceholder": "Enter campus identifier",
+      "errors": {
+        "add": "Error adding campus.",
+        "delete": "Error deleting campus."
+      }
     },
-    "deleteConfirm": {
-      "title": "Delete campus",
-      "description": "Are you sure you want to delete this campus? This action cannot be undone.",
-      "confirm": "Delete",
-      "cancel": "Cancel"
+    "building": {
+      "searchPlaceholder": "Search building...",
+      "add": "Add building",
+      "edit": "Edit building",
+      "delete": "Delete building",
+      "deleteTitle": "Delete building",
+      "deleteDesc": "Are you sure you want to delete this building? This action cannot be undone.",
+      "nameLabel": "Building name",
+      "namePlaceholder": "Enter name (optional)",
+      "numberLabel": "Building number",
+      "numberPlaceholder": "Enter number (e.g. B18)",
+      "errors": {
+        "add": "Error adding building.",
+        "delete": "Error deleting building."
+      }
     },
-    "modal": {
-      "campus": {
-        "title": "Add campus",
-        "shortNameLabel": "Campus identifier",
-        "shortNamePlaceholder": "Enter campus identifier",
-        "nameLabel": "Campus name",
-        "namePlaceholder": "Enter campus name (optional)",
-        "submit": "Add campus",
-        "cancel": "Cancel",
-        "error": "Error adding campus."
-      },
-      "campusEdit": {
-        "title": "Edit campus",
-        "submit": "Save changes"
-      },
-      "building": {
-        "titleAdd": "Add building",
-        "titleEdit": "Edit building",
-        "numberLabel": "Building number",
-        "numberPlaceholder": "Enter number",
-        "nameLabel": "Building name",
-        "namePlaceholder": "Enter name (optional)",
-        "submitAdd": "Add building",
-        "submitEdit": "Save changes"
-      },
-      "room": {
-        "titleAdd": "Add room",
-        "titleEdit": "Edit room",
-        "nameLabel": "Room name",
-        "namePlaceholder": "Enter room name",
-        "capacityLabel": "Number of seats",
-        "pcLabel": "Number of PC stations",
-        "submitAdd": "Add room",
-        "submitEdit": "Save changes"
+    "room": {
+      "searchPlaceholder": "Search room...",
+      "rooms": "Rooms",
+      "add": "Add room",
+      "edit": "Edit room",
+      "delete": "Delete room",
+      "deleteTitle": "Delete room",
+      "deleteDesc": "Are you sure you want to delete this room? This action cannot be undone.",
+      "nameLabel": "Room name",
+      "namePlaceholder": "e.g. 101, Main Hall",
+      "capacityLabel": "Number of seats",
+      "pcLabel": "Number of PC stations",
+      "assignment": "ASSIGN ROOM TO:",
+      "faculty": "Faculty",
+      "unit": "Unit",
+      "selectFaculty": "Select faculty",
+      "selectUnit": "Select unit",
+      "projectorLabel": "Projector available",
+      "errors": {
+        "add": "Error adding room.",
+        "delete": "Error deleting room."
+      }
+    }
+  },
+  "structures": {
+    "common": {
+      "cancel": "Cancel",
+      "save": "Save changes"
+    },
+    "breadcrumbs": {
+      "main": "Structures",
+      "faculty": "Faculty",
+      "unit": "Unit"
+    },
+    "faculty": {
+      "searchPlaceholder": "Search faculty...",
+      "add": "Add faculty",
+      "edit": "Edit faculty",
+      "delete": "Delete faculty",
+      "deleteTitle": "Delete faculty",
+      "deleteDesc": "Are you sure you want to delete this faculty? This action cannot be undone.",
+      "nameLabel": "Full faculty name",
+      "namePlaceholder": "e.g. Faculty of Technical Physics",
+      "shortLabel": "Abbreviation",
+      "shortPlaceholder": "e.g. WFTiMS",
+      "errors": {
+        "add": "Error adding faculty.",
+        "delete": "Error deleting faculty."
+      }
+    },
+    "unit": {
+      "searchPlaceholder": "Search unit...",
+      "add": "Add unit",
+      "edit": "Edit unit",
+      "delete": "Delete unit",
+      "deleteTitle": "Delete unit",
+      "deleteDesc": "Are you sure you want to delete this unit? This action cannot be undone.",
+      "nameLabel": "Unit name",
+      "namePlaceholder": "e.g. Institute of Computer Science",
+      "shortLabel": "Abbreviation",
+      "shortPlaceholder": "e.g. I24",
+      "facultyLabel": "Parent faculty",
+      "errors": {
+        "add": "Error adding unit.",
+        "delete": "Error deleting unit."
       }
     }
   },
