@@ -133,63 +133,120 @@
     "sundayShort": "Niedz"
   },
   "facilities": {
-    "searchPlaceholder": "Szukaj...",
+    "common": {
+      "searchPlaceholder": "Szukaj...",
+      "noData": "Brak danych do wyświetlenia.",
+      "noName": "Brak nazwy",
+      "seats": "miejsc",
+      "pcs": "PC",
+      "cancel": "Anuluj",
+      "save": "Zapisz zmiany",
+      "deleteConfirm": "Usuń",
+      "yes": "Tak",
+      "no": "Nie"
+    },
     "breadcrumbs": {
-      "facilities": "Obiekty",
+      "main": "Obiekty",
       "campus": "Kampus",
       "building": "Budynek"
     },
-    "noData": "Brak danych do wyświetlenia.",
-    "addCampus": "Dodaj kampus...",
-    "addBuilding": "Dodaj budynek",
-    "addRoom": "Dodaj salę",
-    "noName": "Brak nazwy",
-    "seats": "miejsc",
-    "pcs": "PC",
-    "menu": {
+    "campus": {
+      "searchPlaceholder": "Szukaj kampusu...",
+      "add": "Dodaj kampus",
       "edit": "Edytuj kampus",
-      "delete": "Usuń kampus"
+      "delete": "Usuń kampus",
+      "deleteTitle": "Usuwanie kampusu",
+      "deleteDesc": "Czy na pewno chcesz usunąć ten kampus? Tej operacji nie można cofnąć.",
+      "nameLabel": "Nazwa kampusu",
+      "namePlaceholder": "Wpisz nazwę kampusu (opcjonalnie)",
+      "shortLabel": "Identyfikator kampusu",
+      "shortPlaceholder": "Wpisz identyfikator kampusu",
+      "errors": {
+        "add": "Błąd podczas dodawania kampusu.",
+        "delete": "Błąd podczas usuwania kampusu."
+      }
     },
-    "deleteConfirm": {
-      "title": "Usuń kampus",
-      "description": "Czy na pewno chcesz usunąć ten kampus? Tej operacji nie można cofnąć.",
-      "confirm": "Usuń",
-      "cancel": "Anuluj"
+    "building": {
+      "searchPlaceholder": "Szukaj budynku...",
+      "add": "Dodaj budynek",
+      "edit": "Edytuj budynek",
+      "delete": "Usuń budynek",
+      "deleteTitle": "Usuwanie budynku",
+      "deleteDesc": "Czy na pewno chcesz usunąć ten budynek? Tej operacji nie można cofnąć.",
+      "nameLabel": "Nazwa budynku",
+      "namePlaceholder": "Wpisz nazwę (opcjonalnie)",
+      "numberLabel": "Numer budynku",
+      "numberPlaceholder": "Wpisz numer (np. B18)",
+      "errors": {
+        "add": "Błąd podczas dodawania budynku.",
+        "delete": "Błąd podczas usuwania budynku."
+      }
     },
-    "modal": {
-      "campus": {
-        "title": "Dodaj kampus",
-        "shortNameLabel": "Identyfikator kampusu",
-        "shortNamePlaceholder": "Wpisz identyfikator kampusu",
-        "nameLabel": "Nazwa kampusu",
-        "namePlaceholder": "Wpisz nazwę kampusu (opcjonalnie)",
-        "submit": "Dodaj kampus",
-        "cancel": "Anuluj",
-        "error": "Błąd podczas dodawania kampusu."
-      },
-      "campusEdit": {
-        "title": "Edytuj kampus",
-        "submit": "Zapisz zmiany"
-      },
-      "building": {
-        "titleAdd": "Dodaj budynek",
-        "titleEdit": "Edytuj budynek",
-        "numberLabel": "Numer budynku",
-        "numberPlaceholder": "Wpisz numer (np. B18)",
-        "nameLabel": "Nazwa budynku",
-        "namePlaceholder": "Wpisz nazwę (opcjonalnie)",
-        "submitAdd": "Dodaj budynek",
-        "submitEdit": "Zapisz zmiany"
-      },
-      "room": {
-        "titleAdd": "Dodaj salę",
-        "titleEdit": "Edytuj salę",
-        "nameLabel": "Nazwa sali",
-        "namePlaceholder": "np. 101, Aula Główna",
-        "capacityLabel": "Liczba miejsc",
-        "pcLabel": "Liczba stanowisk PC",
-        "submitAdd": "Dodaj salę",
-        "submitEdit": "Zapisz zmiany"
+    "room": {
+      "searchPlaceholder": "Szukaj sali...",
+      "rooms": "Sale",
+      "add": "Dodaj salę",
+      "edit": "Edytuj salę",
+      "delete": "Usuń salę",
+      "deleteTitle": "Usuwanie sali",
+      "deleteDesc": "Czy na pewno chcesz usunąć tę salę? Tej operacji nie można cofnąć.",
+      "nameLabel": "Nazwa sali",
+      "namePlaceholder": "np. 101, Aula Główna",
+      "capacityLabel": "Liczba miejsc",
+      "pcLabel": "Liczba stanowisk PC",
+      "assignment": "PRZYPISANIE SALI DO:",
+      "faculty": "Wydziału",
+      "unit": "Jednostki",
+      "selectFaculty": "Wybierz wydział",
+      "selectUnit": "Wybierz jednostkę",
+      "projectorLabel": "Projektor dostępny",
+      "errors": {
+        "add": "Błąd podczas dodawania sali.",
+        "delete": "Błąd podczas usuwania sali."
+      }
+    }
+  },
+  "structures": {
+    "common": {
+      "cancel": "Anuluj",
+      "save": "Zapisz zmiany"
+    },
+    "breadcrumbs": {
+      "main": "Struktury",
+      "faculty": "Wydział",
+      "unit": "Jednostka"
+    },
+    "faculty": {
+      "searchPlaceholder": "Szukaj wydziału...",
+      "add": "Dodaj wydział",
+      "edit": "Edytuj wydział",
+      "delete": "Usuń wydział",
+      "deleteTitle": "Usuwanie wydziału",
+      "deleteDesc": "Czy na pewno chcesz usunąć ten wydział? Operacji nie można cofnąć.",
+      "nameLabel": "Pełna nazwa wydziału",
+      "namePlaceholder": "np. Wydział Fizyki Technicznej",
+      "shortLabel": "Skrót",
+      "shortPlaceholder": "np. WFTiMS",
+      "errors": {
+        "add": "Błąd podczas dodawania wydziału.",
+        "delete": "Błąd podczas usuwania wydziału."
+      }
+    },
+    "unit": {
+      "searchPlaceholder": "Szukaj jednostki...",
+      "add": "Dodaj jednostkę",
+      "edit": "Edytuj jednostkę",
+      "delete": "Usuń jednostkę",
+      "deleteTitle": "Usuwanie jednostki",
+      "deleteDesc": "Czy na pewno chcesz usunąć tę jednostkę? Operacji nie można cofnąć.",
+      "nameLabel": "Nazwa jednostki",
+      "namePlaceholder": "np. Instytut Informatyki",
+      "shortLabel": "Skrót",
+      "shortPlaceholder": "np. I24",
+      "facultyLabel": "Wydział nadrzędny",
+      "errors": {
+        "add": "Błąd podczas dodawania jednostki.",
+        "delete": "Błąd podczas usuwania jednostki."
       }
     }
   },

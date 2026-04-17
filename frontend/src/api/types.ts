@@ -87,3 +87,16 @@ export interface WeekScheduleProps {
     onPrevWeek: () => void;
     onNextWeek: () => void;
 }
+
+export interface Faculty {
+    id: number;
+    faculty_name: string;
+    faculty_short: string;
+}
+
+export interface Unit {
+    id: number;
+    unit_name: string;
+    unit_short: string;
+    faculty_id: number;
+}
