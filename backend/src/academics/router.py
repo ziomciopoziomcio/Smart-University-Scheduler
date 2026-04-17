@@ -1,5 +1,4 @@
-from datetime import date, datetime, timezone
-from typing import List
+from datetime import date
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy.orm import Session
