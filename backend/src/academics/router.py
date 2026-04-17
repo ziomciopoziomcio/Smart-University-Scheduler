@@ -174,17 +174,13 @@ def get_student(
         )
     student, user, study_program, study_field, major_obj = row
 
-    user_created_at = getattr(user, "created_at", None)
-    if user_created_at is None:
-        user_created_at = datetime.now(timezone.utc)
-
     user_obj = {
         "id": user.id,
         "name": user.name,
         "surname": user.surname,
         "email": user.email,
         "degree": user.degree,
-        "created_at": user_created_at,
+        "created_at": user.created_at,
     }
 
     study_program_details = {
