@@ -7,7 +7,6 @@ import {
     Typography,
     CircularProgress
 } from '@mui/material';
-import {useIntl} from 'react-intl';
 import {theme} from "../../theme/theme.ts";
 
 interface DeleteConfirmDialogProps {
@@ -15,6 +14,8 @@ interface DeleteConfirmDialogProps {
     loading?: boolean;
     title: string;
     description: string;
+    cancelButtonLabel: string,
+    confirmButtonLabel: string,
     onClose: () => void;
     onConfirm: () => void;
 }
@@ -24,10 +25,11 @@ export default function DeleteConfirmDialog({
                                                 loading,
                                                 title,
                                                 description,
+                                                cancelButtonLabel,
+                                                confirmButtonLabel,
                                                 onClose,
                                                 onConfirm
                                             }: DeleteConfirmDialogProps) {
-    const intl = useIntl();
 
     return (
         <Dialog
@@ -61,7 +63,7 @@ export default function DeleteConfirmDialog({
                         fontWeight: 600
                     }}
                 >
-                    {intl.formatMessage({id: 'facilities.deleteConfirm.cancel'})}
+                    {cancelButtonLabel}
                 </Button>
                 <Button
                     onClick={onConfirm}
@@ -79,7 +81,7 @@ export default function DeleteConfirmDialog({
                     {loading ? (
                         <CircularProgress size={20} color="inherit"/>
                     ) : (
-                        intl.formatMessage({id: 'facilities.deleteConfirm.confirm'})
+                        confirmButtonLabel
                     )}
                 </Button>
             </DialogActions>
