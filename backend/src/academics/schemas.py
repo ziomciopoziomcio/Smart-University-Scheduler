@@ -9,6 +9,8 @@ from pydantic import BaseModel, model_validator, StringConstraints, ConfigDict, 
 
 from .models import SemesterType
 from src.users import schemas as user_schemas
+from src.courses import schemas as courses_schemas
+from src.facilities import schemas as facilities_schemas
 
 
 class BaseSchema(BaseModel):
@@ -157,6 +159,8 @@ class AcademicCalendarUpdate(BaseModel):
 class StudentNested(BaseSchema):
     id: int
     user: user_schemas.UserRead
+    study_program_details: courses_schemas.StudyProgramRead
+    major_details: Optional[courses_schemas.MajorRead] = None
     study_program: int
     major: Optional[int] = None
     user_id: int
@@ -166,6 +170,7 @@ class EmployeeNested(BaseSchema):
     id: int
     user: user_schemas.UserRead
     unit: Optional[UnitsRead] = None
+    faculty: Optional[facilities_schemas.FacultyRead] = None
     faculty_id: int
     user_id: int
     unit_id: int
