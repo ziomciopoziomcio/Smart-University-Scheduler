@@ -181,7 +181,7 @@ def generate_roles_from_excel_file(
 
     db_roles: dict[str, Roles] = {}
 
-    all_roles = _get_roles_names(sourcefile)
+    all_roles = _get_roles_names(sourcefile, sheet_name)
     all_roles = _map_roles_into_english(all_roles)
 
     start_col = "D"
