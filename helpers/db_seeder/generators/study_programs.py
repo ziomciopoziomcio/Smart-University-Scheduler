@@ -44,7 +44,7 @@ def generate_study_programs(
     :param session: database session
     :param sourcefile: path to JSON file containing study field data
     :param db_study_fields: dictionary mapping study field names to Study_fields
-    :return: dictionary mapping (study_field_name, start_year) to Study_program
+    :return: dictionary mapping (study_field_name, start_year, degree) to Study_program
     """
     start_years = ["2023/24"]
 
