@@ -69,7 +69,7 @@ const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.structures', // structures (units, faculties)
         icon: <SvgIcon component={diagram_icon} inheritViewBox/>,
-        path: '/', // TODO: change to real path and add allowedRoles
+        path: '/structures', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
