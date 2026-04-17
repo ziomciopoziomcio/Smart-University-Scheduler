@@ -71,6 +71,28 @@ def _get_unique_study_fields(
     return records
 
 
+def _is_elective(text: str) -> bool:
+    text = text.lower()
+    return "obieralne" in text or "elective" in text
+
+
+def _is_valid_course(course: dict) -> bool:
+    name = course["Nazwa przedmiotu w języku polskim"].lower()
+    code = str(course["Kod przedmiotu"]).lower()
+
+    return not (
+        _is_elective(name)
+        or _is_elective(code)
+        or "obieralny" in name
+        or "obieralne" in name
+        or "elective" in name
+    )
+
+
+def _is_valid_semester(semester: dict) -> bool:
+    return not _is_elective(semester["nazwa"])
+
+
 def _prepare_courses_dict(study_fields: list) -> dict[str, dict[tuple[str, str], str]]:
     """
     Build a nested dictionary of courses grouped by specialization (major).
@@ -91,34 +113,19 @@ def _prepare_courses_dict(study_fields: list) -> dict[str, dict[tuple[str, str],
         if major not in courses_dict:
             courses_dict[major] = {}
 
-        for semester in study_field["semestry"]:
-            if (
-                "obieralne" in semester["nazwa"].lower()
-                or "elective" in semester["nazwa"].lower()
-            ):
+        for semester in study_field.get("semestry", []):
+            if not _is_valid_semester(semester):
                 continue
 
             sem_name = semester["nazwa"]
             # print(sem_name)
 
-            for course in semester["przedmioty"]:
+            for course in semester.get("przedmioty", []):
+                if not _is_valid_course(course):
+                    continue
+
                 course_name = course["Nazwa przedmiotu w języku polskim"]
                 course_code = course["Kod przedmiotu"]
-
-                if (
-                    "obieralny" in course_name.lower()
-                    or "obieralne" in course_name.lower()
-                    or "elective" in course_name.lower()
-                ):
-                    continue
-
-                if (
-                    "obieralny" in course_code.lower()
-                    or "obieralne" in course_code.lower()
-                    or "elective" in course_code.lower()
-                ):
-                    continue
-
                 # print(nazwa_przedmiotu)
 
                 # add to dict
