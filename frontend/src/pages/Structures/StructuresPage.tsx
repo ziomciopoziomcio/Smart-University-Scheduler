@@ -19,7 +19,7 @@ export default function StructuresPage({view}: StructuresPageProps) {
 
     const [dummySearch, setDummySearch] = useState('');
 
-    const [data, setData] = useState<unknown[]>([]);
+    const [data, setData] = useState<any[]>([]);
     const [currentFaculty, setCurrentFaculty] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {Box, Typography, Divider, Button, IconButton, SvgIcon} from '@mui/material';
 import {Add, MoreVert} from '@mui/icons-material';
+import * as React from "react";
 
 export interface ListColumn<T> {
     render: (item: T) => React.ReactNode | string;
@@ -44,7 +46,9 @@ export default function ListView<T extends { id: number | string }>({
             {items.map((item) => (
                 <Box key={item.id}>
                     <Box
-                        onClick={() => onItemClick && onItemClick(item)}
+                        onClick={() => {
+                            if (onItemClick) onItemClick(item);
+                        }}
                         sx={{
                             display: 'flex',
                             alignItems: 'center',
@@ -67,7 +71,7 @@ export default function ListView<T extends { id: number | string }>({
                                 <Box
                                     key={index}
                                     sx={{
-                                        width: col.width || 'auto',
+                                        width: col.width ?? 'auto',
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: 1
@@ -87,7 +91,6 @@ export default function ListView<T extends { id: number | string }>({
                                     <Typography
                                         variant="body2"
                                         color={col.variant === 'primary' ? 'text.primary' : 'text.secondary'}
-                                        // fontWeight={col.variant === 'primary' ? 600 : 400}
                                         // TODO: add tooltip with full text if truncated
                                         // TODO: Think about font weight for primary vs secondary columns
                                         sx={{

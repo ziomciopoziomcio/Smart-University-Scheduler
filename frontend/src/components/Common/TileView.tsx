@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {Box, Typography, IconButton, SvgIcon} from '@mui/material';
 import {MoreVert} from '@mui/icons-material';
 
 interface TileViewProps<T> {
     items: T[];
     icon: React.ElementType;
-    getTitle: (_item: T) => string;
-    getSubtitle?: (_item: T) => string | undefined;
-    onItemClick: (_item: T) => void;
-    onMenuOpen: (_e: React.MouseEvent<HTMLElement>, _item: T) => void;
+    getTitle: (item: T) => string;
+    getSubtitle?: (item: T) => string | undefined;
+    onItemClick: (item: T) => void;
+    onMenuOpen: (e: React.MouseEvent<HTMLElement>, item: T) => void;
     onAddClick: () => void;
     addLabel: string;
 }

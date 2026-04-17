@@ -8,6 +8,7 @@ import RoomModal from './RoomModal';
 import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
 import ListView from "@components/Common/ListView.tsx";
 import ActionMenu from "@components/Common/ActionMenu.tsx";
+import type {Room} from "@api/types.ts";
 
 interface RoomViewProps {
     data: Room[];
@@ -18,7 +19,7 @@ interface RoomViewProps {
 export default function RoomView({data, buildingId, onRefresh}: RoomViewProps) {
     const intl = useIntl();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [selectedRoom, setSelectedRoom] = useState<Room>(null);
+    const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
