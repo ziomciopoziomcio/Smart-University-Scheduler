@@ -278,6 +278,21 @@ def _get_course_obj(
     return course_obj, course_code_int
 
 
+def _get_study_programs_objs(
+    db_study_programs: dict[tuple[str, str, int], Study_program], study_field_name: str, study_degree: int
+) -> list[Study_program] | None:
+    study_programs_obj: list[Study_program] = []
+    for key in db_study_programs.keys():
+        if key[0] == study_field_name and key[2] == study_degree:
+            study_programs_obj.append(db_study_programs[key])
+    if len(study_programs_obj) == 0:
+        print(
+            f"Cannot find any study program for field {study_field_name} and degree {study_degree}"
+        )
+        return None
+    return study_programs_obj
+
+
 def _add_curriculum_course(
     course_code: str | None,
     major_name: str | None,
@@ -309,14 +324,10 @@ def _add_curriculum_course(
         to Curriculum_course object
     """
     # study program objs
-    study_programs_obj: list[Study_program] = []
-    for key in db_study_programs.keys():
-        if key[0] == study_field_name and key[2] == study_degree:
-            study_programs_obj.append(db_study_programs[key])
-    if len(study_programs_obj) == 0:
-        print(
-            f"Cannot find any study program for field {study_field_name} and degree {study_degree}"
-        )
+    study_programs_obj: list[Study_program] | None = _get_study_programs_objs(
+        db_study_programs, study_field_name, study_degree
+    )
+    if study_programs_obj is None:
         return None
 
     # course obj
