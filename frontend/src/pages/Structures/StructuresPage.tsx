@@ -8,6 +8,7 @@ import SearchBar from "@components/Common/SearchBar.tsx";
 import {fetchFaculties, fetchUnits, getFaculty} from '@api/structures.ts';
 import FacultyView from '@components/Structures/FacultyView';
 import UnitView from '@components/Structures/UnitView';
+import { type Faculty, type Unit } from '@api/types';
 
 interface StructuresPageProps {
     view: 'faculties' | 'units';
@@ -19,8 +20,8 @@ export default function StructuresPage({view}: StructuresPageProps) {
 
     const [dummySearch, setDummySearch] = useState('');
 
-    const [data, setData] = useState<any[]>([]);
-    const [currentFaculty, setCurrentFaculty] = useState<any | null>(null);
+    const [data, setData] = useState<(Faculty | Unit)[]>([]);
+    const [currentFaculty, setCurrentFaculty] = useState<Faculty | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -57,25 +58,25 @@ export default function StructuresPage({view}: StructuresPageProps) {
         try {
             if (view === 'faculties') {
                 const res = await fetchFaculties();
-                setData(res.items);
+                setData(res.items as Faculty[]);
                 setCurrentFaculty(null);
-            } else if (view === 'units' && facultyId) {
+            } else if (facultyId) {
                 const [unitsRes, facultyRes] = await Promise.all([
                     fetchUnits(Number(facultyId)),
                     getFaculty(Number(facultyId))
                 ]);
-                setData(unitsRes.items);
-                setCurrentFaculty(facultyRes);
+                setData(unitsRes.items as Unit[]);
+                setCurrentFaculty(facultyRes as Faculty);
             }
-        } catch (err: any) {
-            setError(err.message);
+        } catch {
+            setError(intl.formatMessage({id: 'structures.errors.load'}));
         } finally {
             setLoading(false);
         }
     }, [view, facultyId]);
 
     useEffect(() => {
-        loadData();
+        void loadData();
     }, [loadData]);
 
     return (
@@ -94,13 +95,13 @@ export default function StructuresPage({view}: StructuresPageProps) {
                     <>
                         {view === 'faculties' && (
                             <FacultyView
-                                data={data}
+                                data={data as Faculty[]}
                                 onRefresh={loadData}
                             />
                         )}
                         {view === 'units' && (
                             <UnitView
-                                data={data}
+                                data={data as Unit[]}
                                 facultyId={Number(facultyId)}
                                 onRefresh={loadData}
                             />
