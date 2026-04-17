@@ -41,6 +41,10 @@ function AppRoute() {
                 <Route element={<ProtectedRoute/>}>
                     <Route element={<MainLayout/>}>
                         <Route path="/plan" element={<MyPlan/>}/>
+                        <Route path="/facilities" element={<FacilitiesPage view="campuses"/>}/>
+                        <Route path="/facilities/campus/:campusId" element={<FacilitiesPage view="buildings"/>}/>
+                        <Route path="/facilities/campus/:campusId/building/:buildingId"
+                               element={<FacilitiesPage view="rooms"/>}/>
 
                         <Route path="/facilities" element={<FacilitiesPage view="campuses"/>}/>
                         <Route path="/facilities/campus/:campusId" element={<FacilitiesPage view="buildings"/>}/>
