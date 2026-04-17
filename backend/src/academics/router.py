@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import List
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
@@ -231,11 +231,9 @@ def list_employees(
                 "unit_short": unit.unit_short,
                 "faculty_id": unit.faculty_id,
             }
-        user_created_at = (
-            user.created_at
-            if getattr(user, "created_at", None) is not None
-            else date.today()
-        )
+        user_created_at = getattr(user, "created_at", None)
+        if user_created_at is None:
+            user_created_at = datetime.now(timezone.utc)
         items.append(
             {
                 "id": emp.id,
@@ -284,6 +282,13 @@ def get_employee(
             "faculty_id": unit.faculty_id,
         }
 
+    created_at = getattr(user, "created_at", None)
+    if created_at is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Employee user is missing required created_at field",
+        )
+
     return {
         "id": emp.id,
         "user": {
@@ -292,7 +297,7 @@ def get_employee(
             "surname": user.surname,
             "email": user.email,
             "degree": user.degree,
-            "created_at": user.created_at,
+            "created_at": created_at,
         },
         "unit": unit_obj,
         "faculty_id": emp.faculty_id,
