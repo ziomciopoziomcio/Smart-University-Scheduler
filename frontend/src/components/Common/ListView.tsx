@@ -1,5 +1,5 @@
-import { Box, Typography, Divider, Button, IconButton, SvgIcon } from '@mui/material';
-import { Add, MoreVert } from '@mui/icons-material';
+import {Box, Typography, Divider, Button, IconButton, SvgIcon} from '@mui/material';
+import {Add, MoreVert} from '@mui/icons-material';
 
 export interface ListColumn<T> {
     render: (item: T) => React.ReactNode | string;
@@ -22,17 +22,17 @@ interface ListViewProps<T> {
 }
 
 export default function ListView<T extends { id: number | string }>({
-    items,
-    icon: Icon,
-    getTitle,
-    titleWidth,
-    columns = [],
-    onItemClick,
-    onMenuOpen,
-    onAddClick,
-    addLabel,
-    emptyMessage
-}: ListViewProps<T>) {
+                                                                        items,
+                                                                        icon: Icon,
+                                                                        getTitle,
+                                                                        titleWidth,
+                                                                        columns = [],
+                                                                        onItemClick,
+                                                                        onMenuOpen,
+                                                                        onAddClick,
+                                                                        addLabel,
+                                                                        emptyMessage
+                                                                    }: ListViewProps<T>) {
     return (
         <Box>
             {items.length === 0 && (
@@ -50,15 +50,16 @@ export default function ListView<T extends { id: number | string }>({
                             alignItems: 'center',
                             py: 2,
                             cursor: onItemClick ? 'pointer' : 'default',
-                            '&:hover': { bgcolor: '#fbfbfb' }
+                            '&:hover': {bgcolor: '#fbfbfb'}
                         }}
                     >
-                        <Box sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
-                            <SvgIcon component={Icon} inheritViewBox sx={{ fontSize: 28, color: 'text.secondary', opacity: 0.6 }} />
+                        <Box sx={{mr: 2, display: 'flex', alignItems: 'center'}}>
+                            <SvgIcon component={Icon} inheritViewBox
+                                     sx={{fontSize: 28, color: 'text.secondary', opacity: 0.6}}/>
                         </Box>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                            <Typography fontWeight={600} sx={{ width: titleWidth }}>
+                        <Box sx={{display: 'flex', alignItems: 'center', gap: 3}}>
+                            <Typography fontWeight={600} sx={{width: titleWidth}}>
                                 {getTitle(item)}
                             </Typography>
 
@@ -102,16 +103,19 @@ export default function ListView<T extends { id: number | string }>({
                         </Box>
 
                         {onMenuOpen && (
-                            <IconButton size="small" onClick={(e) => onMenuOpen(e, item)} sx={{ ml: 'auto' }}>
-                                <MoreVert sx={{ color: '#aaa' }} />
+                            <IconButton size="small" onClick={(e) => {
+                                onMenuOpen(e, item);
+                            }} sx={{ml: 'auto'}}>
+                                <MoreVert sx={{color: '#aaa'}}/>
                             </IconButton>
                         )}
                     </Box>
-                    <Divider />
+                    <Divider/>
                 </Box>
             ))}
 
-            <Button startIcon={<Add />} onClick={onAddClick} sx={{ mt: 2, color: 'text.secondary', textTransform: 'none', fontWeight: 500 }}>
+            <Button startIcon={<Add/>} onClick={onAddClick}
+                    sx={{mt: 2, color: 'text.secondary', textTransform: 'none', fontWeight: 500}}>
                 {addLabel}
             </Button>
         </Box>

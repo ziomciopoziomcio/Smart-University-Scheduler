@@ -87,7 +87,11 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
         };
 
         try {
-            room ? await updateRoom(room.id, payload) : await createRoom(payload);
+            if (room) {
+                await updateRoom(room.id, payload)
+            } else {
+                await createRoom(payload);
+            }
             onSuccess();
             onClose();
         } catch (err) {

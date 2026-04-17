@@ -4,10 +4,10 @@ import {MoreVert} from '@mui/icons-material';
 interface TileViewProps<T> {
     items: T[];
     icon: React.ElementType;
-    getTitle: (item: T) => string;
-    getSubtitle?: (item: T) => string | undefined;
-    onItemClick: (item: T) => void;
-    onMenuOpen: (e: React.MouseEvent<HTMLElement>, item: T) => void;
+    getTitle: (_item: T) => string;
+    getSubtitle?: (_item: T) => string | undefined;
+    onItemClick: (_item: T) => void;
+    onMenuOpen: (_e: React.MouseEvent<HTMLElement>, _item: T) => void;
     onAddClick: () => void;
     addLabel: string;
 }
@@ -27,28 +27,30 @@ export default function TileView<T extends { id: number | string }>({
             {items.map((item) => (
                 <Box
                     key={item.id}
-                    onClick={() => onItemClick(item)}
-                    sx={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        minWidth: 320, p: 2.5, border: '1px solid rgba(0,0,0,0.1)',
-                        borderRadius: '16px', cursor: 'pointer', transition: 'all 0.2s',
-                        '&:hover': {borderColor: 'rgba(0,0,0,0.2)', bgcolor: '#fbfbfb', transform: 'translateY(-2px)'}
-                    }}
+                    onClick={() => {
+                        onItemClick(item);
+                    }} sx={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    minWidth: 320, p: 2.5, border: '1px solid rgba(0,0,0,0.1)',
+                    borderRadius: '16px', cursor: 'pointer', transition: 'all 0.2s',
+                    '&:hover': {borderColor: 'rgba(0,0,0,0.2)', bgcolor: '#fbfbfb', transform: 'translateY(-2px)'}
+                }}
                 >
                     <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
                         <SvgIcon component={Icon} inheritViewBox sx={{fontSize: 48, color: 'rgba(0,0,0,0.4)'}}/>
                         <Box
-                        sx={{display: 'flex', flexDirection: 'column', alignItems: 'start'}}>
-                        <Typography sx={{fontWeight: 600, textAlign: 'start'}}>{getTitle(item)}</Typography>
-                        {getSubtitle && (
-                            <Typography variant="body2" color="text.secondary" sx={{textAlign: 'start'}}>
-                                {getSubtitle(item)}
-                            </Typography>
-                        )}
+                            sx={{display: 'flex', flexDirection: 'column', alignItems: 'start'}}>
+                            <Typography sx={{fontWeight: 600, textAlign: 'start'}}>{getTitle(item)}</Typography>
+                            {getSubtitle && (
+                                <Typography variant="body2" color="text.secondary" sx={{textAlign: 'start'}}>
+                                    {getSubtitle(item)}
+                                </Typography>
+                            )}
+                        </Box>
                     </Box>
-                    </Box>
-                    <IconButton size="small" onClick={(e) => onMenuOpen(e, item)}>
-                        <MoreVert/>
+                    <IconButton size="small" onClick={(e) => {
+                        onMenuOpen(e, item);
+                    }}> <MoreVert/>
                     </IconButton>
                 </Box>
             ))}

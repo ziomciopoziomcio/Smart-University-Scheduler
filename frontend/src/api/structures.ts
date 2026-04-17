@@ -11,14 +11,14 @@ const getHeaders = () => ({
 });
 
 
-export const fetchFaculties = async (): Promise<PaginatedResponse<any>> => {
+export const fetchFaculties = async (): Promise<PaginatedResponse<unknown>> => {
     const res = await fetch(`${FACILITIES_URL}/faculties`, {headers: getHeaders()});
     if (!res.ok) throw new Error('Błąd pobierania wydziałów');
     return res.json();
 };
 
-export const getFaculty = async (id: number): Promise<any> => {
-    const res = await fetch(`${FACILITIES_URL}/faculties/${id}`, { headers: getHeaders() });
+export const getFaculty = async (id: number): Promise<unknown> => {
+    const res = await fetch(`${FACILITIES_URL}/faculties/${id}`, {headers: getHeaders()});
     if (!res.ok) throw new Error('Błąd pobierania wydziału');
     return res.json();
 };
@@ -52,8 +52,8 @@ export const deleteFaculty = async (id: number): Promise<void> => {
 };
 
 
-export const fetchUnits = async (facultyId: number): Promise<PaginatedResponse<any>> => {
-    const res = await fetch(`${ACADEMICS_URL}/units?faculty_id=${facultyId}`, { headers: getHeaders() });
+export const fetchUnits = async (facultyId: number): Promise<PaginatedResponse<unknown>> => {
+    const res = await fetch(`${ACADEMICS_URL}/units?faculty_id=${facultyId}`, {headers: getHeaders()});
     if (!res.ok) throw new Error('Błąd pobierania jednostek');
     return res.json();
 };
@@ -68,7 +68,11 @@ export const createUnit = async (data: { unit_name: string; unit_short: string; 
     return res.json();
 };
 
-export const updateUnit = async (id: number, data: { unit_name?: string; unit_short?: string; faculty_id?: number }) => {
+export const updateUnit = async (id: number, data: {
+    unit_name?: string;
+    unit_short?: string;
+    faculty_id?: number
+}) => {
     const res = await fetch(`${ACADEMICS_URL}/units/${id}`, {
         method: 'PATCH',
         headers: getHeaders(),
