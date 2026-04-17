@@ -295,13 +295,39 @@ def _get_study_programs_objs(
     return study_programs_obj
 
 
+def _create_curriculum_courses(
+    study_programs_obj: list[Study_program],
+    course_code_int: int,
+    semester_id: int,
+    major_id: int | None,
+    major_name: str | None,
+    session: Session,
+) -> dict[tuple[str | None, int, int, str | None, str | None], Curriculum_course]:
+    added: dict[
+        tuple[str | None, int, int, str | None, str | None], Curriculum_course
+    ] = {}
+    for sp_obj in study_programs_obj:
+        sp_id = sp_obj.id
+        cc_obj = Curriculum_course(
+            study_program=sp_id,
+            course=course_code_int,
+            semester=semester_id,
+            major=major_id,
+        )
+        session.add(cc_obj)
+        added[(sp_obj.program_name, course_code_int, semester_id, major_name, None)] = (
+            cc_obj
+        )
+    return added
+
+
 def _add_curriculum_course(
     course_code: str | None,
     major_name: str | None,
     study_field_name: str,
     study_degree: int,
     semester_id: int,
-    db_objects: tuple[dict[tuple[str, str, int], Study_program], dict[int, Course], dict[tuple[str, str], Major]],
+    db_objects: tuple,
     session: Session,
 ) -> (
     dict[tuple[str | None, int, int, str | None, str | None], Curriculum_course] | None
@@ -346,19 +372,9 @@ def _add_curriculum_course(
     # add to db
     added: dict[
         tuple[str | None, int, int, str | None, str | None], Curriculum_course
-    ] = {}
-    for sp_obj in study_programs_obj:
-        sp_id = sp_obj.id
-        cc_obj = Curriculum_course(
-            study_program=sp_id,
-            course=course_code_int,
-            semester=semester_id,
-            major=major_id,
-        )
-        session.add(cc_obj)
-        added[(sp_obj.program_name, course_code_int, semester_id, major_name, None)] = (
-            cc_obj
-        )
+    ] = _create_curriculum_courses(
+        study_programs_obj, course_code_int, semester_id, major_id, major_name, session
+    )
     return added
 
 
