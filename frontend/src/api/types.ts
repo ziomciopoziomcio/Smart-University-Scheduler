@@ -100,3 +100,44 @@ export interface Unit {
     unit_short: string;
     faculty_id: number;
 }
+
+export interface StudyProgramDetails {
+    id: number;
+    study_field: number;
+    start_year: number;
+    program_name: string;
+}
+
+export interface MajorDetails {
+    id: number;
+    major_name: string;
+}
+
+export interface Student {
+    id: number;
+    user_id: number;
+    study_program: number;
+    major: number | null;
+    user: User;
+    study_program_details: StudyProgramDetails;
+    major_details: MajorDetails | null;
+}
+
+export interface Employee {
+    id: number;
+    user_id: number;
+    faculty_id: number;
+    unit_id: number | null;
+    user: User;
+    unit: {
+        id: number;
+        unit_name: string;
+        unit_short: string;
+        faculty_id: number;
+    } | null;
+    faculty: {
+        id: number;
+        faculty_name: string;
+        faculty_short: string;
+    } | null;
+}

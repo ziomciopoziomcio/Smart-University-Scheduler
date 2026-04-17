@@ -57,7 +57,7 @@ const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.employees', // employees or maybe "staff"?
         icon: <SvgIcon component={easel_icon} inheritViewBox/>,
-        path: '/', // TODO: change to real path and add allowedRoles
+        path: '/employees', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
@@ -75,7 +75,7 @@ const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.students', // students
         icon: <SvgIcon component={backpack_icon} inheritViewBox/>,
-        path: '/', // TODO: change to real path and add allowedRoles
+        path: '/students', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
