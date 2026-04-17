@@ -26,13 +26,14 @@ export default function FacultyModal({open, faculty, onClose, onSuccess}: Facult
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            faculty
-                ? await updateFaculty(faculty.id, {faculty_name: name, faculty_short: short})
-                : await createFaculty({faculty_name: name, faculty_short: short});
+            if (faculty) {
+                await updateFaculty(faculty.id, {faculty_name: name, faculty_short: short});
+            } else {
+                await createFaculty({faculty_name: name, faculty_short: short});
+            }
             onSuccess();
             onClose();
         } catch {
-            // TODO: change to snackbar maybe
             alert(intl.formatMessage({id: 'structures.faculty.errors.add'}));
         } finally {
             setLoading(false);
@@ -51,19 +52,25 @@ export default function FacultyModal({open, faculty, onClose, onSuccess}: Facult
                     label={intl.formatMessage({id: 'structures.faculty.nameLabel'})}
                     placeholder={intl.formatMessage({id: 'structures.faculty.namePlaceholder'})}
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => {
+                        setName(e.target.value);
+                    }}
                     fullWidth
                 />
                 <TextField
                     label={intl.formatMessage({id: 'structures.faculty.shortLabel'})}
                     placeholder={intl.formatMessage({id: 'structures.faculty.shortPlaceholder'})}
                     value={short}
-                    onChange={(e) => setShort(e.target.value)}
+                    onChange={(e) => {
+                        setShort(e.target.value);
+                    }}
                     fullWidth
                 />
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
                     <Button variant="contained"
-                            onClick={handleSubmit}
+                            onClick={() => {
+                                handleSubmit();
+                            }}
                             disabled={loading || !name || !short}
                             sx={{
                                 background: '#2b5073',

@@ -8,11 +8,19 @@ import UnitModal from './UnitModal';
 import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
 import ListView from "@components/Common/ListView.tsx";
 import ActionMenu from "@components/Common/ActionMenu.tsx";
+import {type Unit} from '@api/types';
 
-export default function UnitView({data, facultyId, onRefresh}: Unit) {
+// DODANE: Poprawny interfejs dla widoku
+interface UnitViewProps {
+    data: Unit[];
+    facultyId: number;
+    onRefresh: () => void;
+}
+
+export default function UnitView({data, facultyId, onRefresh}: UnitViewProps) {
     const intl = useIntl();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [selectedUnit, setSelectedUnit] = useState<Unit>(null);
+    const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null); // DODANE: Typ Unit | null
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -23,12 +31,13 @@ export default function UnitView({data, facultyId, onRefresh}: Unit) {
     };
 
     const handleConfirmDelete = async () => {
+        if (!selectedUnit) return;
         try {
             await deleteUnit(selectedUnit.id);
             onRefresh();
             setIsDeleteModalOpen(false);
+            setSelectedUnit(null);
         } catch {
-            // TODO: May change to snackbar
             alert(intl.formatMessage({id: 'structures.unit.errors.delete'}));
         }
     };
@@ -61,9 +70,15 @@ export default function UnitView({data, facultyId, onRefresh}: Unit) {
 
             <ActionMenu
                 anchorEl={anchorEl}
-                onClose={() => setAnchorEl(null)}
-                onEdit={() => setIsModalOpen(true)}
-                onDelete={() => setIsDeleteModalOpen(true)}
+                onClose={() => {
+                    setAnchorEl(null);
+                }}
+                onEdit={() => {
+                    setIsModalOpen(true);
+                }}
+                onDelete={() => {
+                    setIsDeleteModalOpen(true);
+                }}
                 editLabel={intl.formatMessage({id: 'structures.unit.edit'})}
                 deleteLabel={intl.formatMessage({id: 'structures.unit.delete'})}
             />
@@ -72,7 +87,9 @@ export default function UnitView({data, facultyId, onRefresh}: Unit) {
                 open={isModalOpen}
                 facultyId={facultyId}
                 unit={selectedUnit}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                }}
                 onSuccess={onRefresh}
             />
 
@@ -82,8 +99,12 @@ export default function UnitView({data, facultyId, onRefresh}: Unit) {
                 description={intl.formatMessage({id: 'structures.unit.deleteDesc'})}
                 cancelButtonLabel={intl.formatMessage({id: 'facilities.common.cancel'})}
                 confirmButtonLabel={intl.formatMessage({id: 'facilities.common.deleteConfirm'})}
-                onConfirm={handleConfirmDelete}
-                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={() => {
+                    void handleConfirmDelete();
+                }}
+                onClose={() => {
+                    setIsDeleteModalOpen(false);
+                }}
             />
         </Box>
     );

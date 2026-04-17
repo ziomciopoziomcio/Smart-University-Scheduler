@@ -1,5 +1,3 @@
-// TODO: handle deleting faculty when it has units or rooms assigned
-
 import {useState} from 'react';
 import {Box} from '@mui/material';
 import {AccountBalance} from '@mui/icons-material';
@@ -40,16 +38,16 @@ export default function FacultyView({data, onRefresh}: FacultyViewProps) {
     };
 
     const handleConfirmDelete = async () => {
-    if (!selectedFaculty) return;
-    try {
-        await deleteFaculty(selectedFaculty.id); //
-        onRefresh();
-        setIsDeleteModalOpen(false);
-        setSelectedFaculty(null);
-    } catch {
-        alert(intl.formatMessage({id: 'structures.faculty.errors.delete'}));
-    }
-};
+        if (!selectedFaculty) return;
+        try {
+            await deleteFaculty(selectedFaculty.id);
+            onRefresh();
+            setIsDeleteModalOpen(false);
+            setSelectedFaculty(null);
+        } catch {
+            alert(intl.formatMessage({id: 'structures.faculty.errors.delete'}));
+        }
+    };
 
     return (
         <Box>
@@ -58,7 +56,9 @@ export default function FacultyView({data, onRefresh}: FacultyViewProps) {
                 icon={AccountBalance}
                 getTitle={(item: Faculty) => item.faculty_short}
                 getSubtitle={(item: Faculty) => item.faculty_name}
-                onItemClick={(item: Faculty) => navigate(`/structures/faculty/${item.id}`)}
+                onItemClick={(item: Faculty) => {
+                    navigate(`/structures/faculty/${item.id}`);
+                }}
                 onMenuOpen={handleMenuOpen}
                 onAddClick={handleAddClick}
                 addLabel={intl.formatMessage({id: 'structures.faculty.add'})}
@@ -66,20 +66,32 @@ export default function FacultyView({data, onRefresh}: FacultyViewProps) {
 
             <ActionMenu
                 anchorEl={anchorEl}
-                onClose={() => setAnchorEl(null)}
-                onEdit={() => setIsEditModalOpen(true)}
-                onDelete={() => setIsDeleteModalOpen(true)}
+                onClose={() => {
+                    setAnchorEl(null);
+                }}
+                onEdit={() => {
+                    setIsEditModalOpen(true);
+                }}
+                onDelete={() => {
+                    setIsDeleteModalOpen(true);
+                }}
                 editLabel={intl.formatMessage({id: 'structures.faculty.edit'})}
                 deleteLabel={intl.formatMessage({id: 'structures.faculty.delete'})}
             />
 
-            <FacultyModal open={isEditModalOpen} faculty={selectedFaculty} onClose={() => setIsEditModalOpen(false)}
+            <FacultyModal open={isEditModalOpen} faculty={selectedFaculty} onClose={() => {
+                setIsEditModalOpen(false);
+            }}
                           onSuccess={onRefresh}/>
             <DeleteConfirmDialog open={isDeleteModalOpen}
                                  title={intl.formatMessage({id: 'structures.faculty.deleteTitle'})}
                                  description={intl.formatMessage({id: 'structures.faculty.deleteDesc'})}
-                                 onConfirm={handleConfirmDelete}
-                                 onClose={() => setIsDeleteModalOpen(false)}
+                                 onConfirm={() => {
+                                     void handleConfirmDelete();
+                                 }}
+                                 onClose={() => {
+                                     setIsDeleteModalOpen(false);
+                                 }}
                                  cancelButtonLabel={intl.formatMessage({id: 'structures.common.cancel'})}
                                  confirmButtonLabel={intl.formatMessage({id: 'structures.faculty.delete'})}
             />

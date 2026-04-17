@@ -29,14 +29,13 @@ export default function UnitModal({open, facultyId, unit, onClose, onSuccess}: U
         const payload = {unit_name: name, unit_short: short, faculty_id: facultyId};
         try {
             if (unit) {
-                await updateUnit(unit.id, payload)
+                await updateUnit(unit.id, payload);
             } else {
                 await createUnit(payload);
             }
             onSuccess();
             onClose();
         } catch {
-            // TODO: change to snackbar maybe
             alert(intl.formatMessage({id: 'structures.unit.errors.add'}));
         } finally {
             setLoading(false);
@@ -59,18 +58,24 @@ export default function UnitModal({open, facultyId, unit, onClose, onSuccess}: U
                 <TextField label={intl.formatMessage({id: 'structures.unit.nameLabel'})}
                            placeholder={intl.formatMessage({id: 'structures.unit.namePlaceholder'})}
                            value={name}
-                           onChange={(e) => setName(e.target.value)}
+                           onChange={(e) => {
+                               setName(e.target.value);
+                           }}
                            fullWidth
                 />
                 <TextField label={intl.formatMessage({id: 'structures.unit.shortLabel'})}
                            placeholder={intl.formatMessage({id: 'structures.unit.shortPlaceholder'})}
                            value={short}
-                           onChange={(e) => setShort(e.target.value)}
+                           onChange={(e) => {
+                               setShort(e.target.value);
+                           }}
                            fullWidth
                 />
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
                     <Button variant="contained"
-                            onClick={handleSubmit}
+                            onClick={() => {
+                                handleSubmit();
+                            }}
                             disabled={loading || !name || !short}
                             sx={{
                                 background: '#2b5073',
