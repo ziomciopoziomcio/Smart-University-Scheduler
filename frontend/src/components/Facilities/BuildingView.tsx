@@ -71,7 +71,9 @@ export default function BuildingView({data, campusId, onRefresh}: BuildingViewPr
                     }
                 ]}
 
-                onItemClick={(item: Building) => navigate(`/facilities/campus/${campusId}/building/${item.id}`)}
+                onItemClick={(item: Building) => {
+                    navigate(`/facilities/campus/${campusId}/building/${item.id}`);
+                }}
                 onMenuOpen={handleMenuOpen}
                 onAddClick={() => {
                     setSelectedBuilding(null);

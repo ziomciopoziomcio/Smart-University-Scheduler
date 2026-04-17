@@ -64,8 +64,9 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
             try {
                 const res = assignmentType === 'faculty' ? await fetchFaculties() : await fetchUnits();
                 setOptions(res.items);
-            } catch (err: any) {
-                console.error(err);
+            } catch {
+                // TODO: snackbar maybe?
+                console.error("Failed to load options");
             } finally {
                 setIsLoadingOptions(false);
             }
@@ -84,7 +85,7 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
             const selectedUnitObj = options.find(opt => opt.id === selectedId);
             if (selectedUnitObj) {
                 actualFacultyId = selectedUnitObj.faculty_id;
-            } else if (room && room.faculty_id) {
+            } else if (room?.faculty_id) {
                 actualFacultyId = room.faculty_id;
             } else {
 
@@ -133,7 +134,9 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
                     label={intl.formatMessage({id: 'facilities.room.nameLabel'})}
                     placeholder={intl.formatMessage({id: 'facilities.room.namePlaceholder'})}
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => {
+                        setName(e.target.value);
+                    }}
                     fullWidth
                     InputProps={{sx: {borderRadius: '12px'}}}
                 />
@@ -188,7 +191,9 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
                         type="number"
                         label={intl.formatMessage({id: 'facilities.room.capacityLabel'})}
                         value={capacity}
-                        onChange={(e) => setCapacity(Number(e.target.value))}
+                        onChange={(e) => {
+                            setCapacity(Number(e.target.value));
+                        }}
                         fullWidth
                         InputProps={{sx: {borderRadius: '12px'}}}
                     />
@@ -196,7 +201,9 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
                         type="number"
                         label={intl.formatMessage({id: 'facilities.room.pcLabel'})}
                         value={pcAmount}
-                        onChange={(e) => setPcAmount(Number(e.target.value))}
+                        onChange={(e) => {
+                            setPcAmount(Number(e.target.value));
+                        }}
                         fullWidth
                         InputProps={{sx: {borderRadius: '12px'}}}
                     />

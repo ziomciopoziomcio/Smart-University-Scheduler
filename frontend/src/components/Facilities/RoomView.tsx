@@ -86,9 +86,15 @@ export default function RoomView({data, buildingId, onRefresh}: RoomViewProps) {
 
             <ActionMenu
                 anchorEl={anchorEl}
-                onClose={() => setAnchorEl(null)}
-                onEdit={() => setIsModalOpen(true)}
-                onDelete={() => setIsDeleteModalOpen(true)}
+                onClose={() => {
+                    setAnchorEl(null);
+                }}
+                onEdit={() => {
+                    setIsModalOpen(true);
+                }}
+                onDelete={() => {
+                    setIsDeleteModalOpen(true);
+                }}
                 editLabel={intl.formatMessage({id: 'facilities.room.edit'})}
                 deleteLabel={intl.formatMessage({id: 'facilities.room.delete'})}
             />

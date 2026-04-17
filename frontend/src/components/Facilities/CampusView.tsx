@@ -41,9 +41,8 @@ export default function CampusView({data, onRefresh}: CampusViewProps) {
             onRefresh();
             setIsDeleteModalOpen(false);
             setSelectedCampus(null);
-        } catch (err: any){
-            // TODO: Maybe change to snackbar
-            alert(err.message || intl.formatMessage({id: 'facilities.campus.errors.delete'}));
+        } catch {            // TODO: Maybe change to snackbar
+            alert(intl.formatMessage({id: 'facilities.campus.errors.delete'}));
         }
     };
 
@@ -54,7 +53,9 @@ export default function CampusView({data, onRefresh}: CampusViewProps) {
                 icon={buildingIcon}
                 getTitle={(item: Campus) => item.campus_name || `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${item.campus_short}`}
                 getSubtitle={(item: Campus) => item.campus_short}
-                onItemClick={(item: Campus) => navigate(`/facilities/campus/${item.id}`)}
+                onItemClick={(item: Campus) => {
+                    navigate(`/facilities/campus/${item.id}`);
+                }}
                 onMenuOpen={handleMenuOpen}
                 onAddClick={() => {
                     setSelectedCampus(null);
@@ -81,7 +82,9 @@ export default function CampusView({data, onRefresh}: CampusViewProps) {
             <CampusModal
                 open={isModalOpen}
                 campus={selectedCampus}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                }}
                 onSuccess={onRefresh}
             />
 
@@ -92,7 +95,9 @@ export default function CampusView({data, onRefresh}: CampusViewProps) {
                 cancelButtonLabel={intl.formatMessage({id: 'facilities.common.cancel'})}
                 confirmButtonLabel={intl.formatMessage({id: 'facilities.campus.delete'})}
                 onConfirm={handleConfirmDelete}
-                onClose={() => setIsDeleteModalOpen(false)}/>
+                onClose={() => {
+                    setIsDeleteModalOpen(false);
+                }}/>
         </Box>
     );
 }

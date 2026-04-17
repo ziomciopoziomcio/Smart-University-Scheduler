@@ -74,7 +74,7 @@ export default function UnitModal({open, facultyId, unit, onClose, onSuccess}: U
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
                     <Button variant="contained"
                             onClick={() => {
-                                handleSubmit();
+                                void handleSubmit();
                             }}
                             disabled={loading || !name || !short}
                             sx={{
