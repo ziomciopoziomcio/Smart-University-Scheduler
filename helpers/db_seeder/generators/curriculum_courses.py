@@ -457,14 +457,17 @@ def _add_common_to_db(
             if added:
                 db_curr_courses.update(added)
 
-def _add_common_and_unique_to_db(cu,
-        study_field_name,
-        study_degree,
-        db_study_programs,
-        db_courses,
-        db_majors,
-        session,
-        db_curr_courses):
+
+def _add_common_and_unique_to_db(
+    cu,
+    study_field_name,
+    study_degree,
+    db_study_programs,
+    db_courses,
+    db_majors,
+    session,
+    db_curr_courses,
+):
 
     common, unique = cu
 
@@ -489,6 +492,7 @@ def _add_common_and_unique_to_db(cu,
         session,
         db_curr_courses,
     )
+
 
 def _get_common_and_unique(study_fields):
     courses_dict = _prepare_courses_dict(study_fields)
