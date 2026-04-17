@@ -493,10 +493,6 @@ def generate_curriculum_courses(
     combs = _get_study_field_major_degree_from_file(sourcefile, with_major=False)
 
     for study_field_name, study_degree in combs:
-
-        # if study_field_name != "informatyka." or study_degree != 1:
-        #     continue
-
         print(
             f" PROCESSING: {study_field_name}, degree {study_degree}. ======================================================================"
         )
@@ -506,10 +502,6 @@ def generate_curriculum_courses(
         )
 
         common, unique = _get_common_and_unique(study_fields)
-
-        # _display_courses_common_for_all_majors(common)
-        # _display_courses_unique_at_the_major_level(unique)
-
         _add_common_to_db(
             common,
             study_field_name,
@@ -520,7 +512,6 @@ def generate_curriculum_courses(
             session,
             db_curr_courses,
         )
-
         _add_unique_to_db(
             unique,
             study_field_name,
