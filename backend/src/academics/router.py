@@ -16,6 +16,8 @@ from . import models, schemas
 from ..database.database import get_db
 from ..common.require_permission import require_permission
 from ..users import models as user_models
+from ..courses import models as course_models
+from ..facilities import models as facilities_models
 
 router = APIRouter(prefix="/academics", tags=["academics"])
 
@@ -65,8 +67,24 @@ def list_students(
     if filters:
         count_q = count_q.filter(*filters)
 
-    joined_q = db.query(models.Students, user_models.Users).join(
-        user_models.Users, models.Students.user_id == user_models.Users.id
+    joined_q = (
+        db.query(
+            models.Students,
+            user_models.Users,
+            course_models.Study_program,
+            course_models.Study_fields,
+            course_models.Major,
+        )
+        .join(user_models.Users, models.Students.user_id == user_models.Users.id)
+        .join(
+            course_models.Study_program,
+            models.Students.study_program == course_models.Study_program.id,
+        )
+        .join(
+            course_models.Study_fields,
+            course_models.Study_program.study_field == course_models.Study_fields.id,
+        )
+        .outerjoin(course_models.Major, models.Students.major == course_models.Major.id)
     )
     if filters:
         joined_q = joined_q.filter(*filters)
@@ -82,21 +100,40 @@ def list_students(
     total = paginated.total
 
     items = []
-    for student, user in rows:
+    for student, user, study_program, study_field, major_obj in rows:
+        user_created_at = getattr(user, "created_at", None)
+        if user_created_at is None:
+            user_created_at = datetime.now(timezone.utc)
+
+        user_obj = {
+            "id": user.id,
+            "name": user.name,
+            "surname": user.surname,
+            "email": user.email,
+            "degree": user.degree,
+            "created_at": user_created_at,
+        }
+
+        study_program_details = {
+            "id": study_program.id,
+            "study_field": study_program.study_field,
+            "start_year": study_program.start_year,
+            "program_name": study_program.program_name or getattr(study_field, "field_name", None),
+        }
+
+        major_details = None
+        if major_obj is not None:
+            major_details = {"id": major_obj.id, "major_name": major_obj.major_name}
+
         items.append(
             {
                 "id": student.id,
                 "user_id": student.user_id,
                 "study_program": student.study_program,
                 "major": student.major,
-                "user": {
-                    "id": user.id,
-                    "name": user.name,
-                    "surname": user.surname,
-                    "email": user.email,
-                    "degree": user.degree,
-                    "created_at": user.created_at,
-                },
+                "user": user_obj,
+                "study_program_details": study_program_details,
+                "major_details": major_details,
             }
         )
 
@@ -110,8 +147,23 @@ def get_student(
     _current_user: user_models.Users = Depends(require_permission("student:view")),
 ):
     row = (
-        db.query(models.Students, user_models.Users)
+        db.query(
+            models.Students,
+            user_models.Users,
+            course_models.Study_program,
+            course_models.Study_fields,
+            course_models.Major,
+        )
         .join(user_models.Users, models.Students.user_id == user_models.Users.id)
+        .join(
+            course_models.Study_program,
+            models.Students.study_program == course_models.Study_program.id,
+        )
+        .join(
+            course_models.Study_fields,
+            course_models.Study_program.study_field == course_models.Study_fields.id,
+        )
+        .outerjoin(course_models.Major, models.Students.major == course_models.Major.id)
         .filter(models.Students.id == student_id)
         .one_or_none()
     )
@@ -119,20 +171,40 @@ def get_student(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Student not found"
         )
-    student, user = row
+    student, user, study_program, study_field, major_obj = row
+
+    user_created_at = getattr(user, "created_at", None)
+    if user_created_at is None:
+        user_created_at = datetime.now(timezone.utc)
+
+    user_obj = {
+        "id": user.id,
+        "name": user.name,
+        "surname": user.surname,
+        "email": user.email,
+        "degree": user.degree,
+        "created_at": user_created_at,
+    }
+
+    study_program_details = {
+        "id": study_program.id,
+        "study_field": study_program.study_field,
+        "start_year": study_program.start_year,
+        "program_name": study_program.program_name or getattr(study_field, "field_name", None),
+    }
+
+    major_details = None
+    if major_obj is not None:
+        major_details = {"id": major_obj.id, "major_name": major_obj.major_name}
+
     return {
         "id": student.id,
         "user_id": student.user_id,
         "study_program": student.study_program,
         "major": student.major,
-        "user": {
-            "id": user.id,
-            "name": user.name,
-            "surname": user.surname,
-            "email": user.email,
-            "degree": user.degree,
-            "created_at": user.created_at,
-        },
+        "user": user_obj,
+        "study_program_details": study_program_details,
+        "major_details": major_details,
     }
 
 
@@ -204,9 +276,18 @@ def list_employees(
         count_q = count_q.filter(*filters)
 
     joined_q = (
-        db.query(models.Employees, user_models.Users, models.Units)
+        db.query(
+            models.Employees,
+            user_models.Users,
+            models.Units,
+            facilities_models.Faculty,
+        )
         .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
         .outerjoin(models.Units, models.Employees.unit_id == models.Units.id)
+        .outerjoin(
+            facilities_models.Faculty,
+            models.Employees.faculty_id == facilities_models.Faculty.id,
+        )
     )
     if filters:
         joined_q = joined_q.filter(*filters)
@@ -222,7 +303,7 @@ def list_employees(
     total = paginated.total
 
     items = []
-    for emp, user, unit in rows:
+    for emp, user, unit, faculty in rows:
         unit_obj = None
         if unit is not None:
             unit_obj = {
@@ -231,6 +312,14 @@ def list_employees(
                 "unit_short": unit.unit_short,
                 "faculty_id": unit.faculty_id,
             }
+        faculty_obj = None
+        if faculty is not None:
+            faculty_obj = {
+                "id": faculty.id,
+                "faculty_name": faculty.faculty_name,
+                "faculty_short": faculty.faculty_short,
+            }
+
         user_created_at = getattr(user, "created_at", None)
         if user_created_at is None:
             user_created_at = datetime.now(timezone.utc)
@@ -246,6 +335,7 @@ def list_employees(
                     "created_at": user_created_at,
                 },
                 "unit": unit_obj,
+                "faculty": faculty_obj,
                 "faculty_id": emp.faculty_id,
                 "user_id": emp.user_id,
                 "unit_id": emp.unit_id,
@@ -262,9 +352,15 @@ def get_employee(
     _current_user: user_models.Users = Depends(require_permission("employee:view")),
 ):
     row = (
-        db.query(models.Employees, user_models.Users, models.Units)
+        db.query(
+            models.Employees, user_models.Users, models.Units, facilities_models.Faculty
+        )
         .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
         .outerjoin(models.Units, models.Employees.unit_id == models.Units.id)
+        .outerjoin(
+            facilities_models.Faculty,
+            models.Employees.faculty_id == facilities_models.Faculty.id,
+        )
         .filter(models.Employees.id == employee_id)
         .one_or_none()
     )
@@ -272,7 +368,7 @@ def get_employee(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found"
         )
-    emp, user, unit = row
+    emp, user, unit, faculty = row
     unit_obj = None
     if unit is not None:
         unit_obj = {
@@ -280,6 +376,14 @@ def get_employee(
             "unit_name": unit.unit_name,
             "unit_short": unit.unit_short,
             "faculty_id": unit.faculty_id,
+        }
+
+    faculty_obj = None
+    if faculty is not None:
+        faculty_obj = {
+            "id": faculty.id,
+            "faculty_name": faculty.faculty_name,
+            "faculty_short": faculty.faculty_short,
         }
 
     created_at = getattr(user, "created_at", None)
@@ -300,6 +404,7 @@ def get_employee(
             "created_at": created_at,
         },
         "unit": unit_obj,
+        "faculty": faculty_obj,
         "faculty_id": emp.faculty_id,
         "user_id": emp.user_id,
         "unit_id": emp.unit_id,
