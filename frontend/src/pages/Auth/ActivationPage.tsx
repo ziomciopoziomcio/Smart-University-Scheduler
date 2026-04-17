@@ -1,12 +1,11 @@
 import {useEffect, useState, useRef} from 'react';
 import {useSearchParams, useNavigate} from 'react-router-dom';
 import {CircularProgress, Alert, Stack, Typography, Button} from '@mui/material';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import AuthLayout from '@components/Login/AuthLayout';
 import {verifyEmail} from '@api/auth';
 
 function ActivationPage() {
-    const intl = useIntl();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
@@ -30,7 +29,7 @@ function ActivationPage() {
             try {
                 await verifyEmail(token);
                 setStatus('success');
-            } catch (err: any) {
+            } catch {
                 setStatus('error');
                 setErrorMsg(err.message || <FormattedMessage id="activate.error.invalidOrExpired"/>);
             }

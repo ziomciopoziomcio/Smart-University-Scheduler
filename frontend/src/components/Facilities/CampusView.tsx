@@ -40,7 +40,7 @@ export default function CampusView({data, onRefresh}: CampusViewProps) {
             onRefresh();
             setIsDeleteModalOpen(false);
             setSelectedCampus(null);
-        } catch (error: Campus) {
+        } catch {
             // TODO: Maybe change to snackbar
             alert(error.message || intl.formatMessage({id: 'facilities.campus.errors.delete'}));
         }

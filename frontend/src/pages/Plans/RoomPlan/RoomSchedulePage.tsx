@@ -62,7 +62,7 @@ export default function RoomSchedulePage() {
                 if (!isCancelled) {
                     setEntries(response);
                 }
-            } catch (error) {
+            } catch {
                 if (!isCancelled) {
                     setEntries([]);
                 }

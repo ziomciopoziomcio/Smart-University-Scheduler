@@ -71,7 +71,7 @@ export const useAuthStore = create<AuthState>()(
                 try {
                     const userData = await fetchUserData(token);
                     set({user: userData});
-                } catch (err) {
+                } catch {
                     set({token: null, user: null});
                 }
             },

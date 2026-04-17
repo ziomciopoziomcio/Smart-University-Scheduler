@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, Typography, TextField, Box, Button, CircularProgress } from '@mui/material';
 import { useIntl } from 'react-intl';
 import { createCampus, updateCampus } from '@api/facilities';
+import type { Campus } from '@api/types';
 
 interface CampusModalProps {
     open: boolean;
-    campus?: any | null;
+    campus?: Campus | null;
     onClose: () => void;
     onSuccess: () => void;
 }
@@ -34,7 +35,7 @@ export default function CampusModal({ open, campus, onClose, onSuccess }: Campus
             }
             onSuccess();
             onClose();
-        } catch (e) {
+        } catch {
             alert(intl.formatMessage({ id: 'facilities.campus.error.add' }));
         } finally {
             setLoading(false);

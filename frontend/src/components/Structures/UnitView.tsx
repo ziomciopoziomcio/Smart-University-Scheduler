@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { Box } from '@mui/material';
-import { Groups } from '@mui/icons-material';
-import { useIntl } from 'react-intl';
+import {useState} from 'react';
+import {Box} from '@mui/material';
+import {Groups} from '@mui/icons-material';
+import {useIntl} from 'react-intl';
 
-import { deleteUnit } from '@api/structures';
+import {deleteUnit} from '@api/structures';
 import UnitModal from './UnitModal';
 import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
 import ListView from "@components/Common/ListView.tsx";
 import ActionMenu from "@components/Common/ActionMenu.tsx";
 
-export default function UnitView({ data, facultyId, onRefresh }: Unit) {
+export default function UnitView({data, facultyId, onRefresh}: Unit) {
     const intl = useIntl();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selectedUnit, setSelectedUnit] = useState<Unit>(null);
@@ -27,9 +27,9 @@ export default function UnitView({ data, facultyId, onRefresh }: Unit) {
             await deleteUnit(selectedUnit.id);
             onRefresh();
             setIsDeleteModalOpen(false);
-        } catch (e) {
+        } catch {
             // TODO: May change to snackbar
-            alert(intl.formatMessage({ id: 'structures.unit.errors.delete' }));
+            alert(intl.formatMessage({id: 'structures.unit.errors.delete'}));
         }
     };
 
@@ -55,7 +55,7 @@ export default function UnitView({ data, facultyId, onRefresh }: Unit) {
                     setSelectedUnit(null);
                     setIsModalOpen(true);
                 }}
-                addLabel={intl.formatMessage({ id: 'structures.unit.add' })}
+                addLabel={intl.formatMessage({id: 'structures.unit.add'})}
                 emptyMessage="Brak jednostek dla tego wydziału."
             />
 
@@ -64,8 +64,8 @@ export default function UnitView({ data, facultyId, onRefresh }: Unit) {
                 onClose={() => setAnchorEl(null)}
                 onEdit={() => setIsModalOpen(true)}
                 onDelete={() => setIsDeleteModalOpen(true)}
-                editLabel={intl.formatMessage({ id: 'structures.unit.edit' })}
-                deleteLabel={intl.formatMessage({ id: 'structures.unit.delete' })}
+                editLabel={intl.formatMessage({id: 'structures.unit.edit'})}
+                deleteLabel={intl.formatMessage({id: 'structures.unit.delete'})}
             />
 
             <UnitModal
@@ -78,10 +78,10 @@ export default function UnitView({ data, facultyId, onRefresh }: Unit) {
 
             <DeleteConfirmDialog
                 open={isDeleteModalOpen}
-                title={intl.formatMessage({ id: 'structures.unit.deleteTitle' })}
-                description={intl.formatMessage({ id: 'structures.unit.deleteDesc' })}
-                cancelButtonLabel={intl.formatMessage({ id: 'facilities.common.cancel' })}
-                confirmButtonLabel={intl.formatMessage({ id: 'facilities.common.deleteConfirm' })}
+                title={intl.formatMessage({id: 'structures.unit.deleteTitle'})}
+                description={intl.formatMessage({id: 'structures.unit.deleteDesc'})}
+                cancelButtonLabel={intl.formatMessage({id: 'facilities.common.cancel'})}
+                confirmButtonLabel={intl.formatMessage({id: 'facilities.common.deleteConfirm'})}
                 onConfirm={handleConfirmDelete}
                 onClose={() => setIsDeleteModalOpen(false)}
             />

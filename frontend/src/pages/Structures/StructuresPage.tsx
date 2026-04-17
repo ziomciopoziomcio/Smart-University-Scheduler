@@ -20,7 +20,7 @@ export default function StructuresPage({view}: StructuresPageProps) {
 
     const [dummySearch, setDummySearch] = useState('');
 
-    const [data, setData] = useState<any[]>([]);
+    const [data, setData] = useState<unknown[]>([]);
     const [currentFaculty, setCurrentFaculty] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -69,7 +69,7 @@ export default function StructuresPage({view}: StructuresPageProps) {
                 setData(unitsRes.items);
                 setCurrentFaculty(facultyRes);
             }
-        } catch (err: any) {
+        } catch {
             setError(err.message);
         } finally {
             setLoading(false);

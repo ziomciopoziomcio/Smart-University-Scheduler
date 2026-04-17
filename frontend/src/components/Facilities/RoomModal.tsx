@@ -6,8 +6,17 @@ import {
 } from '@mui/material';
 import {useIntl} from 'react-intl';
 import {createRoom, updateRoom, fetchFaculties, fetchUnits} from '@api/facilities';
+import {type Room} from '@api/types';
 
-export default function RoomModal({open, buildingId, room, onClose, onSuccess}: any) {
+interface RoomModalProps {
+    open: boolean;
+    buildingId: number;
+    room: Room | null;
+    onClose: () => void;
+    onSuccess: () => void;
+}
+
+export default function RoomModal({open, buildingId, room, onClose, onSuccess}: RoomModalProps) {
     const intl = useIntl();
 
     const [name, setName] = useState('');
@@ -55,7 +64,7 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
             try {
                 const res = assignmentType === 'faculty' ? await fetchFaculties() : await fetchUnits();
                 setOptions(res.items);
-            } catch (e) {
+            } catch {
                 console.error(e);
             } finally {
                 setIsLoadingOptions(false);
@@ -94,7 +103,7 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
             }
             onSuccess();
             onClose();
-        } catch (err) {
+        } catch {
             alert(intl.formatMessage({id: 'facilities.room.errors.add'}));
         } finally {
             setIsSubmitting(false);

@@ -40,7 +40,7 @@ export default function MyPlan() {
                 if (!isCancelled) {
                     setEntries(response);
                 }
-            } catch (error) {
+            } catch {
                 if (!isCancelled) {
                     setEntries([]);
                 }

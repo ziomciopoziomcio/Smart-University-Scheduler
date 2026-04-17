@@ -2,8 +2,17 @@ import {useState, useEffect} from 'react';
 import {Dialog, DialogContent, Typography, TextField, Button, CircularProgress, Box} from '@mui/material';
 import {createUnit, updateUnit} from '@api/structures';
 import {useIntl} from "react-intl";
+import {type Unit} from '@api/types';
 
-export default function UnitModal({open, facultyId, unit, onClose, onSuccess}: any) {
+interface UnitModalProps {
+    open: boolean;
+    facultyId: number;
+    unit: Unit | null;
+    onClose: () => void;
+    onSuccess: () => void;
+}
+
+export default function UnitModal({open, facultyId, unit, onClose, onSuccess}: UnitModalProps) {
 
     const intl = useIntl();
     const [name, setName] = useState('');
@@ -19,10 +28,14 @@ export default function UnitModal({open, facultyId, unit, onClose, onSuccess}: a
         setLoading(true);
         const payload = {unit_name: name, unit_short: short, faculty_id: facultyId};
         try {
-            unit ? await updateUnit(unit.id, payload) : await createUnit(payload);
+            if (unit) {
+                await updateUnit(unit.id, payload)
+            } else {
+                await createUnit(payload);
+            }
             onSuccess();
             onClose();
-        } catch (e) {
+        } catch {
             // TODO: change to snackbar maybe
             alert(intl.formatMessage({id: 'structures.unit.errors.add'}));
         } finally {

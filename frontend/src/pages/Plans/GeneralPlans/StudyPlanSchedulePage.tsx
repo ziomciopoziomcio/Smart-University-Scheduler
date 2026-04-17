@@ -74,7 +74,7 @@ export default function StudyPlanSchedulePage() {
                 if (!isCancelled) {
                     setEntries(response);
                 }
-            } catch (error) {
+            } catch {
                 if (!isCancelled) {
                     setEntries([]);
                 }

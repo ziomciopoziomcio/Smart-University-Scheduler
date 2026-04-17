@@ -33,13 +33,13 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
     const getSearchPlaceholder = () => {
         switch (view) {
             case 'campuses':
-                return intl.formatMessage({ id: 'facilities.campus.searchPlaceholder' });
+                return intl.formatMessage({id: 'facilities.campus.searchPlaceholder'});
             case 'buildings':
-                return intl.formatMessage({ id: 'facilities.building.searchPlaceholder' });
+                return intl.formatMessage({id: 'facilities.building.searchPlaceholder'});
             case 'rooms':
-                return intl.formatMessage({ id: 'facilities.room.searchPlaceholder' });
+                return intl.formatMessage({id: 'facilities.room.searchPlaceholder'});
             default:
-                return intl.formatMessage({ id: 'facilities.common.searchPlaceholder' });
+                return intl.formatMessage({id: 'facilities.common.searchPlaceholder'});
         }
     };
 
@@ -98,7 +98,7 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
                 setCurrentBuilding(buildingData);
             }
 
-        } catch (err: any) {
+        } catch {
             setError(err.message);
         } finally {
             setLoading(false);

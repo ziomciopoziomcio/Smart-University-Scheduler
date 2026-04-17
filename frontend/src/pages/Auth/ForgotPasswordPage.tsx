@@ -18,7 +18,7 @@ function ForgotPasswordPage() {
         try {
             await forgotPassword(email);
             setStatus('success');
-        } catch (err: any) {
+        } catch {
             setStatus('error');
             setErrorMsg(err.message || <FormattedMessage id="forgotPassword.errorSending"/>);
         }
@@ -65,7 +65,7 @@ function ForgotPasswordPage() {
                     </form>
                 )}
 
-                <BackToLoginButton disabled={status === 'loading'} />
+                <BackToLoginButton disabled={status === 'loading'}/>
             </Stack>
         </AuthLayout>
     );

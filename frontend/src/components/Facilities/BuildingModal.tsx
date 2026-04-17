@@ -38,7 +38,7 @@ export default function BuildingModal({open, campusId, building, onClose, onSucc
             }
             onSuccess();
             onClose();
-        } catch (err) {
+        } catch {
             // TODO: snackbar maybe
             alert(intl.formatMessage({id: 'facilities.building.errors.add'}));
         } finally {

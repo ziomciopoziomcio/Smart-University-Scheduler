@@ -2,8 +2,16 @@ import {useState, useEffect} from 'react';
 import {Dialog, DialogContent, Typography, TextField, Button, CircularProgress, Box} from '@mui/material';
 import {createFaculty, updateFaculty} from '@api/structures';
 import {useIntl} from "react-intl";
+import type {Faculty} from '@api/types';
 
-export default function FacultyModal({open, faculty, onClose, onSuccess}: any) {
+interface FacultyModalProps {
+    open: boolean;
+    faculty: Faculty | null;
+    onClose: () => void;
+    onSuccess: () => void;
+}
+
+export default function FacultyModal({open, faculty, onClose, onSuccess}: FacultyModalProps) {
 
     const intl = useIntl();
     const [name, setName] = useState('');
@@ -23,7 +31,7 @@ export default function FacultyModal({open, faculty, onClose, onSuccess}: any) {
                 : await createFaculty({faculty_name: name, faculty_short: short});
             onSuccess();
             onClose();
-        } catch (e) {
+        } catch {
             // TODO: change to snackbar maybe
             alert(intl.formatMessage({id: 'structures.faculty.errors.add'}));
         } finally {
@@ -65,7 +73,7 @@ export default function FacultyModal({open, faculty, onClose, onSuccess}: any) {
                     >
                         {loading ?
                             <CircularProgress size={24} color="inherit"/> :
-                        intl.formatMessage({id: 'structures.common.save'})}
+                            intl.formatMessage({id: 'structures.common.save'})}
                     </Button>
                     <Button
                         variant="text"

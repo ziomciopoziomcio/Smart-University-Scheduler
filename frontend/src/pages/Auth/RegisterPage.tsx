@@ -59,7 +59,7 @@ function RegisterPage() {
             });
             setSuccess(true);
             setTimeout(() => navigate('/login'), 10000);
-        } catch (err: any) {
+        } catch {
             setError(err.response?.data?.detail || err.message || intl.formatMessage({id: 'register.validation.providerError'}));
         } finally {
             setLoading(false);

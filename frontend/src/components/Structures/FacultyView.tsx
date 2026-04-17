@@ -32,7 +32,7 @@ export default function FacultyView({data, onAddClick, onRefresh}: Faculty) {
             onRefresh();
             setIsDeleteModalOpen(false);
             setSelectedFaculty(null);
-        } catch (e) {
+        } catch {
             // TODO: change to snackbar maybe
             alert(intl.formatMessage({id: 'structures.faculty.errors.delete'}));
         }

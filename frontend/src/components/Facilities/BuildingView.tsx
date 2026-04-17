@@ -43,7 +43,7 @@ export default function BuildingView({data, campusId, onRefresh}: BuildingViewPr
             await deleteBuilding(selectedBuilding.id);
             setIsDeleteModalOpen(false);
             onRefresh();
-        } catch (error) {
+        } catch {
             alert(intl.formatMessage({id: 'facilities.building.errors.delete'}));
         } finally {
             setIsDeleting(false);

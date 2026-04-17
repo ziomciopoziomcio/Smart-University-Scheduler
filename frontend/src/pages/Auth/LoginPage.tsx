@@ -38,7 +38,7 @@ function LoginPage() {
                 } else {
                     navigate('/plan', {replace: true});
                 }
-            } catch (err: any) {
+            } catch {
                 console.error(err);
             }
         };
@@ -56,7 +56,7 @@ function LoginPage() {
                 const data = await verify2FA(totpCode, preToken);
                 await finalizeLogin(data.access_token);
                 navigate('/plan', {replace: true});
-            } catch (err: any) {
+            } catch {
                 setVerifyError(err.message || 'Invalid 2FA code');
             } finally {
                 setVerifyLoading(false);
@@ -68,7 +68,8 @@ function LoginPage() {
 
     if (step === '2fa') {
         return (
-            <AuthLayout title={intl.formatMessage({id: 'login.validation.2fa.2faRequired', defaultMessage: 'Weryfikacja 2FA'})}>
+            <AuthLayout
+                title={intl.formatMessage({id: 'login.validation.2fa.2faRequired', defaultMessage: 'Weryfikacja 2FA'})}>
                 <Typography variant="body2" sx={{mb: 3, textAlign: 'center', color: 'text.secondary'}}>
                     {intl.formatMessage({
                         id: 'login.validation.2fa.2faDescription',
@@ -80,7 +81,9 @@ function LoginPage() {
 
                     <OtpInput
                         value={totpCode}
-                        onChange={(newCode) => { setTotpCode(newCode); }}
+                        onChange={(newCode) => {
+                            setTotpCode(newCode);
+                        }}
                         disabled={verifyLoading}
                     />
 
@@ -94,7 +97,9 @@ function LoginPage() {
                         >
                             {verifyLoading ? 'Sprawdzanie...' : 'Weryfikuj kod'}
                         </Button>
-                        <BackToLoginButton disabled={verifyLoading} onClick={() => { setStep('login'); }} />
+                        <BackToLoginButton disabled={verifyLoading} onClick={() => {
+                            setStep('login');
+                        }}/>
                     </Stack>
                 </Stack>
             </AuthLayout>
@@ -139,7 +144,9 @@ function LoginPage() {
                 </Button>
 
                 <Stack direction="row" justifyContent="space-between">
-                    <Button variant="text" disabled={true} onClick={() => { navigate('/register'); }}>
+                    <Button variant="text" disabled={true} onClick={() => {
+                        navigate('/register');
+                    }}>
                         <FormattedMessage id="login.createAccount"/>
                     </Button>
                     <Button variant="text" disabled={loading} onClick={() => navigate('/forgot-password')}>

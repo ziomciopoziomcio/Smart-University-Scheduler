@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { Box } from '@mui/material';
-import { MeetingRoom, Chair, Computer, Videocam } from '@mui/icons-material';
-import { useIntl } from 'react-intl';
+import {useState} from 'react';
+import {Box} from '@mui/material';
+import {MeetingRoom, Chair, Computer, Videocam} from '@mui/icons-material';
+import {useIntl} from 'react-intl';
 
-import { deleteRoom } from '@api/facilities';
+import {deleteRoom} from '@api/facilities';
 import RoomModal from './RoomModal';
 import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
 import ListView from "@components/Common/ListView.tsx";
@@ -15,7 +15,7 @@ interface RoomViewProps {
     onRefresh: () => void;
 }
 
-export default function RoomView({ data, buildingId, onRefresh }: RoomViewProps) {
+export default function RoomView({data, buildingId, onRefresh}: RoomViewProps) {
     const intl = useIntl();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selectedRoom, setSelectedRoom] = useState<Room>(null);
@@ -36,8 +36,8 @@ export default function RoomView({ data, buildingId, onRefresh }: RoomViewProps)
             await deleteRoom(selectedRoom.id);
             onRefresh();
             setIsDeleteModalOpen(false);
-        } catch (e) {
-            alert(intl.formatMessage({ id: 'facilities.room.errors.delete' }));
+        } catch {
+            alert(intl.formatMessage({id: 'facilities.room.errors.delete'}));
         } finally {
             setIsDeleting(false);
         }
@@ -54,21 +54,21 @@ export default function RoomView({ data, buildingId, onRefresh }: RoomViewProps)
 
                 columns={[
                     {
-                        render: (item: Room) => `${item.room_capacity} ${intl.formatMessage({ id: 'facilities.common.seats' })}`,
+                        render: (item: Room) => `${item.room_capacity} ${intl.formatMessage({id: 'facilities.common.seats'})}`,
                         icon: Chair,
                         variant: 'secondary',
                         width: '120px'
                     },
                     {
-                        render: (item: Room) => `${item.pc_amount} ${intl.formatMessage({ id: 'facilities.common.pcs' })}`,
+                        render: (item: Room) => `${item.pc_amount} ${intl.formatMessage({id: 'facilities.common.pcs'})}`,
                         icon: Computer,
                         variant: 'secondary',
                         width: '100px'
                     },
                     {
                         render: (item: Room) => item.projector_availability ?
-                            intl.formatMessage({id: 'facilities.common.yes' }) :
-                            intl.formatMessage({ id: 'facilities.common.no' }),
+                            intl.formatMessage({id: 'facilities.common.yes'}) :
+                            intl.formatMessage({id: 'facilities.common.no'}),
                         icon: Videocam,
                         variant: 'secondary',
                         width: '80px'
@@ -80,8 +80,8 @@ export default function RoomView({ data, buildingId, onRefresh }: RoomViewProps)
                     setSelectedRoom(null);
                     setIsModalOpen(true);
                 }}
-                addLabel={intl.formatMessage({ id: 'facilities.room.add' })}
-                emptyMessage={intl.formatMessage({ id: 'facilities.common.noData' })}
+                addLabel={intl.formatMessage({id: 'facilities.room.add'})}
+                emptyMessage={intl.formatMessage({id: 'facilities.common.noData'})}
             />
 
             <ActionMenu
@@ -89,8 +89,8 @@ export default function RoomView({ data, buildingId, onRefresh }: RoomViewProps)
                 onClose={() => setAnchorEl(null)}
                 onEdit={() => setIsModalOpen(true)}
                 onDelete={() => setIsDeleteModalOpen(true)}
-                editLabel={intl.formatMessage({ id: 'facilities.room.edit' })}
-                deleteLabel={intl.formatMessage({ id: 'facilities.room.delete' })}
+                editLabel={intl.formatMessage({id: 'facilities.room.edit'})}
+                deleteLabel={intl.formatMessage({id: 'facilities.room.delete'})}
             />
 
             <RoomModal
@@ -104,10 +104,10 @@ export default function RoomView({ data, buildingId, onRefresh }: RoomViewProps)
             <DeleteConfirmDialog
                 open={isDeleteModalOpen}
                 loading={isDeleting}
-                title={intl.formatMessage({ id: 'facilities.room.deleteTitle' })}
-                description={intl.formatMessage({ id: 'facilities.room.deleteDesc' })}
-                cancelButtonLabel={intl.formatMessage({ id: 'facilities.common.cancel' })}
-                confirmButtonLabel={intl.formatMessage({ id: 'facilities.common.deleteConfirm' })}
+                title={intl.formatMessage({id: 'facilities.room.deleteTitle'})}
+                description={intl.formatMessage({id: 'facilities.room.deleteDesc'})}
+                cancelButtonLabel={intl.formatMessage({id: 'facilities.common.cancel'})}
+                confirmButtonLabel={intl.formatMessage({id: 'facilities.common.deleteConfirm'})}
                 onConfirm={handleConfirmDelete}
                 onClose={() => setIsDeleteModalOpen(false)}
             />
