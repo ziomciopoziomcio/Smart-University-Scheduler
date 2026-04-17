@@ -28,7 +28,7 @@ export default function UnitView({ data, facultyId, onRefresh }: any) {
             onRefresh();
             setIsDeleteModalOpen(false);
         } catch (e) {
-            // TODO: Zmienić na snackbar w przyszłości
+            // TODO: May change to snackbar
             alert(intl.formatMessage({ id: 'structures.unit.errors.delete' }));
         }
     };

@@ -50,7 +50,7 @@ export default function BuildingModal({open, campusId, building, onClose, onSucc
         <Dialog open={open} onClose={onClose} PaperProps={{sx: {borderRadius: '24px', p: 1, minWidth: 400}}}>
             <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 3, mt: 2}}>
                 <Typography variant="h5" fontWeight="bold" textAlign="center" mb={1}>
-                    {intl.formatMessage({id: isEditMode ? 'facilities..building.edit' : 'facilities.building.edit'})}
+                    {intl.formatMessage({id: isEditMode ? 'facilities.building.edit' : 'facilities.building.edit'})}
                 </Typography>
 
                 <TextField

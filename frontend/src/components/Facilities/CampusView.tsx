@@ -5,7 +5,6 @@ import {useIntl} from 'react-intl';
 
 // @ts-expect-error
 import buildingIcon from '@assets/icons/buildings.svg?react';
-
 import {deleteCampus} from '@api/facilities';
 import CampusModal from './CampusModal';
 import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
@@ -34,10 +33,13 @@ export default function CampusView({data, onRefresh}: CampusViewProps) {
     };
 
     const handleConfirmDelete = async () => {
+        if (!selectedCampus) return;
+
         try {
             await deleteCampus(selectedCampus.id);
             onRefresh();
             setIsDeleteModalOpen(false);
+            setSelectedCampus(null);
         } catch (error: any) {
             // TODO: Maybe change to snackbar
             alert(error.message || intl.formatMessage({id: 'facilities.campus.errors.delete'}));

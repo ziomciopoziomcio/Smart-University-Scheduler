@@ -17,7 +17,7 @@ interface FacilitiesPageProps {
 
 // TODO: add real search functionality, currently it's just a dummy input to show the UI
 // TODO: errors (as snackbar?) and empty states in views
-// TODO: add loading statuses, so tile gets a bit transpaent when waiting for response, and add circular progress in the middle of tile when loading first time?
+// TODO: add loading statuses, so tile gets a bit transparent when waiting for response, and add circular progress in the middle of tile when loading first time?
 
 export default function FacilitiesPage({view}: FacilitiesPageProps) {
     const {campusId, buildingId} = useParams();

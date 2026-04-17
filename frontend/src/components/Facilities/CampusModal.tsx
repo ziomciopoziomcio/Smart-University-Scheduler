@@ -35,7 +35,7 @@ export default function CampusModal({ open, campus, onClose, onSuccess }: Campus
             onSuccess();
             onClose();
         } catch (e) {
-            alert(intl.formatMessage({ id: 'facilities.campus.error' }));
+            alert(intl.formatMessage({ id: 'facilities.campus.error.add' }));
         } finally {
             setLoading(false);
         }

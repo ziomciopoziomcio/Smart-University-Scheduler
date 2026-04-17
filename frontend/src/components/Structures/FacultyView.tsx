@@ -25,10 +25,13 @@ export default function FacultyView({data, onAddClick, onRefresh}: any) {
     };
 
     const handleConfirmDelete = async () => {
+        if (!selectedFaculty) return;
+
         try {
             await deleteFaculty(selectedFaculty.id);
             onRefresh();
             setIsDeleteModalOpen(false);
+            setSelectedFaculty(null);
         } catch (e) {
             // TODO: change to snackbar maybe
             alert(intl.formatMessage({id: 'structures.faculty.errors.delete'}));

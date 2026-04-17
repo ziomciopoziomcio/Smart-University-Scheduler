@@ -3,6 +3,7 @@ import type {PaginatedResponse, Campus, Building, Room} from './types';
 
 const baseApiUrl = import.meta.env.VITE_API_URL as string | undefined;
 const BASE_URL = (baseApiUrl ? `${baseApiUrl}/facilities` : 'http://localhost:3000/facilities').replace(/\/+$/, '');
+const ACADEMICS_URL = (baseApiUrl ? `${baseApiUrl}/academics` : 'http://localhost:3000/academics').replace(/\/+$/, '');
 
 const getHeaders = () => ({
     'Authorization': `Bearer ${useAuthStore.getState().token}`,
@@ -119,7 +120,7 @@ export const fetchFaculties = async (): Promise<PaginatedResponse<any>> => {
 export const createRoom = async (data: {
     room_name: string;
     building_id: number;
-    faculty_id?: number | null;
+    faculty_id: number | null;
     unit_id?: number | null;
     pc_amount: number;
     room_capacity: number;
@@ -140,6 +141,7 @@ export const updateRoom = async (id: number, data: {
     pc_amount?: number;
     building_id?: number;
     faculty_id?: number;
+    unit_id?: number | null;
     projector_availability?: boolean;
 }): Promise<Room> => {
     const response = await fetch(`${BASE_URL}/rooms/${id}`, {
@@ -160,7 +162,7 @@ export const deleteRoom = async (id: number): Promise<void> => {
 };
 
 export const fetchUnits = async (): Promise<PaginatedResponse<any>> => {
-    const response = await fetch(`${BASE_URL}/units`, {headers: getHeaders()});
+    const response = await fetch(`${ACADEMICS_URL}/units`, {headers: getHeaders()});
     if (!response.ok) throw new Error('Nie udało się pobrać jednostek');
     return response.json();
 };

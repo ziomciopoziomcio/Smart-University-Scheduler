@@ -143,7 +143,7 @@
       "save": "Zapisz zmiany",
       "deleteConfirm": "Usuń",
       "yes": "Tak",
-      "no": "NIe"
+      "no": "Nie"
     },
     "breadcrumbs": {
       "main": "Obiekty",
@@ -245,7 +245,7 @@
       "shortPlaceholder": "np. I24",
       "facultyLabel": "Wydział nadrzędny",
       "errors": {
-        "add": "Błąd podczas dodawania jednostki..",
+        "add": "Błąd podczas dodawania jednostki.",
         "delete": "Błąd podczas usuwania jednostki."
       }
     }
