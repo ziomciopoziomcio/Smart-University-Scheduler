@@ -385,8 +385,8 @@ def generate_curriculum_courses(
 
             for course in courses:
                 print(f"  - {course}")
-                # course_name = course[1]
-                course_code = course[0]
+                # course_name = course[0]
+                course_code = course[1]
                 # add to db
                 added = _add_curriculum_course(
                     course_code=course_code,
@@ -413,8 +413,8 @@ def generate_curriculum_courses(
                     continue
                 for course in courses:
                     print(f"  - {course} ({major})")
-                    # course_name = course[1]
-                    course_code = course[0]
+                    # course_name = course[0]
+                    course_code = course[1]
                     # add to db
                     added = _add_curriculum_course(
                         course_code=course_code,
