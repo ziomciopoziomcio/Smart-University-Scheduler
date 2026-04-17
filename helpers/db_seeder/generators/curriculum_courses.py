@@ -333,7 +333,7 @@ def generate_curriculum_courses(
     db_study_programs: dict[tuple[str, str, int], Study_program],
     db_courses: dict[int, Course],
     db_majors: dict[tuple[str, str], Major],
-):
+) -> dict[tuple[str | None, int, int, str | None, str | None], Curriculum_course]:
     """
     Generate curriculum courses.
     :param sourcefile: path to JSON file containing study field data
@@ -348,7 +348,7 @@ def generate_curriculum_courses(
     (program_name, course_code, semester_id, major_name, elective_block_name)
     to Curriculum_course objects.
     """
-    db_curr_courses: major_dict[
+    db_curr_courses: dict[
         tuple[str | None, int, int, str | None, str | None], Curriculum_course
     ] = {}
 
