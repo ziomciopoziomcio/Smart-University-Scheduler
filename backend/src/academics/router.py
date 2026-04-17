@@ -11,11 +11,15 @@ from src.common.router_utils import (
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
     _get_by_fields_or_404,
+    serialize_student_nested,
+    serialize_employee_nested,
 )
 from . import models, schemas
 from ..database.database import get_db
 from ..common.require_permission import require_permission
 from ..users import models as user_models
+from ..courses import models as course_models
+from ..facilities import models as facilities_models
 
 router = APIRouter(prefix="/academics", tags=["academics"])
 
@@ -43,7 +47,7 @@ def create_student(
     return obj
 
 
-@router.get("/students", response_model=PaginatedResponse[schemas.StudentRead])
+@router.get("/students", response_model=PaginatedResponse[schemas.StudentNested])
 def list_students(
     user_id: int | None = Query(None),
     study_program: int | None = Query(None),
@@ -53,25 +57,88 @@ def list_students(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("students:view")),
 ):
-    query = db.query(models.Students)
-
+    filters = []
     if user_id is not None:
-        query = query.filter(models.Students.user_id == user_id)
+        filters.append(models.Students.user_id == user_id)
     if study_program is not None:
-        query = query.filter(models.Students.study_program == study_program)
+        filters.append(models.Students.study_program == study_program)
     if major is not None:
-        query = query.filter(models.Students.major == major)
+        filters.append(models.Students.major == major)
 
-    return paginate(query, limit, offset, models.Students.id)
+    count_q = db.query(models.Students)
+    if filters:
+        count_q = count_q.filter(*filters)
+
+    joined_q = (
+        db.query(
+            models.Students,
+            user_models.Users,
+            course_models.Study_program,
+            course_models.Study_fields,
+            course_models.Major,
+        )
+        .join(user_models.Users, models.Students.user_id == user_models.Users.id)
+        .join(
+            course_models.Study_program,
+            models.Students.study_program == course_models.Study_program.id,
+        )
+        .join(
+            course_models.Study_fields,
+            course_models.Study_program.study_field == course_models.Study_fields.id,
+        )
+        .outerjoin(course_models.Major, models.Students.major == course_models.Major.id)
+    )
+    if filters:
+        joined_q = joined_q.filter(*filters)
+
+    paginated = paginate(
+        joined_q,
+        limit=limit,
+        offset=offset,
+        order_by=models.Students.id,
+        count_query=count_q,
+    )
+
+    rows = paginated.items
+    total = paginated.total
+
+    items = [serialize_student_nested(row) for row in rows]
+    return PaginatedResponse(items=items, total=total, limit=limit, offset=offset)
 
 
-@router.get("/students/{student_id}", response_model=schemas.StudentRead)
+@router.get("/students/{student_id}", response_model=schemas.StudentNested)
 def get_student(
     student_id: int,
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("student:view")),
 ):
-    return _get_or_404(db, models.Students, student_id, "Student")
+    row = (
+        db.query(
+            models.Students,
+            user_models.Users,
+            course_models.Study_program,
+            course_models.Study_fields,
+            course_models.Major,
+        )
+        .join(user_models.Users, models.Students.user_id == user_models.Users.id)
+        .join(
+            course_models.Study_program,
+            models.Students.study_program == course_models.Study_program.id,
+        )
+        .join(
+            course_models.Study_fields,
+            course_models.Study_program.study_field == course_models.Study_fields.id,
+        )
+        .outerjoin(course_models.Major, models.Students.major == course_models.Major.id)
+        .filter(models.Students.id == student_id)
+        .one_or_none()
+    )
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Student not found"
+        )
+
+    return serialize_student_nested(row)
 
 
 @router.patch("/students/{student_id}", response_model=schemas.StudentRead)
@@ -119,7 +186,7 @@ def create_employee(
     return obj
 
 
-@router.get("/employees", response_model=PaginatedResponse[schemas.EmployeeRead])
+@router.get("/employees", response_model=PaginatedResponse[schemas.EmployeeNested])
 def list_employees(
     user_id: int | None = Query(None),
     faculty_id: int | None = Query(None),
@@ -129,25 +196,78 @@ def list_employees(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("employees:view")),
 ):
-    query = db.query(models.Employees)
-
+    filters = []
     if user_id is not None:
-        query = query.filter(models.Employees.user_id == user_id)
+        filters.append(models.Employees.user_id == user_id)
     if faculty_id is not None:
-        query = query.filter(models.Employees.faculty_id == faculty_id)
+        filters.append(models.Employees.faculty_id == faculty_id)
     if unit_id is not None:
-        query = query.filter(models.Employees.unit_id == unit_id)
+        filters.append(models.Employees.unit_id == unit_id)
 
-    return paginate(query, limit, offset, models.Employees.id)
+    count_q = db.query(models.Employees)
+    if filters:
+        count_q = count_q.filter(*filters)
+
+    joined_q = (
+        db.query(
+            models.Employees,
+            user_models.Users,
+            models.Units,
+            facilities_models.Faculty,
+        )
+        .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
+        .outerjoin(models.Units, models.Employees.unit_id == models.Units.id)
+        .outerjoin(
+            facilities_models.Faculty,
+            models.Employees.faculty_id == facilities_models.Faculty.id,
+        )
+    )
+    if filters:
+        joined_q = joined_q.filter(*filters)
+
+    paginated = paginate(
+        joined_q,
+        limit=limit,
+        offset=offset,
+        order_by=models.Employees.id,
+        count_query=count_q,
+    )
+
+    rows = paginated.items
+    total = paginated.total
+
+    items = [serialize_employee_nested(row) for row in rows]
+    return PaginatedResponse(items=items, total=total, limit=limit, offset=offset)
 
 
-@router.get("/employees/{employee_id}", response_model=schemas.EmployeeRead)
+@router.get("/employees/{employee_id}", response_model=schemas.EmployeeNested)
 def get_employee(
     employee_id: int,
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("employee:view")),
 ):
-    return _get_or_404(db, models.Employees, employee_id, "Employee")
+    row = (
+        db.query(
+            models.Employees,
+            user_models.Users,
+            models.Units,
+            facilities_models.Faculty,
+        )
+        .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
+        .outerjoin(models.Units, models.Employees.unit_id == models.Units.id)
+        .outerjoin(
+            facilities_models.Faculty,
+            models.Employees.faculty_id == facilities_models.Faculty.id,
+        )
+        .filter(models.Employees.id == employee_id)
+        .one_or_none()
+    )
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found"
+        )
+
+    return serialize_employee_nested(row)
 
 
 @router.patch("/employees/{employee_id}", response_model=schemas.EmployeeRead)
