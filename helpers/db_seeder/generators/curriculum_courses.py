@@ -388,6 +388,58 @@ def _get_semester_number(text: str) -> int | None:
     return int(match.group()) if match else None
 
 
+def _add_unique_to_db(unique, study_field_name, study_degree, db_study_programs, db_courses, db_majors, session, db_curr_courses):
+    for major, major_dict in sorted(unique.items()):
+        print(f"{major}:")
+        for semester, courses in sorted(major_dict.items()):
+            print(f"{semester}:")
+            semester_id = _get_semester_number(semester)
+
+            if semester_id is None:
+                continue
+            for course in courses:
+                print(f"  - {course} ({major})")
+                # course_name = course[0]
+                course_code = course[1]
+                # add to db
+                added = _add_curriculum_course(
+                    course_code=course_code,
+                    major_name=major,
+                    study_field_name=study_field_name,
+                    study_degree=study_degree,
+                    semester_id=semester_id,
+                    db_objects=(db_study_programs, db_courses, db_majors),
+                    session=session,
+                )
+                if added:
+                    db_curr_courses.update(added)
+
+
+def _add_common_to_db(common, study_field_name, study_degree, db_study_programs, db_courses, db_majors, session, db_curr_courses):
+    for semester, courses in sorted(common.items()):
+        print(f"{semester}:")
+        semester_id = _get_semester_number(semester)
+        if semester_id is None:
+            continue
+
+        for course in courses:
+            print(f"  - {course}")
+            # course_name = course[0]
+            course_code = course[1]
+            # add to db
+            added = _add_curriculum_course(
+                course_code=course_code,
+                major_name=None,
+                study_field_name=study_field_name,
+                study_degree=study_degree,
+                semester_id=semester_id,
+                db_objects=(db_study_programs, db_courses, db_majors),
+                session=session,
+            )
+            if added:
+                db_curr_courses.update(added)
+
+
 def generate_curriculum_courses(
     sourcefile: str,
     session: Session,
@@ -438,54 +490,28 @@ def generate_curriculum_courses(
         # _display_courses_unique_at_the_major_level(unique)
 
         # common
-        for semester, courses in sorted(common.items()):
-            print(f"{semester}:")
-            semester_id = _get_semester_number(semester)
-            if semester_id is None:
-                continue
-
-            for course in courses:
-                print(f"  - {course}")
-                # course_name = course[0]
-                course_code = course[1]
-                # add to db
-                added = _add_curriculum_course(
-                    course_code=course_code,
-                    major_name=None,
-                    study_field_name=study_field_name,
-                    study_degree=study_degree,
-                    semester_id=semester_id,
-                    db_objects=(db_study_programs, db_courses, db_majors),
-                    session=session,
-                )
-                if added:
-                    db_curr_courses.update(added)
+        _add_common_to_db(
+            common,
+            study_field_name,
+            study_degree,
+            db_study_programs,
+            db_courses,
+            db_majors,
+            session,
+            db_curr_courses,
+        )
 
         # unique
-        for major, major_dict in sorted(unique.items()):
-            print(f"{major}:")
-            for semester, courses in sorted(major_dict.items()):
-                print(f"{semester}:")
-                semester_id = _get_semester_number(semester)
-
-                if semester_id is None:
-                    continue
-                for course in courses:
-                    print(f"  - {course} ({major})")
-                    # course_name = course[0]
-                    course_code = course[1]
-                    # add to db
-                    added = _add_curriculum_course(
-                        course_code=course_code,
-                        major_name=major,
-                        study_field_name=study_field_name,
-                        study_degree=study_degree,
-                        semester_id=semester_id,
-                        db_objects=(db_study_programs, db_courses, db_majors),
-                        session=session,
-                    )
-                    if added:
-                        db_curr_courses.update(added)
+        _add_unique_to_db(
+            unique,
+            study_field_name,
+            study_degree,
+            db_study_programs,
+            db_courses,
+            db_majors,
+            session,
+            db_curr_courses,
+        )
 
     session.flush()
     return db_curr_courses
