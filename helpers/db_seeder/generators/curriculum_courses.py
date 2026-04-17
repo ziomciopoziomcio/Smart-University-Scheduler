@@ -388,7 +388,16 @@ def _get_semester_number(text: str) -> int | None:
     return int(match.group()) if match else None
 
 
-def _add_unique_to_db(unique, study_field_name, study_degree, db_study_programs, db_courses, db_majors, session, db_curr_courses):
+def _add_unique_to_db(
+    unique,
+    study_field_name,
+    study_degree,
+    db_study_programs,
+    db_courses,
+    db_majors,
+    session,
+    db_curr_courses,
+):
     for major, major_dict in sorted(unique.items()):
         print(f"{major}:")
         for semester, courses in sorted(major_dict.items()):
@@ -415,7 +424,16 @@ def _add_unique_to_db(unique, study_field_name, study_degree, db_study_programs,
                     db_curr_courses.update(added)
 
 
-def _add_common_to_db(common, study_field_name, study_degree, db_study_programs, db_courses, db_majors, session, db_curr_courses):
+def _add_common_to_db(
+    common,
+    study_field_name,
+    study_degree,
+    db_study_programs,
+    db_courses,
+    db_majors,
+    session,
+    db_curr_courses,
+):
     for semester, courses in sorted(common.items()):
         print(f"{semester}:")
         semester_id = _get_semester_number(semester)
@@ -438,6 +456,13 @@ def _add_common_to_db(common, study_field_name, study_degree, db_study_programs,
             )
             if added:
                 db_curr_courses.update(added)
+
+
+def _get_common_and_unique(study_fields):
+    courses_dict = _prepare_courses_dict(study_fields)
+    common = _get_courses_common_for_all_majors(courses_dict)
+    unique = _get_courses_unique_at_the_major_level(courses_dict)
+    return common, unique
 
 
 def generate_curriculum_courses(
@@ -467,9 +492,7 @@ def generate_curriculum_courses(
 
     combs = _get_study_field_major_degree_from_file(sourcefile, with_major=False)
 
-    for comb in combs:
-        study_field_name = comb[0]
-        study_degree = comb[1]
+    for study_field_name, study_degree in combs:
 
         # if study_field_name != "informatyka." or study_degree != 1:
         #     continue
@@ -482,14 +505,11 @@ def generate_curriculum_courses(
             sourcefile, study_field_name, study_degree
         )
 
-        courses_dict = _prepare_courses_dict(study_fields)
-        common = _get_courses_common_for_all_majors(courses_dict)
-        unique = _get_courses_unique_at_the_major_level(courses_dict)
+        common, unique = _get_common_and_unique(study_fields)
 
         # _display_courses_common_for_all_majors(common)
         # _display_courses_unique_at_the_major_level(unique)
 
-        # common
         _add_common_to_db(
             common,
             study_field_name,
@@ -501,7 +521,6 @@ def generate_curriculum_courses(
             db_curr_courses,
         )
 
-        # unique
         _add_unique_to_db(
             unique,
             study_field_name,
