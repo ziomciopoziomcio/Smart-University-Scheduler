@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars */
 import {Box, Typography, Divider, Button, IconButton, SvgIcon} from '@mui/material';
 import {Add, MoreVert} from '@mui/icons-material';
 import * as React from "react";
