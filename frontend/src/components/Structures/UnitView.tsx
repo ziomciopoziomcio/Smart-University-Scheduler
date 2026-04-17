@@ -9,14 +9,14 @@ import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
 import ListView from "@components/Common/ListView.tsx";
 import ActionMenu from "@components/Common/ActionMenu.tsx";
 
-export default function UnitView({ data, facultyId, onRefresh }: any) {
+export default function UnitView({ data, facultyId, onRefresh }: Unit) {
     const intl = useIntl();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [selectedUnit, setSelectedUnit] = useState<any>(null);
+    const [selectedUnit, setSelectedUnit] = useState<Unit>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: any) => {
+    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: Unit) => {
         e.stopPropagation();
         setAnchorEl(e.currentTarget);
         setSelectedUnit(item);
@@ -38,12 +38,12 @@ export default function UnitView({ data, facultyId, onRefresh }: any) {
             <ListView
                 items={data}
                 icon={Groups}
-                getTitle={(item: any) => item.unit_name}
+                getTitle={(item: Unit) => item.unit_name}
                 titleWidth="350px"
 
                 columns={[
                     {
-                        render: (item: any) => item.unit_short,
+                        render: (item: Unit) => item.unit_short,
                         variant: 'secondary',
                         width: '150px'
                     }

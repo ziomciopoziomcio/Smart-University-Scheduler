@@ -3,7 +3,7 @@ import {Box} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 
-// @ts-expect-error
+// @ts-expect-error: vite svg import workaround
 import buildingIcon from '@assets/icons/building.svg?react';
 import {type Building} from '@api/types';
 import {deleteBuilding} from '@api/facilities';
@@ -28,7 +28,7 @@ export default function BuildingView({data, campusId, onRefresh}: BuildingViewPr
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: any) => {
+    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: Building) => {
         e.stopPropagation();
         setAnchorEl(e.currentTarget);
         setSelectedBuilding(item);
@@ -55,11 +55,11 @@ export default function BuildingView({data, campusId, onRefresh}: BuildingViewPr
             <ListView
                 items={data}
                 icon={buildingIcon}
-                getTitle={(item: any) => `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${item.building_number}`}
+                getTitle={(item: Building) => `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${item.building_number}`}
                 titleWidth="150px"
                 columns={[
                     {
-                        render: (item: any) => item.building_name || intl.formatMessage({id: 'facilities.common.noName'}),
+                        render: (item: Building) => item.building_name || intl.formatMessage({id: 'facilities.common.noName'}),
                         variant: 'secondary',
                         width: '250px'
                     },
@@ -71,7 +71,7 @@ export default function BuildingView({data, campusId, onRefresh}: BuildingViewPr
                     }
                 ]}
 
-                onItemClick={(item: any) => navigate(`/facilities/campus/${campusId}/building/${item.id}`)}
+                onItemClick={(item: Building) => navigate(`/facilities/campus/${campusId}/building/${item.id}`)}
                 onMenuOpen={handleMenuOpen}
                 onAddClick={() => {
                     setSelectedBuilding(null);

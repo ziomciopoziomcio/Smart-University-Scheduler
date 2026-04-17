@@ -10,7 +10,7 @@ import ListView from "@components/Common/ListView.tsx";
 import ActionMenu from "@components/Common/ActionMenu.tsx";
 
 interface RoomViewProps {
-    data: any[];
+    data: Room[];
     buildingId: number;
     onRefresh: () => void;
 }
@@ -18,12 +18,12 @@ interface RoomViewProps {
 export default function RoomView({ data, buildingId, onRefresh }: RoomViewProps) {
     const intl = useIntl();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [selectedRoom, setSelectedRoom] = useState<any>(null);
+    const [selectedRoom, setSelectedRoom] = useState<Room>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: any) => {
+    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: Room) => {
         e.stopPropagation();
         setAnchorEl(e.currentTarget);
         setSelectedRoom(item);
@@ -49,24 +49,24 @@ export default function RoomView({ data, buildingId, onRefresh }: RoomViewProps)
                 items={data}
                 icon={MeetingRoom}
 
-                getTitle={(item: any) => item.room_name}
+                getTitle={(item: Room) => item.room_name}
                 titleWidth="180px"
 
                 columns={[
                     {
-                        render: (item: any) => `${item.room_capacity} ${intl.formatMessage({ id: 'facilities.common.seats' })}`,
+                        render: (item: Room) => `${item.room_capacity} ${intl.formatMessage({ id: 'facilities.common.seats' })}`,
                         icon: Chair,
                         variant: 'secondary',
                         width: '120px'
                     },
                     {
-                        render: (item: any) => `${item.pc_amount} ${intl.formatMessage({ id: 'facilities.common.pcs' })}`,
+                        render: (item: Room) => `${item.pc_amount} ${intl.formatMessage({ id: 'facilities.common.pcs' })}`,
                         icon: Computer,
                         variant: 'secondary',
                         width: '100px'
                     },
                     {
-                        render: (item: any) => item.projector_availability ?
+                        render: (item: Room) => item.projector_availability ?
                             intl.formatMessage({id: 'facilities.common.yes' }) :
                             intl.formatMessage({ id: 'facilities.common.no' }),
                         icon: Videocam,

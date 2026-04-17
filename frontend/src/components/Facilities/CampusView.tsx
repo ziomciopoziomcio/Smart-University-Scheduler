@@ -3,7 +3,7 @@ import {Box} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 
-// @ts-expect-error
+// @ts-expect-error: vite svg import workaround
 import buildingIcon from '@assets/icons/buildings.svg?react';
 import {deleteCampus} from '@api/facilities';
 import CampusModal from './CampusModal';
@@ -12,7 +12,7 @@ import TileView from "@components/Common/TileView.tsx";
 import ActionMenu from "@components/Common/ActionMenu.tsx";
 
 interface CampusViewProps {
-    data: any[];
+    data: Campus[];
     onRefresh: () => void;
 }
 
@@ -21,12 +21,12 @@ export default function CampusView({data, onRefresh}: CampusViewProps) {
     const intl = useIntl();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [selectedCampus, setSelectedCampus] = useState<any>(null);
+    const [selectedCampus, setSelectedCampus] = useState<Campus>(null);
     const handleMenuClose = () => setAnchorEl(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: any) => {
+    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: Campus) => {
         e.stopPropagation();
         setAnchorEl(e.currentTarget);
         setSelectedCampus(item);
@@ -40,7 +40,7 @@ export default function CampusView({data, onRefresh}: CampusViewProps) {
             onRefresh();
             setIsDeleteModalOpen(false);
             setSelectedCampus(null);
-        } catch (error: any) {
+        } catch (error: Campus) {
             // TODO: Maybe change to snackbar
             alert(error.message || intl.formatMessage({id: 'facilities.campus.errors.delete'}));
         }
@@ -51,9 +51,9 @@ export default function CampusView({data, onRefresh}: CampusViewProps) {
             <TileView
                 items={data}
                 icon={buildingIcon}
-                getTitle={(item: any) => item.campus_name || `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${item.campus_short}`}
-                getSubtitle={(item: any) => item.campus_short}
-                onItemClick={(item: any) => navigate(`/facilities/campus/${item.id}`)}
+                getTitle={(item: Campus) => item.campus_name || `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${item.campus_short}`}
+                getSubtitle={(item: Campus) => item.campus_short}
+                onItemClick={(item: Campus) => navigate(`/facilities/campus/${item.id}`)}
                 onMenuOpen={handleMenuOpen}
                 onAddClick={() => {
                     setSelectedCampus(null);

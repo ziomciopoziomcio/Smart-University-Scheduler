@@ -9,16 +9,16 @@ import TileView from "@components/Common/TileView.tsx";
 import {useIntl} from "react-intl";
 import ActionMenu from "@components/Common/ActionMenu.tsx";
 
-export default function FacultyView({data, onAddClick, onRefresh}: any) {
+export default function FacultyView({data, onAddClick, onRefresh}: Faculty) {
 
     const intl = useIntl();
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [selectedFaculty, setSelectedFaculty] = useState<any>(null);
+    const [selectedFaculty, setSelectedFaculty] = useState<Faculty>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: any) => {
+    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: Faculty) => {
         e.stopPropagation();
         setAnchorEl(e.currentTarget);
         setSelectedFaculty(item);
@@ -43,9 +43,9 @@ export default function FacultyView({data, onAddClick, onRefresh}: any) {
             <TileView
                 items={data}
                 icon={AccountBalance}
-                getTitle={(item: any) => item.faculty_short}
-                getSubtitle={(item: any) => item.faculty_name}
-                onItemClick={(item: any) => navigate(`/structures/faculty/${item.id}`)}
+                getTitle={(item: Faculty) => item.faculty_short}
+                getSubtitle={(item: Faculty) => item.faculty_name}
+                onItemClick={(item: Faculty) => navigate(`/structures/faculty/${item.id}`)}
                 onMenuOpen={handleMenuOpen}
                 onAddClick={onAddClick}
                 addLabel={intl.formatMessage({id: 'structures.faculty.add'})}
