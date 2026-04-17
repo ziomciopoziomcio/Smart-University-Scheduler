@@ -74,8 +74,9 @@ export default function CampusModal({open, campus, onClose, onSuccess}: CampusMo
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
                     <Button
                         variant="contained"
-                        onClick={handleSubmit}
-                        disabled={loading || !short}
+                        onClick={() => {
+                            void handleSubmit();
+                        }} disabled={loading || !short}
                         sx={{
                             bgcolor: '#2b5073',
                             borderRadius: '12px',

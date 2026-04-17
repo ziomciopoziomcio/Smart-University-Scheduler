@@ -218,8 +218,9 @@ export default function RoomModal({open, buildingId, room, onClose, onSuccess}: 
                     <Button
                         variant="contained"
                         fullWidth
-                        onClick={handleSubmit}
-                        disabled={isSubmitting || !selectedId || !name}
+                        onClick={() => {
+                            void handleSubmit();
+                        }} disabled={isSubmitting || !selectedId || !name}
                         sx={{
                             py: 1.5,
                             borderRadius: '12px',
