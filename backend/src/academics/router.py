@@ -318,9 +318,6 @@ def list_employees(
                 "faculty_short": faculty.faculty_short,
             }
 
-        user_created_at = getattr(user, "created_at", None)
-        if user_created_at is None:
-            user_created_at = datetime.now(timezone.utc)
         items.append(
             {
                 "id": emp.id,
@@ -330,7 +327,7 @@ def list_employees(
                     "surname": user.surname,
                     "email": user.email,
                     "degree": user.degree,
-                    "created_at": user_created_at,
+                    "created_at": user.created_at,
                 },
                 "unit": unit_obj,
                 "faculty": faculty_obj,
