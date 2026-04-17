@@ -381,13 +381,6 @@ def get_employee(
             "faculty_short": faculty.faculty_short,
         }
 
-    created_at = getattr(user, "created_at", None)
-    if created_at is None:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Employee user is missing required created_at field",
-        )
-
     return {
         "id": emp.id,
         "user": {
@@ -396,7 +389,7 @@ def get_employee(
             "surname": user.surname,
             "email": user.email,
             "degree": user.degree,
-            "created_at": created_at,
+            "created_at": user.created_at,
         },
         "unit": unit_obj,
         "faculty": faculty_obj,
