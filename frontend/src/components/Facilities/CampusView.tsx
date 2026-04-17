@@ -1,178 +1,103 @@
 import {useState} from 'react';
-import {
-    Box,
-    Typography,
-    IconButton,
-    SvgIcon,
-    Menu,
-    MenuItem,
-    ListItemIcon,
-    ListItemText
-} from '@mui/material';
-import {EditOutlined, DeleteOutline} from '@mui/icons-material';
+import {Box} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
-// @ts-expect-error
-import buildingIcon from '@assets/icons/buildings.svg?react';
-// @ts-expect-error
-import threeDots from '@assets/icons/three-dots-vertical.svg?react';
 
+// @ts-expect-error: vite svg import workaround
+import buildingIcon from '@assets/icons/buildings.svg?react';
 import {deleteCampus} from '@api/facilities';
-import EditCampusModal from './EditCampusModal';
+import CampusModal from './CampusModal';
 import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
+import TileView from "@components/Common/TileView.tsx";
+import ActionMenu from "@components/Common/ActionMenu.tsx";
+import type {Campus} from "@api/types.ts";
 
 interface CampusViewProps {
-    data: any[];
-    onAddClick: () => void;
+    data: Campus[];
     onRefresh: () => void;
 }
 
-export default function CampusView({data, onAddClick, onRefresh}: CampusViewProps) {
+export default function CampusView({data, onRefresh}: CampusViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [selectedCampus, setSelectedCampus] = useState<any | null>(null);
-
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, campus: any) => {
-        event.stopPropagation();
-        setAnchorEl(event.currentTarget);
-        setSelectedCampus(campus);
-    };
-
+    const [selectedCampus, setSelectedCampus] = useState<Campus | null>(null);
     const handleMenuClose = () => setAnchorEl(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-    const handleOpenEdit = (e: React.MouseEvent) => {
+    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: Campus) => {
         e.stopPropagation();
-        handleMenuClose();
-        setIsEditModalOpen(true);
-    };
-
-    const handleOpenDelete = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        handleMenuClose();
-        setIsDeleteModalOpen(true);
+        setAnchorEl(e.currentTarget);
+        setSelectedCampus(item);
     };
 
     const handleConfirmDelete = async () => {
         if (!selectedCampus) return;
-        setIsDeleting(true);
+
         try {
             await deleteCampus(selectedCampus.id);
-            setIsDeleteModalOpen(false);
             onRefresh();
-        } catch (error) {
-            alert('Wystąpił błąd podczas usuwania.');
-        } finally {
-            setIsDeleting(false);
+            setIsDeleteModalOpen(false);
+            setSelectedCampus(null);
+        } catch {            // TODO: Maybe change to snackbar
+            alert(intl.formatMessage({id: 'facilities.campus.errors.delete'}));
         }
     };
 
     return (
-        <Box sx={{display: 'flex', gap: 3, flexWrap: 'wrap'}}>
-            {data.map((item) => (
-                <Box
-                    key={item.id}
-                    onClick={() => navigate(`/facilities/campus/${item.id}`)}
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        width: 320,
-                        p: 2,
-                        border: '1px solid rgba(0,0,0,0.1)',
-                        borderRadius: '12px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                            borderColor: 'rgba(0,0,0,0.2)',
-                            background: '#fbfbfb',
-                            boxShadow: '0px 2px 8px rgba(0,0,0,0.02)'
-                        }
-                    }}
-                >
-                    <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
-                        <SvgIcon component={buildingIcon}
-                                 inheritViewBox
-                                 sx={{
-                                     fontSize: 56,
-                                     color: 'rgba(0,0,0,0.5)'
-                                 }}
-                        />
-                        <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'start'}}>
-                            <Typography fontWeight={600}>
-                                {intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} {item.campus_short}
-                            </Typography>
+        <Box>
+            <TileView
+                items={data}
+                icon={buildingIcon}
+                getTitle={(item: Campus) => item.campus_name || `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${item.campus_short}`}
+                getSubtitle={(item: Campus) => item.campus_short}
+                onItemClick={(item: Campus) => {
+                    navigate(`/facilities/campus/${item.id}`);
+                }}
+                onMenuOpen={handleMenuOpen}
+                onAddClick={() => {
+                    setSelectedCampus(null);
+                    setIsModalOpen(true);
+                }}
+                addLabel={intl.formatMessage({id: 'facilities.campus.add'})}
+            />
 
-                            {item.campus_name && (
-                                <Typography variant="body2" color="text.secondary">
-                                    {item.campus_name}
-                                </Typography>
-                            )}
-                        </Box>
-                    </Box>
+            <ActionMenu
+                anchorEl={anchorEl}
+                onClose={handleMenuClose}
+                onEdit={() => {
+                    handleMenuClose();
+                    setIsModalOpen(true);
+                }}
+                onDelete={() => {
+                    handleMenuClose();
+                    setIsDeleteModalOpen(true);
+                }}
+                editLabel={intl.formatMessage({id: 'facilities.campus.edit'})}
+                deleteLabel={intl.formatMessage({id: 'facilities.campus.delete'})}
+            />
 
-                    <IconButton size="small" onClick={(e) => handleMenuOpen(e, item)}>
-                        <SvgIcon component={threeDots} inheritViewBox/>
-                    </IconButton>
-                </Box>
-            ))}
-
-            <Box onClick={onAddClick} sx={{
-                display: 'flex',
-                alignItems: 'center',
-                width: 320,
-                p: 2,
-                border: '1px dashed rgba(0,0,0,0.15)',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                '&:hover': {borderColor: 'rgba(0,0,0,0.3)', bgcolor: '#fbfbfb'}
-            }}>
-                <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
-                    <SvgIcon component={buildingIcon} inheritViewBox opacity={0.3}/>
-                    <Typography fontWeight={500}
-                                color="text.disabled">+ {intl.formatMessage({id: 'facilities.addCampus'})}</Typography>
-                </Box>
-            </Box>
-
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose} PaperProps={{
-                sx: {
-                    borderRadius: '12px',
-                    minWidth: '180px',
-                    boxShadow: '0px 4px 20px rgba(0,0,0,0.08)'
-                }
-            }}>
-                <MenuItem onClick={handleOpenEdit} sx={{py: 1.5}}>
-                    <ListItemIcon><EditOutlined fontSize="small"/></ListItemIcon>
-                    <ListItemText>{intl.formatMessage({id: 'facilities.menu.edit'})}</ListItemText>
-                </MenuItem>
-
-                <MenuItem onClick={handleOpenDelete} sx={{py: 1.5, color: 'error.main'}}>
-                    <ListItemIcon><DeleteOutline fontSize="small" color="error"/></ListItemIcon>
-                    <ListItemText>{intl.formatMessage({id: 'facilities.menu.delete'})}</ListItemText>
-                </MenuItem>
-            </Menu>
-
-            <EditCampusModal
-                open={isEditModalOpen}
+            <CampusModal
+                open={isModalOpen}
                 campus={selectedCampus}
-                onClose={() => setIsEditModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                }}
                 onSuccess={onRefresh}
             />
 
             <DeleteConfirmDialog
                 open={isDeleteModalOpen}
-                loading={isDeleting}
-                title={intl.formatMessage({id: 'facilities.deleteConfirm.title'})}
-                description={intl.formatMessage({id: 'facilities.deleteConfirm.description'})}
-                onClose={() => setIsDeleteModalOpen(false)}
+                title={intl.formatMessage({id: 'facilities.campus.deleteTitle'})}
+                description={intl.formatMessage({id: 'facilities.campus.deleteDesc'})}
+                cancelButtonLabel={intl.formatMessage({id: 'facilities.common.cancel'})}
+                confirmButtonLabel={intl.formatMessage({id: 'facilities.campus.delete'})}
                 onConfirm={handleConfirmDelete}
-            />
-
+                onClose={() => {
+                    setIsDeleteModalOpen(false);
+                }}/>
         </Box>
     );
 }
