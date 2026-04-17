@@ -118,7 +118,8 @@ def list_students(
             "id": study_program.id,
             "study_field": study_program.study_field,
             "start_year": study_program.start_year,
-            "program_name": study_program.program_name or getattr(study_field, "field_name", None),
+            "program_name": study_program.program_name
+            or getattr(study_field, "field_name", None),
         }
 
         major_details = None
@@ -190,7 +191,8 @@ def get_student(
         "id": study_program.id,
         "study_field": study_program.study_field,
         "start_year": study_program.start_year,
-        "program_name": study_program.program_name or getattr(study_field, "field_name", None),
+        "program_name": study_program.program_name
+        or getattr(study_field, "field_name", None),
     }
 
     major_details = None
