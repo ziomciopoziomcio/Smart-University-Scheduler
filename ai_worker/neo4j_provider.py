@@ -157,6 +157,7 @@ class Neo4jProvider:
             OPTIONAL MATCH (s)-[old_rel:AT_TIME]->(:TimeSlot)
             DELETE old_rel
             MERGE (s)-[:AT_TIME]->(new_t)
+            RETURN s.sessionId AS updated_id
             """,
                     "error_msg": f"Failed to update timeslot: ClassSession '{class_session_id}' or TimeSlot '{new_timeslot_id}' not found in Neo4j.",
                 }
