@@ -135,8 +135,8 @@ class Neo4jProvider:
         if new_room_id is not None:
             queries.append("""
             MATCH (s:ClassSession {sessionId: $session_id})
-            MATCH (old_r:Room)<-[old_rel:HELD_IN]-(s)
             MATCH (new_r:Room {roomId: $new_room_id})
+            OPTIONAL MATCH (s)-[old_rel:HELD_IN]->(:Room)
             DELETE old_rel
             MERGE (s)-[:HELD_IN]->(new_r)
             """)
@@ -145,8 +145,8 @@ class Neo4jProvider:
         if new_timeslot_id is not None:
             queries.append("""
             MATCH (s:ClassSession {sessionId: $session_id})
-            MATCH (old_t:TimeSlot)<-[old_rel:AT_TIME]-(s)
             MATCH (new_t:TimeSlot {timeSlotId: $new_timeslot_id})
+            OPTIONAL MATCH (s)-[old_rel:AT_TIME]->(:TimeSlot)
             DELETE old_rel
             MERGE (s)-[:AT_TIME]->(new_t)
             """)
