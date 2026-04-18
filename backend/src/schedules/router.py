@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import uuid
 from datetime import timezone, datetime, date
@@ -138,8 +137,8 @@ async def resolve_schedule_suggestion(
     payload: schemas.ScheduleSuggestionUpdate,
     db: Session = Depends(get_db),
 ):
-    obj = await asyncio.to_thread(
-        _get_or_404, db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
+    obj = _get_or_404(
+        db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
     )
 
     if obj.status != models.SuggestionStatus.PENDING:
@@ -164,12 +163,9 @@ async def resolve_schedule_suggestion(
     obj.status = payload.status
     obj.resolved_at = datetime.now(timezone.utc)
 
-    def save_and_refresh():
-        db.add(obj)
-        _commit_or_rollback(db)
-        db.refresh(obj)
-
-    await asyncio.to_thread(save_and_refresh)
+    db.add(obj)
+    _commit_or_rollback(db)
+    db.refresh(obj)
 
     if payload.status == models.SuggestionStatus.ACCEPTED:
         event_message = {
@@ -189,13 +185,10 @@ async def resolve_schedule_suggestion(
         if not kafka_success:
             logger.error(f"Failed to reschedule: {event_message}")
 
-            def revert_compensation():
-                obj.status = models.SuggestionStatus.PENDING
-                obj.resolved_at = None
-                db.add(obj)
-                _commit_or_rollback(db)
-
-            await asyncio.to_thread(revert_compensation)
+            obj.status = models.SuggestionStatus.PENDING
+            obj.resolved_at = None
+            db.add(obj)
+            _commit_or_rollback(db)
 
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

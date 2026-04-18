@@ -215,13 +215,10 @@ async def create_message(
         content=final_content,
     )
 
-    def save_ai_msg_and_commit():
-        db.add(ai_msg)
-        _commit_or_rollback(db)
-        db.refresh(ai_msg)
-        db.refresh(user_msg)
-
-    await asyncio.to_thread(save_ai_msg_and_commit)
+    db.add(ai_msg)
+    _commit_or_rollback(db)
+    db.refresh(ai_msg)
+    db.refresh(user_msg)
 
     return {
         "user_message": user_msg,
