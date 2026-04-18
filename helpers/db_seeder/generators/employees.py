@@ -49,7 +49,7 @@ def _get_user_info(user: Users) -> tuple[str | None, str, str]:
 
 def generate_employees(
     session: Session,
-    db_teachers: list[dict[tuple[str | None, str, str, str, str], Users]],
+    db_teachers: dict[tuple[str | None, str, str, str, str], Users],
     db_units: dict[str, Units],
     db_faculties: dict[str, Faculty],
 ) -> dict[tuple[str | None, str, str], Employees]:
@@ -63,20 +63,20 @@ def generate_employees(
     """
     db_employees: dict[tuple[str | None, str, str], Employees] = {}
 
-    for teacher in db_teachers:
-        ti = teacher.items()
-        for k, v in ti:
-            user_id = _get_user_id(v)
-            faculty_id = _get_random_faculty_id(db_faculties)
-            unit_id = _get_random_unit_id(db_units)
-            employee = Employees(
-                user_id=user_id,
-                faculty_id=faculty_id,
-                unit_id=unit_id,
-            )
-            session.add(employee)
-            info = _get_user_info(v)
-            db_employees[(info[0], info[1], info[2])] = employee
+    # for teacher in db_teachers:
+    ti = db_teachers.items()
+    for k, v in ti:
+        user_id = _get_user_id(v)
+        faculty_id = _get_random_faculty_id(db_faculties)
+        unit_id = _get_random_unit_id(db_units)
+        employee = Employees(
+            user_id=user_id,
+            faculty_id=faculty_id,
+            unit_id=unit_id,
+        )
+        session.add(employee)
+        info = _get_user_info(v)
+        db_employees[(info[0], info[1], info[2])] = employee
 
     session.flush()
     return db_employees
