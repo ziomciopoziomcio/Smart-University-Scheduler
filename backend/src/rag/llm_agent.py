@@ -4,7 +4,6 @@ from groq import Groq
 from groq.types.chat import (
     ChatCompletionMessageParam,
     ChatCompletionToolParam,
-    ChatCompletionSystemMessageParam,
 )
 
 from .tools import RescheduleSuggestionTool, CheckAvailabilityTool
@@ -70,19 +69,12 @@ def call_agent(messages: list[ChatCompletionMessageParam]):
     return response.choices[0].message
 
 
-def process_chat_message(user_message: str, schedule_context: str) -> dict:
+def process_chat_message(messages: list[ChatCompletionMessageParam]) -> dict:
     """
     Process a user message by calling the LLM agent with the appropriate system prompt and message history.
-    :param user_message: The content of the user's message to the agent.
-    :param schedule_context: The text representation of the user's current schedule, to be included in the system prompt for context.
+    :param messages: The message history including system, user, assistant, and tool messages.
     :return: A dictionary containing the agent's response, which may include either a text reply or a tool call with parameters.
     """
-    messages: list[ChatCompletionMessageParam] = [
-        ChatCompletionSystemMessageParam(
-            role="system", content=get_system_prompt(schedule_context)
-        ),
-        ChatCompletionMessageParam(role="user", content=user_message),
-    ]
     response_message = call_agent(messages)
 
     if response_message.tool_calls:
@@ -90,21 +82,18 @@ def process_chat_message(user_message: str, schedule_context: str) -> dict:
         try:
             arguments = json.loads(tool_call.function.arguments)
         except (json.JSONDecodeError, TypeError, AttributeError):
-            arguments = None
+            arguments = {}
 
-        if isinstance(arguments, dict):
-            generated_reply = arguments.get(
-                "confirmation_message",
-                "Your request has been forwarded for processing.",
-            )
-            return {
-                "type": "tool_call",
-                "tool_name": tool_call.function.name,
-                "content": generated_reply,
-                "suggestion_data": arguments,
-            }
+        return {
+            "type": "tool_call",
+            "tool_name": tool_call.function_name,
+            "tool_call_id": tool_call.id,
+            "arguments": arguments,
+            "raw_message": response_message,
+        }
+
     return {
         "type": "text",
         "content": response_message.content,
-        "suggestion_data": None,
+        "raw_message": response_message,
     }
