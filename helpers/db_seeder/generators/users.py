@@ -142,8 +142,8 @@ def generate_users(
     not_teacher_email_domain: str,
     teacher_email_domain: str,
 ) -> tuple[
-    list[dict[tuple[str | None, str, str, str, str], Users]],
-    list[dict[tuple[str | None, str, str, str, str], Users]],
+    dict[tuple[str | None, str, str, str, str], Users],
+    dict[tuple[str | None, str, str, str, str, bool], Users],
 ]:
     """
     Generates a list of users (teachers and others)
@@ -159,7 +159,7 @@ def generate_users(
         (in case of None, hash is the same as plain password)
     :param not_teacher_email_domain: domain for not teacher email
     :param teacher_email_domain: domain for teacher email
-    :return: A tuple containing two lists of dictionaries.
+    :return: A tuple containing two dictionaries.
         Each dictionary maps a key, represented as a tuple of
         (degree, name, surname, email, password), to a Users object.
         First dictionary contains teachers.
@@ -167,8 +167,8 @@ def generate_users(
     """
 
     # list[dict[tuple[degree, name, surname, email, password], Users]]
-    db_teachers: list[dict[tuple[str | None, str, str, str, str], Users]] = []
-    db_not_teachers: list[dict[tuple[str | None, str, str, str, str], Users]] = []
+    db_teachers: dict[tuple[str | None, str, str, str, str], Users] = {}
+    db_not_teachers: dict[tuple[str | None, str, str, str, str, bool], Users] = {}
 
     if total_not_teacher_new_users < 0:
         raise ValueError("total_not_teacher_new_users cannot be negative")
@@ -247,12 +247,13 @@ def generate_users(
             f"{degree} {name} {surname} - {phone} - {mail} - {password} ({password_hash})"
         )
 
-        user_key: tuple[str | None, str, str, str, str] = (
+        user_key: tuple[str | None, str, str, str, str, bool] = (
             degree,
             name,
             surname,
             mail,
             password,
+            curr_role_obj.role_name.lower() == "student",
         )
         user_obj = Users(
             password_hash=password_hash,
@@ -264,7 +265,8 @@ def generate_users(
             roles=[curr_role_obj],
         )
         session.add(user_obj)
-        db_not_teachers.append({user_key: user_obj})
+        db_not_teachers[user_key] = user_obj
+        # db_not_teachers.append({user_key: user_obj})
 
     print()
     print()
@@ -300,7 +302,7 @@ def generate_users(
             roles=[instructor_role_obj],
         )
         session.add(user_obj)
-        db_teachers.append({user_key: user_obj})
+        db_teachers[user_key] = user_obj
 
     session.flush()
     return db_teachers, db_not_teachers
