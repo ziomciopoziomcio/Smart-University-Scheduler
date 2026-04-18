@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 import json
 
 from backend.src.facilities.models import Faculty
-from backend.src.academics.models import Units
+from backend.src.academics.models import Units, Employees
 from backend.src.courses.models import (
     Study_fields,
     Course,
@@ -13,6 +13,7 @@ from backend.src.courses.models import (
     CourseLanguage,
     Course_type_detail,
 )
+from helpers.db_seeder.generators import employees
 from src.courses.models import Major, Elective_block
 
 
@@ -204,12 +205,14 @@ def _parse_course_language(
 def generate_courses(
     session: Session,
     units: dict[str, Units],
+    db_employees: dict[tuple[str | None, str, str], Employees],
     sourcefile="../../../helpers/data_collector/final-programy.json",
 ) -> dict[int, Course]:
     """
     Generates courses from JSON file and links them to units.
     :param session: database session
     :param units: dictionary of Units objects mapped by unit_short
+    :param db_employees: dictionary of employees
     :param sourcefile: path to JSON file containing study field data
     :return: dictionary mapping course codes to Course objects
     """
@@ -256,8 +259,28 @@ def generate_courses(
                         print("Wrong data - leading unit not found")
                         continue
 
-                    # todo course_coordinator mapping !!!
-                    course_coordinator_id = 1
+                    # course_coordinator mapping
+                    course_coordinator_id = -1
+                    emp_keys = list(db_employees.keys())
+                    for k in emp_keys:
+                        degree = k[0]
+                        name = k[1]
+                        surname = k[2]
+                        # if degree is not None:
+                        #     if (
+                        #         degree in course_coordinator
+                        #         and name in course_coordinator
+                        #         and surname in course_coordinator
+                        #     ):
+                        #         course_coordinator_id = db_employees[k].id
+                        #         break
+                        # else:
+                        if name in course_coordinator and surname in course_coordinator:
+                            course_coordinator_id = db_employees[k].id
+                            break
+                    if course_coordinator_id == -1:
+                        print("Wrong data - no course coordinator found")
+                        continue
 
                     # add course
                     course = Course(
