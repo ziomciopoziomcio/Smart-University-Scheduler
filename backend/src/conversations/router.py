@@ -123,7 +123,7 @@ def delete_chat(
 # Messages
 @router.post(
     "/{chat_id}/messages",
-    response_model=schemas.MessageRead,
+    response_model=schemas.ChatTurnResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_message(
@@ -214,11 +214,19 @@ async def create_message(
         role=models.MessageRole.ASSISTANT,
         content=final_content,
     )
-    db.add(ai_msg)
-    _commit_or_rollback(db)
-    db.refresh(ai_msg)
 
-    return ai_msg
+    def save_ai_msg_and_commit():
+        db.add(ai_msg)
+        _commit_or_rollback(db)
+        db.refresh(ai_msg)
+        db.refresh(user_msg)
+
+    await asyncio.to_thread(save_ai_msg_and_commit)
+
+    return {
+        "user_message": user_msg,
+        "ai_message": ai_msg,
+    }
 
 
 @router.get(
