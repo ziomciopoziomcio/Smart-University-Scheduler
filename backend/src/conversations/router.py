@@ -197,7 +197,19 @@ async def create_message(
                 )
                 continue
             elif tool_name == "create_reschedule_suggestion":
+                target_id = args.get("target_class_session_id")
+                valid_uuid = None
+                if target_id:
+                    try:
+                        valid_uuid = uuid.UUID(target_id)
+                    except (ValueError, TypeError, AttributeError):
+                        pass
+                if not valid_uuid:
+                    suggestion_data = None
+                    final_content = "Sorry, but I cannot process your rescheduling request because the target class session ID is missing or invalid. Please check the prompt and try again."
+                    break
                 suggestion_data = args
+                suggestion_data["_validaten_uuid"] = valid_uuid
                 final_content = args.get(
                     "confirmation_message",
                     "Schedule change suggestion has been submitted.",
@@ -206,15 +218,13 @@ async def create_message(
 
     def save_ai_response_task():
         with SessionLocal() as local_db:
-            if suggestion_data:
+            if suggestion_data and "_validaten_uuid" in suggestion_data:
                 new_suggestion = schedule_models.ScheduleSuggestion(
                     source="AI_CHAT",
                     reason=suggestion_data.get(
                         "reason", "Reschedule requested by AI Assistant"
                     ),
-                    target_class_session_id=uuid.UUID(
-                        suggestion_data["target_class_session_id"]
-                    ),
+                    target_class_session_id=suggestion_data["_validaten_uuid"],
                     state_before={
                         "info": "Validated by Neo4j",
                         "context_snapshot": user_context,
