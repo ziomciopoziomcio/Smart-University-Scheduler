@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import uuid
 from datetime import timezone, datetime, date
@@ -137,8 +138,8 @@ async def resolve_schedule_suggestion(
     payload: schemas.ScheduleSuggestionUpdate,
     db: Session = Depends(get_db),
 ):
-    obj = _get_or_404(
-        db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
+    obj = await asyncio.to_thread(
+        _get_or_404, db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
     )
 
     if obj.status != models.SuggestionStatus.PENDING:
@@ -162,13 +163,16 @@ async def resolve_schedule_suggestion(
 
     obj.status = payload.status
     obj.resolved_at = datetime.now(timezone.utc)
-    db.add(obj)
+    await asyncio.to_thread(db.add, obj)
 
-    try:
+    def commit_and_refresh():
         db.commit()
         db.refresh(obj)
+
+    try:
+        await asyncio.to_thread(commit_and_refresh)
     except Exception:
-        db.rollback()
+        await asyncio.to_thread(db.rollback)
         logger.exception(f"Database error while updating suggestion {suggestion_id}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -194,8 +198,12 @@ async def resolve_schedule_suggestion(
             logger.error(f"Failed to reschedule: {event_message}")
             obj.status = models.SuggestionStatus.PENDING
             obj.resolved_at = None
-            db.add(obj)
-            db.commit()
+
+            def rollback_compensation():
+                db.add(obj)
+                db.commit()
+
+            await asyncio.to_thread(rollback_compensation)
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Failed to queue schedule update request",
