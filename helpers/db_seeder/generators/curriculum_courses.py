@@ -1,6 +1,7 @@
 import json
 import re
 from collections import defaultdict
+from sqlite3 import IntegrityError
 from typing import DefaultDict
 
 from sqlalchemy.orm import Session
@@ -161,15 +162,6 @@ def _get_courses_common_for_all_majors(
 def _get_courses_unique_at_the_major_level(
     courses_dict: dict[str, dict[tuple[str, str], str]],
 ) -> dict[str, DefaultDict[str, list[tuple[str, str]]]]:
-    """
-    Extract courses that are unique to each major and group them by semester.
-    :param courses_dict: a dictionary where:
-            - key: major (specialization)
-            - value: dictionary mapping (course_name, course_code) -> semester_name
-    :return: a dictionary where:
-            - key: major
-            - value: dictionary mapping semester names to lists of unique courses
-    """
     result: dict[str, DefaultDict[str, list[tuple[str, str]]]] = {}
     if not courses_dict:
         return result
@@ -177,18 +169,57 @@ def _get_courses_unique_at_the_major_level(
     sets = [set(courses.keys()) for courses in courses_dict.values()]
     common_courses = set.intersection(*sets)
 
-    for major, courses in courses_dict.items():
-        # print(f"MAJOR: {major}")
+    used_course_codes: set[str] = set()
 
+    for major, courses in courses_dict.items():
         semester_dict = defaultdict(list)
 
-        for course, semester in courses.items():
-            if course not in common_courses:
-                semester_dict[semester].append(course)
+        for (course_name, course_code), semester in courses.items():
+            if (course_name, course_code) in common_courses:
+                continue
+
+            if course_code in used_course_codes:
+                continue
+
+            semester_dict[semester].append((course_name, course_code))
+            used_course_codes.add(course_code)
 
         result[major] = semester_dict
 
     return result
+
+
+# def _get_courses_unique_at_the_major_level(
+#     courses_dict: dict[str, dict[tuple[str, str], str]],
+# ) -> dict[str, DefaultDict[str, list[tuple[str, str]]]]:
+#     """
+#     Extract courses that are unique to each major and group them by semester.
+#     :param courses_dict: a dictionary where:
+#             - key: major (specialization)
+#             - value: dictionary mapping (course_name, course_code) -> semester_name
+#     :return: a dictionary where:
+#             - key: major
+#             - value: dictionary mapping semester names to lists of unique courses
+#     """
+#     result: dict[str, DefaultDict[str, list[tuple[str, str]]]] = {}
+#     if not courses_dict:
+#         return result
+#
+#     sets = [set(courses.keys()) for courses in courses_dict.values()]
+#     common_courses = set.intersection(*sets)
+#
+#     for major, courses in courses_dict.items():
+#         # print(f"MAJOR: {major}")
+#
+#         semester_dict = defaultdict(list)
+#
+#         for course, semester in courses.items():
+#             if course not in common_courses:
+#                 semester_dict[semester].append(course)
+#
+#         result[major] = semester_dict
+#
+#     return result
 
 
 def _display_courses_common_for_all_majors(
@@ -306,18 +337,32 @@ def _create_curriculum_courses(
     added: dict[
         tuple[str | None, int, int, str | None, str | None], Curriculum_course
     ] = {}
+    check_added: list[tuple] = []
     for sp_obj in study_programs_obj:
         sp_id = sp_obj.id
+
+        # check
+        wrong = False
+        for el in check_added:
+            if el[0] == sp_id and el[1] == course_code_int and el[2] == semester_id:
+                wrong = True
+                break
+        if wrong:
+            continue
+
         cc_obj = Curriculum_course(
             study_program=sp_id,
             course=course_code_int,
             semester=semester_id,
             major=major_id,
         )
+        # todo try except z flushem, albo kontrola added (usun XD)
         session.add(cc_obj)
         added[(sp_obj.program_name, course_code_int, semester_id, major_name, None)] = (
             cc_obj
         )
+        check_added.append((sp_id, course_code_int, semester_id))
+
     return added
 
 
@@ -528,7 +573,7 @@ def generate_curriculum_courses(
 
     combs = _get_study_field_major_degree_from_file(sourcefile, with_major=False)
 
-    for study_field_name, study_degree in combs:
+    for study_field_name, study_degree, _ in combs:
 
         # if study_field_name != "informatyka." or study_degree != 1:
         #     continue
