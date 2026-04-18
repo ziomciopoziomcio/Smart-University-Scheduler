@@ -13,14 +13,14 @@ from src.common.router_utils import (
 )
 from . import models, schemas
 from ..database.database import get_db
-from ..database.neo4j import get_neo4j_session
+from ..database.neo4j import get_neo4j_session, check_availability_in_neo4j
 from ..rag.retriever import get_user_schedule_context
 from ..users.auth import get_current_user
 from ..users.models import Users
 from ..common.require_permission import require_permission
 from ..users import models as user_models
 
-from src.rag.llm_agent import process_chat_message
+from src.rag.llm_agent import process_chat_message, get_system_prompt
 from src.schedules.models import ScheduleSuggestion, SuggestionStatus
 
 router = APIRouter(prefix="/chats", tags=["chats"])
@@ -143,7 +143,7 @@ async def create_message(
 
     user_msg = models.Messages(chat_id=chat_id, **payload.model_dump())
     db.add(user_msg)
-    db.flush()
+    _commit_or_rollback(db)
 
     employee = (
         db.query(user_models.Employees)
@@ -153,50 +153,72 @@ async def create_message(
     schedule_user_id = employee.id if employee is not None else current_user.id
     user_context = await get_user_schedule_context(schedule_user_id, neo4j_session)
 
-    agent_response = await asyncio.to_thread(
-        process_chat_message, payload.content, user_context
-    )
+    messages = [
+        {"role": "system", "content": get_system_prompt(user_context)},
+        {"role": "user", "content": payload.content},
+    ]
+    final_content = "Something went wrong."
+    max_iterations = 5
 
+    while max_iterations > 0:
+        max_iterations -= 1
+
+        agent_response = await asyncio.to_thread(process_chat_message, messages)
+        if agent_response["type"] == "text":
+            final_content = agent_response["content"]
+            break
+        elif agent_response["type"] == "tool_call":
+            tool_name = agent_response["tool_name"]
+            args = agent_response["arguments"]
+
+            messages.append(agent_response["raw_message"])
+
+            if tool_name == "check_availability":
+                result_str = await check_availability_in_neo4j(
+                    args.get("session_id"),
+                    args.get("proposed_timeslot_id"),
+                    neo4j_session,
+                )
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": agent_response["tool_call_id"],
+                        "content": result_str,
+                    }
+                )
+                continue
+            elif tool_name == "create_reschedule_suggestion":
+                new_suggestion = ScheduleSuggestion(
+                    source="AI_CHAT",
+                    reason=args.get("reason", "Reschedule requested"),
+                    target_class_session_id=uuid.UUID(args["target_class_session_id"]),
+                    state_before={
+                        "info": "Validated by RAG",
+                        "context_snapshot": user_context,
+                    },
+                    state_after={
+                        "proposed_timeslot_id": args.get("proposed_timeslot_id"),
+                        "proposed_room_id": args.get("proposed_room_id"),
+                    },
+                    status=SuggestionStatus.PENDING,
+                )
+                db.add(new_suggestion)
+
+                final_content = args.get(
+                    "confirmation_message",
+                    "Wniosek o przeniesienie zajęć został przesłany do akceptacji.",
+                )
+                break
     ai_msg = models.Messages(
         chat_id=chat_id,
         role=models.MessageRole.ASSISTANT,
-        content=agent_response["content"],
+        content=final_content,
     )
     db.add(ai_msg)
-
-    if agent_response["type"] == "tool_call":
-        sugg_data = agent_response.get("suggestion_data")
-
-        try:
-            if not isinstance(sugg_data, dict):
-                raise TypeError("suggestion_data must be a dictionary")
-
-            target_class_session_id = uuid.UUID(sugg_data["target_class_session_id"])
-            reason = sugg_data["reason"]
-        except (KeyError, TypeError, ValueError):
-            target_class_session_id = None
-            reason = None
-
-        if target_class_session_id is not None and reason is not None:
-            new_suggestion = ScheduleSuggestion(
-                source="AI_CHAT",
-                reason=reason,
-                target_class_session_id=target_class_session_id,
-                state_before={
-                    "info": "Data to be fetched from scheduler",
-                    "context_snapshot": user_context,
-                },
-                state_after={
-                    "proposed_timeslot_id": sugg_data.get("proposed_timeslot_id"),
-                    "proposed_room_id": sugg_data.get("proposed_room_id"),
-                },
-                status=SuggestionStatus.PENDING,
-            )
-            db.add(new_suggestion)
     _commit_or_rollback(db)
-    db.refresh(user_msg)
+    db.refresh(ai_msg)
 
-    return user_msg
+    return ai_msg
 
 
 @router.get(
