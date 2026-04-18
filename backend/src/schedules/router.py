@@ -162,6 +162,18 @@ async def resolve_schedule_suggestion(
 
     obj.status = payload.status
     obj.resolved_at = datetime.now(timezone.utc)
+    db.add(obj)
+
+    try:
+        db.commit()
+        db.refresh(obj)
+    except Exception:
+        db.rollback()
+        logger.exception(f"Database error while updating suggestion {suggestion_id}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update suggestion status due to a database error",
+        )
 
     if payload.status == models.SuggestionStatus.ACCEPTED:
         event_message = {
@@ -170,28 +182,25 @@ async def resolve_schedule_suggestion(
             "new_room_id": obj.state_after.get("proposed_room_id"),
             "new_timeslot_id": obj.state_after.get("proposed_timeslot_id"),
         }
-
+        kafka_success = False
         try:
-            success = await send_event(
+            kafka_success = await send_event(
                 topic="schedule.session.reschedule",
                 msg=event_message,
             )
-            if not success:
-                logger.error(f"Failed to reschedule: {event_message}")
-                raise HTTPException(
-                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    detail="Failed to queue schedule update request",
-                )
-        except Exception:
-            logger.exception(f"Failed to reschedule {suggestion_id}: {event_message}")
+        except Exception as e:
+            logger.exception(f"Failed to reschedule {suggestion_id}: {e}")
+        if not kafka_success:
+            logger.error(f"Failed to reschedule: {event_message}")
+            obj.status = models.SuggestionStatus.PENDING
+            obj.resolved_at = None
+            db.add(obj)
+            db.commit()
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Failed to queue schedule update request",
             )
 
-    db.add(obj)
-    _commit_or_rollback(db)
-    db.refresh(obj)
     return obj
 
 
