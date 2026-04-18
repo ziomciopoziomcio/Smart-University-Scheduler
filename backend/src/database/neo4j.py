@@ -6,7 +6,7 @@ from neo4j import AsyncGraphDatabase
 
 logger = logging.getLogger(__name__)
 
-_neo4j_driver = None
+_neo4j_driver: AsyncGraphDatabase | None = None
 
 
 def _get_driver():
@@ -47,6 +47,22 @@ async def get_neo4j_session():
 
     async with driver.session() as session:
         yield session
+
+
+async def close_neo4j_driver() -> None:
+    """
+    Gracefully close the neo4j driver
+    :return: None
+    """
+    global _neo4j_driver
+    if _neo4j_driver is not None:
+        try:
+            await _neo4j_driver.close()
+            logger.info("Neo4j driver successfully closed.")
+        except Exception as e:
+            logger.error(f"Error while closing Neo4j driver: {e}")
+        finally:
+            _neo4j_driver = None
 
 
 async def check_availability_in_neo4j(

@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src import api_routers
+from src.database.neo4j import close_neo4j_driver
 from src.users.auth import get_secret_key
 from src.common.kafka_client import kafka_manager
 
@@ -35,6 +36,8 @@ async def lifespan(app: FastAPI):
     if not producer_started:
         raise RuntimeError("Error during Kafka producer start")
     yield
+
+    await close_neo4j_driver()
 
     try:
         if kafka_manager.producer:
