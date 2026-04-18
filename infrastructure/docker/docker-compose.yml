@@ -105,6 +105,7 @@ services:
     depends_on:
       - postgres
       - kafka
+      - neo4j
     ports:
       - "3000:3000"
     volumes:

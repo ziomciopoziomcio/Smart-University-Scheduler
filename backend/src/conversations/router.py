@@ -165,24 +165,34 @@ async def create_message(
     db.add(ai_msg)
 
     if agent_response["type"] == "tool_call":
-        sugg_data = agent_response["suggestion_data"]
+        sugg_data = agent_response.get("suggestion_data")
 
-        new_suggestion = ScheduleSuggestion(
-            source="AI_CHAT",
-            reason=sugg_data["reason"],
-            target_class_session_id=uuid.UUID(sugg_data["target_class_session_id"]),
-            state_before={
-                "info": "Data to be fetched from scheduler",
-                "context_snapshot": user_context,
-            },
-            state_after={
-                "proposed_timeslot_id": sugg_data.get("proposed_timeslot_id"),
-                "proposed_room_id": sugg_data.get("proposed_room_id"),
-            },
-            status=SuggestionStatus.PENDING,
-        )
-        db.add(new_suggestion)
+        try:
+            if not isinstance(sugg_data, dict):
+                raise TypeError("suggestion_data must be a dictionary")
 
+            target_class_session_id = uuid.UUID(sugg_data["target_class_session_id"])
+            reason = sugg_data["reason"]
+        except (KeyError, TypeError, ValueError):
+            target_class_session_id = None
+            reason = None
+
+        if target_class_session_id is not None and reason is not None:
+            new_suggestion = ScheduleSuggestion(
+                source="AI_CHAT",
+                reason=reason,
+                target_class_session_id=target_class_session_id,
+                state_before={
+                    "info": "Data to be fetched from scheduler",
+                    "context_snapshot": user_context,
+                },
+                state_after={
+                    "proposed_timeslot_id": sugg_data.get("proposed_timeslot_id"),
+                    "proposed_room_id": sugg_data.get("proposed_room_id"),
+                },
+                status=SuggestionStatus.PENDING,
+            )
+            db.add(new_suggestion)
     _commit_or_rollback(db)
     db.refresh(user_msg)
 
