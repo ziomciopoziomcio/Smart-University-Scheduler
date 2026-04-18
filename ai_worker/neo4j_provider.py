@@ -133,23 +133,34 @@ class Neo4jProvider:
         queries = []
         parameters = {"session_id": class_session_id}
         if new_room_id is not None:
-            queries.append("""
+            queries.append(
+                {
+                    "cypher": """"
             MATCH (s:ClassSession {sessionId: $session_id})
             MATCH (new_r:Room {roomId: $new_room_id})
             OPTIONAL MATCH (s)-[old_rel:HELD_IN]->(:Room)
             DELETE old_rel
             MERGE (s)-[:HELD_IN]->(new_r)
-            """)
+            RETURN s.sessionId AS updated_id
+            """,
+                    "error_msg": f"Failed to update room: ClassSession '{class_session_id}' or Room '{new_room_id}' not found in Neo4j.",
+                }
+            )
             parameters["new_room_id"] = int(new_room_id)
 
         if new_timeslot_id is not None:
-            queries.append("""
+            queries.append(
+                {
+                    "cypher": """
             MATCH (s:ClassSession {sessionId: $session_id})
             MATCH (new_t:TimeSlot {timeSlotId: $new_timeslot_id})
             OPTIONAL MATCH (s)-[old_rel:AT_TIME]->(:TimeSlot)
             DELETE old_rel
             MERGE (s)-[:AT_TIME]->(new_t)
-            """)
+            """,
+                    "error_msg": f"Failed to update timeslot: ClassSession '{class_session_id}' or TimeSlot '{new_timeslot_id}' not found in Neo4j.",
+                }
+            )
             parameters["new_timeslot_id"] = int(new_timeslot_id)
 
         if not queries:
@@ -160,8 +171,14 @@ class Neo4jProvider:
 
         try:
             async with self.driver.session() as session:
-                for q in queries:
-                    result = await session.run(Query(q), **parameters)
+                for q_info in queries:
+                    result = await session.run(Query(q_info["cypher"]), **parameters)
+                    record = await result.single()
+                    if not record:
+                        err_msg = q_info["error_msg"]
+                        raise ValueError(
+                            f"Failed to update ClassSession {class_session_id}: {err_msg}"
+                        )
                     await result.consume()
                 logger.info(
                     f"Successfully updated ClassSession {class_session_id} in Neo4j."
