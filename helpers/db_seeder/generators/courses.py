@@ -531,7 +531,7 @@ def generate_elective_blocks(
         sf_id: int = sf_obj.id
 
         for eb_name in elective_blocks_names[sf_name]:
-            eb_obj = Elective_block(study_field=sf_id, block_name=eb_name)
+            eb_obj = Elective_block(study_field=sf_id, elective_block_name=eb_name)
             db_elective_blocks[(eb_name, sf_name)] = eb_obj
             session.add(eb_obj)
             print(f"Added {eb_name}")
