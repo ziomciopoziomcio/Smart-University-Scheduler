@@ -121,6 +121,77 @@ def delete_chat(
     return None
 
 
+def _save_user_msg_sync(
+    chat_id: int, user_id: int, payload: schemas.MessageCreate
+) -> tuple[schemas.MessageRead, int]:
+    """
+    Save the user's message to the database and return the saved message along with the user ID to be used for scheduling context retrieval.
+    :param chat_id: Value of the chat_id path parameter from the API endpoint
+    :param user_id: ID of the current user, used to verify chat ownership and for scheduling context retrieval
+    :param payload: The validated request body containing the user's message content and role
+    :return: A tuple containing the saved user message as a Pydantic schema and the user ID for scheduling context retrieval
+    """
+    with SessionLocal() as local_db:
+        chat = _get_or_404(local_db, models.Chats, chat_id, "Chat")
+        if chat.user_id != user_id or not chat.visible:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found"
+            )
+
+        user_msg = models.Messages(chat_id=chat_id, **payload.model_dump())
+        local_db.add(user_msg)
+        _commit_or_rollback(local_db)
+        local_db.refresh(user_msg)
+
+        employee = (
+            local_db.query(user_models.Employees)
+            .filter(user_models.Employees.user_id == user_id)
+            .first()
+        )
+        schedule_user_id = employee.id if employee is not None else user_id
+
+        return schemas.MessageRead.model_validate(user_msg), schedule_user_id
+
+
+def _save_ai_msg_sync(
+    chat_id: int, content: str, sugg_data: dict | None, context: str
+) -> schemas.MessageRead:
+    """
+    Save the AI assistant's message to the database, along with any schedule suggestion data if applicable. This function is designed to be run in a separate thread to avoid blocking the main event loop.
+    :param chat_id: Value of the chat_id path parameter from the API endpoint, used to associate the AI message with the correct chat
+    :param content: The final content of the AI assistant's message to be saved in the database
+    :param sugg_data: A dictionary containing schedule suggestion data if the AI's response included a rescheduling suggestion. This may include reason, proposed timeslot and room IDs, and a validated UUID for the target class session. If no suggestion is included, this will be None.
+    :param context: A snapshot of the user's scheduling context at the time of the AI's response, which will be stored in the state_before field of any created schedule suggestion for reference during review. This should be a string representation of the relevant scheduling information that was provided to the AI agent as part of the system prompt.
+    :return:
+    """
+    with SessionLocal() as local_db:
+        if sugg_data and "_validated_uuid" in sugg_data:
+            new_suggestion = schedule_models.ScheduleSuggestion(
+                source="AI_CHAT",
+                reason=sugg_data.get("reason", "Reschedule requested by AI Assistant"),
+                target_class_session_id=sugg_data["_validated_uuid"],
+                state_before={
+                    "info": "Validated by Neo4j",
+                    "context_snapshot": context,
+                },
+                state_after={
+                    "proposed_timeslot_id": sugg_data.get("proposed_timeslot_id"),
+                    "proposed_room_id": sugg_data.get("proposed_room_id"),
+                },
+                status=schedule_models.SuggestionStatus.PENDING,
+            )
+            local_db.add(new_suggestion)
+
+        ai_msg = models.Messages(
+            chat_id=chat_id, role=models.MessageRole.ASSISTANT, content=content
+        )
+        local_db.add(ai_msg)
+        _commit_or_rollback(local_db)
+        local_db.refresh(ai_msg)
+
+        return schemas.MessageRead.model_validate(ai_msg)
+
+
 # Messages
 @router.post(
     "/{chat_id}/messages",
@@ -134,127 +205,54 @@ async def create_message(
     current_user: Users = Depends(get_current_user),
     _current_user: user_models.Users = Depends(require_permission("message:create")),
 ):
-    def save_user_context_task():
-        with SessionLocal() as local_db:
-            chat = _get_or_404(local_db, models.Chats, chat_id, "Chat")
-
-            if chat.user_id != current_user.id or not chat.visible:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found"
-                )
-
-            user_msg = models.Messages(chat_id=chat_id, **payload.model_dump())
-            local_db.add(user_msg)
-            _commit_or_rollback(local_db)
-            local_db.refresh(user_msg)
-
-            employee = (
-                local_db.query(user_models.Employees)
-                .filter(user_models.Employees.user_id == current_user.id)
-                .first()
-            )
-            schedule_user_id = employee.id if employee is not None else current_user.id
-            user_msg_schema = schemas.MessageRead.model_validate(user_msg)
-            return user_msg_schema, schedule_user_id
-
-    user_msg_schema, schedule_user_id = await asyncio.to_thread(save_user_context_task)
-
+    user_msg_schema, schedule_user_id = await asyncio.to_thread(
+        _save_user_msg_sync, chat_id, current_user.id, payload
+    )
     user_context = await get_user_schedule_context(schedule_user_id, neo4j_session)
 
     messages = [
         {"role": "system", "content": get_system_prompt(user_context)},
         {"role": "user", "content": payload.content},
     ]
-    final_content = "Something went wrong."
-    suggestion_data = None
-    max_iterations = 5
 
-    while max_iterations > 0:
-        max_iterations -= 1
+    final_content, suggestion_data = "Something went wrong.", None
 
-        agent_response = await asyncio.to_thread(process_chat_message, messages)
-        if agent_response["type"] == "text":
-            final_content = agent_response["content"]
+    for _ in range(5):
+        resp = await asyncio.to_thread(process_chat_message, messages)
+
+        if resp["type"] == "text":
+            final_content = resp["content"]
             break
-        elif agent_response["type"] == "tool_call":
-            tool_name = agent_response["tool_name"]
-            args = agent_response["arguments"]
 
-            messages.append(agent_response["raw_message"])
+        tool_name, args = resp.get("tool_name"), resp.get("arguments", {})
+        messages.append(resp["raw_message"])
 
-            if tool_name == "check_availability":
-                result_str = await check_availability_in_neo4j(
-                    args.get("session_id"),
-                    args.get("proposed_timeslot_id"),
-                    neo4j_session,
-                )
-                messages.append(
-                    {
-                        "role": "tool",
-                        "tool_call_id": agent_response["tool_call_id"],
-                        "content": result_str,
-                    }
-                )
-                continue
-            elif tool_name == "create_reschedule_suggestion":
-                target_id = args.get("target_class_session_id")
-                valid_uuid = None
-                if target_id:
-                    try:
-                        valid_uuid = uuid.UUID(target_id)
-                    except (ValueError, TypeError, AttributeError):
-                        pass
-                if not valid_uuid:
-                    suggestion_data = None
-                    final_content = (
-                        "Sorry, but I cannot process your rescheduling request "
-                        "because the target class session ID is missing or invalid."
-                        "Please check the prompt and try again."
-                    )
-                    break
+        if tool_name == "check_availability":
+            res = await check_availability_in_neo4j(
+                args.get("session_id"), args.get("proposed_timeslot_id"), neo4j_session
+            )
+            messages.append(
+                {"role": "tool", "tool_call_id": resp["tool_call_id"], "content": res}
+            )
+
+        elif tool_name == "create_reschedule_suggestion":
+            try:
                 suggestion_data = args
-                suggestion_data["_validaten_uuid"] = valid_uuid
+                suggestion_data["_validated_uuid"] = uuid.UUID(
+                    args.get("target_class_session_id", "")
+                )
                 final_content = args.get(
                     "confirmation_message",
                     "Schedule change suggestion has been submitted.",
                 )
-                break
+            except (ValueError, TypeError, AttributeError):
+                final_content = "Sorry, but I cannot process your rescheduling request because the target class session ID is missing or invalid. Please check the prompt and try again."
+                suggestion_data = None
+            break
 
-    def save_ai_response_task():
-        with SessionLocal() as local_db:
-            if suggestion_data and "_validaten_uuid" in suggestion_data:
-                new_suggestion = schedule_models.ScheduleSuggestion(
-                    source="AI_CHAT",
-                    reason=suggestion_data.get(
-                        "reason", "Reschedule requested by AI Assistant"
-                    ),
-                    target_class_session_id=suggestion_data["_validaten_uuid"],
-                    state_before={
-                        "info": "Validated by Neo4j",
-                        "context_snapshot": user_context,
-                    },
-                    state_after={
-                        "proposed_timeslot_id": suggestion_data.get(
-                            "proposed_timeslot_id"
-                        ),
-                        "proposed_room_id": suggestion_data.get("proposed_room_id"),
-                    },
-                    status=schedule_models.SuggestionStatus.PENDING,
-                )
-                local_db.add(new_suggestion)
-
-            ai_msg = models.Messages(
-                chat_id=chat_id,
-                role=models.MessageRole.ASSISTANT,
-                content=final_content,
-            )
-            local_db.add(ai_msg)
-            _commit_or_rollback(local_db)
-            local_db.refresh(ai_msg)
-
-            return schemas.MessageRead.model_validate(ai_msg)
-
-    ai_msg_schema = await asyncio.to_thread(save_ai_response_task)
+    ai_msg_schema = await asyncio.to_thread(
+        _save_ai_msg_sync, chat_id, final_content, suggestion_data, user_context
+    )
 
     return {"user_message": user_msg_schema, "ai_message": ai_msg_schema}
 
