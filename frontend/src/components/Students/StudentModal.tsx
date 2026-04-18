@@ -45,18 +45,29 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
         const loadData = async () => {
             setIsLoadingData(true);
             try {
-                // TODO: After filtering
-                // const usersRes = await fetchUsers(200, 0, { exclude_profiles: ['student'] });
-
-                const [usersRes, programsRes, majorsRes] = await Promise.all([
+                const [usersRes, programsRes, majorsRes] = await Promise.allSettled([
                     fetchUsers(200, 0),
                     fetchStudyPrograms(200, 0),
                     fetchMajors(200, 0)
                 ]);
 
-                setUsers(usersRes.items);
-                setPrograms(programsRes.items);
-                setMajors(majorsRes.items);
+                if (usersRes.status === 'fulfilled') {
+                    setUsers(usersRes.value.items);
+                } else {
+                    console.error("Błąd pobierania użytkowników", usersRes.reason);
+                }
+
+                if (programsRes.status === 'fulfilled') {
+                    setPrograms(programsRes.value.items);
+                } else {
+                    console.error("Błąd pobierania kierunków", programsRes.reason);
+                }
+
+                if (majorsRes.status === 'fulfilled') {
+                    setMajors(majorsRes.value.items);
+                } else {
+                    console.error("Błąd pobierania specjalności", majorsRes.reason);
+                }
 
                 if (student) {
                     setUserId(student.user_id);
@@ -67,8 +78,8 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
                     setStudyProgramId('');
                     setMajorId('');
                 }
-            } catch {
-                console.error(intl.formatMessage({id: 'academics.errors.loadDictionaries'}));
+            } catch (err) {
+                console.error("Nieoczekiwany błąd modala", err);
             } finally {
                 setIsLoadingData(false);
             }
@@ -114,11 +125,18 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
                     <>
                         <FormControl fullWidth disabled={isEditMode}>
                             <InputLabel>{intl.formatMessage({id: 'academics.students.userLabel'})}</InputLabel>
-                            <Select value={userId} label={intl.formatMessage({id: 'academics.students.userLabel'})}
-                                    onChange={(e) => setUserId(e.target.value as number)}>
+                            <Select
+                                value={userId}
+                                label={intl.formatMessage({id: 'academics.students.userLabel'})}
+                                onChange={(e) => setUserId(e.target.value as number)}
+                            >
+                                {!isEditMode && <MenuItem value=""
+                                                          disabled>{intl.formatMessage({id: 'academics.students.chooseUser'})}</MenuItem>}
+
                                 {isEditMode && student && (
-                                    <MenuItem
-                                        value={student.user_id}>{student.user.name} {student.user.surname} ({student.user.email})</MenuItem>
+                                    <MenuItem value={student.user_id}>
+                                        {student.user.name} {student.user.surname} ({student.user.email})
+                                    </MenuItem>
                                 )}
                                 {!isEditMode && users.map(u => (
                                     <MenuItem key={u.id} value={u.id}>{u.name} {u.surname} ({u.email})</MenuItem>
@@ -128,9 +146,13 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
 
                         <FormControl fullWidth>
                             <InputLabel>{intl.formatMessage({id: 'academics.students.programLabel'})}</InputLabel>
-                            <Select value={studyProgramId}
-                                    label={intl.formatMessage({id: 'academics.students.programLabel'})}
-                                    onChange={(e) => setStudyProgramId(e.target.value as number)}>
+                            <Select
+                                value={studyProgramId}
+                                label={intl.formatMessage({id: 'academics.students.programLabel'})}
+                                onChange={(e) => setStudyProgramId(e.target.value as number)}
+                            >
+                                <MenuItem value=""
+                                          disabled>{intl.formatMessage({id: 'academics.students.chooseProgram'})}</MenuItem>
                                 {programs.map(p => (
                                     <MenuItem key={p.id} value={p.id}>
                                         {p.program_name || `Kierunek ID: ${p.study_field} (Start: ${p.start_year})`}
@@ -141,8 +163,11 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
 
                         <FormControl fullWidth>
                             <InputLabel>{intl.formatMessage({id: 'academics.students.majorLabel'})}</InputLabel>
-                            <Select value={majorId} label={intl.formatMessage({id: 'academics.students.majorLabel'})}
-                                    onChange={(e) => setMajorId(e.target.value as number)}>
+                            <Select
+                                value={majorId}
+                                label={intl.formatMessage({id: 'academics.students.majorLabel'})}
+                                onChange={(e) => setMajorId(e.target.value as number)}
+                            >
                                 <MenuItem
                                     value=""><em>{intl.formatMessage({id: 'academics.students.majorNone'})}</em></MenuItem>
                                 {majors.map(m => (

@@ -27,6 +27,7 @@ import LecturerSchedulePage from "./pages/Plans/LecturerPlan/LecturerSchedulePag
 import StructuresPage from "./pages/Structures/StructuresPage.tsx";
 import StudentsPage from "./pages/Students/StudentsPage.tsx";
 import EmployeesPage from "./pages/Employees/EmployeesPage.tsx";
+import UsersPage from "./pages/Users/UsersPage.tsx";
 
 function AppRoute() {
     const isAuthenticated = useAuthStore((state) => state.token !== null);
@@ -40,6 +41,7 @@ function AppRoute() {
                 <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
                 <Route path="/reset-password" element={<ResetPasswordPage/>}/>
 
+
                 <Route element={<ProtectedRoute/>}>
                     <Route element={<MainLayout/>}>
                         <Route path="/plan" element={<MyPlan/>}/>
@@ -51,6 +53,7 @@ function AppRoute() {
                         <Route path="/structures" element={<StructuresPage view="faculties"/>}/>
                         <Route path="/structures/faculty/:facultyId" element={<StructuresPage view="units"/>}/>
 
+                        <Route path="/users" element={<UsersPage/>}/>
                         <Route path="/students" element={<StudentsPage/>}/>
                         <Route path="/employees" element={<EmployeesPage/>}/>
 

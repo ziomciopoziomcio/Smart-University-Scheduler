@@ -94,7 +94,8 @@
     "permissions": "Uprawnienia",
     "facilities": "Obiekty",
     "students": "Studenci",
-    "structures": "Struktury"
+    "structures": "Struktury",
+    "users": "Użytkownicy"
   },
   "navbar": {
     "guest": "Gość"
@@ -269,24 +270,37 @@
   "academics": {
     "common": {
       "cancel": "Anuluj",
-      "deleteConfirm": "Usuń"
+      "deleteConfirm": "Usuń",
+      "save": "Zapisz"
+    },
+    "errors": {
+      "save": "Błąd podczas zapisywania profilu.",
+      "loadDictionaries": "Błąd podczas pobierania list wyboru."
     },
     "students": {
       "students": "Studenci",
-      "searchPlaceholder": "Szukaj studenta... (imię, nazwisko, indeks...)",
+      "searchPlaceholder": "Szukaj studenta...",
       "add": "Przypisz profil studenta",
       "edit": "Edytuj profil",
       "delete": "Usuń ze studentów",
       "deleteTitle": "Usuń profil studenta",
       "deleteDesc": "Czy na pewno chcesz usunąć profil studencki dla {name}? (Konto użytkownika pozostanie nienaruszone, straci tylko przypisanie do uczelni).",
       "empty": "Brak przypisanych studentów w systemie.",
+      "titleAdd": "Utwórz profil studenta",
+      "titleEdit": "Edytuj profil studenta",
+      "userLabel": "Użytkownik",
+      "chooseUser": "Wybierz użytkownika",
+      "programLabel": "Kierunek Studiów",
+      "chooseProgram": "Wybierz kierunek",
+      "majorLabel": "Specjalność (opcjonalnie)",
+      "majorNone": "Brak specjalności",
       "errors": {
         "delete": "Błąd podczas usuwania przypisania studenta."
       }
     },
     "employees": {
       "employees": "Pracownicy",
-      "searchPlaceholder": "Szukaj pracownika... (imię, nazwisko...)",
+      "searchPlaceholder": "Szukaj pracownika...",
       "add": "Przypisz profil pracownika",
       "edit": "Edytuj przypisanie",
       "delete": "Usuń profil pracowniczy",
@@ -294,12 +308,18 @@
       "deleteDesc": "Czy na pewno chcesz usunąć powiązanie pracownicze dla {name}? (Konto użytkownika pozostanie nienaruszone).",
       "empty": "Brak pracowników w systemie.",
       "unassigned": "Brak przypisania",
+      "titleAdd": "Utwórz profil pracownika",
+      "titleEdit": "Edytuj przypisanie",
+      "userLabel": "Użytkownik",
+      "facultyLabel": "Wydział",
+      "unitLabel": "Jednostka",
       "errors": {
         "delete": "Błąd podczas usuwania przypisania pracownika."
       }
     }
   },
   "users": {
+    "users": "Użytkownicy",
     "common": {
       "cancel": "Anuluj",
       "save": "Zapisz",
@@ -315,7 +335,9 @@
       "deleteTitle": "Usuń użytkownika",
       "deleteDesc": "Czy na pewno chcesz usunąć konto użytkownika {name}? Tej operacji nie można cofnąć.",
       "empty": "Brak użytkowników w systemie.",
-      "noRoles": "Brak ról"
+      "noRoles": "Brak ról",
+      "2faEnabled": "Weryfikacja dwuetapowa włączona",
+      "2faDisabled": "Brak 2FA"
     },
     "modal": {
       "titleAdd": "Dodaj nowego użytkownika",

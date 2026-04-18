@@ -94,7 +94,8 @@
     "permissions": "Permissions",
     "facilities": "Facilities",
     "students": "Students",
-    "structures": "Structures"
+    "structures": "Structures",
+    "users": "Users"
   },
   "navbar": {
     "guest": "Guest"
@@ -278,26 +279,28 @@
     },
     "students": {
       "students": "Students",
-      "searchPlaceholder": "Search employee...(name, surname...)",
+      "searchPlaceholder": "Search student..",
       "add": "Assign student profile",
       "edit": "Edit profile",
       "delete": "Remove from students",
       "deleteTitle": "Delete student profile",
       "deleteDesc": "Are you sure you want to delete the student profile for {name}? (The user account will remain intact, it will only lose its university assignment).",
       "empty": "No assigned students in the system.",
-      "errors": {
-        "delete": "Error while removing student assignment."
-      },
       "titleAdd": "Create student profile",
       "titleEdit": "Edit student profile",
       "userLabel": "User",
+      "chooseUser": "Select user",
       "programLabel": "Study Program",
+      "chooseProgram": "Select study program",
       "majorLabel": "Major (optional)",
-      "majorNone": "No major"
+      "majorNone": "No major",
+      "errors": {
+        "delete": "Error while removing student assignment."
+      }
     },
     "employees": {
       "employees": "Employees",
-      "searchPlaceholder": "Search employee...(name, surname...)",
+      "searchPlaceholder": "Search employee...",
       "add": "Assign employee profile",
       "edit": "Edit assignment",
       "delete": "Remove employee profile",
@@ -305,17 +308,18 @@
       "deleteDesc": "Are you sure you want to remove the employee association for {name}? (The user account will remain intact).",
       "empty": "No employees in the system.",
       "unassigned": "No assignment",
-      "errors": {
-        "delete": "Error while removing employee assignment."
-      },
       "titleAdd": "Create employee profile",
       "titleEdit": "Edit assignment",
       "userLabel": "User",
       "facultyLabel": "Faculty",
-      "unitLabel": "Unit"
+      "unitLabel": "Unit",
+      "errors": {
+        "delete": "Error while removing employee assignment."
+      }
     }
   },
   "users": {
+    "users": "Users",
     "common": {
       "cancel": "Cancel",
       "save": "Save",
@@ -331,7 +335,9 @@
       "deleteTitle": "Delete user",
       "deleteDesc": "Are you sure you want to delete the account for {name}? This action cannot be undone.",
       "empty": "No users in the system.",
-      "noRoles": "No roles"
+      "noRoles": "No roles",
+      "2faEnabled": "Two-Factor Authentication enabled",
+      "2faDisabled": "No 2FA"
     },
     "modal": {
       "titleAdd": "Add new user",

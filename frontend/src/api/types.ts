@@ -7,6 +7,7 @@ export interface User {
     phone_number: string | null;
     created_at: string;
     roles?: string[];
+    two_factor_enabled?: boolean;
 }
 
 export interface AuthResponse {
