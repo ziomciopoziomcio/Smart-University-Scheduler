@@ -22,6 +22,7 @@ from ..users import models as user_models
 
 from src.rag.llm_agent import process_chat_message, get_system_prompt
 from src.database.database import SessionLocal
+from src.schedules import models as schedule_models
 
 router = APIRouter(prefix="/chats", tags=["chats"])
 
@@ -206,7 +207,7 @@ async def create_message(
     def save_ai_response_task():
         with SessionLocal() as local_db:
             if suggestion_data:
-                new_suggestion = models.ScheduleSuggestion(
+                new_suggestion = schedule_models.ScheduleSuggestion(
                     source="AI_CHAT",
                     reason=suggestion_data.get(
                         "reason", "Reschedule requested by AI Assistant"
@@ -224,7 +225,7 @@ async def create_message(
                         ),
                         "proposed_room_id": suggestion_data.get("proposed_room_id"),
                     },
-                    status=models.SuggestionStatus.PENDING,
+                    status=schedule_models.SuggestionStatus.PENDING,
                 )
                 local_db.add(new_suggestion)
 
