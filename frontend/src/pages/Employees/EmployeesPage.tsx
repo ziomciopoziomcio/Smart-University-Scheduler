@@ -16,7 +16,7 @@ export default function EmployeesPage() {
     const [error, setError] = useState<string | null>(null);
 
     const getBreadcrumbs = () => [
-        {label: 'Pracownicy', path: '/employees'}
+        {label: intl.formatMessage({id: "academics.employees.employees"}), path: '/employees'}
     ];
 
     const loadData = useCallback(async () => {
@@ -42,7 +42,7 @@ export default function EmployeesPage() {
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, width: '100%'}}>
             <SearchBar
-                placeholder="Szukaj pracownika (imię, nazwisko...)"
+                placeholder={intl.formatMessage({id: 'academics.employees.searchPlaceholder'})}
                 value={search}
                 onChange={setSearch}
             />

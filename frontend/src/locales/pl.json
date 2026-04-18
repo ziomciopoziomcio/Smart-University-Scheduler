@@ -269,14 +269,11 @@
   "academics": {
     "common": {
       "cancel": "Anuluj",
-      "deleteConfirm": "Usuń",
-      "save": "Zapisz"
-    },
-    "errors": {
-      "save": "Błąd podczas zapisywania profilu.",
-      "loadDictionaries": "Błąd podczas pobierania list wyboru."
+      "deleteConfirm": "Usuń"
     },
     "students": {
+      "students": "Studenci",
+      "searchPlaceholder": "Szukaj studenta... (imię, nazwisko, indeks...)",
       "add": "Przypisz profil studenta",
       "edit": "Edytuj profil",
       "delete": "Usuń ze studentów",
@@ -285,15 +282,11 @@
       "empty": "Brak przypisanych studentów w systemie.",
       "errors": {
         "delete": "Błąd podczas usuwania przypisania studenta."
-      },
-      "titleAdd": "Utwórz profil studenta",
-      "titleEdit": "Edytuj profil studenta",
-      "userLabel": "Użytkownik",
-      "programLabel": "Kierunek Studiów",
-      "majorLabel": "Specjalność (opcjonalnie)",
-      "majorNone": "Brak specjalności"
+      }
     },
     "employees": {
+      "employees": "Pracownicy",
+      "searchPlaceholder": "Szukaj pracownika... (imię, nazwisko...)",
       "add": "Przypisz profil pracownika",
       "edit": "Edytuj przypisanie",
       "delete": "Usuń profil pracowniczy",
@@ -303,13 +296,43 @@
       "unassigned": "Brak przypisania",
       "errors": {
         "delete": "Błąd podczas usuwania przypisania pracownika."
-      },
-      "titleAdd": "Utwórz profil pracownika",
-      "titleEdit": "Edytuj przypisanie",
-      "userLabel": "Użytkownik",
-      "facultyLabel": "Wydział",
-      "unitLabel": "Jednostka"
+      }
+    }
+  },
+  "users": {
+    "common": {
+      "cancel": "Anuluj",
+      "save": "Zapisz",
+      "deleteConfirm": "Usuń"
+    },
+    "page": {
+      "searchPlaceholder": "Szukaj użytkownika (imię, nazwisko, email...)"
+    },
+    "view": {
+      "add": "Dodaj użytkownika",
+      "edit": "Edytuj użytkownika",
+      "delete": "Usuń konto",
+      "deleteTitle": "Usuń użytkownika",
+      "deleteDesc": "Czy na pewno chcesz usunąć konto użytkownika {name}? Tej operacji nie można cofnąć.",
+      "empty": "Brak użytkowników w systemie.",
+      "noRoles": "Brak ról"
+    },
+    "modal": {
+      "titleAdd": "Dodaj nowego użytkownika",
+      "titleEdit": "Edytuj użytkownika",
+      "nameLabel": "Imię",
+      "surnameLabel": "Nazwisko",
+      "emailLabel": "Adres e-mail",
+      "phoneLabel": "Numer telefonu",
+      "degreeLabel": "Stopień / Tytuł naukowy",
+      "passwordLabel": "Hasło",
+      "passwordEditLabel": "Nowe hasło (zostaw puste, aby nie zmieniać)",
+      "password2Label": "Powtórz hasło"
+    },
+    "errors": {
+      "save": "Błąd podczas zapisywania użytkownika.",
+      "delete": "Błąd podczas usuwania użytkownika.",
+      "passwordMismatch": "Podane hasła nie są identyczne!"
     }
   }
-
 }

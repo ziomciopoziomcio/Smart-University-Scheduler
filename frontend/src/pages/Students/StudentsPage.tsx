@@ -16,7 +16,7 @@ export default function StudentsPage() {
     const [error, setError] = useState<string | null>(null);
 
     const getBreadcrumbs = () => [
-        { label: 'Studenci', path: '/students' }
+        { label: intl.formatMessage({id: "academics.students.students"}), path: '/students' }
     ];
 
     const loadData = useCallback(async () => {
@@ -42,7 +42,7 @@ export default function StudentsPage() {
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
             <SearchBar
-                placeholder="Szukaj studenta (imię, nazwisko, indeks...)"
+                placeholder={intl.formatMessage({ id: 'academics.students.searchPlaceholder' })}
                 value={search}
                 onChange={setSearch}
             />

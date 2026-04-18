@@ -277,6 +277,8 @@
       "loadDictionaries": "Error while loading selection lists."
     },
     "students": {
+      "students": "Students",
+      "searchPlaceholder": "Search employee...(name, surname...)",
       "add": "Assign student profile",
       "edit": "Edit profile",
       "delete": "Remove from students",
@@ -294,6 +296,8 @@
       "majorNone": "No major"
     },
     "employees": {
+      "employees": "Employees",
+      "searchPlaceholder": "Search employee...(name, surname...)",
       "add": "Assign employee profile",
       "edit": "Edit assignment",
       "delete": "Remove employee profile",
@@ -311,5 +315,40 @@
       "unitLabel": "Unit"
     }
   },
-
+  "users": {
+    "common": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "deleteConfirm": "Delete"
+    },
+    "page": {
+      "searchPlaceholder": "Search user (name, surname, email...)"
+    },
+    "view": {
+      "add": "Add user",
+      "edit": "Edit user",
+      "delete": "Delete account",
+      "deleteTitle": "Delete user",
+      "deleteDesc": "Are you sure you want to delete the account for {name}? This action cannot be undone.",
+      "empty": "No users in the system.",
+      "noRoles": "No roles"
+    },
+    "modal": {
+      "titleAdd": "Add new user",
+      "titleEdit": "Edit user",
+      "nameLabel": "First name",
+      "surnameLabel": "Last name",
+      "emailLabel": "Email address",
+      "phoneLabel": "Phone number",
+      "degreeLabel": "Degree / Title",
+      "passwordLabel": "Password",
+      "passwordEditLabel": "New password (leave blank to keep current)",
+      "password2Label": "Repeat password"
+    },
+    "errors": {
+      "save": "Error while saving user.",
+      "delete": "Error while deleting user.",
+      "passwordMismatch": "Passwords do not match!"
+    }
+  }
 }
