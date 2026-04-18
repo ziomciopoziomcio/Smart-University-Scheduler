@@ -135,7 +135,7 @@ class Neo4jProvider:
         if new_room_id is not None:
             queries.append(
                 {
-                    "cypher": """"
+                    "cypher": """
             MATCH (s:ClassSession {sessionId: $session_id})
             MATCH (new_r:Room {roomId: $new_room_id})
             OPTIONAL MATCH (s)-[old_rel:HELD_IN]->(:Room)
