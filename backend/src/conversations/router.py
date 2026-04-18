@@ -21,7 +21,7 @@ from ..common.require_permission import require_permission
 from ..users import models as user_models
 
 from src.rag.llm_agent import process_chat_message, get_system_prompt
-from src.schedules.models import ScheduleSuggestion, SuggestionStatus
+from src.database.database import SessionLocal
 
 router = APIRouter(prefix="/chats", tags=["chats"])
 
@@ -129,28 +129,35 @@ def delete_chat(
 async def create_message(
     chat_id: int,
     payload: schemas.MessageCreate,
-    db: Session = Depends(get_db),
     neo4j_session=Depends(get_neo4j_session),
     current_user: Users = Depends(get_current_user),
     _current_user: user_models.Users = Depends(require_permission("message:create")),
 ):
-    chat = _get_or_404(db, models.Chats, chat_id, "Chat")
+    def save_user_context_task():
+        with SessionLocal() as local_db:
+            chat = _get_or_404(local_db, models.Chats, chat_id, "Chat")
 
-    if chat.user_id != current_user.id or not chat.visible:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found"
-        )
+            if chat.user_id != current_user.id or not chat.visible:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found"
+                )
 
-    user_msg = models.Messages(chat_id=chat_id, **payload.model_dump())
-    db.add(user_msg)
-    _commit_or_rollback(db)
+            user_msg = models.Messages(chat_id=chat_id, **payload.model_dump())
+            local_db.add(user_msg)
+            _commit_or_rollback(local_db)
+            local_db.refresh(user_msg)
 
-    employee = (
-        db.query(user_models.Employees)
-        .filter(user_models.Employees.user_id == current_user.id)
-        .first()
-    )
-    schedule_user_id = employee.id if employee is not None else current_user.id
+            employee = (
+                local_db.query(user_models.Employees)
+                .filter(user_models.Employees.user_id == current_user.id)
+                .first()
+            )
+            schedule_user_id = employee.id if employee is not None else current_user.id
+            user_msg_schema = schemas.MessageRead.model_validate(user_msg)
+            return user_msg_schema, schedule_user_id
+
+    user_msg_schema, schedule_user_id = await asyncio.to_thread(save_user_context_task)
+
     user_context = await get_user_schedule_context(schedule_user_id, neo4j_session)
 
     messages = [
@@ -158,6 +165,7 @@ async def create_message(
         {"role": "user", "content": payload.content},
     ]
     final_content = "Something went wrong."
+    suggestion_data = None
     max_iterations = 5
 
     while max_iterations > 0:
@@ -188,42 +196,52 @@ async def create_message(
                 )
                 continue
             elif tool_name == "create_reschedule_suggestion":
-                new_suggestion = ScheduleSuggestion(
+                suggestion_data = args
+                final_content = args.get(
+                    "confirmation_message",
+                    "Schedule change suggestion has been submitted.",
+                )
+                break
+
+    def save_ai_response_task():
+        with SessionLocal() as local_db:
+            if suggestion_data:
+                new_suggestion = models.ScheduleSuggestion(
                     source="AI_CHAT",
-                    reason=args.get("reason", "Reschedule requested"),
-                    target_class_session_id=uuid.UUID(args["target_class_session_id"]),
+                    reason=suggestion_data.get(
+                        "reason", "Reschedule requested by AI Assistant"
+                    ),
+                    target_class_session_id=uuid.UUID(
+                        suggestion_data["target_class_session_id"]
+                    ),
                     state_before={
-                        "info": "Validated by RAG",
+                        "info": "Validated by Neo4j",
                         "context_snapshot": user_context,
                     },
                     state_after={
-                        "proposed_timeslot_id": args.get("proposed_timeslot_id"),
-                        "proposed_room_id": args.get("proposed_room_id"),
+                        "proposed_timeslot_id": suggestion_data.get(
+                            "proposed_timeslot_id"
+                        ),
+                        "proposed_room_id": suggestion_data.get("proposed_room_id"),
                     },
-                    status=SuggestionStatus.PENDING,
+                    status=models.SuggestionStatus.PENDING,
                 )
-                db.add(new_suggestion)
+                local_db.add(new_suggestion)
 
-                final_content = args.get(
-                    "confirmation_message",
-                    "Wniosek o przeniesienie zajęć został przesłany do akceptacji.",
-                )
-                break
-    ai_msg = models.Messages(
-        chat_id=chat_id,
-        role=models.MessageRole.ASSISTANT,
-        content=final_content,
-    )
+            ai_msg = models.Messages(
+                chat_id=chat_id,
+                role=models.MessageRole.ASSISTANT,
+                content=final_content,
+            )
+            local_db.add(ai_msg)
+            _commit_or_rollback(local_db)
+            local_db.refresh(ai_msg)
 
-    db.add(ai_msg)
-    _commit_or_rollback(db)
-    db.refresh(ai_msg)
-    db.refresh(user_msg)
+            return schemas.MessageRead.model_validate(ai_msg)
 
-    return {
-        "user_message": user_msg,
-        "ai_message": ai_msg,
-    }
+    ai_msg_schema = await asyncio.to_thread(save_ai_response_task)
+
+    return {"user_message": user_msg_schema, "ai_message": ai_msg_schema}
 
 
 @router.get(
