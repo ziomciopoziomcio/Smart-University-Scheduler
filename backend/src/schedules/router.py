@@ -160,8 +160,7 @@ async def resolve_schedule_suggestion(
             detail=f"Invalid target status. Suggestion status must be one of {allowed_str}",
         )
 
-    obj.status = payload.status
-    obj.resolved_at = datetime.now(timezone.utc)
+    obj.status, obj.resolved_at = payload.status, datetime.now(timezone.utc)
 
     db.add(obj)
     _commit_or_rollback(db)
@@ -174,25 +173,19 @@ async def resolve_schedule_suggestion(
             "new_room_id": obj.state_after.get("proposed_room_id"),
             "new_timeslot_id": obj.state_after.get("proposed_timeslot_id"),
         }
-        kafka_success = False
         try:
-            kafka_success = await send_event(
-                topic="schedule.session.reschedule",
-                msg=event_message,
-            )
+            if not await send_event(
+                topic="schedule.session.reschedule", msg=event_message
+            ):
+                raise RuntimeError("Kafka emission returned False")
         except Exception as e:
-            logger.exception(f"Failed to reschedule {suggestion_id}: {e}")
-        if not kafka_success:
-            logger.error(f"Failed to reschedule: {event_message}")
-
-            obj.status = models.SuggestionStatus.PENDING
-            obj.resolved_at = None
+            logger.error(f"Failed to reschedule {suggestion_id}: {e}")
+            obj.status, obj.resolved_at = models.SuggestionStatus.PENDING, None
             db.add(obj)
             _commit_or_rollback(db)
-
             raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Failed to queue schedule update request",
+                status.HTTP_503_SERVICE_UNAVAILABLE,
+                f"Failed to reschedule {suggestion_id}",
             )
 
     return obj
