@@ -59,6 +59,22 @@ async def check_availability_in_neo4j(
     :param neo4j_session: Neo4j session
     :return: A string message indicating whether there are conflicts or not, and if there are, details about the conflicts.
     """
+    validation_query = """
+    OPTIONAL MATCH (s:ClassSession {sessionId: $session_id})
+    OPTIONAL MATCH (t:TimeSlot {timeSlotId: $new_timeslot_id})
+    RETURN s IS NOT NULL AS session_exists, t IS NOT NULL AS timeslot_exists
+    """
+    val_result = await neo4j_session.run(
+        validation_query, session_id=session_id, new_timeslot_id=new_timeslot_id
+    )
+    val_record = await val_result.single()
+
+    if not val_record or not val_record["session_exists"]:
+        return "STATUS: ERROR. The provided session_id does not exist in the database. Please check the context and use a VALID Class Session ID, or ask the user to clarify."
+
+    if not val_record["timeslot_exists"]:
+        return "STATUS: ERROR. The proposed_timeslot_id does not exist. Please select a valid timeslot ID."
+
     human_conflict_query = """
         MATCH (target_s:ClassSession {sessionId: $session_id})
 
