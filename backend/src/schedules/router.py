@@ -11,13 +11,13 @@ from . import schemas
 from ..academics import models as ac_mod
 from ..common.kafka_client import send_event
 from ..common.pagination.pagination import PaginatedResponse, paginate
+from ..common.require_permission import require_permission
 from ..common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
 )
 from ..database.database import get_db
-from ..common.require_permission import require_permission
 from ..users import models as user_models
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
@@ -163,21 +163,13 @@ async def resolve_schedule_suggestion(
 
     obj.status = payload.status
     obj.resolved_at = datetime.now(timezone.utc)
-    await asyncio.to_thread(db.add, obj)
 
-    def commit_and_refresh():
-        db.commit()
+    def save_and_refresh():
+        db.add(obj)
+        _commit_or_rollback(db)
         db.refresh(obj)
 
-    try:
-        await asyncio.to_thread(commit_and_refresh)
-    except Exception:
-        await asyncio.to_thread(db.rollback)
-        logger.exception(f"Database error while updating suggestion {suggestion_id}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update suggestion status due to a database error",
-        )
+    await asyncio.to_thread(save_and_refresh)
 
     if payload.status == models.SuggestionStatus.ACCEPTED:
         event_message = {
@@ -196,14 +188,15 @@ async def resolve_schedule_suggestion(
             logger.exception(f"Failed to reschedule {suggestion_id}: {e}")
         if not kafka_success:
             logger.error(f"Failed to reschedule: {event_message}")
-            obj.status = models.SuggestionStatus.PENDING
-            obj.resolved_at = None
 
-            def rollback_compensation():
+            def revert_compensation():
+                obj.status = models.SuggestionStatus.PENDING
+                obj.resolved_at = None
                 db.add(obj)
-                db.commit()
+                _commit_or_rollback(db)
 
-            await asyncio.to_thread(rollback_compensation)
+            await asyncio.to_thread(revert_compensation)
+
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Failed to queue schedule update request",
