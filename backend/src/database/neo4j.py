@@ -1,30 +1,51 @@
 import logging
 import os
+from fastapi import HTTPException, status
 
 from neo4j import AsyncGraphDatabase
 
 logger = logging.getLogger(__name__)
 
-URI = f"bolt://{os.getenv('NEO4J_HOST', 'neo4j')}:{os.getenv('NEO4J_PORT', '7687')}"
-USER = os.getenv("NEO4J_USER", "neo4j")
-PASSWORD = os.getenv("NEO4J_PASSWORD")
+_neo4j_driver = None
 
-if not PASSWORD:
-    raise RuntimeError("NEO4J_PASSWORD environment variable must be set.")
-try:
-    neo4j_driver = AsyncGraphDatabase.driver(URI, auth=(USER, PASSWORD))
-    logger.info("Backend successfully connected to Neo4j")
-except Exception as e:
-    logger.error(f"Failed to connect to Neo4j: {e}")
-    neo4j_driver = None
+
+def _get_driver():
+    """
+    Lazy load the neo4j driver
+    :return: The neo4j driver instance
+    """
+    global _neo4j_driver
+    if _neo4j_driver is not None:
+        return _neo4j_driver
+    uri = f"bolt://{os.getenv('NEO4J_HOST', 'neo4j')}:{os.getenv('NEO4J_PORT', '7687')}"
+    user = os.getenv("NEO4J_USER", "neo4j")
+    password = os.getenv("NEO4J_PASSWORD")
+
+    if not password:
+        logger.error("Neo4j password not set")
+        raise ValueError("Neo4j password not set")
+
+    try:
+        _neo4j_driver = AsyncGraphDatabase.driver(uri, auth=(user, password))
+        logger.info("Backend successfully connected to Neo4j")
+    except Exception as e:
+        logger.error(f"Failed to connect to Neo4j: {e}")
+        raise ValueError(f"Failed to connect to Neo4j: {e}")
+
+    return _neo4j_driver
 
 
 async def get_neo4j_session():
-    if not neo4j_driver:
-        raise RuntimeError(
-            "Neo4j driver is not initialized. Check logs for connection errors."
+    try:
+        driver = _get_driver()
+    except ValueError as e:
+        logger.error(f"Cannot provide Neo4j session: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph database is currently unavailable. Please try again later.",
         )
-    async with neo4j_driver.session() as session:
+
+    async with driver.session() as session:
         yield session
 
 
