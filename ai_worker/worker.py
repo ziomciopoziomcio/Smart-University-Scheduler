@@ -375,9 +375,13 @@ async def process_reschedule_task(
     producer: AIOKafkaProducer,
 ) -> None:
     """
-    Handler for rescheduling tasks triggered by schedule update events. This function listens for events indicating that a class session has been rescheduled (e.g., due to a room change or time change) and updates the Neo4j graph accordingly. It may also trigger re-evaluation of the schedule if necessary and publish results back to Kafka.
+    Handler for rescheduling tasks triggered by schedule update events.
+    This function listens for events indicating that a class session has been rescheduled
+    (e.g., due to a room change or time change) and updates the Neo4j graph accordingly.
+    It may also trigger re-evaluation of the schedule if necessary and publish results back to Kafka.
     :param task_data: Dictionary containing details about the rescheduling event. Expected keys may include:
-    :param neo4j_prov: Neo4jProvider instance used to interact with the Neo4j database, allowing the function to update the graph with new scheduling information.
+    :param neo4j_prov: Neo4jProvider instance used to interact with the Neo4j database,
+    allowing the function to update the graph with new scheduling information.
     :param producer: AIOKafkaProducer instance used to publish any necessary results or notifications back to Kafka after processing the rescheduling event.
     :return: None
     """
@@ -464,9 +468,7 @@ async def main() -> None:
     try:
         async for msg in consumer:
             if msg.topic == "schedule.optimization.requests":
-                await process_task(
-                    msg.value, data_provider, neo4j_provider, producer
-                )
+                await process_task(msg.value, data_provider, neo4j_provider, producer)
             elif msg.topic == "schedule.session.reschedule":
                 await process_reschedule_task(msg.value, neo4j_provider, producer)
             else:

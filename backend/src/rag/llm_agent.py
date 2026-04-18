@@ -26,7 +26,8 @@ def get_system_prompt(schedule_context: str) -> str:
 
     RULES:
     1. If the user wants to reschedule or move a class, you MUST ALWAYS call 'check_availability' first to check for conflicts and find available rooms.
-    2. If 'check_availability' returns a CONFLICT or NO ROOMS, inform the user and ask them to select a different time. DO NOT call 'create_reschedule_suggestion'.
+    2. If 'check_availability' returns a CONFLICT or NO ROOMS, inform the user and ask them to select a different time.
+     DO NOT call 'create_reschedule_suggestion'.
     3. If 'check_availability' returns OK, use one of the available Room IDs provided in the tool response and then call 'create_reschedule_suggestion'.
     4. ALWAYS use the Class Session IDs provided in the context above.
     """  # TODO: Block another topics
@@ -44,7 +45,8 @@ def call_agent(messages: list[ChatCompletionMessageParam]):
             "type": "function",
             "function": {
                 "name": "check_availability",
-                "description": "Check if a proposed timeslot has any group or instructor conflicts, and find available rooms. Always use this before suggesting a reschedule.",
+                "description": "Check if a proposed timeslot has any group or instructor conflicts, and find available rooms. "
+                "Always use this before suggesting a reschedule.",
                 "parameters": CheckAvailabilityTool.model_json_schema(),
             },
         },

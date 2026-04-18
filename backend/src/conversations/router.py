@@ -206,7 +206,11 @@ async def create_message(
                         pass
                 if not valid_uuid:
                     suggestion_data = None
-                    final_content = "Sorry, but I cannot process your rescheduling request because the target class session ID is missing or invalid. Please check the prompt and try again."
+                    final_content = (
+                        "Sorry, but I cannot process your rescheduling request "
+                        "because the target class session ID is missing or invalid."
+                        "Please check the prompt and try again."
+                    )
                     break
                 suggestion_data = args
                 suggestion_data["_validaten_uuid"] = valid_uuid

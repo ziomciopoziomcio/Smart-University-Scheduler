@@ -24,7 +24,9 @@ class RescheduleSuggestionTool(BaseModel):
     )
     confirmation_message: str = Field(
         ...,
-        description="A short, polite confirmation message telling the user that their request has been sent to the dean's office for approval. MUST be written in the EXACT same language as the user's prompt.",
+        description="A short, polite confirmation message telling the user that their request has "
+        "been sent to the dean's office for approval. MUST be written in the EXACT "
+        "same language as the user's prompt.",
     )
 
 

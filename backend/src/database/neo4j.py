@@ -86,7 +86,10 @@ async def check_availability_in_neo4j(
     val_record = await val_result.single()
 
     if not val_record or not val_record["session_exists"]:
-        return "STATUS: ERROR. The provided session_id does not exist in the database. Please check the context and use a VALID Class Session ID, or ask the user to clarify."
+        return (
+            "STATUS: ERROR. The provided session_id does not exist in the database. "
+            "Please check the context and use a VALID Class Session ID, or ask the user to clarify."
+        )
 
     if not val_record["timeslot_exists"]:
         return "STATUS: ERROR. The proposed_timeslot_id does not exist. Please select a valid timeslot ID."
