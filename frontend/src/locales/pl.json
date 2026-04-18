@@ -265,5 +265,51 @@
       "project": "Projekt",
       "seminar": "Seminarium"
     }
+  },
+  "academics": {
+    "common": {
+      "cancel": "Anuluj",
+      "deleteConfirm": "Usuń",
+      "save": "Zapisz"
+    },
+    "errors": {
+      "save": "Błąd podczas zapisywania profilu.",
+      "loadDictionaries": "Błąd podczas pobierania list wyboru."
+    },
+    "students": {
+      "add": "Przypisz profil studenta",
+      "edit": "Edytuj profil",
+      "delete": "Usuń ze studentów",
+      "deleteTitle": "Usuń profil studenta",
+      "deleteDesc": "Czy na pewno chcesz usunąć profil studencki dla {name}? (Konto użytkownika pozostanie nienaruszone, straci tylko przypisanie do uczelni).",
+      "empty": "Brak przypisanych studentów w systemie.",
+      "errors": {
+        "delete": "Błąd podczas usuwania przypisania studenta."
+      },
+      "titleAdd": "Utwórz profil studenta",
+      "titleEdit": "Edytuj profil studenta",
+      "userLabel": "Użytkownik",
+      "programLabel": "Kierunek Studiów",
+      "majorLabel": "Specjalność (opcjonalnie)",
+      "majorNone": "Brak specjalności"
+    },
+    "employees": {
+      "add": "Przypisz profil pracownika",
+      "edit": "Edytuj przypisanie",
+      "delete": "Usuń profil pracowniczy",
+      "deleteTitle": "Usuń profil pracowniczy",
+      "deleteDesc": "Czy na pewno chcesz usunąć powiązanie pracownicze dla {name}? (Konto użytkownika pozostanie nienaruszone).",
+      "empty": "Brak pracowników w systemie.",
+      "unassigned": "Brak przypisania",
+      "errors": {
+        "delete": "Błąd podczas usuwania przypisania pracownika."
+      },
+      "titleAdd": "Utwórz profil pracownika",
+      "titleEdit": "Edytuj przypisanie",
+      "userLabel": "Użytkownik",
+      "facultyLabel": "Wydział",
+      "unitLabel": "Jednostka"
+    }
   }
+
 }

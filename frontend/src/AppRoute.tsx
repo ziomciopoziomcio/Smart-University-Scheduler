@@ -25,6 +25,8 @@ import LecturerDepartmentSelectPage from "./pages/Plans/LecturerPlan/LecturerDep
 import LecturerSelectPage from "./pages/Plans/LecturerPlan/LecturerSelectPage.tsx";
 import LecturerSchedulePage from "./pages/Plans/LecturerPlan/LecturerSchedulePage.tsx";
 import StructuresPage from "./pages/Structures/StructuresPage.tsx";
+import StudentsPage from "./pages/Students/StudentsPage.tsx";
+import EmployeesPage from "./pages/Employees/EmployeesPage.tsx";
 
 function AppRoute() {
     const isAuthenticated = useAuthStore((state) => state.token !== null);
@@ -49,6 +51,8 @@ function AppRoute() {
                         <Route path="/structures" element={<StructuresPage view="faculties"/>}/>
                         <Route path="/structures/faculty/:facultyId" element={<StructuresPage view="units"/>}/>
 
+                        <Route path="/students" element={<StudentsPage/>}/>
+                        <Route path="/employees" element={<EmployeesPage/>}/>
 
                         <Route path="/plans" element={<ChoosePlanPage/>}/>
 

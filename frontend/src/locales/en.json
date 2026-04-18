@@ -265,5 +265,51 @@
       "project": "Project",
       "seminar": "Seminar"
     }
-  }
+  },
+  "academics": {
+    "common": {
+      "cancel": "Cancel",
+      "deleteConfirm": "Delete",
+      "save": "Save"
+    },
+    "errors": {
+      "save": "Error while saving profile.",
+      "loadDictionaries": "Error while loading selection lists."
+    },
+    "students": {
+      "add": "Assign student profile",
+      "edit": "Edit profile",
+      "delete": "Remove from students",
+      "deleteTitle": "Delete student profile",
+      "deleteDesc": "Are you sure you want to delete the student profile for {name}? (The user account will remain intact, it will only lose its university assignment).",
+      "empty": "No assigned students in the system.",
+      "errors": {
+        "delete": "Error while removing student assignment."
+      },
+      "titleAdd": "Create student profile",
+      "titleEdit": "Edit student profile",
+      "userLabel": "User",
+      "programLabel": "Study Program",
+      "majorLabel": "Major (optional)",
+      "majorNone": "No major"
+    },
+    "employees": {
+      "add": "Assign employee profile",
+      "edit": "Edit assignment",
+      "delete": "Remove employee profile",
+      "deleteTitle": "Delete employee profile",
+      "deleteDesc": "Are you sure you want to remove the employee association for {name}? (The user account will remain intact).",
+      "empty": "No employees in the system.",
+      "unassigned": "No assignment",
+      "errors": {
+        "delete": "Error while removing employee assignment."
+      },
+      "titleAdd": "Create employee profile",
+      "titleEdit": "Edit assignment",
+      "userLabel": "User",
+      "facultyLabel": "Faculty",
+      "unitLabel": "Unit"
+    }
+  },
+
 }

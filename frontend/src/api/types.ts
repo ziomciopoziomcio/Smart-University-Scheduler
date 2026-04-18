@@ -141,3 +141,18 @@ export interface Employee {
         faculty_short: string;
     } | null;
 }
+
+export interface Permission {
+    id: number;
+    code: string;
+    name: string | null;
+    description: string | null;
+    group: string | null;
+}
+
+export interface Role {
+    id: number;
+    role_name: string;
+    permissions: Permission[];
+}
+
