@@ -184,9 +184,9 @@ async def create_message(
         db.add(new_suggestion)
 
     _commit_or_rollback(db)
-    db.refresh(ai_msg)
+    db.refresh(user_msg)
 
-    return ai_msg
+    return user_msg
 
 
 @router.get(
