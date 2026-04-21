@@ -412,6 +412,59 @@ def list_groups(
     return paginate(query, limit, offset, models.Groups.id)
 
 
+def _build_groups_summary_query(
+    db: Session,
+    faculty_id: int,
+    study_field: int,
+    semester: int,
+    specialization_id: int | None,
+    elective_block_id: int | None,
+):
+    """
+    Builds the base query for fetching study plan groups summary based on the provided filters.
+    :param db: Session
+    :param faculty_id: Faculty id
+    :param study_field: Study field id
+    :param semester: Semester number
+    :param specialization_id: Specialization id (optional)
+    :param elective_block_id: Elective block id (optional)
+    :return: SQLAlchemy query object
+    """
+    query = (
+        db.query(models.Groups, course_models.Study_program)
+        .join(
+            course_models.Study_program,
+            models.Groups.study_program == course_models.Study_program.id,
+        )
+        .join(
+            course_models.Study_fields,
+            course_models.Study_program.study_field == course_models.Study_fields.id,
+        )
+        .join(
+            course_models.Curriculum_course,
+            course_models.Study_program.id
+            == course_models.Curriculum_course.study_program,
+        )
+        .filter(
+            course_models.Study_fields.faculty == faculty_id,
+            course_models.Study_fields.id == study_field,
+            course_models.Curriculum_course.semester == semester,
+        )
+    )
+
+    if specialization_id is not None:
+        query = query.filter(
+            models.Groups.major == specialization_id,
+            course_models.Curriculum_course.major == specialization_id,
+        )
+    elif elective_block_id is not None:
+        query = query.filter(
+            models.Groups.elective_block == elective_block_id,
+            course_models.Curriculum_course.elective_block == elective_block_id,
+        )
+    return query
+
+
 @router.get("/groups/summary", response_model=list[schemas.StudyPlanGroupSummary])
 def get_study_plan_groups_summary(
     faculty_id: int = Query(...),
@@ -438,48 +491,19 @@ def get_study_plan_groups_summary(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot filter by both specialization and elective block",
         )
-    query = (
-        db.query(models.Groups, course_models.Study_program)
-        .join(
-            course_models.Study_program,
-            models.Groups.study_program == course_models.Study_program.id,
-        )
-        .join(
-            course_models.Study_fields,
-            course_models.Study_program.study_field == course_models.Study_fields.id,
-        )
-        .join(
-            course_models.Curriculum_course,
-            course_models.Study_program.id
-            == course_models.Curriculum_course.study_program,
-        )
+
+    query = _build_groups_summary_query(
+        db, faculty_id, study_field, semester, specialization_id, elective_block_id
     )
-    query = query.filter(course_models.Study_fields.faculty == faculty_id)
-    query = query.filter(course_models.Study_fields.id == study_field)
-    query = query.filter(course_models.Curriculum_course.semester == semester)
 
-    if specialization_id is not None:
-        query = query.filter(models.Groups.major == specialization_id)
-        query = query.filter(course_models.Curriculum_course.major == specialization_id)
-    if elective_block_id is not None:
-        query = query.filter(models.Groups.elective_block == elective_block_id)
-        query = query.filter(
-            course_models.Curriculum_course.elective_block == elective_block_id
+    return [
+        schemas.StudyPlanGroupSummary(
+            id=group.id,
+            group_name=group.group_name,
+            academic_year=f"{study_prog.start_year}/{int(study_prog.start_year) + 1}",
         )
-
-    rows = query.distinct().limit(1000).all()
-
-    results = []
-    for group, study_prog in rows:
-        academic_year = f"{study_prog.start_year}/{int(study_prog.start_year + 1)}"
-        results.append(
-            schemas.StudyPlanGroupSummary(
-                id=group.id,
-                group_name=group.group_name,
-                academic_year=academic_year,
-            )
-        )
-    return results
+        for group, study_prog in query.distinct().limit(1000).all()
+    ]
 
 
 @router.get("/groups/{group_id}", response_model=schemas.GroupsRead)
