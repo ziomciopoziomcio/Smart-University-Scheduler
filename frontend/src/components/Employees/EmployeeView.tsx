@@ -46,7 +46,14 @@ export default function EmployeeView({data, onRefresh}: EmployeeViewProps) {
             <ListView
                 items={data}
                 icon={Work}
-                getTitle={(item: Employee) => `${item.user.degree ? item.user.degree + ' ' : ''}${item.user.name} ${item.user.surname}`}
+                getTitle={(item: Employee) => {
+                    const validDegrees = ['none', 'inz', 'mgr', 'dr', 'dr_hab', 'prof'];
+                    const degreeLabel = item.user.degree && validDegrees.includes(item.user.degree)
+                        ? intl.formatMessage({id: `register.degrees.${item.user.degree}`}) + ' '
+                        : (item.user.degree ? item.user.degree + ' ' : '');
+
+                    return `${degreeLabel}${item.user.name} ${item.user.surname}`;
+                }}
                 titleWidth="300px"
                 columns={[
                     {

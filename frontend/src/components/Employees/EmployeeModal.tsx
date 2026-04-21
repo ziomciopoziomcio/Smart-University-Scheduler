@@ -137,7 +137,7 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
                     onChange={(_, newValue) => setSelectedUser(newValue)}
                     onInputChange={(_, newInputValue) => setUserSearchInputValue(newInputValue)}
                     // TODO Change to proper message
-                    noOptionsText="Wpisz min. 3 znaki lub brak wyników"
+                    noOptionsText={intl.formatMessage({ id: 'academics.employees.noOptionsText' })}
                     renderInput={(params) => (
                         <TextField
                             {...params}

@@ -296,7 +296,8 @@
       "majorNone": "Brak specjalności",
       "errors": {
         "delete": "Błąd podczas usuwania przypisania studenta."
-      }
+      },
+      "noOptionsText": "Wpisz min. 3 znaki lub brak wyników"
     },
     "employees": {
       "employees": "Pracownicy",
@@ -315,7 +316,8 @@
       "unitLabel": "Jednostka",
       "errors": {
         "delete": "Błąd podczas usuwania przypisania pracownika."
-      }
+      },
+      "noOptionsText": "Wpisz min. 3 znaki lub brak wyników"
     }
   },
   "users": {

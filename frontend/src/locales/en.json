@@ -279,7 +279,7 @@
     },
     "students": {
       "students": "Students",
-      "searchPlaceholder": "Search student..",
+      "searchPlaceholder": "Search student...",
       "add": "Assign student profile",
       "edit": "Edit profile",
       "delete": "Remove from students",
@@ -296,7 +296,8 @@
       "majorNone": "No major",
       "errors": {
         "delete": "Error while removing student assignment."
-      }
+      },
+      "noOptionsText": "Type at least 3 characters or no results"
     },
     "employees": {
       "employees": "Employees",
@@ -315,7 +316,8 @@
       "unitLabel": "Unit",
       "errors": {
         "delete": "Error while removing employee assignment."
-      }
+      },
+      "noOptionsText": "Type at least 3 characters or no results"
     }
   },
   "users": {

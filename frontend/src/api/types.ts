@@ -105,8 +105,8 @@ export interface Unit {
 export interface StudyProgramDetails {
     id: number;
     study_field: number;
-    start_year: number;
-    program_name: string;
+    start_year: string;
+    program_name?: string | null;
 }
 
 export interface MajorDetails {
@@ -128,7 +128,7 @@ export interface Employee {
     id: number;
     user_id: number;
     faculty_id: number;
-    unit_id: number | null;
+    unit_id: number;
     user: User;
     unit: {
         id: number;

@@ -45,8 +45,17 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
                     fetchMajors(200, 0)
                 ]);
 
-                if (programsRes.status === 'fulfilled') setPrograms(programsRes.value.items);
-                if (majorsRes.status === 'fulfilled') setMajors(majorsRes.value.items);
+                if (programsRes.status === 'fulfilled') {
+                    setPrograms(programsRes.value.items);
+                } else {
+                    throw new Error("Błąd pobierania kierunków");
+                }
+
+                if (majorsRes.status === 'fulfilled') {
+                    setMajors(majorsRes.value.items);
+                } else {
+                    throw new Error("Błąd pobierania specjalności");
+                }
 
                 if (student) {
                     setSelectedUser(student.user);
@@ -131,8 +140,7 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
                             value={selectedUser}
                             onChange={(_, newValue) => setSelectedUser(newValue)}
                             onInputChange={(_, newInputValue) => setUserSearchInputValue(newInputValue)}
-                            // TODO Change to proper message
-                            noOptionsText="Wpisz min. 3 znaki lub brak wyników"
+                            noOptionsText={intl.formatMessage({id: 'academics.students.noOptionsText'})}
                             renderInput={(params) => (
                                 <TextField
                                     {...params}

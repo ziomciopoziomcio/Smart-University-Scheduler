@@ -132,7 +132,6 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                                onChange={(e) => setPhone(e.target.value)} disabled={isSubmitting}/>
                 </Box>
 
-                {/* Wielki powrót AuthPasswordField! */}
                 <AuthPasswordField
                     label={intl.formatMessage({id: isEditMode ? 'users.modal.passwordEditLabel' : 'users.modal.passwordLabel'})}
                     placeholder=""
