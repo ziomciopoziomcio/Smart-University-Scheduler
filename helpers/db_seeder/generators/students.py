@@ -85,30 +85,30 @@ def _assign_students_to_study_program(
 
 
 def _get_major_name_by_id(
-    db_majors: dict[tuple[str, str], Major], id: int | None
+    db_majors: dict[tuple[str, str], Major], m_id: int | None
 ) -> str | None:
-    if id is None:
+    if m_id is None:
         return None
     for major_obj in db_majors.values():
-        if major_obj.id == id:
+        if major_obj.id == m_id:
             return major_obj.major_name
     return None
 
 
 def _get_email_by_user_id(
-    db_not_teachers: dict[tuple[str | None, str, str, str, str, bool], Users], id: int
+    db_not_teachers: dict[tuple[str | None, str, str, str, str, bool], Users], u_id: int
 ) -> str:
     for user_obj in db_not_teachers.values():
-        if user_obj.id == id:
+        if user_obj.id == u_id:
             return user_obj.email
     return "error"
 
 
 def _get_study_program_name_by_id(
-    db_study_programs: dict[tuple[str, str, int], Study_program], id: int
+    db_study_programs: dict[tuple[str, str, int], Study_program], sp_id: int
 ) -> str | None:
     for sp_obj in db_study_programs.values():
-        if sp_obj.id == id:
+        if sp_obj.id == sp_id:
             return sp_obj.program_name
     return "error"
 
@@ -151,9 +151,7 @@ def generate_students(
 
         email = _get_email_by_user_id(db_not_teachers, s_obj.user_id)
         major = _get_major_name_by_id(db_majors, s_obj.major)
-        program_name = _get_study_program_name_by_id(
-            db_study_programs, s_obj.study_program
-        )
+        program_name = _get_study_program_name_by_id(db_study_programs, s_obj.study_program)
         db_students[(email, program_name, major)] = s_obj
     session.flush()
     return db_students
