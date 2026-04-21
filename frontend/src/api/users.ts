@@ -52,12 +52,7 @@ export interface UserFilters {
     has_profiles?: boolean;
 }
 
-export const fetchUsers = async (
-    limit = 100,
-    offset = 0,
-    search?: string,
-    filters?: UserFilters
-): Promise<PaginatedResponse<User>> => {
+const buildUserParams = (limit: number, offset: number, search?: string, filters?: UserFilters) => {
     const params = new URLSearchParams({
         limit: limit.toString(),
         offset: offset.toString()
@@ -69,12 +64,20 @@ export const fetchUsers = async (
         if (filters.roles?.length) params.append('roles', filters.roles.join(','));
         if (filters.exclude_roles?.length) params.append('exclude_roles', filters.exclude_roles.join(','));
         if (filters.has_roles !== undefined) params.append('has_roles', filters.has_roles.toString());
-
         if (filters.profiles?.length) params.append('profiles', filters.profiles.join(','));
         if (filters.exclude_profiles?.length) params.append('exclude_profiles', filters.exclude_profiles.join(','));
         if (filters.has_profiles !== undefined) params.append('has_profiles', filters.has_profiles.toString());
     }
+    return params;
+};
 
+export const fetchUsers = async (
+    limit = 100,
+    offset = 0,
+    search?: string,
+    filters?: UserFilters
+): Promise<PaginatedResponse<User>> => {
+    const params = buildUserParams(limit, offset, search, filters);
     const response = await fetch(`${USERS_URL}?${params.toString()}`, {headers: getHeaders()});
     if (!response.ok) throw new Error('Nie udało się pobrać listy użytkowników');
     return response.json();

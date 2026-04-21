@@ -42,10 +42,14 @@ export default function RolePermissionsView({role, allPermissions}: RolePermissi
 
     const groupedPermissions = allPermissions.reduce((acc, perm) => {
         const groupName = perm.group || intl.formatMessage({id: 'roles.permissions.ungrouped'});
-        if (!acc[groupName]) acc[groupName] = [];
-        acc[groupName].push(perm);
+
+        if (!acc.has(groupName)) {
+            acc.set(groupName, []);
+        }
+        acc.get(groupName)!.push(perm);
+
         return acc;
-    }, {} as Record<string, Permission[]>);
+    }, new Map<string, Permission[]>());
 
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', gap: 4, width: '100%'}}>
@@ -68,7 +72,7 @@ export default function RolePermissionsView({role, allPermissions}: RolePermissi
             </Box>
 
             <Box sx={{display: 'flex', flexDirection: 'column', gap: 5, maxWidth: '1200px'}}>
-                {Object.entries(groupedPermissions).map(([groupName, perms]) => (
+                {Array.from(groupedPermissions.entries()).map(([groupName, perms]) => (
                     <Box key={groupName}>
                         <Typography variant="subtitle1" fontWeight="bold" textAlign="left" sx={{
                             color: '#64748b',

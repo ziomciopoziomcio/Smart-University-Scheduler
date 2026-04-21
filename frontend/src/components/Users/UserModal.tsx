@@ -51,10 +51,25 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
         }
     }, [open, user]);
 
-    // eslint-disable-next-line complexity
+
+    const buildUpdatePayload = () => {
+        const payload: Record<string, unknown> = {
+            name,
+            surname,
+            email,
+            phone_number: phone || null,
+            degree: degree || null
+        };
+        if (password) {
+            payload.password = password;
+            payload.password2 = passwordConfirm;
+        }
+        return payload;
+    };
+
     const handleSubmit = async () => {
 
-        // This is a client-side check, not a security-sensitive operation, thus timing attacks are not a concern here.
+        // Frontend-only check, no timing attack risk here
         // eslint-disable-next-line security/detect-possible-timing-attacks
         if (password !== passwordConfirm) {
             alert(intl.formatMessage({id: 'users.errors.passwordMismatch'}));
@@ -64,27 +79,13 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
         setIsSubmitting(true);
         try {
             if (isEditMode && user) {
-                const updatePayload: Record<string, unknown> = {
-                    name,
-                    surname,
-                    email,
-                    phone_number: phone || null,
-                    degree: degree || null
-                };
-                if (password) {
-                    updatePayload.password = password;
-                    updatePayload.password2 = passwordConfirm;
-                }
-                await updateUser(user.id, updatePayload);
+                await updateUser(user.id, buildUpdatePayload());
             } else {
                 await createUser({
-                    email,
-                    name,
-                    surname,
+                    email, name, surname,
                     phone_number: phone || null,
                     degree: degree || null,
-                    password,
-                    password2: passwordConfirm
+                    password, password2: passwordConfirm
                 });
             }
             onSuccess();

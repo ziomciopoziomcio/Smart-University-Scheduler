@@ -10,13 +10,13 @@ import {type User} from '@api/types';
 import UserModal from './UserModal';
 import {deleteUser} from '@api/users';
 
-export const DEGREES_SHORT_MAP: Record<string, string> = {
-    'inz': 'inż.',
-    'mgr': 'mgr',
-    'dr': 'dr',
-    'dr_hab': 'dr hab.',
-    'prof': 'prof.'
-};
+export const DEGREES_SHORT_MAP = new Map<string, string>([
+    ['inz', 'inż.'],
+    ['mgr', 'mgr'],
+    ['dr', 'dr'],
+    ['dr_hab', 'dr hab.'],
+    ['prof', 'prof.']
+]);
 
 interface UserViewProps {
     data: User[];
@@ -51,7 +51,7 @@ export default function UserView({data, onRefresh}: UserViewProps) {
 
     const formatDegree = (degreeVal: string | null) => {
         if (!degreeVal) return '';
-        const short = DEGREES_SHORT_MAP[degreeVal] || degreeVal;
+        const short = DEGREES_SHORT_MAP.get(degreeVal) || degreeVal;
         return `${short} `;
     };
 
