@@ -456,11 +456,12 @@ def get_study_plan_groups_summary(
 
     results = []
     for group, study_prog in rows:
+        academic_year = f"{study_prog.start_year}/{study_prog.start_year + 1}"
         results.append(
             schemas.StudyPlanGroupSummary(
                 id=group.id,
                 group_name=group.group_name,
-                academic_year=study_prog.start_year,
+                academic_year=academic_year,
             )
         )
     return results
