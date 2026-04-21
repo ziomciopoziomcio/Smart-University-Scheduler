@@ -9,6 +9,7 @@ import key_icon from '@assets/icons/key.svg?react';
 import diagram_icon from '@assets/icons/diagram.svg?react';
 // @ts-expect-error: some internal issue with svgr types, but it works
 import easel_icon from '@assets/icons/easel.svg?react';
+import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 
 import {
     Drawer,
@@ -37,9 +38,6 @@ import {NavLink} from 'react-router-dom';
 import {theme} from "../../theme/theme";
 import {useAuthStore} from "@store/useAuthStore";
 
-// const allRoles = ['Administrator', 'Schedule Manager', "Dean's office",
-//     'Head of unit', 'Instructor', 'Student', 'Administrative Staff', 'Guest'];
-
 interface SidebarMenuItem {
     id: string;
     icon: React.ReactNode;
@@ -57,7 +55,7 @@ const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.employees', // employees or maybe "staff"?
         icon: <SvgIcon component={easel_icon} inheritViewBox/>,
-        path: '/', // TODO: change to real path and add allowedRoles
+        path: '/employees', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
@@ -75,7 +73,7 @@ const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.students', // students
         icon: <SvgIcon component={backpack_icon} inheritViewBox/>,
-        path: '/', // TODO: change to real path and add allowedRoles
+        path: '/students', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
@@ -97,9 +95,15 @@ const menuConfig: SidebarMenuItem[] = [
         allowedRoles: []
     },
     {
-        id: 'sidebar.permissions', // uprawnienia
+        id: 'sidebar.permissions',
         icon: <SvgIcon component={key_icon} inheritViewBox/>,
-        path: '/', // TODO: change to real path and add allowedRoles
+        path: '/roles', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.users',
+        icon: <AlternateEmailIcon/>,
+        path: '/users',  // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
@@ -108,6 +112,8 @@ const menuConfig: SidebarMenuItem[] = [
         path: '/',  // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
+
+
 ];
 
 export default function Sidebar() {
