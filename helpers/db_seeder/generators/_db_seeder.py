@@ -3,7 +3,10 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
-from helpers.db_seeder.generators.groups import generate_common_groups
+from helpers.db_seeder.generators.groups import (
+    generate_common_groups,
+    assign_students_to_common_groups,
+)
 from helpers.db_seeder.generators.students import generate_students
 from src.database.database import SessionLocal, get_db
 from src.database.base import Base
@@ -158,12 +161,23 @@ db_students = generate_students(
 )
 session.commit()
 
-generate_common_groups(
+db_common_groups = generate_common_groups(
     session=session,
     db_students=db_students,
     db_study_programs=db_study_programs,
     group_size=15,
 )
 session.commit()
+
+
+assign_students_to_common_groups(
+    session=session,
+    db_common_groups=db_common_groups,
+    db_students=db_students,
+    db_study_programs=db_study_programs,
+    group_size=15,
+)
+session.commit()
+
 
 session.close()
