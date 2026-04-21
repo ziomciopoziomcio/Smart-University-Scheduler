@@ -7,6 +7,7 @@ export interface User {
     phone_number: string | null;
     created_at: string;
     roles?: string[];
+    two_factor_enabled?: boolean;
 }
 
 export interface AuthResponse {
@@ -100,3 +101,59 @@ export interface Unit {
     unit_short: string;
     faculty_id: number;
 }
+
+export interface StudyProgramDetails {
+    id: number;
+    study_field: number;
+    start_year: string;
+    program_name?: string | null;
+}
+
+export interface MajorDetails {
+    id: number;
+    major_name: string;
+}
+
+export interface Student {
+    id: number;
+    user_id: number;
+    study_program: number;
+    major: number | null;
+    user: User;
+    study_program_details: StudyProgramDetails;
+    major_details: MajorDetails | null;
+}
+
+export interface Employee {
+    id: number;
+    user_id: number;
+    faculty_id: number;
+    unit_id: number;
+    user: User;
+    unit: {
+        id: number;
+        unit_name: string;
+        unit_short: string;
+        faculty_id: number;
+    } | null;
+    faculty: {
+        id: number;
+        faculty_name: string;
+        faculty_short: string;
+    } | null;
+}
+
+export interface Permission {
+    id: number;
+    code: string;
+    name: string | null;
+    description: string | null;
+    group: string | null;
+}
+
+export interface Role {
+    id: number;
+    role_name: string;
+    permissions: Permission[];
+}
+

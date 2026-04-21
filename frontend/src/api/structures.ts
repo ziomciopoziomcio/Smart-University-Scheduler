@@ -9,6 +9,7 @@ const getHeaders = () => ({
     'Authorization': `Bearer ${useAuthStore.getState().token}`,
     'Content-Type': 'application/json',
 });
+// TODO: change error messages to be more specific and customize (intl)
 
 
 export const fetchFaculties = async (): Promise<PaginatedResponse<unknown>> => {
