@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
+from helpers.db_seeder.generators.groups import generate_common_groups
 from helpers.db_seeder.generators.students import generate_students
 from src.database.database import SessionLocal, get_db
 from src.database.base import Base
@@ -148,12 +149,20 @@ generate_curriculum_courses_elective_blocks(
 session.commit()
 
 
-generate_students(
+db_students = generate_students(
     session=session,
     db_not_teachers=db_not_teachers,
     db_study_programs=db_study_programs,
     db_curr_courses=db_curr_courses,
     db_majors=db_majors,
+)
+session.commit()
+
+generate_common_groups(
+    session=session,
+    db_students=db_students,
+    db_study_programs=db_study_programs,
+    group_size=15,
 )
 session.commit()
 
