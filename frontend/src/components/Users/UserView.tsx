@@ -51,7 +51,7 @@ export default function UserView({data, onRefresh}: UserViewProps) {
 
     const formatDegree = (degreeVal: string | null) => {
         if (!degreeVal) return '';
-        const short = DEGREES_SHORT_MAP.get(degreeVal) || degreeVal;
+        const short = DEGREES_SHORT_MAP.get(degreeVal) ?? degreeVal;
         return `${short} `;
     };
 
