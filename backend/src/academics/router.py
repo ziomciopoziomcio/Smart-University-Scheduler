@@ -791,11 +791,16 @@ def get_study_field_semester_summary(
     _current_user: user_models.Users = Depends(require_permission("study-fields:view")),
 ):
     """
+    Return semester-by-semester summary data for the given study field.
 
-    :param study_field_id:
-    :param db:
-    :param _current_user:
-    :return:
+    The response contains one item per semester found in curriculum courses for
+    study programs belonging to the study field. ``groups_count`` is the total
+    number of regular groups in the study field, where regular groups are those
+    with neither ``major`` nor ``elective_block`` assigned. For each semester,
+    ``specializations_count`` is the number of distinct curriculum course
+    majors, and ``elective_blocks_count`` is the number of distinct curriculum
+    course elective blocks. Counts equal to zero are returned as ``None`` for
+    the semester-specific fields.
     """
     regular_groups_count = (
         db.query(func.count(models.Groups.id))
