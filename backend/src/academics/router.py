@@ -788,7 +788,7 @@ def delete_calendar_day(
 def get_study_field_semester_summary(
     study_field_id: int,
     db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(require_permission("academics:view")),
+    _current_user: user_models.Users = Depends(require_permission("study-fields:view")),
 ):
     """
 
