@@ -452,7 +452,7 @@ def get_study_plan_groups_summary(
     if elective_block_id is not None:
         query = query.filter(models.Groups.elective_block == elective_block_id)
 
-    rows = query.all()
+    rows = query.limit(1000).all()
 
     results = []
     for group, study_prog in rows:
