@@ -174,3 +174,9 @@ class EmployeeNested(BaseSchema):
     faculty_id: int
     user_id: int
     unit_id: int
+
+
+class StudyPlanGroupSummary(BaseSchema):
+    id: int
+    group_name: str
+    academic_year: str
