@@ -53,7 +53,9 @@ export default function RoleModal({open, role, onClose, onSuccess}: RoleModalPro
                     fullWidth
                     label={intl.formatMessage({id: 'roles.nameLabel'})}
                     value={roleName}
-                    onChange={(e) => setRoleName(e.target.value)}
+                    onChange={(e) => {
+                        setRoleName(e.target.value);
+                    }}
                     disabled={isSubmitting}
                     autoFocus
                 />

@@ -10,8 +10,8 @@ const getHeaders = () => ({
 });
 
 export const fetchStudyPrograms = async (
-    limit: number = 200,
-    offset: number = 0,
+    limit = 100,
+    offset = 0,
     studyFieldId?: number
 ): Promise<PaginatedResponse<StudyProgramDetails>> => {
     const params = new URLSearchParams({limit: limit.toString(), offset: offset.toString()});
@@ -23,8 +23,8 @@ export const fetchStudyPrograms = async (
 };
 
 export const fetchMajors = async (
-    limit: number = 200,
-    offset: number = 0,
+    limit = 100,
+    offset = 0,
     studyFieldId?: number
 ): Promise<PaginatedResponse<MajorDetails>> => {
     const params = new URLSearchParams({limit: limit.toString(), offset: offset.toString()});

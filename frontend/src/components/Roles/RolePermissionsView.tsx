@@ -122,7 +122,9 @@ export default function RolePermissionsView({role, allPermissions}: RolePermissi
                                     <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
                                         <Switch
                                             checked={selectedPermIds.includes(perm.id)}
-                                            onChange={() => handleToggle(perm.id)}
+                                            onChange={() => {
+                                                handleToggle(perm.id);
+                                            }}
                                             color="primary"
                                         />
                                     </Box>
@@ -133,8 +135,13 @@ export default function RolePermissionsView({role, allPermissions}: RolePermissi
                 ))}
             </Box>
 
-            <Snackbar open={showSuccess} autoHideDuration={3000} onClose={() => setShowSuccess(false)}
-                      anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}>
+            <Snackbar
+                open={showSuccess}
+                autoHideDuration={3000}
+                onClose={() => {
+                    setShowSuccess(false);
+                }}
+                anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}>
                 <Alert severity="success" sx={{width: '100%', borderRadius: '12px'}}>
                     {intl.formatMessage({id: 'roles.permissions.success'})}
                 </Alert>

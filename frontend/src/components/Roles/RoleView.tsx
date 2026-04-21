@@ -1,14 +1,14 @@
-import { useState } from 'react';
-import { Box } from '@mui/material';
-import { Security } from '@mui/icons-material';
-import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router-dom';
+import {useState} from 'react';
+import {Box} from '@mui/material';
+import {Security} from '@mui/icons-material';
+import {useIntl} from 'react-intl';
+import {useNavigate} from 'react-router-dom';
 
 import TileView from '@components/Common/TileView.tsx';
 import ActionMenu from '@components/Common/ActionMenu.tsx';
 import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog.tsx';
-import { type Role } from '@api/types';
-import { deleteRole } from '@api/users';
+import {type Role} from '@api/types';
+import {deleteRole} from '@api/users';
 import RoleModal from './RoleModal';
 
 interface RoleViewProps {
@@ -16,7 +16,7 @@ interface RoleViewProps {
     onRefresh: () => void;
 }
 
-export default function RoleView({ data, onRefresh }: RoleViewProps) {
+export default function RoleView({data, onRefresh}: RoleViewProps) {
     const intl = useIntl();
     const navigate = useNavigate();
 
@@ -31,7 +31,9 @@ export default function RoleView({ data, onRefresh }: RoleViewProps) {
         setSelectedRole(item);
     };
 
-    const handleMenuClose = () => setAnchorEl(null);
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
 
     const handleConfirmDelete = async () => {
         if (!selectedRole) return;
@@ -41,7 +43,7 @@ export default function RoleView({ data, onRefresh }: RoleViewProps) {
             setIsDeleteModalOpen(false);
             setSelectedRole(null);
         } catch {
-            alert(intl.formatMessage({ id: 'roles.errors.delete' }));
+            alert(intl.formatMessage({id: 'roles.errors.delete'}));
         }
     };
 
@@ -51,14 +53,15 @@ export default function RoleView({ data, onRefresh }: RoleViewProps) {
                 items={data}
                 icon={Security}
                 getTitle={(item: Role) => item.role_name}
-                getSubtitle={() => intl.formatMessage({ id: 'roles.usersCountPending' })}
-                onItemClick={(item: Role) => navigate(`/roles/${item.id}`)}
-                onMenuOpen={handleMenuOpen}
+                getSubtitle={() => intl.formatMessage({id: 'roles.usersCountPending'})}
+                onItemClick={(item: Role) => {
+                    navigate(`/roles/${item.id}`);
+                }} onMenuOpen={handleMenuOpen}
                 onAddClick={() => {
                     setSelectedRole(null);
                     setIsModalOpen(true);
                 }}
-                addLabel={intl.formatMessage({ id: 'roles.add' })}
+                addLabel={intl.formatMessage({id: 'roles.add'})}
             />
 
             <ActionMenu
@@ -72,28 +75,34 @@ export default function RoleView({ data, onRefresh }: RoleViewProps) {
                     handleMenuClose();
                     setIsDeleteModalOpen(true);
                 }}
-                editLabel={intl.formatMessage({ id: 'roles.edit' })}
-                deleteLabel={intl.formatMessage({ id: 'roles.delete' })}
+                editLabel={intl.formatMessage({id: 'roles.edit'})}
+                deleteLabel={intl.formatMessage({id: 'roles.delete'})}
             />
 
             <RoleModal
                 open={isModalOpen}
                 role={selectedRole}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                }}
                 onSuccess={onRefresh}
             />
 
             <DeleteConfirmDialog
                 open={isDeleteModalOpen}
-                title={intl.formatMessage({ id: 'roles.deleteTitle' })}
+                title={intl.formatMessage({id: 'roles.deleteTitle'})}
                 description={intl.formatMessage(
-                    { id: 'roles.deleteDesc' },
-                    { name: selectedRole?.role_name || '' }
+                    {id: 'roles.deleteDesc'},
+                    {name: selectedRole?.role_name || ''}
                 )}
-                cancelButtonLabel={intl.formatMessage({ id: 'users.common.cancel' })}
-                confirmButtonLabel={intl.formatMessage({ id: 'users.common.deleteConfirm' })}
-                onConfirm={() => { void handleConfirmDelete(); }}
-                onClose={() => setIsDeleteModalOpen(false)}
+                cancelButtonLabel={intl.formatMessage({id: 'users.common.cancel'})}
+                confirmButtonLabel={intl.formatMessage({id: 'users.common.deleteConfirm'})}
+                onConfirm={() => {
+                    void handleConfirmDelete();
+                }}
+                onClose={() => {
+                    setIsDeleteModalOpen(false);
+                }}
             />
         </Box>
     );

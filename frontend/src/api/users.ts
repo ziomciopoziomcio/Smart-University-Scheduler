@@ -9,8 +9,8 @@ const getHeaders = () => ({
     'Content-Type': 'application/json',
 });
 
-export const createUser = async (data: any): Promise<User> => {
-    const response = await fetch(`${USERS_URL}`, {
+export const createUser = async (data: Record<string, unknown>): Promise<User> => {
+    const response = await fetch(USERS_URL, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(data),
@@ -19,7 +19,7 @@ export const createUser = async (data: any): Promise<User> => {
     return response.json();
 };
 
-export const updateUser = async (id: number, data: any): Promise<User> => {
+export const updateUser = async (id: number, data: Record<string, unknown>): Promise<User> => {
     const response = await fetch(`${USERS_URL}/${id}`, {
         method: 'PATCH',
         headers: getHeaders(),
@@ -53,8 +53,8 @@ export interface UserFilters {
 }
 
 export const fetchUsers = async (
-    limit: number = 100,
-    offset: number = 0,
+    limit = 100,
+    offset = 0,
     search?: string,
     filters?: UserFilters
 ): Promise<PaginatedResponse<User>> => {
@@ -75,19 +75,19 @@ export const fetchUsers = async (
         if (filters.has_profiles !== undefined) params.append('has_profiles', filters.has_profiles.toString());
     }
 
-    const response = await fetch(`${USERS_URL}?${params.toString()}`, { headers: getHeaders() });
+    const response = await fetch(`${USERS_URL}?${params.toString()}`, {headers: getHeaders()});
     if (!response.ok) throw new Error('Nie udało się pobrać listy użytkowników');
     return response.json();
 };
 
 export const fetchPermissions = async (): Promise<PaginatedResponse<Permission>> => {
-    const response = await fetch(`${USERS_URL}/permissions?limit=200`, { headers: getHeaders() });
+    const response = await fetch(`${USERS_URL}/permissions?limit=200`, {headers: getHeaders()});
     if (!response.ok) throw new Error('Nie udało się pobrać uprawnień');
     return response.json();
 };
 
 export const getRole = async (id: number): Promise<Role> => {
-    const response = await fetch(`${USERS_URL}/roles/${id}`, { headers: getHeaders() });
+    const response = await fetch(`${USERS_URL}/roles/${id}`, {headers: getHeaders()});
     if (!response.ok) throw new Error('Nie udało się pobrać roli');
     return response.json();
 };
@@ -96,7 +96,7 @@ export const updateRolePermissions = async (roleId: number, permissionIds: numbe
     const response = await fetch(`${USERS_URL}/roles/${roleId}`, {
         method: 'PATCH',
         headers: getHeaders(),
-        body: JSON.stringify({ permissions: permissionIds }),
+        body: JSON.stringify({permissions: permissionIds}),
     });
     if (!response.ok) throw new Error('Nie udało się zaktualizować uprawnień roli');
     return response.json();

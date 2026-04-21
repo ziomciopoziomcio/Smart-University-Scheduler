@@ -79,22 +79,28 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
     useEffect(() => {
         if (userSearchInputValue.length < 3) {
             setUserOptions(selectedUser ? [selectedUser] : []);
+            setIsSearchingUsers(false);
             return;
         }
 
-        const delayDebounceFn = setTimeout(async () => {
-            setIsSearchingUsers(true);
-            try {
-                const res = await fetchUsers(20, 0, userSearchInputValue, {exclude_profiles: ['employee']});
-                setUserOptions(res.items);
-            } catch (error) {
-                console.error("Błąd wyszukiwania użytkowników:", error);
-            } finally {
-                setIsSearchingUsers(false);
-            }
+        setIsSearchingUsers(true);
+
+        const delayDebounceFn = setTimeout(() => {
+            void (async () => {
+                try {
+                    const res = await fetchUsers(20, 0, userSearchInputValue);
+                    setUserOptions(res.items);
+                } catch (err) {
+                    console.error(err);
+                } finally {
+                    setIsSearchingUsers(false);
+                }
+            })();
         }, 500);
 
-        return () => clearTimeout(delayDebounceFn);
+        return () => {
+            clearTimeout(delayDebounceFn);
+        };
     }, [userSearchInputValue, selectedUser]);
 
     const handleSubmit = async () => {
@@ -134,10 +140,12 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
                     getOptionLabel={(option) => `${option.name} ${option.surname} (${option.email})`}
                     isOptionEqualToValue={(option, value) => option.id === value.id}
                     value={selectedUser}
-                    onChange={(_, newValue) => setSelectedUser(newValue)}
-                    onInputChange={(_, newInputValue) => setUserSearchInputValue(newInputValue)}
-                    // TODO Change to proper message
-                    noOptionsText={intl.formatMessage({ id: 'academics.employees.noOptionsText' })}
+                    onChange={(_, newValue) => {
+                        setSelectedUser(newValue);
+                    }}
+                    onInputChange={(_, newInputValue) => {
+                        setUserSearchInputValue(newInputValue);
+                    }} noOptionsText={intl.formatMessage({id: 'academics.employees.noOptionsText'})}
                     renderInput={(params) => (
                         <TextField
                             {...params}
@@ -169,7 +177,9 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
                 <FormControl fullWidth disabled={!facultyId || isLoadingData}>
                     <InputLabel>{intl.formatMessage({id: 'academics.employees.unitLabel'})}</InputLabel>
                     <Select value={unitId} label={intl.formatMessage({id: 'academics.employees.unitLabel'})}
-                            onChange={(e) => setUnitId(e.target.value as number)}>
+                            onChange={(e) => {
+                                setUnitId(e.target.value as number);
+                            }}>
                         {units.map(u => <MenuItem key={u.id} value={u.id}>{u.unit_name}</MenuItem>)}
                     </Select>
                 </FormControl>

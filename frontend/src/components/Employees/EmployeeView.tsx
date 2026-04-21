@@ -113,7 +113,9 @@ export default function EmployeeView({data, onRefresh}: EmployeeViewProps) {
             <EmployeeModal
                 open={isModalOpen}
                 employee={selectedEmployee}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                }}
                 onSuccess={onRefresh}
             />
         </Box>

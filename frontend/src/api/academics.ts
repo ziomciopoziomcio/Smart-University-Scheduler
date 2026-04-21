@@ -1,5 +1,5 @@
-import { useAuthStore } from '@store/useAuthStore';
-import { type Student, type Employee, type PaginatedResponse } from './types';
+import {useAuthStore} from '@store/useAuthStore';
+import {type Student, type Employee, type PaginatedResponse} from './types';
 
 const baseApiUrl = import.meta.env.VITE_API_URL as string | undefined;
 const ACADEMICS_URL = (baseApiUrl ? `${baseApiUrl}/academics` : 'http://localhost:3000/academics').replace(/\/+$/, '');
@@ -12,11 +12,11 @@ const getHeaders = () => ({
 // TODO: change error messages to be more specific and customize (intl)
 
 export const fetchStudents = async (
-    limit: number = 100,
-    offset: number = 0,
+    limit = 100,
+    offset = 0,
     search?: string
 ): Promise<PaginatedResponse<Student>> => {
-    const params = new URLSearchParams({ limit: limit.toString(), offset: offset.toString() });
+    const params = new URLSearchParams({limit: limit.toString(), offset: offset.toString()});
     if (search) params.append('search', search);
 
     const response = await fetch(`${ACADEMICS_URL}/students?${params.toString()}`, {
@@ -31,11 +31,11 @@ export const fetchStudents = async (
 };
 
 export const fetchEmployees = async (
-    limit: number = 100,
-    offset: number = 0,
+    limit = 100,
+    offset = 0,
     search?: string
 ): Promise<PaginatedResponse<Employee>> => {
-    const params = new URLSearchParams({ limit: limit.toString(), offset: offset.toString() });
+    const params = new URLSearchParams({limit: limit.toString(), offset: offset.toString()});
     if (search) params.append('search', search);
 
     const response = await fetch(`${ACADEMICS_URL}/employees?${params.toString()}`, {
@@ -50,12 +50,16 @@ export const fetchEmployees = async (
 };
 
 export const getStudent = async (id: number): Promise<Student> => {
-    const response = await fetch(`${ACADEMICS_URL}/students/${id}`, { headers: getHeaders() });
+    const response = await fetch(`${ACADEMICS_URL}/students/${id}`, {headers: getHeaders()});
     if (!response.ok) throw new Error('Nie udało się pobrać szczegółów studenta');
     return response.json();
 };
 
-export const createStudent = async (data: { user_id: number; study_program: number; major?: number | null }): Promise<Student> => {
+export const createStudent = async (data: {
+    user_id: number;
+    study_program: number;
+    major?: number | null
+}): Promise<Student> => {
     const response = await fetch(`${ACADEMICS_URL}/students`, {
         method: 'POST',
         headers: getHeaders(),
@@ -65,7 +69,10 @@ export const createStudent = async (data: { user_id: number; study_program: numb
     return response.json();
 };
 
-export const updateStudent = async (id: number, data: { study_program?: number; major?: number | null }): Promise<Student> => {
+export const updateStudent = async (id: number, data: {
+    study_program?: number;
+    major?: number | null
+}): Promise<Student> => {
     const response = await fetch(`${ACADEMICS_URL}/students/${id}`, {
         method: 'PATCH',
         headers: getHeaders(),
@@ -84,12 +91,16 @@ export const deleteStudent = async (id: number): Promise<void> => {
 };
 
 export const getEmployee = async (id: number): Promise<Employee> => {
-    const response = await fetch(`${ACADEMICS_URL}/employees/${id}`, { headers: getHeaders() });
+    const response = await fetch(`${ACADEMICS_URL}/employees/${id}`, {headers: getHeaders()});
     if (!response.ok) throw new Error('Nie udało się pobrać szczegółów pracownika');
     return response.json();
 };
 
-export const createEmployee = async (data: { user_id: number; faculty_id: number; unit_id: number }): Promise<Employee> => {
+export const createEmployee = async (data: {
+    user_id: number;
+    faculty_id: number;
+    unit_id: number
+}): Promise<Employee> => {
     const response = await fetch(`${ACADEMICS_URL}/employees`, {
         method: 'POST',
         headers: getHeaders(),
@@ -99,7 +110,10 @@ export const createEmployee = async (data: { user_id: number; faculty_id: number
     return response.json();
 };
 
-export const updateEmployee = async (id: number, data: { faculty_id?: number; unit_id?: number | null }): Promise<Employee> => {
+export const updateEmployee = async (id: number, data: {
+    faculty_id?: number;
+    unit_id?: number | null
+}): Promise<Employee> => {
     const response = await fetch(`${ACADEMICS_URL}/employees/${id}`, {
         method: 'PATCH',
         headers: getHeaders(),

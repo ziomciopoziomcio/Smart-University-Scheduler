@@ -112,7 +112,9 @@ export default function StudentView({data, onRefresh}: StudentViewProps) {
             <StudentModal
                 open={isModalOpen}
                 student={selectedStudent}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                }}
                 onSuccess={onRefresh}
             />
         </Box>

@@ -31,8 +31,13 @@ export default function RolesPage({view}: RolesPageProps) {
     const [debouncedSearch, setDebouncedSearch] = useState('');
 
     useEffect(() => {
-        const timer = setTimeout(() => setDebouncedSearch(search), 500);
-        return () => clearTimeout(timer);
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 500);
+        return () => {
+            clearTimeout(timer);
+        };
+
     }, [search]);
 
     const getBreadcrumbs = () => {
@@ -83,8 +88,8 @@ export default function RolesPage({view}: RolesPageProps) {
                     setPermissions(permsData.items);
                 }
             }
-        } catch (err: any) {
-            setError(err.message);
+        } catch {
+            setError(intl.formatMessage({id: 'roles.errors.load'}));
         } finally {
             setLoading(false);
         }
