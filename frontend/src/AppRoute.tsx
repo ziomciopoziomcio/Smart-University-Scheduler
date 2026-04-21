@@ -25,6 +25,10 @@ import LecturerDepartmentSelectPage from "./pages/Plans/LecturerPlan/LecturerDep
 import LecturerSelectPage from "./pages/Plans/LecturerPlan/LecturerSelectPage.tsx";
 import LecturerSchedulePage from "./pages/Plans/LecturerPlan/LecturerSchedulePage.tsx";
 import StructuresPage from "./pages/Structures/StructuresPage.tsx";
+import StudentsPage from "./pages/Students/StudentsPage.tsx";
+import EmployeesPage from "./pages/Employees/EmployeesPage.tsx";
+import UsersPage from "./pages/Users/UsersPage.tsx";
+import RolesPage from "./pages/Roles/RolesPage.tsx";
 
 function AppRoute() {
     const isAuthenticated = useAuthStore((state) => state.token !== null);
@@ -38,6 +42,7 @@ function AppRoute() {
                 <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
                 <Route path="/reset-password" element={<ResetPasswordPage/>}/>
 
+
                 <Route element={<ProtectedRoute/>}>
                     <Route element={<MainLayout/>}>
                         <Route path="/plan" element={<MyPlan/>}/>
@@ -49,6 +54,15 @@ function AppRoute() {
                         <Route path="/structures" element={<StructuresPage view="faculties"/>}/>
                         <Route path="/structures/faculty/:facultyId" element={<StructuresPage view="units"/>}/>
 
+                        <Route path="/users" element={<UsersPage/>}/>
+
+                        <Route path="/roles" element={<RolesPage view="roles"/>}/>
+                        <Route path="/roles/:id" element={<RolesPage view="dashboard"/>}/>
+                        <Route path="/roles/:id/permissions" element={<RolesPage view="permissions"/>}/>
+                        <Route path="/roles/:id/users" element={<RolesPage view="users"/>}/>
+
+                        <Route path="/students" element={<StudentsPage/>}/>
+                        <Route path="/employees" element={<EmployeesPage/>}/>
 
                         <Route path="/plans" element={<ChoosePlanPage/>}/>
 

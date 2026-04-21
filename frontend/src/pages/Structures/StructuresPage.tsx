@@ -8,7 +8,7 @@ import SearchBar from "@components/Common/SearchBar.tsx";
 import {fetchFaculties, fetchUnits, getFaculty} from '@api/structures.ts';
 import FacultyView from '@components/Structures/FacultyView';
 import UnitView from '@components/Structures/UnitView';
-import { type Faculty, type Unit } from '@api/types';
+import {type Faculty, type Unit} from '@api/types';
 
 interface StructuresPageProps {
     view: 'faculties' | 'units';
