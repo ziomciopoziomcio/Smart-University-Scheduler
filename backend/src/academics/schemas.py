@@ -178,5 +178,5 @@ class EmployeeNested(BaseSchema):
 
 class StudyPlanGroupSummary(BaseSchema):
     id: int
-    group_name: str
-    academic_year: str
+    group_name: str = Field(..., max_length=255)
+    academic_year: str = Field(..., max_length=20, examples=["2025/2026"])
