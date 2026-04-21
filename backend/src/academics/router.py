@@ -433,6 +433,11 @@ def get_study_plan_groups_summary(
     :param _current_user: Current user
     :return: List of study plan groups summary
     """
+    if specialization_id is not None and elective_block_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot filter by both specialization and elective block",
+        )
     query = (
         db.query(models.Groups, course_models.Study_program)
         .join(
