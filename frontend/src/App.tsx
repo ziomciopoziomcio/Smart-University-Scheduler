@@ -6,6 +6,7 @@ import plMessages from './locales/pl.json';
 import {useAuthStore} from '@store/useAuthStore';
 import './App.css';
 
+// elo
 const flattenMessages = (nestedMessages: any, prefix = '') => {
   if (nestedMessages === null) return {};
   return Object.keys(nestedMessages).reduce((messages: any, key) => {
