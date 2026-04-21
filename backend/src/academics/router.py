@@ -448,16 +448,26 @@ def get_study_plan_groups_summary(
             course_models.Study_fields,
             course_models.Study_program.study_field == course_models.Study_fields.id,
         )
+        .join(
+            course_models.Curriculum_course,
+            course_models.Study_program.id
+            == course_models.Curriculum_course.study_program,
+        )
     )
     query = query.filter(course_models.Study_fields.faculty == faculty_id)
     query = query.filter(course_models.Study_fields.id == study_field)
+    query = query.filter(course_models.Curriculum_course.semester == semester)
 
     if specialization_id is not None:
         query = query.filter(models.Groups.major == specialization_id)
+        query = query.filter(course_models.Curriculum_course.major == specialization_id)
     if elective_block_id is not None:
         query = query.filter(models.Groups.elective_block == elective_block_id)
+        query = query.filter(
+            course_models.Curriculum_course.elective_block == elective_block_id
+        )
 
-    rows = query.limit(1000).all()
+    rows = query.distinct().limit(1000).all()
 
     results = []
     for group, study_prog in rows:
