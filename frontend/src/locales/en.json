@@ -94,7 +94,8 @@
     "permissions": "Permissions",
     "facilities": "Facilities",
     "students": "Students",
-    "structures": "Structures"
+    "structures": "Structures",
+    "users": "Users"
   },
   "navbar": {
     "guest": "Guest"
@@ -264,6 +265,129 @@
       "exercise": "Classes",
       "project": "Project",
       "seminar": "Seminar"
+    }
+  },
+  "academics": {
+    "common": {
+      "cancel": "Cancel",
+      "deleteConfirm": "Delete",
+      "save": "Save"
+    },
+    "errors": {
+      "save": "Error while saving profile.",
+      "loadDictionaries": "Error while loading selection lists."
+    },
+    "students": {
+      "students": "Students",
+      "searchPlaceholder": "Search student...",
+      "add": "Assign student profile",
+      "edit": "Edit profile",
+      "delete": "Remove from students",
+      "deleteTitle": "Delete student profile",
+      "deleteDesc": "Are you sure you want to delete the student profile for {name}? (The user account will remain intact, it will only lose its university assignment).",
+      "empty": "No assigned students in the system.",
+      "titleAdd": "Create student profile",
+      "titleEdit": "Edit student profile",
+      "userLabel": "User",
+      "chooseUser": "Select user",
+      "programLabel": "Study Program",
+      "chooseProgram": "Select study program",
+      "majorLabel": "Major (optional)",
+      "majorNone": "No major",
+      "errors": {
+        "delete": "Error while removing student assignment."
+      },
+      "noOptionsText": "Type at least 3 characters or no results"
+    },
+    "employees": {
+      "employees": "Employees",
+      "searchPlaceholder": "Search employee...",
+      "add": "Assign employee profile",
+      "edit": "Edit assignment",
+      "delete": "Remove employee profile",
+      "deleteTitle": "Delete employee profile",
+      "deleteDesc": "Are you sure you want to remove the employee association for {name}? (The user account will remain intact).",
+      "empty": "No employees in the system.",
+      "unassigned": "No assignment",
+      "titleAdd": "Create employee profile",
+      "titleEdit": "Edit assignment",
+      "userLabel": "User",
+      "facultyLabel": "Faculty",
+      "unitLabel": "Unit",
+      "errors": {
+        "delete": "Error while removing employee assignment."
+      },
+      "noOptionsText": "Type at least 3 characters or no results"
+    }
+  },
+  "users": {
+    "users": "Users",
+    "common": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "deleteConfirm": "Delete"
+    },
+    "page": {
+      "searchPlaceholder": "Search user (name, surname, email...)"
+    },
+    "view": {
+      "add": "Add user",
+      "edit": "Edit user",
+      "delete": "Delete account",
+      "deleteTitle": "Delete user",
+      "deleteDesc": "Are you sure you want to delete the account for {name}? This action cannot be undone.",
+      "empty": "No users in the system.",
+      "noRoles": "No roles",
+      "2faEnabled": "Two-Factor Authentication enabled",
+      "2faDisabled": "No 2FA"
+    },
+    "modal": {
+      "titleAdd": "Add new user",
+      "titleEdit": "Edit user",
+      "nameLabel": "First name",
+      "surnameLabel": "Last name",
+      "emailLabel": "Email address",
+      "phoneLabel": "Phone number",
+      "degreeLabel": "Degree / Title",
+      "passwordLabel": "Password",
+      "passwordEditLabel": "New password (leave blank to keep current)",
+      "password2Label": "Repeat password"
+    },
+    "errors": {
+      "save": "Error while saving user.",
+      "delete": "Error while deleting user.",
+      "passwordMismatch": "Passwords do not match!"
+    }
+  },
+  "roles": {
+    "title": "Roles",
+    "searchPlaceholder": "Search role...",
+    "add": "Add role",
+    "edit": "Edit role",
+    "delete": "Delete role",
+    "deleteTitle": "Delete role",
+    "deleteDesc": "Are you sure you want to delete the role '{name}'? This action cannot be undone.",
+    "usersCountPending": "Users count: ?",
+    "titleAdd": "Create new role",
+    "titleEdit": "Edit role",
+    "nameLabel": "Role name",
+    "tabs": {
+      "users": "Users",
+      "permissions": "Permissions"
+    },
+    "dashboard": {
+      "usersDesc": "Manage user assignments for this role",
+      "permissionsDesc": "Configure access to individual system modules"
+    },
+    "permissions": {
+      "title": "Permissions: {name}",
+      "save": "Save permissions",
+      "success": "Permissions updated successfully.",
+      "ungrouped": "Ungrouped permissions"
+    },
+    "errors": {
+      "save": "Error while saving role.",
+      "delete": "Error while deleting role."
     }
   }
 }
