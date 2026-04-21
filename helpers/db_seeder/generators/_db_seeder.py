@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
+from helpers.db_seeder.generators.students import generate_students
 from src.database.database import SessionLocal, get_db
 from src.database.base import Base
 
@@ -93,7 +94,7 @@ num_of_roles_not_teachers = {
     "Dean's Office": 0,
     "Head of Unit": 0,
     "Instructor": 0,
-    "Student": 20,
+    "Student": 600,
     "Administrative Staff": 0,
     "Guest": 0,
 }
@@ -101,7 +102,7 @@ teachers = extract_teachers(PATH)
 db_teachers, db_not_teachers = generate_users(
     session=session,
     roles=db_roles,
-    total_not_teacher_new_users=20,
+    total_not_teacher_new_users=600,
     num_of_roles_not_teachers=num_of_roles_not_teachers,
     teachers=teachers,
     seed=SEED,
@@ -126,7 +127,7 @@ db_course_details = generate_course_type_details(session, db_courses, PATH)
 session.commit()
 
 
-generate_curriculum_courses(
+db_curr_courses = generate_curriculum_courses(
     sourcefile=PATH,
     session=session,
     db_study_programs=db_study_programs,
@@ -143,6 +144,15 @@ generate_curriculum_courses_elective_blocks(
     db_elective_blocks=db_elective_blocks,
     limit=3,
     seed=SEED,
+)
+session.commit()
+
+
+generate_students(
+    session=session,
+    db_not_teachers=db_not_teachers,
+    db_study_programs=db_study_programs,
+    db_curr_courses=db_curr_courses,
 )
 session.commit()
 
