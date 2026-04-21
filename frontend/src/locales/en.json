@@ -356,5 +356,36 @@
       "delete": "Error while deleting user.",
       "passwordMismatch": "Passwords do not match!"
     }
+  },
+  "roles": {
+    "title": "Roles",
+    "searchPlaceholder": "Search role...",
+    "add": "Add role",
+    "edit": "Edit role",
+    "delete": "Delete role",
+    "deleteTitle": "Delete role",
+    "deleteDesc": "Are you sure you want to delete the role '{name}'? This action cannot be undone.",
+    "usersCountPending": "Users count: ?",
+    "titleAdd": "Create new role",
+    "titleEdit": "Edit role",
+    "nameLabel": "Role name",
+    "tabs": {
+      "users": "Users",
+      "permissions": "Permissions"
+    },
+    "dashboard": {
+      "usersDesc": "Manage user assignments for this role",
+      "permissionsDesc": "Configure access to individual system modules"
+    },
+    "permissions": {
+      "title": "Permissions: {name}",
+      "save": "Save permissions",
+      "success": "Permissions updated successfully.",
+      "ungrouped": "Ungrouped permissions"
+    },
+    "errors": {
+      "save": "Error while saving role.",
+      "delete": "Error while deleting role."
+    }
   }
 }

@@ -38,9 +38,6 @@ import {NavLink} from 'react-router-dom';
 import {theme} from "../../theme/theme";
 import {useAuthStore} from "@store/useAuthStore";
 
-// const allRoles = ['Administrator', 'Schedule Manager', "Dean's office",
-//     'Head of unit', 'Instructor', 'Student', 'Administrative Staff', 'Guest'];
-
 interface SidebarMenuItem {
     id: string;
     icon: React.ReactNode;
@@ -100,7 +97,7 @@ const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.permissions',
         icon: <SvgIcon component={key_icon} inheritViewBox/>,
-        path: '/', // TODO: change to real path and add allowedRoles
+        path: '/roles', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {

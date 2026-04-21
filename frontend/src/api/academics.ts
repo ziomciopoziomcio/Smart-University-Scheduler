@@ -13,9 +13,13 @@ const getHeaders = () => ({
 
 export const fetchStudents = async (
     limit: number = 100,
-    offset: number = 0
+    offset: number = 0,
+    search?: string
 ): Promise<PaginatedResponse<Student>> => {
-    const response = await fetch(`${ACADEMICS_URL}/students?limit=${limit}&offset=${offset}`, {
+    const params = new URLSearchParams({ limit: limit.toString(), offset: offset.toString() });
+    if (search) params.append('search', search);
+
+    const response = await fetch(`${ACADEMICS_URL}/students?${params.toString()}`, {
         headers: getHeaders()
     });
 
@@ -28,9 +32,13 @@ export const fetchStudents = async (
 
 export const fetchEmployees = async (
     limit: number = 100,
-    offset: number = 0
+    offset: number = 0,
+    search?: string
 ): Promise<PaginatedResponse<Employee>> => {
-    const response = await fetch(`${ACADEMICS_URL}/employees?limit=${limit}&offset=${offset}`, {
+    const params = new URLSearchParams({ limit: limit.toString(), offset: offset.toString() });
+    if (search) params.append('search', search);
+
+    const response = await fetch(`${ACADEMICS_URL}/employees?${params.toString()}`, {
         headers: getHeaders()
     });
 

@@ -1,15 +1,7 @@
 import {useState, useEffect} from 'react';
 import {
-    Dialog,
-    DialogContent,
-    Typography,
-    Box,
-    Button,
-    CircularProgress,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem
+    Dialog, DialogContent, Typography, Box, Button, CircularProgress,
+    FormControl, InputLabel, Select, MenuItem, Autocomplete, TextField
 } from '@mui/material';
 import {useIntl} from 'react-intl';
 import {type Student, type User, type StudyProgramDetails, type MajorDetails} from '@api/types';
@@ -28,13 +20,16 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
     const intl = useIntl();
     const isEditMode = Boolean(student);
 
-    const [userId, setUserId] = useState<number | ''>('');
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [studyProgramId, setStudyProgramId] = useState<number | ''>('');
     const [majorId, setMajorId] = useState<number | ''>('');
 
-    const [users, setUsers] = useState<User[]>([]);
     const [programs, setPrograms] = useState<StudyProgramDetails[]>([]);
     const [majors, setMajors] = useState<MajorDetails[]>([]);
+
+    const [userSearchInputValue, setUserSearchInputValue] = useState('');
+    const [userOptions, setUserOptions] = useState<User[]>([]);
+    const [isSearchingUsers, setIsSearchingUsers] = useState(false);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoadingData, setIsLoadingData] = useState(false);
@@ -42,58 +37,63 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
     useEffect(() => {
         if (!open) return;
 
-        const loadData = async () => {
+        const loadStaticData = async () => {
             setIsLoadingData(true);
             try {
-                const [usersRes, programsRes, majorsRes] = await Promise.allSettled([
-                    fetchUsers(200, 0),
+                const [programsRes, majorsRes] = await Promise.allSettled([
                     fetchStudyPrograms(200, 0),
                     fetchMajors(200, 0)
                 ]);
 
-                if (usersRes.status === 'fulfilled') {
-                    setUsers(usersRes.value.items);
-                } else {
-                    console.error("Błąd pobierania użytkowników", usersRes.reason);
-                }
-
-                if (programsRes.status === 'fulfilled') {
-                    setPrograms(programsRes.value.items);
-                } else {
-                    console.error("Błąd pobierania kierunków", programsRes.reason);
-                }
-
-                if (majorsRes.status === 'fulfilled') {
-                    setMajors(majorsRes.value.items);
-                } else {
-                    console.error("Błąd pobierania specjalności", majorsRes.reason);
-                }
+                if (programsRes.status === 'fulfilled') setPrograms(programsRes.value.items);
+                if (majorsRes.status === 'fulfilled') setMajors(majorsRes.value.items);
 
                 if (student) {
-                    setUserId(student.user_id);
+                    setSelectedUser(student.user);
                     setStudyProgramId(student.study_program);
                     setMajorId(student.major || '');
                 } else {
-                    setUserId('');
+                    setSelectedUser(null);
                     setStudyProgramId('');
                     setMajorId('');
                 }
             } catch (err) {
-                console.error("Nieoczekiwany błąd modala", err);
+                console.error("Błąd modala:", err);
             } finally {
                 setIsLoadingData(false);
             }
         };
 
-        void loadData();
-    }, [open, student, intl]);
+        void loadStaticData();
+    }, [open, student]);
+
+    useEffect(() => {
+        if (userSearchInputValue.length < 3) {
+            setUserOptions(selectedUser ? [selectedUser] : []);
+            return;
+        }
+
+        const delayDebounceFn = setTimeout(async () => {
+            setIsSearchingUsers(true);
+            try {
+                const res = await fetchUsers(20, 0, userSearchInputValue, {exclude_profiles: ['student']});
+                setUserOptions(res.items);
+            } catch (error) {
+                console.error("Błąd wyszukiwania użytkowników:", error);
+            } finally {
+                setIsSearchingUsers(false);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [userSearchInputValue, selectedUser]);
 
     const handleSubmit = async () => {
-        if (!userId || !studyProgramId) return;
+        if (!selectedUser || !studyProgramId) return;
         setIsSubmitting(true);
         try {
             const payload = {
-                user_id: Number(userId),
+                user_id: selectedUser.id,
                 study_program: Number(studyProgramId),
                 major: majorId ? Number(majorId) : null
             };
@@ -123,26 +123,33 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
                     <Box sx={{display: 'flex', justifyContent: 'center', py: 4}}><CircularProgress/></Box>
                 ) : (
                     <>
-                        <FormControl fullWidth disabled={isEditMode}>
-                            <InputLabel>{intl.formatMessage({id: 'academics.students.userLabel'})}</InputLabel>
-                            <Select
-                                value={userId}
-                                label={intl.formatMessage({id: 'academics.students.userLabel'})}
-                                onChange={(e) => setUserId(e.target.value as number)}
-                            >
-                                {!isEditMode && <MenuItem value=""
-                                                          disabled>{intl.formatMessage({id: 'academics.students.chooseUser'})}</MenuItem>}
-
-                                {isEditMode && student && (
-                                    <MenuItem value={student.user_id}>
-                                        {student.user.name} {student.user.surname} ({student.user.email})
-                                    </MenuItem>
-                                )}
-                                {!isEditMode && users.map(u => (
-                                    <MenuItem key={u.id} value={u.id}>{u.name} {u.surname} ({u.email})</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                        <Autocomplete
+                            disabled={isEditMode}
+                            options={userOptions}
+                            getOptionLabel={(option) => `${option.name} ${option.surname} (${option.email})`}
+                            isOptionEqualToValue={(option, value) => option.id === value.id}
+                            value={selectedUser}
+                            onChange={(_, newValue) => setSelectedUser(newValue)}
+                            onInputChange={(_, newInputValue) => setUserSearchInputValue(newInputValue)}
+                            // TODO Change to proper message
+                            noOptionsText="Wpisz min. 3 znaki lub brak wyników"
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label={intl.formatMessage({id: 'academics.students.userLabel'})}
+                                    InputProps={{
+                                        ...params.InputProps,
+                                        endAdornment: (
+                                            <>
+                                                {isSearchingUsers ?
+                                                    <CircularProgress color="inherit" size={20}/> : null}
+                                                {params.InputProps.endAdornment}
+                                            </>
+                                        ),
+                                    }}
+                                />
+                            )}
+                        />
 
                         <FormControl fullWidth>
                             <InputLabel>{intl.formatMessage({id: 'academics.students.programLabel'})}</InputLabel>
@@ -151,8 +158,6 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
                                 label={intl.formatMessage({id: 'academics.students.programLabel'})}
                                 onChange={(e) => setStudyProgramId(e.target.value as number)}
                             >
-                                <MenuItem value=""
-                                          disabled>{intl.formatMessage({id: 'academics.students.chooseProgram'})}</MenuItem>
                                 {programs.map(p => (
                                     <MenuItem key={p.id} value={p.id}>
                                         {p.program_name || `Kierunek ID: ${p.study_field} (Start: ${p.start_year})`}
@@ -183,7 +188,7 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
                         variant="contained" fullWidth onClick={() => {
                         void handleSubmit();
                     }}
-                        disabled={isSubmitting || !userId || !studyProgramId || isLoadingData}
+                        disabled={isSubmitting || !selectedUser || !studyProgramId || isLoadingData}
                         sx={{
                             py: 1.5,
                             borderRadius: '12px',

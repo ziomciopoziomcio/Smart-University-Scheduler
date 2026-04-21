@@ -1,15 +1,7 @@
 import {useState, useEffect} from 'react';
 import {
-    Dialog,
-    DialogContent,
-    Typography,
-    Box,
-    Button,
-    CircularProgress,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem
+    Dialog, DialogContent, Typography, Box, Button, CircularProgress,
+    FormControl, InputLabel, Select, MenuItem, Autocomplete, TextField
 } from '@mui/material';
 import {useIntl} from 'react-intl';
 import {type Employee, type User, type Faculty, type Unit} from '@api/types';
@@ -28,13 +20,16 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
     const intl = useIntl();
     const isEditMode = Boolean(employee);
 
-    const [userId, setUserId] = useState<number | ''>('');
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [facultyId, setFacultyId] = useState<number | ''>('');
     const [unitId, setUnitId] = useState<number | ''>('');
 
-    const [users, setUsers] = useState<User[]>([]);
     const [faculties, setFaculties] = useState<Faculty[]>([]);
     const [units, setUnits] = useState<Unit[]>([]);
+
+    const [userSearchInputValue, setUserSearchInputValue] = useState('');
+    const [userOptions, setUserOptions] = useState<User[]>([]);
+    const [isSearchingUsers, setIsSearchingUsers] = useState(false);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoadingData, setIsLoadingData] = useState(false);
@@ -44,23 +39,15 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
         const loadInitialData = async () => {
             setIsLoadingData(true);
             try {
-                // TODO: Change to fetch only non-employees when backend supports it
-                // const usersRes = await fetchUsers(200, 0, { exclude_profiles: ['employee'] });
-
-                const [usersRes, facultiesRes] = await Promise.all([
-                    fetchUsers(200, 0),
-                    fetchFaculties()
-                ]);
-
-                setUsers(usersRes.items);
+                const facultiesRes = await fetchFaculties();
                 setFaculties(facultiesRes.items as Faculty[]);
 
                 if (employee) {
-                    setUserId(employee.user_id);
+                    setSelectedUser(employee.user);
                     setFacultyId(employee.faculty_id);
                     setUnitId(employee.unit_id || '');
                 } else {
-                    setUserId('');
+                    setSelectedUser(null);
                     setFacultyId('');
                     setUnitId('');
                 }
@@ -89,12 +76,33 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
         void loadUnits();
     }, [facultyId]);
 
+    useEffect(() => {
+        if (userSearchInputValue.length < 3) {
+            setUserOptions(selectedUser ? [selectedUser] : []);
+            return;
+        }
+
+        const delayDebounceFn = setTimeout(async () => {
+            setIsSearchingUsers(true);
+            try {
+                const res = await fetchUsers(20, 0, userSearchInputValue, {exclude_profiles: ['employee']});
+                setUserOptions(res.items);
+            } catch (error) {
+                console.error("Błąd wyszukiwania użytkowników:", error);
+            } finally {
+                setIsSearchingUsers(false);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [userSearchInputValue, selectedUser]);
+
     const handleSubmit = async () => {
-        if (!userId || !facultyId || !unitId) return;
+        if (!selectedUser || !facultyId || !unitId) return;
         setIsSubmitting(true);
         try {
             const payload = {
-                user_id: Number(userId),
+                user_id: selectedUser.id,
                 faculty_id: Number(facultyId),
                 unit_id: Number(unitId)
             };
@@ -120,18 +128,32 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
                     {intl.formatMessage({id: isEditMode ? 'academics.employees.titleEdit' : 'academics.employees.titleAdd'})}
                 </Typography>
 
-                <FormControl fullWidth disabled={isEditMode || isLoadingData}>
-                    <InputLabel>{intl.formatMessage({id: 'academics.employees.userLabel'})}</InputLabel>
-                    <Select value={userId} label={intl.formatMessage({id: 'academics.employees.userLabel'})}
-                            onChange={(e) => setUserId(e.target.value as number)}>
-                        {isEditMode && employee && (
-                            <MenuItem value={employee.user_id}>{employee.user.name} {employee.user.surname}</MenuItem>
-                        )}
-                        {!isEditMode && users.map(u => (
-                            <MenuItem key={u.id} value={u.id}>{u.name} {u.surname} ({u.email})</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+                <Autocomplete
+                    disabled={isEditMode || isLoadingData}
+                    options={userOptions}
+                    getOptionLabel={(option) => `${option.name} ${option.surname} (${option.email})`}
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    value={selectedUser}
+                    onChange={(_, newValue) => setSelectedUser(newValue)}
+                    onInputChange={(_, newInputValue) => setUserSearchInputValue(newInputValue)}
+                    // TODO Change to proper message
+                    noOptionsText="Wpisz min. 3 znaki lub brak wyników"
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label={intl.formatMessage({id: 'academics.employees.userLabel'})}
+                            InputProps={{
+                                ...params.InputProps,
+                                endAdornment: (
+                                    <>
+                                        {isSearchingUsers ? <CircularProgress color="inherit" size={20}/> : null}
+                                        {params.InputProps.endAdornment}
+                                    </>
+                                ),
+                            }}
+                        />
+                    )}
+                />
 
                 <FormControl fullWidth disabled={isLoadingData}>
                     <InputLabel>{intl.formatMessage({id: 'academics.employees.facultyLabel'})}</InputLabel>
@@ -157,7 +179,7 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
                         variant="contained" fullWidth onClick={() => {
                         void handleSubmit();
                     }}
-                        disabled={isSubmitting || !userId || !facultyId || !unitId || isLoadingData}
+                        disabled={isSubmitting || !selectedUser || !facultyId || !unitId || isLoadingData}
                         sx={{
                             py: 1.5,
                             borderRadius: '12px',

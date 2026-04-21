@@ -356,5 +356,36 @@
       "delete": "Błąd podczas usuwania użytkownika.",
       "passwordMismatch": "Podane hasła nie są identyczne!"
     }
+  },
+  "roles": {
+    "title": "Role systemowe",
+    "searchPlaceholder": "Szukaj roli...",
+    "add": "Dodaj rolę",
+    "edit": "Zmień nazwę",
+    "delete": "Usuń rolę",
+    "deleteTitle": "Usuwanie roli",
+    "deleteDesc": "Czy na pewno chcesz usunąć rolę {name}? Odbierze to uprawnienia wszystkim przypisanym do niej użytkownikom.",
+    "usersCountPending": "Liczba użytkowników: ?",
+    "titleAdd": "Utwórz nową rolę",
+    "titleEdit": "Edytuj nazwę roli",
+    "nameLabel": "Nazwa roli",
+    "tabs": {
+      "users": "Użytkownicy",
+      "permissions": "Uprawnienia"
+    },
+    "dashboard": {
+      "usersDesc": "Zarządzaj przypisaniami użytkowników do tej roli",
+      "permissionsDesc": "Konfiguruj dostęp do poszczególnych modułów systemu"
+    },
+    "permissions": {
+      "title": "Uprawnienia: {name}",
+      "save": "Zapisz uprawnienia",
+      "success": "Zapisano pomyślnie!",
+      "ungrouped": "Pozostałe"
+    },
+    "errors": {
+      "save": "Błąd zapisywania roli",
+      "delete": "Błąd usuwania roli"
+    }
   }
 }

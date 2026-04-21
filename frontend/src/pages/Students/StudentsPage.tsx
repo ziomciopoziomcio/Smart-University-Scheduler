@@ -11,6 +11,7 @@ import { fetchStudents } from '@api/academics';
 export default function StudentsPage() {
     const intl = useIntl();
     const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [data, setData] = useState<Student[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -19,13 +20,18 @@ export default function StudentsPage() {
         { label: intl.formatMessage({id: "academics.students.students"}), path: '/students' }
     ];
 
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [search]);
+
     const loadData = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            // TODO: Searchbar
-            // const res = await fetchStudents(100, 0, search);
-            const res = await fetchStudents();
+            const res = await fetchStudents(100, 0, debouncedSearch);
             setData(res.items);
         } catch (err) {
             const e = err as Error;
@@ -33,7 +39,7 @@ export default function StudentsPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [debouncedSearch]);
 
     useEffect(() => {
         void loadData();
