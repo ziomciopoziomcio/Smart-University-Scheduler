@@ -416,7 +416,7 @@ def list_groups(
 def get_study_plan_groups_summary(
     faculty_id: int = Query(...),
     study_field: int = Query(...),
-    semester: int = Query(...),
+    semester: int = Query(..., gt=0),
     specialization_id: int | None = Query(None),
     elective_block_id: int | None = Query(None),
     db: Session = Depends(get_db),
