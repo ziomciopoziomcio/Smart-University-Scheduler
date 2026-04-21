@@ -71,14 +71,15 @@ export default function UserView({data, onRefresh}: UserViewProps) {
                     },
                     {
                         render: (item: User) => (
-                            <Tooltip title={intl.formatMessage({ id: item.two_factor_enabled ? 'users.view.2faEnabled' : 'users.view.2faDisabled' })}>
+                            <Tooltip
+                                title={intl.formatMessage({id: item.two_factor_enabled ? 'users.view.2faEnabled' : 'users.view.2faDisabled'})}>
                                 <Chip
-                                    icon={<Shield />}
+                                    icon={<Shield/>}
                                     label="2FA"
                                     size="small"
                                     color={item.two_factor_enabled ? "success" : "default"}
                                     variant={item.two_factor_enabled ? "filled" : "outlined"}
-                                    sx={{ fontWeight: 'bold' }}
+                                    sx={{fontWeight: 'bold'}}
                                 />
                             </Tooltip>
                         ),
@@ -139,8 +140,9 @@ export default function UserView({data, onRefresh}: UserViewProps) {
             <UserModal
                 open={isModalOpen}
                 user={selectedUser}
-                onClose={() => setIsModalOpen(false)}
-                onSuccess={onRefresh}
+                onClose={() => {
+                    setIsModalOpen(false);
+                }} onSuccess={onRefresh}
             />
         </Box>
     );

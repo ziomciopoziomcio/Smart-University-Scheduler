@@ -33,7 +33,9 @@ export default function RoleDashboardView({role}: RoleDashboardViewProps) {
                 getIcon={(item) => item.id === 'users' ? Group : ToggleOn}
                 getTitle={(item) => item.title}
                 getSubtitle={(item) => item.subtitle}
-                onItemClick={(item) => navigate(`/roles/${role.id}/${item.id}`)}
+                onItemClick={(item) => {
+                    navigate(`/roles/${role.id}/${item.id}`);
+                }}
                 hideAdd
                 hideMenu
             />

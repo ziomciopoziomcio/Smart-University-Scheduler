@@ -51,7 +51,11 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
         }
     }, [open, user]);
 
+    // eslint-disable-next-line complexity
     const handleSubmit = async () => {
+
+        // This is a client-side check, not a security-sensitive operation, thus timing attacks are not a concern here.
+        // eslint-disable-next-line security/detect-possible-timing-attacks
         if (password !== passwordConfirm) {
             alert(intl.formatMessage({id: 'users.errors.passwordMismatch'}));
             return;
@@ -60,7 +64,7 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
         setIsSubmitting(true);
         try {
             if (isEditMode && user) {
-                const updatePayload: any = {
+                const updatePayload: Record<string, unknown> = {
                     name,
                     surname,
                     email,
@@ -92,7 +96,9 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
         }
     };
 
-    const handleTogglePassword = () => setShowPassword((prev) => !prev);
+    const handleTogglePassword = () => {
+        setShowPassword((prev) => !prev);
+    };
 
     const isFormValid = isEditMode
         ? (email && name && surname)
@@ -107,19 +113,27 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
 
                 <Box sx={{display: 'flex', gap: 2}}>
                     <TextField fullWidth label={intl.formatMessage({id: 'users.modal.nameLabel'})} value={name}
-                               onChange={(e) => setName(e.target.value)} disabled={isSubmitting}/>
+                               onChange={(e) => {
+                                   setName(e.target.value);
+                               }} disabled={isSubmitting}/>
                     <TextField fullWidth label={intl.formatMessage({id: 'users.modal.surnameLabel'})} value={surname}
-                               onChange={(e) => setSurname(e.target.value)} disabled={isSubmitting}/>
+                               onChange={(e) => {
+                                   setSurname(e.target.value);
+                               }} disabled={isSubmitting}/>
                 </Box>
 
                 <TextField fullWidth label={intl.formatMessage({id: 'users.modal.emailLabel'})} value={email}
-                           onChange={(e) => setEmail(e.target.value)} disabled={isSubmitting}/>
+                           onChange={(e) => {
+                               setEmail(e.target.value);
+                           }} disabled={isSubmitting}/>
 
                 <Box sx={{display: 'flex', gap: 2}}>
                     <FormControl fullWidth disabled={isSubmitting}>
                         <InputLabel>{intl.formatMessage({id: 'users.modal.degreeLabel'})}</InputLabel>
                         <Select value={degree} label={intl.formatMessage({id: 'users.modal.degreeLabel'})}
-                                onChange={(e) => setDegree(e.target.value as string)}>
+                                onChange={(e) => {
+                                    setDegree(e.target.value);
+                                }}>
                             <MenuItem value=""><em>{intl.formatMessage({id: 'register.degrees.none'})}</em></MenuItem>
                             <MenuItem value="inz">{intl.formatMessage({id: 'register.degrees.inz'})}</MenuItem>
                             <MenuItem value="mgr">{intl.formatMessage({id: 'register.degrees.mgr'})}</MenuItem>
@@ -129,14 +143,18 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                         </Select>
                     </FormControl>
                     <TextField fullWidth label={intl.formatMessage({id: 'users.modal.phoneLabel'})} value={phone}
-                               onChange={(e) => setPhone(e.target.value)} disabled={isSubmitting}/>
+                               onChange={(e) => {
+                                   setPhone(e.target.value);
+                               }} disabled={isSubmitting}/>
                 </Box>
 
                 <AuthPasswordField
                     label={intl.formatMessage({id: isEditMode ? 'users.modal.passwordEditLabel' : 'users.modal.passwordLabel'})}
                     placeholder=""
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                        setPassword(e.target.value);
+                    }}
                     disabled={isSubmitting}
                     showPassword={showPassword}
                     onTogglePassword={handleTogglePassword}
@@ -147,7 +165,9 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                         label={intl.formatMessage({id: 'users.modal.password2Label'})}
                         placeholder=""
                         value={passwordConfirm}
-                        onChange={(e) => setPasswordConfirm(e.target.value)}
+                        onChange={(e) => {
+                            setPasswordConfirm(e.target.value);
+                        }}
                         disabled={isSubmitting}
                         showPassword={showPassword}
                         onTogglePassword={handleTogglePassword}
