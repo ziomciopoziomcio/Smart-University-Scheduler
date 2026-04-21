@@ -174,3 +174,10 @@ class EmployeeNested(BaseSchema):
     faculty_id: int
     user_id: int
     unit_id: int
+
+
+class StudyFieldSemesterSummary(BaseSchema):
+    semester_number: int
+    groups_count: int
+    specializations_count: int | None = None
+    elective_blocks_count: int | None = None

@@ -2,6 +2,7 @@ from datetime import date
 from typing import List
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from src.common.pagination.pagination import paginate
@@ -778,3 +779,68 @@ def delete_calendar_day(
     db.delete(obj)
     _commit_or_rollback(db)
     return None
+
+
+@router.get(
+    "/study-fields/{study_field_id}/semesters/summary",
+    response_model=list[schemas.StudyFieldSemesterSummary],
+)
+def get_study_field_semester_summary(
+    study_field_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("academics:view")),
+):
+    """
+
+    :param study_field_id:
+    :param db:
+    :param _current_user:
+    :return:
+    """
+    regular_groups_count = (
+        db.query(func.count(models.Groups.id))
+        .join(
+            course_models.Study_program,
+            models.Groups.study_program == course_models.Study_program.id,
+        )
+        .filter(
+            course_models.Study_program.study_field == study_field_id,
+            models.Groups.major.is_(None),
+            models.Groups.elective_block.is_(None),
+        )
+        .scalar()
+        or 0
+    )
+
+    semester_stats = (
+        db.query(
+            course_models.Curriculum_course.semester,
+            func.count(func.distinct(course_models.Curriculum_course.major)).label(
+                "spec_count"
+            ),
+            func.count(
+                func.distinct(course_models.Curriculum_course.elective_block)
+            ).label("elec_count"),
+        )
+        .join(
+            course_models.Study_program,
+            course_models.Curriculum_course.study_program
+            == course_models.Study_program.id,
+        )
+        .filter(course_models.Study_program.study_field == study_field_id)
+        .group_by(course_models.Curriculum_course.semester)
+        .order_by(course_models.Curriculum_course.semester)
+        .all()
+    )
+
+    results = []
+    for semester, spec_count, elec_count in semester_stats:
+        results.append(
+            schemas.StudyFieldSemesterSummary(
+                semester_number=semester,
+                groups_count=regular_groups_count,
+                specializations_count=spec_count if spec_count > 0 else None,
+                elective_blocks_count=elec_count if elec_count > 0 else None,
+            )
+        )
+    return results
