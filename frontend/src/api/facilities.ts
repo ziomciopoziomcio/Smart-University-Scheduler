@@ -1,5 +1,5 @@
 import {useAuthStore} from '@store/useAuthStore';
-import type {PaginatedResponse, Campus, Building, Room} from './types';
+import type {PaginatedResponse, Campus, Building, Room, Faculty} from './types';
 
 const baseApiUrl = import.meta.env.VITE_API_URL as string | undefined;
 const BASE_URL = (baseApiUrl ? `${baseApiUrl}/facilities` : 'http://localhost:3000/facilities').replace(/\/+$/, '');
@@ -16,15 +16,45 @@ export const fetchCampuses = async (): Promise<PaginatedResponse<Campus>> => {
     return response.json();
 };
 
-export const fetchBuildings = async (campusId: number): Promise<PaginatedResponse<Building>> => {
-    const response = await fetch(`${BASE_URL}/buildings?campus_id=${campusId}`, {headers: getHeaders()});
-    if (!response.ok) throw new Error('Nie udało się pobrać budynków');
+export const fetchBuildings = async (
+    campusId: number,
+    limit: number = 20,
+    offset: number = 0
+): Promise<PaginatedResponse<Building>> => {
+    const response = await fetch(
+        `${BASE_URL}/buildings?campus_id=${campusId}&limit=${limit}&offset=${offset}`,
+        {headers: getHeaders()}
+    );
+    if (!response.ok) throw new Error('Failed to fetch buildings');
     return response.json();
 };
 
-export const fetchRooms = async (buildingId: number): Promise<PaginatedResponse<Room>> => {
-    const response = await fetch(`${BASE_URL}/rooms?building_id=${buildingId}`, {headers: getHeaders()});
-    if (!response.ok) throw new Error('Nie udało się pobrać sal');
+export const fetchRooms = async (
+    buildingId: number,
+    page: number = 1,
+    limit: number = 10,
+    filters: {
+        room_name?: string;
+        projector_availability?: boolean;
+        min_capacity?: number;
+    } = {}
+): Promise<PaginatedResponse<Room>> => {
+    const offset = (page - 1) * limit;
+
+    const query = new URLSearchParams({
+        building_id: buildingId.toString(),
+        limit: limit.toString(),
+        offset: offset.toString(),
+        ...(filters.room_name && {room_name: filters.room_name}),
+        ...(filters.projector_availability !== undefined && {projector_availability: String(filters.projector_availability)}),
+        ...(filters.min_capacity && {min_room_capacity: filters.min_capacity.toString()}),
+    });
+
+    const response = await fetch(`${BASE_URL}/rooms?${query.toString()}`, {
+        headers: getHeaders(),
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch rooms');
     return response.json();
 };
 
@@ -89,6 +119,16 @@ export const createBuilding = async (data: {
     return response.json();
 };
 
+export const getRoom = async (id: number): Promise<Room> => {
+    const response = await fetch(`${BASE_URL}/rooms/${id}`, {
+        headers: getHeaders(),
+    });
+    if (!response.ok) {
+        throw new Error('failed to fetch room');
+    }
+    return response.json();
+};
+
 export const updateBuilding = async (id: number, data: {
     building_number?: string;
     building_name?: string;
@@ -111,8 +151,27 @@ export const deleteBuilding = async (id: number): Promise<void> => {
     if (!response.ok) throw new Error('Nie udało się usunąć budynku');
 };
 
-export const fetchFaculties = async (): Promise<PaginatedResponse<any>> => {
-    const response = await fetch(`${BASE_URL}/faculties`, {headers: getHeaders()});
+export const fetchFaculties = async (
+    page: number = 1,
+    limit: number = 10,
+    filters: {
+        faculty_name?: string;
+        faculty_short?: string;
+    } = {}
+): Promise<PaginatedResponse<Faculty>> => {
+    const offset = (page - 1) * limit;
+
+    const query = new URLSearchParams({
+        limit: limit.toString(),
+        offset: offset.toString(),
+        ...(filters.faculty_name?.trim() && {faculty_name: filters.faculty_name.trim()}),
+        ...(filters.faculty_short?.trim() && {faculty_short: filters.faculty_short.trim()}),
+    });
+
+    const response = await fetch(`${BASE_URL}/faculties?${query.toString()}`, {
+        headers: getHeaders(),
+    });
+
     if (!response.ok) throw new Error('Nie udało się pobrać wydziałów');
     return response.json();
 };

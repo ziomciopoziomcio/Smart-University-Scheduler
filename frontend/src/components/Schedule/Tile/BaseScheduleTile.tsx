@@ -24,7 +24,7 @@ export function BaseScheduleTile({
                                      border,
                                      watermarkColor,
                                      watermarkText = 'W',
-                                     horizontalGap = 8,
+                                     horizontalGap = 4,
                                      onClick,
                                  }: BaseScheduleTileProps) {
     return (
@@ -45,7 +45,7 @@ export function BaseScheduleTile({
                 alignItems: 'center',
                 justifyContent: 'center',
                 textAlign: 'center',
-                px: 1,
+                px: 0.75,
                 boxShadow: '0 1px 0 rgba(0,0,0,0.03)',
                 cursor: 'pointer',
                 transition: 'transform 0.15s ease, box-shadow 0.15s ease',
@@ -63,7 +63,7 @@ export function BaseScheduleTile({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: height >= 120 ? '100px' : '90px',
+                    fontSize: height >= 120 ? '100px' : '80px',
                     fontWeight: 700,
                     lineHeight: 1,
                     color: watermarkColor,
@@ -79,11 +79,12 @@ export function BaseScheduleTile({
                     position: 'relative',
                     zIndex: 1,
                     whiteSpace: 'pre-line',
-                    fontSize: 'clamp(9px, 0.72vw, 11px)',
-                    lineHeight: 1.2,
+                    fontSize: 'clamp(8px, 0.72vw, 11px)',
+                    lineHeight: 1.15,
                     fontWeight: 500,
                     color: '#1E1E1E',
                     maxWidth: '100%',
+                    overflowWrap: 'anywhere',
                 }}
             >
                 {title}

@@ -168,6 +168,7 @@
       }
     },
     "building": {
+      "roomsCount": "{count, plural, one {# room} other {# rooms}}",
       "searchPlaceholder": "Search building...",
       "add": "Add building",
       "edit": "Edit building",
@@ -204,6 +205,13 @@
       "errors": {
         "add": "Error adding room.",
         "delete": "Error deleting room."
+      },
+      "stations": "stations",
+      "station": "station",
+      "computer": {
+        "computer": "computer",
+        "computers": "computers",
+        "computers2": "computers"
       }
     }
   },
@@ -389,5 +397,107 @@
       "save": "Error while saving role.",
       "delete": "Error while deleting role."
     }
+  },
+  "plans": {
+    "common": {
+      "emptyValue": "—",
+      "loadingBreadcrumb": "..."
+    },
+    "plans": "Plans",
+    "campuses": "Campuses",
+    "roomsPlan": {
+      "title": "Rooms plans",
+      "description": "Check the schedule of rooms and facilities at the university."
+    },
+    "lecturerPlan": {
+      "title": "Lecturers plans",
+      "description": "Check the schedule of lecturers at the university.",
+      "departmentSelect": {
+        "searchPlaceholder": "Search for a unit or faculty...",
+        "show": "Show:",
+        "units": "Units",
+        "faculties": "Faculties",
+        "lecturersCount": "Number of lecturers",
+        "noData": "No data",
+        "selectAtLeastOne": "Select at least one filter"
+      },
+      "lecturerSelect": {
+        "searchPlaceholder": "Search lecturer...",
+        "errors": {
+          "invalidFacultyId": "Invalid faculty id",
+          "fetchFacultyFailed": "Failed to fetch faculty"
+        },
+        "noData": "No data"
+      }
+    },
+    "studentsPlan": {
+      "title": "Students plans",
+      "description": "Check the schedule of students at the university.",
+      "checkFaculty": "Check the schedule of students from faculty ",
+      "noFields": "There are no fields of study available for this faculty.",
+      "noFaculties": "There are no faculties to display.",
+      "studyField": {
+        "errors": {
+          "invalidFacultyId": "Invalid faculty id.",
+          "fetchFailed": "Failed to fetch study fields."
+        },
+        "studyMode": {
+          "fullTime": "full-time",
+          "partTime": "part-time"
+        },
+        "semestersCount": "{count, plural, one {# semester} other {# semesters}}",
+        "specializations": {
+          "none": "no specializations",
+          "count": "{count, plural, one {# specialization} other {# specializations}}"
+        }
+      },
+      "studySemester": {
+        "searchPlaceholder": "Search semester...",
+        "semesterLabel": "Semester {number}",
+        "groupsCount": "{count, plural, one {# group} other {# groups}}",
+        "specializationsCount": "{count, plural, one {# specialization} other {# specializations}}",
+        "electiveBlocksCount": "{count, plural, one {# elective block} other {# elective blocks}}",
+        "noSemesters": "No semesters to display.",
+        "errors": {
+          "invalidParams": "Invalid parameters.",
+          "fetchFailed": "Failed to fetch semesters."
+        }
+      },
+      "studySpecialization": {
+        "searchPlaceholder": "Search specialization...",
+        "groupsCount": "{count, plural, one {# group} other {# groups}}",
+        "noSpecializations": "No specializations to display.",
+        "errors": {
+          "invalidParams": "Invalid parameters.",
+          "fetchFailed": "Failed to fetch specializations."
+        }
+      },
+      "studyGroup": {
+        "searchPlaceholder": "Search group...",
+        "noGroups": "No groups to display.",
+        "errors": {
+          "invalidParams": "Invalid parameters.",
+          "fetchFailed": "Failed to fetch groups."
+        }
+      },
+      "studyBlock": {
+        "title": "Elective blocks",
+        "searchPlaceholder": "Search...",
+        "chooseSingle": "Choose an elective block",
+        "chooseNth": "Choose elective block {current} of {total}",
+        "chooseGroupInBlock": "Choose a group in the selected elective block",
+        "alreadySelected": "Selected blocks: {count}",
+        "noBlocks": "No elective blocks to display.",
+        "noGroups": "No groups to display.",
+        "errors": {
+          "invalidParams": "Invalid parameters.",
+          "fetchFailed": "Failed to fetch elective blocks."
+        }
+      }
+    }
+  },
+  "table": {
+    "rowsPerPage": "Rows per page",
+    "of": "of"
   }
 }
