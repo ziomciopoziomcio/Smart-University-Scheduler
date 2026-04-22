@@ -72,7 +72,7 @@ export default function LecturerFacultySelectPage() {
                     id: 'plans.lecturerPlan.title',
                     defaultMessage: 'Plany prowadzących',
                 }),
-                path: '/plans/lecturer-faculties',
+                path: '/plans/lecturers/faculty',
             },
         ];
     }, [intl]);
