@@ -54,6 +54,8 @@ export default function FacultyView({data, onRefresh}: FacultyViewProps) {
             <TileView
                 items={data}
                 icon={AccountBalance}
+                variant="flat"
+                iconSize={50}
                 getTitle={(item: Faculty) => item.faculty_short}
                 getSubtitle={(item: Faculty) => item.faculty_name}
                 onItemClick={(item: Faculty) => {

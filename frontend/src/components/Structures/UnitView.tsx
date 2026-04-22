@@ -10,7 +10,6 @@ import ListView from "@components/Common/ListView.tsx";
 import ActionMenu from "@components/Common/ActionMenu.tsx";
 import {type Unit} from '@api/types';
 
-// DODANE: Poprawny interfejs dla widoku
 interface UnitViewProps {
     data: Unit[];
     facultyId: number;
@@ -20,7 +19,7 @@ interface UnitViewProps {
 export default function UnitView({data, facultyId, onRefresh}: UnitViewProps) {
     const intl = useIntl();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null); // DODANE: Typ Unit | null
+    const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
