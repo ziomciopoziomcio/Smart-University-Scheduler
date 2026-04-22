@@ -97,7 +97,7 @@ export default function LecturerSelectPage() {
             },
             {
                 label: facultyName || facultyId || '...',
-                path: `/plans/lecturers/faculty/${facultyId}`,
+                path: ``,
             },
         ];
     }, [intl, facultyId, facultyName]);
