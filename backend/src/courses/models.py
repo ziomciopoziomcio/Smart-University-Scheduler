@@ -47,6 +47,11 @@ class FrequencyType(str, enum.Enum):
     MANUAL = "Manual"
 
 
+class StudyMode(str, enum.Enum):
+    FULL_TIME = "Full-time"
+    PART_TIME = "Part-time"
+
+
 class Study_fields(Base):
     """Study_fields model representing a study field in the system."""
 
@@ -55,6 +60,12 @@ class Study_fields(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     faculty: Mapped[int] = mapped_column(Integer, ForeignKey("faculties.id"))
     field_name: Mapped[str] = mapped_column(String(255), unique=True)
+    language: Mapped[CourseLanguage] = mapped_column(
+        Enum(CourseLanguage), default=CourseLanguage.POLISH
+    )
+    mode: Mapped[StudyMode] = mapped_column(
+        Enum(StudyMode), default=StudyMode.FULL_TIME
+    )
 
 
 class Major(Base):
