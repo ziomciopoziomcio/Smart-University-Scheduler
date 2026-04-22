@@ -448,7 +448,7 @@ export default function StudyPlanSchedulePage() {
         });
     };
 
-    const showElectiveSection = electiveBlocks.length > 0;
+    const showElectiveSection = electiveLoading || electiveBlocks.length > 0;
 
     return (
         <Box sx={{width: '100%', display: 'flex', flexDirection: 'column', gap: 2}}>
