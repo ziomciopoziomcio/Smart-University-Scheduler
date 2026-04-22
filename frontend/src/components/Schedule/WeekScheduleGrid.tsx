@@ -305,11 +305,13 @@ export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
                                 zIndex: 19,
                             }}
                         >
-                            <SubjectDetailsPopup
-                                entry={selectedEntry}
-                                details={selectedDetails}
-                                onClose={handleClosePopup}
-                            />
+                            <Box onClick={(e) => e.stopPropagation()}>
+                                <SubjectDetailsPopup
+                                    entry={selectedEntry}
+                                    details={selectedDetails}
+                                    onClose={handleClosePopup}
+                                />
+                            </Box>
                         </Box>
                     )}
                 </Box>
