@@ -52,6 +52,8 @@ export default function RoleView({data, onRefresh}: RoleViewProps) {
             <TileView
                 items={data}
                 icon={Security}
+                variant="flat"
+                iconSize={50}
                 getTitle={(item: Role) => item.role_name}
                 getSubtitle={() => intl.formatMessage({id: 'roles.usersCountPending'})}
                 onItemClick={(item: Role) => {
