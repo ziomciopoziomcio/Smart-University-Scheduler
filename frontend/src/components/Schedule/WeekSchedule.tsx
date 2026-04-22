@@ -38,8 +38,9 @@ export function WeekSchedule({
             sx={{
                 width: '100%',
                 maxWidth: '100%',
-                bgcolor: 'transparent',
-                borderRadius: 0,
+                bgcolor: '#FBFCFF',
+                borderRadius: 1,
+                padding: 2,
                 overflow: 'hidden',
                 position: 'relative',
             }}
