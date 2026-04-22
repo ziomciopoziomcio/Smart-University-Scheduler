@@ -46,7 +46,7 @@ export default function StudyPlanFacultyPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [intl]);
 
     useEffect(() => {
         loadFaculties();
