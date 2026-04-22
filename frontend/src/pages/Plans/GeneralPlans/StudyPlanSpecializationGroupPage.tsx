@@ -75,7 +75,7 @@ export default function StudyPlanSpecializationGroupPage() {
                 // fetchGroups(1, 100, { //TODO: IT WORKS BUT I NEED TO MOCK ANYWAY
                 //     major: numericSpecializationId,
                 // }),
-                fetchMockStudyPlanSpecializationGroups(numericSpecializationId),
+                fetchMockStudyPlanSpecializationGroups(Number(numericSpecializationId)),
                 // getMajor(numericSpecializationId), // FOR NOW TODO
             ];
 
@@ -87,7 +87,7 @@ export default function StudyPlanSpecializationGroupPage() {
             setGroups(groupsResponse as StudyPlanGroupSummary[]);
 
             setSpecialization({
-                id: numericSpecializationId,
+                id: Number(numericSpecializationId),
                 study_field: numericFieldOfStudyId,
                 major_name: `Specjalizacja ${numericSpecializationId}`,
             });
