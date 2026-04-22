@@ -51,6 +51,8 @@ export default function CampusView({data, onRefresh}: CampusViewProps) {
             <TileView
                 items={data}
                 icon={buildingIcon}
+                variant="flat"
+                iconSize={50}
                 getTitle={(item: Campus) => item.campus_name || `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${item.campus_short}`}
                 getSubtitle={(item: Campus) => item.campus_short}
                 onItemClick={(item: Campus) => {

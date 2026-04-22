@@ -5,6 +5,7 @@ import {useAuthStore} from '@store/useAuthStore';
 import {useIntl} from 'react-intl';
 import {useNavigate} from 'react-router-dom';
 import {theme} from "../../theme/theme.ts";
+import UserAvatar from "@components/Common/UserAvatar.tsx";
 
 export default function Navbar() {
     const intl = useIntl();
@@ -28,10 +29,6 @@ export default function Navbar() {
         logout();
         navigate('/login');
     };
-
-    const initials = user
-        ? `${user.name.charAt(0)}${user.surname.charAt(0)}`.toUpperCase()
-        : '??';
 
     const role = user?.roles?.join(' | ') || '';
 
@@ -81,7 +78,7 @@ export default function Navbar() {
                         background: theme.palette.primary.main,
                         cursor: 'pointer'
                     }}>
-                        {initials}
+                        <UserAvatar name={user?.name} surname={user?.surname} size={48}/>
                     </Avatar>
                 </IconButton>
 
