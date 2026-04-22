@@ -24,8 +24,8 @@ interface MockEntrySeed {
     title: string;
     weekOffset: number;
     dayOffset: number;
-    startHour: number;
-    endHour: number;
+    startTime: string;
+    endTime: string;
     variant: ScheduleEntry['variant'];
 }
 
@@ -40,8 +40,8 @@ const mapSeedsToEntries = (prefix: string, seeds: MockEntrySeed[]): ScheduleEntr
         id: `${prefix}-${seed.id}`,
         title: seed.title,
         date: createIsoDate(seed.weekOffset, seed.dayOffset),
-        startHour: seed.startHour,
-        endHour: seed.endHour,
+        startTime: seed.startTime,
+        endTime: seed.endTime,
         variant: seed.variant,
     }));
 };
@@ -98,8 +98,8 @@ const lecturerScheduleSeedsByLecturer: Record<string, MockEntrySeed[]> = {
             title: 'Programowanie\nsieciowe 1',
             weekOffset: 0,
             dayOffset: 0,
-            startHour: 10,
-            endHour: 12,
+            startTime: '10:15',
+            endTime: '11:45',
             variant: 'lecture',
         },
         {
@@ -107,8 +107,8 @@ const lecturerScheduleSeedsByLecturer: Record<string, MockEntrySeed[]> = {
             title: 'Programowanie\nsieciowe 1',
             weekOffset: 0,
             dayOffset: 2,
-            startHour: 8,
-            endHour: 10,
+            startTime: '08:15',
+            endTime: '09:45',
             variant: 'lab',
         },
         {
@@ -116,8 +116,8 @@ const lecturerScheduleSeedsByLecturer: Record<string, MockEntrySeed[]> = {
             title: 'Seminarium\ninżynierskie',
             weekOffset: 1,
             dayOffset: 3,
-            startHour: 14,
-            endHour: 16,
+            startTime: '14:15',
+            endTime: '15:45',
             variant: 'seminar',
         },
         {
@@ -125,8 +125,8 @@ const lecturerScheduleSeedsByLecturer: Record<string, MockEntrySeed[]> = {
             title: 'Konsultacje',
             weekOffset: -1,
             dayOffset: 4,
-            startHour: 12,
-            endHour: 14,
+            startTime: '12:15',
+            endTime: '13:45',
             variant: 'exercise',
         },
     ],
@@ -136,8 +136,8 @@ const lecturerScheduleSeedsByLecturer: Record<string, MockEntrySeed[]> = {
             title: 'Projektowanie\ninterfejsów aplikacji\nWWW',
             weekOffset: 0,
             dayOffset: 1,
-            startHour: 8,
-            endHour: 10,
+            startTime: '08:15',
+            endTime: '09:45',
             variant: 'project',
         },
         {
@@ -145,8 +145,8 @@ const lecturerScheduleSeedsByLecturer: Record<string, MockEntrySeed[]> = {
             title: 'UX i prototypowanie',
             weekOffset: 0,
             dayOffset: 3,
-            startHour: 10,
-            endHour: 12,
+            startTime: '10:15',
+            endTime: '11:45',
             variant: 'exercise',
         },
         {
@@ -154,8 +154,8 @@ const lecturerScheduleSeedsByLecturer: Record<string, MockEntrySeed[]> = {
             title: 'Warsztaty\nprojektowe',
             weekOffset: 1,
             dayOffset: 1,
-            startHour: 12,
-            endHour: 14,
+            startTime: '12:15',
+            endTime: '13:45',
             variant: 'project',
         },
     ],
@@ -165,8 +165,8 @@ const lecturerScheduleSeedsByLecturer: Record<string, MockEntrySeed[]> = {
             title: 'Systemy\nrozproszone',
             weekOffset: 0,
             dayOffset: 1,
-            startHour: 11,
-            endHour: 13,
+            startTime: '11:15',
+            endTime: '12:45',
             variant: 'lab',
         },
         {
@@ -174,8 +174,8 @@ const lecturerScheduleSeedsByLecturer: Record<string, MockEntrySeed[]> = {
             title: 'Architektura\noprogramowania',
             weekOffset: 0,
             dayOffset: 4,
-            startHour: 9,
-            endHour: 11,
+            startTime: '09:15',
+            endTime: '10:45',
             variant: 'lecture',
         },
         {
@@ -183,8 +183,8 @@ const lecturerScheduleSeedsByLecturer: Record<string, MockEntrySeed[]> = {
             title: 'Projekt\nzespołowy',
             weekOffset: -1,
             dayOffset: 2,
-            startHour: 14,
-            endHour: 16,
+            startTime: '14:15',
+            endTime: '15:45',
             variant: 'project',
         },
     ],
@@ -194,8 +194,8 @@ const lecturerScheduleSeedsByLecturer: Record<string, MockEntrySeed[]> = {
             title: 'Matematyka\ndyskretna',
             weekOffset: 0,
             dayOffset: 2,
-            startHour: 12,
-            endHour: 14,
+            startTime: '12:15',
+            endTime: '13:45',
             variant: 'exercise',
         },
         {
@@ -203,8 +203,8 @@ const lecturerScheduleSeedsByLecturer: Record<string, MockEntrySeed[]> = {
             title: 'Algebra\nliniowa',
             weekOffset: 1,
             dayOffset: 0,
-            startHour: 8,
-            endHour: 10,
+            startTime: '08:15',
+            endTime: '09:45',
             variant: 'lecture',
         },
     ],
@@ -217,8 +217,8 @@ const lecturerScheduleSeedsByDepartment: Record<string, MockEntrySeed[]> = {
             title: 'Konsultacje\nwydziałowe',
             weekOffset: 0,
             dayOffset: 4,
-            startHour: 14,
-            endHour: 16,
+            startTime: '14:15',
+            endTime: '15:45',
             variant: 'seminar',
         },
         {
@@ -226,8 +226,8 @@ const lecturerScheduleSeedsByDepartment: Record<string, MockEntrySeed[]> = {
             title: 'Dyżur\nprowadzącego',
             weekOffset: 1,
             dayOffset: 2,
-            startHour: 10,
-            endHour: 12,
+            startTime: '10:15',
+            endTime: '11:45',
             variant: 'exercise',
         },
     ],
@@ -237,8 +237,8 @@ const lecturerScheduleSeedsByDepartment: Record<string, MockEntrySeed[]> = {
             title: 'Ćwiczenia\nmatematyczne',
             weekOffset: 0,
             dayOffset: 1,
-            startHour: 8,
-            endHour: 10,
+            startTime: '08:15',
+            endTime: '09:45',
             variant: 'exercise',
         },
         {
@@ -246,8 +246,8 @@ const lecturerScheduleSeedsByDepartment: Record<string, MockEntrySeed[]> = {
             title: 'Seminarium\nwydziałowe',
             weekOffset: 1,
             dayOffset: 3,
-            startHour: 12,
-            endHour: 14,
+            startTime: '12:15',
+            endTime: '13:45',
             variant: 'seminar',
         },
     ],
@@ -260,8 +260,8 @@ const createFallbackLecturerEntries = ({departmentId, lecturerId}: LecturerSched
             title: 'Wykład\nkursowy',
             weekOffset: 0,
             dayOffset: 0,
-            startHour: 10,
-            endHour: 12,
+            startTime: '10:15',
+            endTime: '11:45',
             variant: 'lecture',
         },
         {
@@ -269,8 +269,8 @@ const createFallbackLecturerEntries = ({departmentId, lecturerId}: LecturerSched
             title: 'Ćwiczenia',
             weekOffset: 0,
             dayOffset: 2,
-            startHour: 12,
-            endHour: 14,
+            startTime: '12:15',
+            endTime: '13:45',
             variant: 'exercise',
         },
         {
@@ -278,8 +278,8 @@ const createFallbackLecturerEntries = ({departmentId, lecturerId}: LecturerSched
             title: 'Konsultacje',
             weekOffset: 1,
             dayOffset: 4,
-            startHour: 8,
-            endHour: 10,
+            startTime: '08:15',
+            endTime: '09:45',
             variant: 'seminar',
         },
     ]);

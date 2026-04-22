@@ -76,8 +76,8 @@ export interface ScheduleEntry {
     id: string;
     title: string;
     date: string;
-    startHour: number;
-    endHour: number;
+    startTime: string;
+    endTime: string;
     variant: ScheduleTileVariant;
 }
 
@@ -93,6 +93,7 @@ export interface Faculty {
     id: number;
     faculty_name: string;
     faculty_short: string;
+    lecturers_count?: number;
 }
 
 export interface Unit {
@@ -157,3 +158,56 @@ export interface Role {
     permissions: Permission[];
 }
 
+//////// COURSES
+//TODO: Need more details from backend
+export interface StudyField {
+    id: number;
+    faculty: number;
+    field_name: string;
+    language?: string;
+    study_mode?: string;
+    semesters_count?: number;
+    specializations_count?: number | null;
+}
+
+export interface StudyFieldSemesterSummary {
+    semester_number: number;
+    groups_count: number;
+    specializations_count?: number | null;
+    elective_blocks_count?: number | null;
+}
+
+export interface StudyPlanGroupSummary {
+    id: number;
+    group_name: string;
+    group_code: string;
+}
+
+export interface Major {
+    id: number;
+    study_field: number | null;
+    major_name: string;
+    group_count?: number;
+}
+
+export interface ElectiveBlock {
+    id: number;
+    elective_block_name: string;
+    study_field: number;
+}
+
+export interface Group {
+    id: number;
+    group_name: string;
+    study_program: number;
+    major: number | null;
+    elective_block: number | null;
+}
+
+///// USERS
+export interface CourseInstructor {
+    id: number;
+    name: string;
+    surname: string;
+    degree?: string | null;
+}

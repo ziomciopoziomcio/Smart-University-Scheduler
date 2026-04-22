@@ -168,6 +168,7 @@
       }
     },
     "building": {
+      "roomsCount": "{count, plural, one {# sala} few {# sale} many {# sal} other {# sal}}",
       "searchPlaceholder": "Szukaj budynku...",
       "add": "Dodaj budynek",
       "edit": "Edytuj budynek",
@@ -204,6 +205,13 @@
       "errors": {
         "add": "Błąd podczas dodawania sali.",
         "delete": "Błąd podczas usuwania sali."
+      },
+      "stations": "stanowisk",
+      "station": "stanowisko",
+      "computer": {
+        "computer": "komputer",
+        "computers": "komputery",
+        "computers2": "komputerów"
       }
     }
   },
@@ -389,5 +397,107 @@
       "save": "Błąd zapisywania roli",
       "delete": "Błąd usuwania roli"
     }
+  },
+  "plans": {
+    "common": {
+      "emptyValue": "—",
+      "loadingBreadcrumb": "..."
+    },
+    "plans": "Plany",
+    "campuses": "Kampusy",
+    "roomsPlan": {
+      "title": "Plany sal",
+      "description": "Sprawdź plan dowolnej sali na kampusie uczelni."
+    },
+    "lecturerPlan": {
+      "title": "Plany wykładowców",
+      "description": "Sprawdź plan prowadzącego zajęcia.",
+      "departmentSelect": {
+        "searchPlaceholder": "Wyszukaj jednostkę lub wydział...",
+        "show": "Pokaż:",
+        "units": "Jednostki",
+        "faculties": "Wydziały",
+        "lecturersCount": "Liczba prowadzących",
+        "noData": "Brak danych",
+        "selectAtLeastOne": "Zaznacz co najmniej jeden filtr"
+      },
+      "lecturerSelect": {
+        "searchPlaceholder": "Wyszukaj prowadzącego...",
+        "errors": {
+          "invalidFacultyId": "Nieprawidłowe id wydziału",
+          "fetchFacultyFailed": "Nie udało się pobrać wydziału"
+        },
+        "noData": "Brak danych"
+      }
+    },
+    "studentsPlan": {
+      "title": "Plany studentów",
+      "description": "Sprawdź plan dowolnej grupy studentów.",
+      "checkFaculty": "Sprawdź plany studentów z wydziału ",
+      "noFields": "Brak informacji o kierunkach studiów dla tego wydziału.",
+      "noFaculties": "Brak wydziałów do wyświetlenia.",
+      "studyField": {
+        "errors": {
+          "invalidFacultyId": "Nieprawidłowe id wydziału.",
+          "fetchFailed": "Nie udało się pobrać kierunków studiów."
+        },
+        "studyMode": {
+          "fullTime": "stacjonarnie",
+          "partTime": "niestacjonarnie"
+        },
+        "semestersCount": "{count, plural, one {# semestr} few {# semestry} many {# semestrów} other {# semestru}}",
+        "specializations": {
+          "none": "bez specjalizacji",
+          "count": "{count, plural, one {# specjalizacja} few {# specjalizacje} many {# specjalizacji} other {# specjalizacji}}"
+        }
+      },
+      "studySemester": {
+        "searchPlaceholder": "Wyszukaj semestr...",
+        "semesterLabel": "Semestr {number}",
+        "groupsCount": "{count, plural, one {# grupa} few {# grupy} many {# grup} other {# grupy}}",
+        "specializationsCount": "{count, plural, one {# specjalizacja} few {# specjalizacje} many {# specjalizacji} other {# specjalizacji}}",
+        "electiveBlocksCount": "{count, plural, one {# blok obieralny} few {# bloki obieralne} many {# bloków obieralnych} other {# bloku obieralnego}}",
+        "noSemesters": "Brak semestrów do wyświetlenia.",
+        "errors": {
+          "invalidParams": "Nieprawidłowe parametry.",
+          "fetchFailed": "Nie udało się pobrać semestrów."
+        }
+      },
+      "studySpecialization": {
+        "searchPlaceholder": "Wyszukaj specjalizację...",
+        "groupsCount": "{count, plural, one {# grupa} few {# grupy} many {# grup} other {# grupy}}",
+        "noSpecializations": "Brak specjalizacji do wyświetlenia.",
+        "errors": {
+          "invalidParams": "Nieprawidłowe parametry.",
+          "fetchFailed": "Nie udało się pobrać specjalizacji."
+        }
+      },
+      "studyGroup": {
+        "searchPlaceholder": "Wyszukaj grupę...",
+        "noGroups": "Brak grup do wyświetlenia.",
+        "errors": {
+          "invalidParams": "Nieprawidłowe parametry.",
+          "fetchFailed": "Nie udało się pobrać grup."
+        }
+      },
+      "studyBlock": {
+        "title": "Bloki obieralne",
+        "searchPlaceholder": "Wyszukaj...",
+        "chooseSingle": "Wybierz blok obieralny",
+        "chooseNth": "Wybierz blok obieralny {current} z {total}",
+        "chooseGroupInBlock": "Wybierz grupę w wybranym bloku obieralnym",
+        "alreadySelected": "Wybrane bloki: {count}",
+        "noBlocks": "Brak bloków obieralnych do wyświetlenia.",
+        "noGroups": "Brak grup do wyświetlenia.",
+        "errors": {
+          "invalidParams": "Nieprawidłowe parametry.",
+          "fetchFailed": "Nie udało się pobrać bloków obieralnych."
+        }
+      }
+    }
+  },
+  "table": {
+    "rowsPerPage": "Wierszy na stronę",
+    "of": "z"
   }
 }
