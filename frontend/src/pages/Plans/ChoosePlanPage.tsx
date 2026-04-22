@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import {
     Box,
     Stack,
@@ -16,7 +17,7 @@ interface PlanOption {
     id: string;
     title: string;
     description: string;
-    icon: React.ReactNode;
+    icon: ReactNode;
     path: string;
 }
 
