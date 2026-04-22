@@ -192,7 +192,8 @@ export interface Major {
 
 export interface ElectiveBlock {
     id: number;
-    name: string;
+    elective_block_name: string;
+    study_field: number;
 }
 
 export interface Group {

@@ -8,13 +8,6 @@ import ResetPasswordPage from './pages/Auth/ResetPasswordPage.tsx';
 import MyPlan from './pages/Plan/MyPlan.tsx';
 import ProtectedRoute from './components/Login/ProtectedRoute';
 import ChooseScheduleTypePage from "./pages/Plans/ChooseScheduleTypePage.tsx";
-import StudyPlanSchedulePage from "./pages/Plans/GeneralPlans/StudyPlanSchedulePage.tsx";
-import StudyPlanFacultyPage from "./pages/Plans/GeneralPlans/StudyPlanFacultyPage.tsx";
-import StudyPlanSemesterPage from "./pages/Plans/GeneralPlans/StudyPlanSemesterPage.tsx";
-import StudyPlanSpecializationPage from "./pages/Plans/GeneralPlans/StudyPlanSpecializationPage.tsx";
-import StudyPlanFieldPage from "./pages/Plans/GeneralPlans/StudyPlanFieldPage.tsx";
-import StudyPlanSemesterGroupPage from "./pages/Plans/GeneralPlans/StudyPlanSemesterGroupPage.tsx";
-import StudyPlanSpecializationGroupPage from "./pages/Plans/GeneralPlans/StudyPlanSpecializationGroupPage.tsx";
 import {useAuthStore} from '@store/useAuthStore';
 import FacilitiesPage from "./pages/Facilities/FacilitiesPage.tsx";
 import LecturersSchedulesPage from './pages/Plans/LecturersSchedulesPage.tsx'
@@ -26,6 +19,8 @@ import UsersPage from "./pages/Users/UsersPage.tsx";
 import RolesPage from "./pages/Roles/RolesPage.tsx";
 import PlansFacilitiesPage from "./pages/Plans/FacilitiesSchedulesPage.tsx";
 import RoomSchedulePage from "./pages/Plans/RoomSchedulePage.tsx";
+import StudentSchedulePage from "./pages/Plans/StudentSchedulePage.tsx";
+import StudentsSchedulesPage from "./pages/Plans/StudentsSchedulesPage.tsx";
 
 function AppRoute() {
     const isAuthenticated = useAuthStore((state) => state.token !== null);
@@ -33,36 +28,47 @@ function AppRoute() {
     return (
         <BrowserRouter>
             <Routes>
+                {/*==================== AUTHENTICATION ====================*/}
                 <Route path="/login" element={<LoginPage/>}/>
                 <Route path="/register" element={<RegisterPage/>}/>
                 <Route path="/activate" element={<ActivationPage/>}/>
                 <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
                 <Route path="/reset-password" element={<ResetPasswordPage/>}/>
 
+                {/*==================== PROTECTED ====================*/}
                 <Route element={<ProtectedRoute/>}>
                     <Route element={<MainLayout/>}>
+                        {/*==================== MY PLAN ====================*/}
                         <Route path="/plan" element={<MyPlan/>}/>
 
+                        {/*==================== EDIT FACILITIES ====================*/}
                         <Route path="/facilities" element={<FacilitiesPage view="campuses"/>}/>
                         <Route path="/facilities/campus/:campusId" element={<FacilitiesPage view="buildings"/>}/>
                         <Route path="/facilities/campus/:campusId/building/:buildingId"
                                element={<FacilitiesPage view="rooms"/>}/>
 
+                        {/*==================== EDIT STRUCTURES ====================*/}
                         <Route path="/structures" element={<StructuresPage view="faculties"/>}/>
                         <Route path="/structures/faculty/:facultyId" element={<StructuresPage view="units"/>}/>
 
+                        {/*==================== EDIT USERS ====================*/}
                         <Route path="/users" element={<UsersPage/>}/>
 
+                        {/*==================== EDIT ROLES ====================*/}
                         <Route path="/roles" element={<RolesPage view="roles"/>}/>
                         <Route path="/roles/:id" element={<RolesPage view="dashboard"/>}/>
                         <Route path="/roles/:id/permissions" element={<RolesPage view="permissions"/>}/>
                         <Route path="/roles/:id/users" element={<RolesPage view="users"/>}/>
 
+                        {/*==================== EDIT STUDENTS ====================*/}
                         <Route path="/students" element={<StudentsPage/>}/>
+                        {/*==================== EDIT EMPLOYEES ====================*/}
                         <Route path="/employees" element={<EmployeesPage/>}/>
 
+                        {/*==================== VIEW PLANS MAIN ====================*/}
                         <Route path="/plans" element={<ChooseScheduleTypePage/>}/>
 
+                        {/*==================== VIEW PLANS FACILITIES ====================*/}
                         <Route path="/plans/rooms/campus" element={<PlansFacilitiesPage view="campuses"/>}/>
                         <Route path="/plans/rooms/campus/:campusId/building"
                                element={<PlansFacilitiesPage view="buildings"/>}/>
@@ -71,32 +77,50 @@ function AppRoute() {
                         <Route path="/plans/rooms/campus/:campusId/building/:buildingId/room/:roomId"
                                element={<RoomSchedulePage/>}/>
 
-                        {/* STUDENTS PLANS */}
-                        <Route path="/plans/study/faculty" element={<StudyPlanFacultyPage/>}/>
-                        <Route path="/plans/study/faculty/:facultyId/field" element={<StudyPlanFieldPage/>}/>
-                        <Route path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester"
-                               element={<StudyPlanSemesterPage/>}/>
+                        {/*==================== VIEW PLANS STUDENTS ====================*/}
+                        <Route
+                            path="/plans/study/faculty"
+                            element={<StudentsSchedulesPage view="faculties"/>}
+                        />
+                        <Route
+                            path="/plans/study/faculty/:facultyId/field"
+                            element={<StudentsSchedulesPage view="fields"/>}
+                        />
+                        <Route
+                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester"
+                            element={<StudentsSchedulesPage view="semesters"/>}
+                        />
                         <Route
                             path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/specialization"
-                            element={<StudyPlanSpecializationPage/>}/>
-                        <Route path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/group"
-                               element={<StudyPlanSemesterGroupPage/>}/>
-                        <Route path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/plan"
-                               element={<StudyPlanSchedulePage/>}/>
+                            element={<StudentsSchedulesPage view="specializations"/>}
+                        />
+                        <Route
+                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/group"
+                            element={<StudentsSchedulesPage view="groups"/>}
+                        />
                         <Route
                             path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/group"
-                            element={<StudyPlanSpecializationGroupPage/>}/>
+                            element={<StudentsSchedulesPage view="groups"/>}
+                        />
+
+                        <Route
+                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/plan"
+                            element={<StudentSchedulePage/>}
+                        />
                         <Route
                             path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/plan"
-                            element={<StudyPlanSchedulePage/>}/>
+                            element={<StudentSchedulePage/>}
+                        />
                         <Route
                             path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/group/:groupId/plan"
-                            element={<StudyPlanSchedulePage/>}/>
+                            element={<StudentSchedulePage/>}
+                        />
                         <Route
                             path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/group/:groupId/plan"
-                            element={<StudyPlanSchedulePage/>}/>
+                            element={<StudentSchedulePage/>}
+                        />
 
-                        {/* LECTURER PLANS */}
+                        {/*==================== VIEW PLANS LECTURERS ====================*/}
                         <Route path="/plans/lecturers/faculty" element={<LecturersSchedulesPage view="faculties"/>}/>
                         <Route path="/plans/lecturers/faculty/:facultyId/unit"
                                element={<LecturersSchedulesPage view="units"/>}/>
@@ -106,6 +130,7 @@ function AppRoute() {
                                element={<LecturerSchedulePage/>}/>
                     </Route>
 
+                    {/*==================== DEFAULT ====================*/}
                     <Route
                         path="/"
                         element={

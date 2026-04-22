@@ -22,7 +22,7 @@ export async function getLecturerScheduleForWeek(facultyId: string, lecturerId: 
     });
 }
 
-// TODO: Replace with backend API call 
+// TODO: Replace with backend API call
 const mockedLecturers: CourseInstructor[] = [
     {id: 1, name: 'Piotr', surname: 'Duch', degree: 'dr inż.'},
     {id: 2, name: 'Robert', surname: 'Kapturski', degree: 'mgr inż.'},
