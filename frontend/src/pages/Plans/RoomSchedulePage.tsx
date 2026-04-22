@@ -1,14 +1,15 @@
 import {Box, CircularProgress} from '@mui/material';
 import {useEffect, useMemo, useState} from 'react';
 import {useParams} from 'react-router-dom';
-import type {ScheduleEntry} from '@api/types.ts';
+import {useIntl} from 'react-intl';
+import type {ScheduleEntry, Building, Room, Campus} from '@api/types.ts';
 import {WeekSchedule} from '@components/Schedule/WeekSchedule.tsx';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils.ts';
-import {getMockRoomScheduleEntries} from '../../../mocks/roomPlansMock.tsx';
+import {getMockRoomScheduleEntries} from '../../mocks/roomPlansMock.tsx';
 import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
 import {getBuilding, getCampus, getRoom} from '@api/facilities.ts';
 
-// TODO: Replace with backend API call
+// TODO: Replace with backend API call when Issue #XYZ is done
 export async function getRoomScheduleForWeek(
     campusId: string,
     buildingId: string,
@@ -38,6 +39,7 @@ export async function getRoomScheduleForWeek(
 
 export default function RoomSchedulePage() {
     const {campusId, buildingId, roomId} = useParams();
+    const intl = useIntl();
 
     const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() =>
         getStartOfWeek(new Date()),
@@ -47,9 +49,9 @@ export default function RoomSchedulePage() {
     const [isScheduleLoading, setIsScheduleLoading] = useState<boolean>(false);
     const [isNamesLoading, setIsNamesLoading] = useState<boolean>(true);
 
-    const [buildingName, setBuildingName] = useState<string>('');
-    const [campusName, setCampusName] = useState<string>('');
-    const [roomName, setRoomName] = useState<string>('');
+    const [currentBuilding, setCurrentBuilding] = useState<Building | null>(null);
+    const [currentCampus, setCurrentCampus] = useState<Campus | null>(null);
+    const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
 
     useEffect(() => {
         if (!campusId || !buildingId || !roomId) return;
@@ -58,29 +60,20 @@ export default function RoomSchedulePage() {
 
         const fetchNames = async () => {
             setIsNamesLoading(true);
-
             try {
-                const [buildingResponse, roomResponse, campusResponse] = await Promise.all([
+                const [buildingRes, roomRes, campusRes] = await Promise.all([
                     getBuilding(Number(buildingId)),
                     getRoom(Number(roomId)),
                     getCampus(Number(campusId)),
                 ]);
 
                 if (!cancelled) {
-                    setBuildingName(
-                        buildingResponse.building_name?.trim()
-                            ? buildingResponse.building_name
-                            : `Budynek ${buildingResponse.building_number}`,
-                    );
-                    setCampusName(campusResponse.campus_short);
-                    setRoomName(roomResponse.room_name);
+                    setCurrentBuilding(buildingRes);
+                    setCurrentRoom(roomRes);
+                    setCurrentCampus(campusRes);
                 }
             } catch (error) {
-                if (!cancelled) {
-                    setBuildingName('');
-                    setCampusName('');
-                    setRoomName('');
-                }
+                console.error("Failed to fetch names for breadcrumbs", error);
             } finally {
                 if (!cancelled) {
                     setIsNamesLoading(false);
@@ -88,8 +81,7 @@ export default function RoomSchedulePage() {
             }
         };
 
-        fetchNames();
-
+        void fetchNames();
         return () => {
             cancelled = true;
         };
@@ -99,10 +91,8 @@ export default function RoomSchedulePage() {
         if (!campusId || !buildingId || !roomId) return;
 
         let isCancelled = false;
-
         const fetchWeekSchedule = async () => {
             setIsScheduleLoading(true);
-
             try {
                 const response = await getRoomScheduleForWeek(
                     campusId,
@@ -110,52 +100,59 @@ export default function RoomSchedulePage() {
                     roomId,
                     currentWeekStart,
                 );
-
-                if (!isCancelled) {
-                    setEntries(response);
-                }
+                if (!isCancelled) setEntries(response);
             } catch (error) {
-                if (!isCancelled) {
-                    setEntries([]);
-                }
+                if (!isCancelled) setEntries([]);
             } finally {
-                if (!isCancelled) {
-                    setIsScheduleLoading(false);
-                }
+                if (!isCancelled) setIsScheduleLoading(false);
             }
         };
 
-        fetchWeekSchedule();
-
+        void fetchWeekSchedule();
         return () => {
             isCancelled = true;
         };
     }, [campusId, buildingId, roomId, currentWeekStart]);
 
     const breadcrumbs = useMemo((): BreadcrumbItem[] => {
-        return [
+        const items: BreadcrumbItem[] = [
             {
-                label: 'Plany',
+                label: intl.formatMessage({id: 'plans.plans'}),
                 path: '/plans',
             },
             {
-                label: 'Plany sal',
+                label: intl.formatMessage({id: 'plans.roomsPlan.title'}),
                 path: '/plans/rooms/campus',
             },
-            {
-                label: campusName,
-                path: `/plans/rooms/campus/${campusId}/building`,
-            },
-            {
-                label: buildingName,
-                path: `/plans/rooms/campus/${campusId}/building/${buildingId}/room`,
-            },
-            {
-                label: roomName,
-                path: `/plans/rooms/campus/${campusId}/building/${buildingId}/room/${roomId}`,
-            },
         ];
-    }, [campusId, buildingId, roomId, campusName, buildingName, roomName]);
+
+        if (campusId) {
+            items.push({
+                label: currentCampus ?
+                    `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${currentCampus.campus_short}` :
+                    `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${campusId}`,
+                path: `/plans/rooms/campus/${campusId}/building`,
+            });
+        }
+
+        if (buildingId) {
+            items.push({
+                label: currentBuilding ?
+                    `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${currentBuilding.building_number}` :
+                    `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${buildingId}`,
+                path: `/plans/rooms/campus/${campusId}/building/${buildingId}/room`
+            });
+        }
+
+        if (roomId) {
+            items.push({
+                label: currentRoom ? currentRoom.room_name : roomId,
+                path: `/plans/rooms/campus/${campusId}/building/${buildingId}/room/${roomId}`,
+            });
+        }
+
+        return items;
+    }, [intl, campusId, buildingId, roomId, currentCampus, currentBuilding, currentRoom]);
 
     const handlePrevWeek = () => {
         setCurrentWeekStart((prev) => addWeeks(prev, -1));
@@ -165,33 +162,29 @@ export default function RoomSchedulePage() {
         setCurrentWeekStart((prev) => addWeeks(prev, 1));
     };
 
-    if (isNamesLoading) {
-        return (
-            <Box
-                sx={{
+    return (
+        <Box sx={{width: '100%', display: 'flex', flexDirection: 'column', gap: 2}}>
+            <PageBreadcrumbs items={breadcrumbs}/>
+
+            {isNamesLoading ? (
+                <Box sx={{
                     width: '100%',
                     minHeight: 320,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                }}
-            >
-                <CircularProgress/>
-            </Box>
-        );
-    }
-
-    return (
-        <Box sx={{width: '100%', display: 'flex', flexDirection: 'column', gap: 2}}>
-            <PageBreadcrumbs items={breadcrumbs}/>
-
-            <WeekSchedule
-                entries={entries}
-                currentWeekStart={currentWeekStart}
-                isLoading={isScheduleLoading}
-                onPrevWeek={handlePrevWeek}
-                onNextWeek={handleNextWeek}
-            />
+                }}>
+                    <CircularProgress/>
+                </Box>
+            ) : (
+                <WeekSchedule
+                    entries={entries}
+                    currentWeekStart={currentWeekStart}
+                    isLoading={isScheduleLoading}
+                    onPrevWeek={handlePrevWeek}
+                    onNextWeek={handleNextWeek}
+                />
+            )}
         </Box>
     );
 }
