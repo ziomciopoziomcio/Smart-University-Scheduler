@@ -60,7 +60,7 @@ export default function StudyPlanFacultyPage() {
             },
             {
                 label: intl.formatMessage({id: 'plans.studentsPlan.title'}),
-                path: '/plans/study/year',
+                path: '',
             },
         ];
     }, [intl]);
