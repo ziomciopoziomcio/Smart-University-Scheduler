@@ -164,6 +164,10 @@ export interface StudyField {
     id: number;
     faculty: number;
     field_name: string;
+    language?: string;
+    study_mode?: string;
+    semesters_count?: number;
+    specializations_count?: number | null;
 }
 
 export interface StudyFieldSemesterSummary {
