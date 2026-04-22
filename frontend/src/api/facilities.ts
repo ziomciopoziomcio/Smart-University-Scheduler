@@ -1,5 +1,5 @@
 import {useAuthStore} from '@store/useAuthStore';
-import type {PaginatedResponse, Campus, Building, Room} from './types';
+import type {PaginatedResponse, Campus, Building, Room, Faculty} from './types';
 
 const baseApiUrl = import.meta.env.VITE_API_URL as string | undefined;
 const BASE_URL = (baseApiUrl ? `${baseApiUrl}/facilities` : 'http://localhost:3000/facilities').replace(/\/+$/, '');
@@ -151,8 +151,27 @@ export const deleteBuilding = async (id: number): Promise<void> => {
     if (!response.ok) throw new Error('Nie udało się usunąć budynku');
 };
 
-export const fetchFaculties = async (): Promise<PaginatedResponse<any>> => {
-    const response = await fetch(`${BASE_URL}/faculties`, {headers: getHeaders()});
+export const fetchFaculties = async (
+    page: number = 1,
+    limit: number = 10,
+    filters: {
+        faculty_name?: string;
+        faculty_short?: string;
+    } = {}
+): Promise<PaginatedResponse<Faculty>> => {
+    const offset = (page - 1) * limit;
+
+    const query = new URLSearchParams({
+        limit: limit.toString(),
+        offset: offset.toString(),
+        ...(filters.faculty_name?.trim() && {faculty_name: filters.faculty_name.trim()}),
+        ...(filters.faculty_short?.trim() && {faculty_short: filters.faculty_short.trim()}),
+    });
+
+    const response = await fetch(`${BASE_URL}/faculties?${query.toString()}`, {
+        headers: getHeaders(),
+    });
+
     if (!response.ok) throw new Error('Nie udało się pobrać wydziałów');
     return response.json();
 };
