@@ -24,15 +24,22 @@ export default function RoomSelectPage() {
     const [campusName, setCampusName] = useState<string>();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [dummySearch, setDummySearch] = useState('');
+    const [search, setSearch] = useState('');
 
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
 
+    const numericCampusId = Number(campusId);
     const numericBuildingId = Number(buildingId);
 
     const loadData = useCallback(async () => {
+        if (!campusId || Number.isNaN(numericCampusId)) {
+            setError('Invalid campus Id');
+            setLoading(false);
+            return;
+        }
+
         if (!buildingId || Number.isNaN(numericBuildingId)) {
             setError('Invalid building Id');
             setLoading(false);
@@ -46,9 +53,9 @@ export default function RoomSelectPage() {
             const [buildingResponse, roomsResponse, campusResponse] = await Promise.all([
                 getBuilding(numericBuildingId),
                 fetchRooms(numericBuildingId, page, pageSize, {
-                    room_name: dummySearch.trim() || undefined,
+                    room_name: search.trim() || undefined,
                 }),
-                getCampus(Number(campusId)),
+                getCampus(numericCampusId),
             ]);
 
             setBuilding(buildingResponse);
@@ -60,7 +67,7 @@ export default function RoomSelectPage() {
         } finally {
             setLoading(false);
         }
-    }, [buildingId, numericBuildingId, page, pageSize, dummySearch, campusId]);
+    }, [campusId, buildingId, numericCampusId, numericBuildingId, page, pageSize, search]);
 
     useEffect(() => {
         loadData();
@@ -68,7 +75,7 @@ export default function RoomSelectPage() {
 
     useEffect(() => {
         setPage(1);
-    }, [dummySearch]);
+    }, [search]);
 
     const breadcrumbs = useMemo((): BreadcrumbItem[] => {
         const buildingLabel = building?.building_name?.trim()
@@ -132,8 +139,8 @@ export default function RoomSelectPage() {
                 placeholder={intl.formatMessage({
                     id: 'facilities.common.searchPlaceholder',
                 })}
-                value={dummySearch}
-                onChange={setDummySearch}
+                value={search}
+                onChange={setSearch}
             />
 
             <PageBreadcrumbs items={breadcrumbs}/>
