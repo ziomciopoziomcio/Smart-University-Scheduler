@@ -1,8 +1,5 @@
-import type {AuthResponse, User} from './types';
-
-const baseApiUrl = import.meta.env.VITE_API_URL as string | undefined;
-const usersApiUrl = import.meta.env.VITE_API_URL_USERS as string | undefined;
-const BASE_URL = (usersApiUrl ?? (baseApiUrl ? `${baseApiUrl}/users` : 'http://localhost:3000/users')).replace(/\/+$/, '');
+import {USERS_URL} from '@api/core';
+import type {User, AuthResponse} from './types';
 
 const extractErrorMessage = async (response: Response, fallback: string): Promise<string> => {
     const contentType = response.headers.get('content-type') ?? '';
@@ -30,7 +27,7 @@ export const loginUser = async (email: string, password: string): Promise<AuthRe
     const formData = new URLSearchParams();
     formData.append('username', email);
     formData.append('password', password);
-    const response = await fetch(`${BASE_URL}/login`, {
+    const response = await fetch(`${USERS_URL}/login`, {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: formData,
@@ -45,7 +42,7 @@ export const loginUser = async (email: string, password: string): Promise<AuthRe
 };
 
 export const registerUser = async (userData: any): Promise<void> => {
-    const response = await fetch(`${BASE_URL}/signup`, {
+    const response = await fetch(`${USERS_URL}/signup`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -70,7 +67,7 @@ export const registerUser = async (userData: any): Promise<void> => {
 };
 
 export const verify2FA = async (code: string, preAuthToken: string): Promise<AuthResponse> => {
-    const response = await fetch(`${BASE_URL}/2fa/verify`, {
+    const response = await fetch(`${USERS_URL}/2fa/verify`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
@@ -88,7 +85,7 @@ export const verify2FA = async (code: string, preAuthToken: string): Promise<Aut
 };
 
 export const verifyEmail = async (token: string): Promise<void> => {
-    const response = await fetch(`${BASE_URL}/verify-email?token=${encodeURIComponent(token)}`, {
+    const response = await fetch(`${USERS_URL}/verify-email?token=${encodeURIComponent(token)}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -104,7 +101,7 @@ export const verifyEmail = async (token: string): Promise<void> => {
 };
 
 export const forgotPassword = async (email: string): Promise<void> => {
-    const response = await fetch(`${BASE_URL}/password/forgot`, {
+    const response = await fetch(`${USERS_URL}/password/forgot`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -121,7 +118,7 @@ export const forgotPassword = async (email: string): Promise<void> => {
 };
 
 export const resetPassword = async (payload: any): Promise<void> => {
-    const response = await fetch(`${BASE_URL}/password/reset`, {
+    const response = await fetch(`${USERS_URL}/password/reset`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -143,7 +140,7 @@ export const resetPassword = async (payload: any): Promise<void> => {
 
 
 export const fetchUserData = async (token: string): Promise<User> => {
-    const response = await fetch(`${BASE_URL}/me`, {
+    const response = await fetch(`${USERS_URL}/me`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,
