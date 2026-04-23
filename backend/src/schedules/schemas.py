@@ -92,3 +92,18 @@ class EmployeeAbsenceUpdate(BaseModel):
             if self.start_date > self.end_date:
                 raise ValueError("Start date must be before end date.")
         return self
+
+
+class CourseLocation(BaseModel):
+    campus: str
+    building: str
+    room: str
+
+
+class CourseDetailResponse(BaseModel):
+    courseName: str
+    type: str
+    time: str
+    location: CourseLocation
+    lecturer: str
+    targetAudience: list[str]
