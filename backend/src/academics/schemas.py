@@ -7,10 +7,10 @@ from typing import Optional, Annotated
 
 from pydantic import BaseModel, model_validator, StringConstraints, ConfigDict, Field
 
-from .models import SemesterType
-from src.users import schemas as user_schemas
 from src.courses import schemas as courses_schemas
 from src.facilities import schemas as facilities_schemas
+from src.users import schemas as user_schemas
+from .models import SemesterType
 
 
 class BaseSchema(BaseModel):
@@ -181,8 +181,8 @@ class StudyFieldSemesterSummary(BaseSchema):
     groups_count: int
     specializations_count: int | None = None
     elective_blocks_count: int | None = None
-      
-      
+
+
 class StudyPlanGroupSummary(BaseSchema):
     id: int
     group_name: str = Field(..., max_length=255)
