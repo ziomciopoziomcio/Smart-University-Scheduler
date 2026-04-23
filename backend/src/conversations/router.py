@@ -197,30 +197,18 @@ def _save_ai_msg_sync(
         return schemas.MessageRead.model_validate(ai_msg)
 
 
-# Messages
-@router.post(
-    "/{chat_id}/messages",
-    response_model=schemas.ChatTurnResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-async def create_message(
-    chat_id: int,
-    payload: schemas.MessageCreate,
-    neo4j_session=Depends(get_neo4j_session),
-    current_user: Users = Depends(get_current_user),
-    _current_user: user_models.Users = Depends(require_permission("message:create")),
-):
-    user_msg_schema, schedule_user_id = await asyncio.to_thread(
-        _save_user_msg_sync, chat_id, current_user.id, payload
-    )
-    user_context = await get_user_schedule_context(schedule_user_id, neo4j_session)
-
-    messages = [
-        {"role": "system", "content": get_system_prompt(user_context)},
-        {"role": "user", "content": payload.content},
-    ]
-
-    final_content, suggestion_data = "Something went wrong.", None
+async def _process_llm_tool_chain(
+    messages: list, neo4j_session
+) -> tuple[str, dict | None]:
+    """
+    Process the chain of LLM responses and tool calls until a final text response is obtained or a maximum number of iterations is reached.
+    This function handles the interaction with the LLM agent, including processing tool calls such as checking availability in Neo4j and creating schedule suggestions.
+    :param messages: A list of message dictionaries representing the conversation history, which will be passed to the LLM agent for context. This list will be updated with tool call results as needed.
+    :param neo4j_session: A Neo4j session object that can be used to execute queries against the Neo4j database when processing tool calls from the LLM agent. This is passed in to allow for asynchronous processing of tool calls without blocking the main event loop.
+    :return: A tuple containing the final content of the AI assistant's message (which may be a confirmation message if a schedule suggestion was created) and a dictionary of schedule suggestion data if a suggestion was created, or None if no suggestion was created.
+    """
+    final_content = "Something went wrong."
+    suggestion_data = None
 
     for _ in range(5):
         resp = await asyncio.to_thread(process_chat_message, messages)
@@ -258,7 +246,35 @@ async def create_message(
                 )
                 suggestion_data = None
             break
+    return final_content, suggestion_data
 
+
+# Messages
+@router.post(
+    "/{chat_id}/messages",
+    response_model=schemas.ChatTurnResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_message(
+    chat_id: int,
+    payload: schemas.MessageCreate,
+    neo4j_session=Depends(get_neo4j_session),
+    current_user: Users = Depends(get_current_user),
+    _current_user: user_models.Users = Depends(require_permission("message:create")),
+):
+    user_msg_schema, schedule_user_id = await asyncio.to_thread(
+        _save_user_msg_sync, chat_id, current_user.id, payload
+    )
+    user_context = await get_user_schedule_context(schedule_user_id, neo4j_session)
+
+    messages = [
+        {"role": "system", "content": get_system_prompt(user_context)},
+        {"role": "user", "content": payload.content},
+    ]
+
+    final_content, suggestion_data = await _process_llm_tool_chain(
+        messages, neo4j_session
+    )
     ai_msg_schema = await asyncio.to_thread(
         _save_ai_msg_sync, chat_id, final_content, suggestion_data, user_context
     )
