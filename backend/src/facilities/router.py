@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -169,7 +169,30 @@ def get_building(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("building:view")),
 ):
-    return _get_or_404(db, models.Building, building_id, "Building")
+    rooms_subq = (
+        db.query(func.count(models.Room.id))
+        .filter(models.Room.building_id == models.Building.id)
+        .scalar_subquery()
+    )
+
+    row = (
+        db.query(models.Building, func.coalesce(rooms_subq, 0).label("rooms_number"))
+        .filter(models.Building.id == building_id)
+        .first()
+    )
+
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Building not found"
+        )
+
+    return schemas.BuildingRead(
+        id=row.Building.id,
+        building_name=row.Building.building_name,
+        building_number=row.Building.building_number,
+        campus_id=row.Building.campus_id,
+        rooms_number=row.rooms_number,
+    )
 
 
 @router.patch("/buildings/{building_id}", response_model=schemas.BuildingRead)
