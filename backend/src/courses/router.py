@@ -47,7 +47,9 @@ def create_study_field(
     return obj
 
 
-@router.get("/study-fields", response_model=PaginatedResponse[schemas.StudyFieldRead])
+@router.get(
+    "/study-fields", response_model=PaginatedResponse[schemas.StudyFieldListSummary]
+)
 def list_study_fields(
     faculty: int | None = Query(None),
     field_name: str | None = Query(None, min_length=1),
