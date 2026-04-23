@@ -802,6 +802,7 @@ def get_study_field_semester_summary(
     course elective blocks. Counts equal to zero are returned as ``None`` for
     the semester-specific fields.
     """
+    _get_or_404(db, course_models.Study_fields, study_field_id, "Study Field")
     regular_groups_count = (
         db.query(func.count(models.Groups.id))
         .join(
