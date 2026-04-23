@@ -1,5 +1,5 @@
 from datetime import date
-from typing import List
+from typing import List, Any
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy import func, case
@@ -898,7 +898,23 @@ def get_study_field_semester_summary(
     """
     _get_or_404(db, course_models.Study_fields, study_field_id, "Study Field")
 
-    semester_stats = (
+    semester_stats = _get_semester_stats_query(db, study_field_id)
+
+    results = []
+    for semester, spec_count, elec_count, base_groups_count in semester_stats:
+        results.append(
+            schemas.StudyFieldSemesterSummary(
+                semester_number=semester,
+                groups_count=base_groups_count,
+                specializations_count=spec_count if spec_count > 0 else None,
+                elective_blocks_count=elec_count if elec_count > 0 else None,
+            )
+        )
+    return results
+
+
+def _get_semester_stats_query(db: Session, study_field_id: int) -> list[Any]:
+    return (
         db.query(
             course_models.Curriculum_course.semester,
             func.count(func.distinct(course_models.Curriculum_course.major)).label(
@@ -925,20 +941,11 @@ def get_study_field_semester_summary(
             course_models.Curriculum_course.study_program
             == course_models.Study_program.id,
         )
+        .outerjoin(
+            models.Groups, models.Groups.study_program == course_models.Study_program.id
+        )
         .filter(course_models.Study_program.study_field == study_field_id)
         .group_by(course_models.Curriculum_course.semester)
         .order_by(course_models.Curriculum_course.semester)
         .all()
     )
-
-    results = []
-    for semester, spec_count, elec_count, base_groups_count in semester_stats:
-        results.append(
-            schemas.StudyFieldSemesterSummary(
-                semester_number=semester,
-                groups_count=base_groups_count,
-                specializations_count=spec_count if spec_count > 0 else None,
-                elective_blocks_count=elec_count if elec_count > 0 else None,
-            )
-        )
-    return results
