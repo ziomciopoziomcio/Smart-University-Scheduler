@@ -373,7 +373,7 @@ async def get_lecturer_plan(
     unit_id: int | None = Query(None),
     db: Session = Depends(get_db),
     neo4j_session=Depends(get_neo4j_session),
-    _current_user: user_models.Users = Depends(require_permission("schedules:view")),
+    _current_user: user_models.Users = Depends(require_permission("schedule:view")),
 ):
     """
     Get lecturer plan for a given week starting from start_date (which must be a Monday). Optionally filter by unit_id.
