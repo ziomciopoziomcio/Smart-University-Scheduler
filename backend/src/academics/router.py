@@ -2,7 +2,7 @@ from datetime import date
 from typing import List
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
-from sqlalchemy import func
+from sqlalchemy import func, case
 from sqlalchemy.orm import Session
 
 from src.common.pagination.pagination import paginate
@@ -803,20 +803,6 @@ def get_study_field_semester_summary(
     the semester-specific fields.
     """
     _get_or_404(db, course_models.Study_fields, study_field_id, "Study Field")
-    regular_groups_count = (
-        db.query(func.count(models.Groups.id))
-        .join(
-            course_models.Study_program,
-            models.Groups.study_program == course_models.Study_program.id,
-        )
-        .filter(
-            course_models.Study_program.study_field == study_field_id,
-            models.Groups.major.is_(None),
-            models.Groups.elective_block.is_(None),
-        )
-        .scalar()
-        or 0
-    )
 
     semester_stats = (
         db.query(
@@ -827,6 +813,18 @@ def get_study_field_semester_summary(
             func.count(
                 func.distinct(course_models.Curriculum_course.elective_block)
             ).label("elec_count"),
+            func.count(
+                func.distinct(
+                    case(
+                        (
+                            (models.Groups.major.is_(None))
+                            & (models.Groups.elective_block.is_(None)),
+                            models.Groups.id,
+                        ),
+                        else_=None,
+                    )
+                )
+            ).label("base_groups_count"),
         )
         .join(
             course_models.Study_program,
@@ -840,11 +838,11 @@ def get_study_field_semester_summary(
     )
 
     results = []
-    for semester, spec_count, elec_count in semester_stats:
+    for semester, spec_count, elec_count, base_groups_count in semester_stats:
         results.append(
             schemas.StudyFieldSemesterSummary(
                 semester_number=semester,
-                groups_count=regular_groups_count,
+                groups_count=base_groups_count,
                 specializations_count=spec_count if spec_count > 0 else None,
                 elective_blocks_count=elec_count if elec_count > 0 else None,
             )
