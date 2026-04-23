@@ -274,7 +274,8 @@ def list_roles(
     _current_user: user_models.Users = Depends(require_permission("roles:view")),
 ):
     users_subq = (
-        db.query(func.count(models.Users.c.user_id))
+        db.query(func.count(models.user_roles.c.user_id))
+        .select_from(models.user_roles)
         .filter(models.user_roles.c.role_id == models.Roles.id)
         .scalar_subquery()
     )
