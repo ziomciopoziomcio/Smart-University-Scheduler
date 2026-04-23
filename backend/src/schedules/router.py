@@ -19,6 +19,7 @@ from ..common.router_utils import (
 from ..database.database import get_db
 from ..users import models as user_models
 from ..database.neo4j import get_neo4j_session
+from ..courses.models import ClassType
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
 
@@ -366,6 +367,21 @@ def _get_academic_day_configs(db: Session, start_date: date) -> list[dict]:
     ]
 
 
+def _parse_variant(class_type_str: str | None) -> ClassType:
+    if not class_type_str:
+        return ClassType.OTHER
+    clean_key = class_type_str.upper().replace("-", "")
+    mapping = {
+        "LECTURE": ClassType.LECTURE,
+        "TUTORIALS": ClassType.TUTORIALS,
+        "LABORATORY": ClassType.LABORATORY,
+        "SEMINAR": ClassType.SEMINAR,
+        "OTHER": ClassType.OTHER,
+        "ELEARNING": ClassType.ELEARNING,
+    }
+    return mapping.get(clean_key, ClassType.OTHER)
+
+
 @router.get("/lecturer-plan", response_model=list[schemas.ScheduleEntry])
 async def get_lecturer_plan(
     instructor_id: int = Query(...),
@@ -410,7 +426,7 @@ async def get_lecturer_plan(
             date=date.fromisoformat(rec["physical_date"]),
             startTime=rec["start_time"],
             endTime=rec["end_time"],
-            variant=rec["class_type"].capitalize() if rec["class_type"] else "Other",
+            variant=_parse_variant(rec["class_type"]),
         )
         for rec in records
     ]
