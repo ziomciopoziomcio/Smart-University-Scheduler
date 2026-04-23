@@ -49,7 +49,7 @@ export function ScheduleBuildingView({
                 getTitle={(item: Building) => `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${item.building_number}`}
                 titleWidth="150px"
                 columns={columns}
-                onItemClick={(item) => navigate(`/plans/rooms/campus/${campusId}/building/${item.id}/room`)}
+                onItemClick={(item) => navigate(`/schedules/rooms/campus/${campusId}/building/${item.id}/room`)}
                 emptyMessage={intl.formatMessage({id: 'facilities.common.noData'})}
                 hideDividerOnLastItem
             />

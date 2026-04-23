@@ -16,7 +16,7 @@ export default function ChooseScheduleTypePage() {
     const getBreadcrumbs = () => {
         const items: BreadcrumbItem[] = [{
             label: intl.formatMessage({id: 'plans.plans'}),
-            path: '/plans'
+            path: '/schedules'
         }];
         return items;
     };
@@ -27,21 +27,21 @@ export default function ChooseScheduleTypePage() {
             title: intl.formatMessage({id: 'plans.roomsPlan.title'}),
             description: intl.formatMessage({id: 'plans.roomsPlan.description'}),
             icon: ApartmentIcon,
-            path: '/plans/rooms/campus',
+            path: '/schedules/rooms/campus',
         },
         {
             id: 'students',
             title: intl.formatMessage({id: 'plans.studentsPlan.title'}),
             description: intl.formatMessage({id: 'plans.studentsPlan.description'}),
             icon: BackpackIcon,
-            path: '/plans/study/faculty',
+            path: '/schedules/study/faculty',
         },
         {
             id: 'lecturers',
             title: intl.formatMessage({id: 'plans.lecturerPlan.title'}),
             description: intl.formatMessage({id: 'plans.lecturerPlan.description'}),
             icon: EaselIcon,
-            path: '/plans/lecturers/faculty',
+            path: '/schedules/lecturers/faculty',
         }
     ];
 

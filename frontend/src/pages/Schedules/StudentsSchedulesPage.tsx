@@ -24,7 +24,7 @@ import {
     ScheduleStudentGroupView,
     ScheduleStudentFieldView
 } from '@components/Schedule';
-import {fetchMockStudyPlanSpecializationGroups} from "../../mocks/studyPlanSpecializationGroupsMock.tsx";
+import {fetchMockStudyPlanMajorGroups} from "../../mocks/studyPlanMajorsGroupsMock.tsx";
 import {fetchMockStudyPlanGroups} from "../../mocks/studyPlanSemesterGroupsMock.tsx";
 
 interface StudentsSchedulesPageProps {
@@ -32,7 +32,7 @@ interface StudentsSchedulesPageProps {
 }
 
 export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps) {
-    const {facultyId, fieldOfStudyId, semesterId, specializationId} = useParams();
+    const {facultyId, fieldOfStudyId, semesterId, majorId} = useParams();
     const intl = useIntl();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,28 +54,28 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
 
     const getBreadcrumbs = () => {
         const items: BreadcrumbItem[] = [
-            {label: intl.formatMessage({id: 'plans.plans'}), path: '/plans'},
-            {label: intl.formatMessage({id: 'plans.studentsPlan.title'}), path: '/plans/study/faculty'}
+            {label: intl.formatMessage({id: 'plans.plans'}), path: '/schedules'},
+            {label: intl.formatMessage({id: 'plans.studentsPlan.title'}), path: '/schedules/study/faculty'}
         ];
 
         if (facultyId) {
             items.push({
                 label: currentFaculty ? currentFaculty.faculty_short : facultyId,
-                path: `/plans/study/faculty/${facultyId}/field`
+                path: `/schedules/study/faculty/${facultyId}/field`
             });
         }
         if (fieldOfStudyId) {
             items.push({
                 label: currentField ? currentField.field_name : fieldOfStudyId,
-                path: `/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester`
+                path: `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester`
             });
         }
         if (semesterId) {
             items.push({
                 label: `${intl.formatMessage({id: 'plans.studentsPlan.studySemester.semester'})} ${semesterId}`,
-                path: specializationId
-                    ? `/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/specialization`
-                    : `/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group`
+                path: majorId
+                    ? `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/major`
+                    : `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group`
             });
         }
         return items;
@@ -108,7 +108,7 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                     (_, i) => ({
                         semester_number: i + 1,
                         groups_count: 0,
-                        specializations_count: field.specializations_count
+                        majors_count: field.major_count
                     })
                 );
                 setData(semesterList);
@@ -125,7 +125,7 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                 //     const res = await fetchStudyPlanGroups(
                 //         Number(fieldOfStudyId),
                 //         Number(semesterId),
-                //         {specialization_id: specializationId ? Number(specializationId) : undefined}
+                //         {major_id: majorId ? Number(majorId) : undefined}
                 //     );
                 //     const filtered = search.trim() ? res.filter(g => g.group_name.toLowerCase().includes(search.toLowerCase())) : res;
                 //     setData(filtered.slice(offset, offset + pageSize));
@@ -134,8 +134,8 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                 //     TODO: CHANGE FROM MOCKS TO REAL API CALLS WHEN BACKEND ENDPOINTS ARE READY
             } else if (view === 'groups' && fieldOfStudyId && semesterId) {
                 let res: StudyPlanGroupSummary[];
-                if (specializationId) {
-                    res = await fetchMockStudyPlanSpecializationGroups(Number(specializationId));
+                if (majorId) {
+                    res = await fetchMockStudyPlanMajorGroups(Number(majorId));
                 } else {
                     res = await fetchMockStudyPlanGroups(Number(fieldOfStudyId), Number(semesterId));
                 }
@@ -149,7 +149,7 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
         } finally {
             setLoading(false);
         }
-    }, [view, facultyId, fieldOfStudyId, semesterId, specializationId, page, pageSize, search, currentFaculty, currentField]);
+    }, [view, facultyId, fieldOfStudyId, semesterId, majorId, page, pageSize, search, currentFaculty, currentField]);
 
     useEffect(() => {
         void loadData();
@@ -168,38 +168,40 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                     <>
                         {view === 'faculties' && <ScheduleStudentFacultyView data={data as Faculty[]}/>}
                         {view === 'fields' &&
-                            <ScheduleStudentFieldView data={data as StudyField[]} facultyId={Number(facultyId)} page={page}
-                                                   pageSize={pageSize} totalItems={totalItems} onPageChange={setPage}
-                                                   onPageSizeChange={(v) => {
-                                                       setPageSize(v);
-                                                       setPage(1);
-                                                   }}/>}
+                            <ScheduleStudentFieldView data={data as StudyField[]} facultyId={Number(facultyId)}
+                                                      page={page}
+                                                      pageSize={pageSize} totalItems={totalItems} onPageChange={setPage}
+                                                      onPageSizeChange={(v) => {
+                                                          setPageSize(v);
+                                                          setPage(1);
+                                                      }}/>}
                         {view === 'semesters' && <ScheduleStudentSemesterView data={data as StudyFieldSemesterSummary[]}
-                                                                           facultyId={Number(facultyId)}
-                                                                           fieldOfStudyId={Number(fieldOfStudyId)}
-                                                                           page={page} pageSize={pageSize}
-                                                                           totalItems={totalItems}
-                                                                           onPageChange={setPage}
-                                                                           onPageSizeChange={(v) => {
-                                                                               setPageSize(v);
-                                                                               setPage(1);
-                                                                           }}/>}
+                                                                              facultyId={Number(facultyId)}
+                                                                              fieldOfStudyId={Number(fieldOfStudyId)}
+                                                                              page={page} pageSize={pageSize}
+                                                                              totalItems={totalItems}
+                                                                              onPageChange={setPage}
+                                                                              onPageSizeChange={(v) => {
+                                                                                  setPageSize(v);
+                                                                                  setPage(1);
+                                                                              }}/>}
                         {view === 'majors' &&
                             <ScheduleStudentMajorView data={data} facultyId={Number(facultyId)}
-                                                            fieldOfStudyId={Number(fieldOfStudyId)}
-                                                            semesterId={Number(semesterId)} page={page}
-                                                            pageSize={pageSize} totalItems={totalItems}
-                                                            onPageChange={setPage} onPageSizeChange={(v) => {
+                                                      fieldOfStudyId={Number(fieldOfStudyId)}
+                                                      semesterId={Number(semesterId)} page={page}
+                                                      pageSize={pageSize} totalItems={totalItems}
+                                                      onPageChange={setPage} onPageSizeChange={(v) => {
                                 setPageSize(v);
                                 setPage(1);
                             }}/>}
                         {view === 'groups' &&
-                            <ScheduleStudentGroupView data={data as StudyPlanGroupSummary[]} facultyId={Number(facultyId)}
-                                                   fieldOfStudyId={Number(fieldOfStudyId)}
-                                                   semesterId={Number(semesterId)}
-                                                   specializationId={specializationId ? Number(specializationId) : undefined}
-                                                   page={page} pageSize={pageSize} totalItems={totalItems}
-                                                   onPageChange={setPage} onPageSizeChange={(v) => {
+                            <ScheduleStudentGroupView data={data as StudyPlanGroupSummary[]}
+                                                      facultyId={Number(facultyId)}
+                                                      fieldOfStudyId={Number(fieldOfStudyId)}
+                                                      semesterId={Number(semesterId)}
+                                                      majorId={majorId ? Number(majorId) : undefined}
+                                                      page={page} pageSize={pageSize} totalItems={totalItems}
+                                                      onPageChange={setPage} onPageSizeChange={(v) => {
                                 setPageSize(v);
                                 setPage(1);
                             }}/>}

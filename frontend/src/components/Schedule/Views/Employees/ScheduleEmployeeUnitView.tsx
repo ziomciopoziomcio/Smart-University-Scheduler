@@ -34,7 +34,7 @@ export function ScheduleEmployeeUnitView({
                 getTitle={(item) => item.unit_name}
                 titleWidth="350px"
                 columns={[{render: (item) => item.unit_short, variant: 'secondary', width: '100px'}]}
-                onItemClick={(item) => navigate(`/plans/lecturers/faculty/${facultyId}/unit/${item.id}/lecturer`)}
+                onItemClick={(item) => navigate(`/schedules/lecturers/faculty/${facultyId}/unit/${item.id}/lecturer`)}
                 emptyMessage={intl.formatMessage({id: 'facilities.common.noData'})}
                 hideDividerOnLastItem
             />

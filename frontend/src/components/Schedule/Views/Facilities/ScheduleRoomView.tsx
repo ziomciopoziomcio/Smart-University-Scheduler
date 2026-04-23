@@ -62,7 +62,7 @@ export function ScheduleRoomView({
                 titleWidth="180px"
                 columns={columns}
                 onItemClick={(item) =>
-                    navigate(`/plans/rooms/campus/${campusId}/building/${buildingId}/room/${item.id}`)
+                    navigate(`/schedules/rooms/campus/${campusId}/building/${buildingId}/room/${item.id}`)
                 }
                 emptyMessage={intl.formatMessage({id: 'facilities.common.noData'})}
                 hideDividerOnLastItem

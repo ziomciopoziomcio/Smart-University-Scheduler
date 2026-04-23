@@ -4,7 +4,7 @@ import {useIntl} from 'react-intl';
 import ClassIcon from '@mui/icons-material/Class';
 
 import {ListPagination, ListView} from '@components/Common';
-import {type StudyPlanSpecializationSummary} from '../../../../mocks/studyPlanSpecializationsMock.tsx';
+import {type StudyPlanSpecializationSummary} from '../../../../mocks/studyPlanMajorsMock.tsx';
 
 interface ScheduleStudentMajorViewProps {
     data: StudyPlanSpecializationSummary[];
@@ -47,7 +47,7 @@ export function ScheduleStudentMajorView({
                         })}`, variant: 'secondary', width: '150px'
                     }
                 ]}
-                onItemClick={(item) => navigate(`/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/specialization/${item.id}/group`)}
+                onItemClick={(item) => navigate(`/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/major/${item.id}/group`)}
                 emptyMessage={intl.formatMessage({
                     id: 'plans.studentsPlan.studySpecialization.noSpecializations',
                     defaultMessage: 'Brak specjalizacji'

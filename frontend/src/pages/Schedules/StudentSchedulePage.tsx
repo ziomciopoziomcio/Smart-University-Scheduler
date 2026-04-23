@@ -139,15 +139,15 @@ export default function StudentSchedulePage() {
         {label: intl.formatMessage({id: 'plans.plans', defaultMessage: 'Plany'}), path: '/plans'},
         {
             label: intl.formatMessage({id: 'plans.studentsPlan.title', defaultMessage: 'Plany studenckie'}),
-            path: '/plans/study/faculty'
+            path: '/schedules/study/faculty'
         },
         {
             label: faculty ? (faculty.faculty_short || faculty.faculty_name) : facultyId || '...',
-            path: `/plans/study/faculty/${facultyId}/field`
+            path: `/schedules/study/faculty/${facultyId}/field`
         },
         {
             label: field ? field.field_name : fieldOfStudyId || '...',
-            path: `/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester`
+            path: `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester`
         },
         {
             label: specializationName || `${intl.formatMessage({
@@ -155,8 +155,8 @@ export default function StudentSchedulePage() {
                 defaultMessage: 'Semestr'
             })} ${semesterId}`,
             path: specializationId
-                ? `/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/specialization`
-                : `/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group`
+                ? `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/specialization`
+                : `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group`
         },
         {
             label: intl.formatMessage({id: 'plans.studentsPlan.studySchedule.title', defaultMessage: 'MySchedule zajęć'}),

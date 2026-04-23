@@ -79,7 +79,7 @@ const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.plans', // plans (study plans, course plans)
         icon: <GroupsOutlined/>,
-        path: '/plans',  // TODO:  add allowedRoles
+        path: '/schedules',  // TODO:  add allowedRoles
         allowedRoles: []
     },
     {

@@ -38,7 +38,7 @@ export function ScheduleStudentFieldView({
                 columns={[
                     {render: (item) => item.study_mode || '—', variant: 'secondary', width: '150px'}
                 ]}
-                onItemClick={(item) => navigate(`/plans/study/faculty/${facultyId}/field/${item.id}/semester`)}
+                onItemClick={(item) => navigate(`/schedules/study/faculty/${facultyId}/field/${item.id}/semester`)}
                 emptyMessage={intl.formatMessage({id: 'plans.studentsPlan.noFields', defaultMessage: 'Brak kierunków'})}
                 hideDividerOnLastItem
             />

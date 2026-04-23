@@ -117,11 +117,11 @@ export default function RoomSchedulePage() {
         const items: BreadcrumbItem[] = [
             {
                 label: intl.formatMessage({id: 'plans.plans'}),
-                path: '/plans',
+                path: '/schedules',
             },
             {
                 label: intl.formatMessage({id: 'plans.roomsPlan.title'}),
-                path: '/plans/rooms/campus',
+                path: '/schedules/rooms/campus',
             },
         ];
 
@@ -130,7 +130,7 @@ export default function RoomSchedulePage() {
                 label: currentCampus ?
                     `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${currentCampus.campus_short}` :
                     `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${campusId}`,
-                path: `/plans/rooms/campus/${campusId}/building`,
+                path: `/schedules/rooms/campus/${campusId}/building`,
             });
         }
 
@@ -139,14 +139,14 @@ export default function RoomSchedulePage() {
                 label: currentBuilding ?
                     `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${currentBuilding.building_number}` :
                     `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${buildingId}`,
-                path: `/plans/rooms/campus/${campusId}/building/${buildingId}/room`
+                path: `/schedules/rooms/campus/${campusId}/building/${buildingId}/room`
             });
         }
 
         if (roomId) {
             items.push({
                 label: currentRoom ? currentRoom.room_name : roomId,
-                path: `/plans/rooms/campus/${campusId}/building/${buildingId}/room/${roomId}`,
+                path: `/schedules/rooms/campus/${campusId}/building/${buildingId}/room/${roomId}`,
             });
         }
 

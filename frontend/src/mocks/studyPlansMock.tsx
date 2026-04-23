@@ -1,4 +1,4 @@
-import type {ScheduleEntry} from '@api/types';
+import type {ScheduleEntry} from '@api';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 
 export interface CurriculumYearItem {

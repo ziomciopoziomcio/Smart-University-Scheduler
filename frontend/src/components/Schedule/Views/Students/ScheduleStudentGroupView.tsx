@@ -10,7 +10,7 @@ interface ScheduleStudentGroupViewProps {
     facultyId: number;
     fieldOfStudyId: number;
     semesterId: number;
-    specializationId?: number;
+    majorId?: number;
     page: number;
     pageSize: number;
     totalItems: number;
@@ -23,7 +23,7 @@ export function ScheduleStudentGroupView({
                                                   facultyId,
                                                   fieldOfStudyId,
                                                   semesterId,
-                                                  specializationId,
+                                                  majorId,
                                                   page,
                                                   pageSize,
                                                   totalItems,
@@ -44,10 +44,10 @@ export function ScheduleStudentGroupView({
                     {render: (item) => item.group_code, variant: 'secondary', width: '150px'}
                 ]}
                 onItemClick={(item) => {
-                    if (specializationId) {
-                        navigate(`/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/specialization/${specializationId}/group/${item.id}/plan`);
+                    if (majorId) {
+                        navigate(`/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/specialization/${majorId}/group/${item.id}/plan`);
                     } else {
-                        navigate(`/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group/${item.id}/plan`);
+                        navigate(`/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group/${item.id}/plan`);
                     }
                 }}
                 emptyMessage={intl.formatMessage({

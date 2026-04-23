@@ -1,5 +1,3 @@
-import {type StudyFieldSemesterSummary} from './studyPlanSemesterMock';
-
 export interface StudyPlanSpecializationSummary {
     id: number;
     name: string;

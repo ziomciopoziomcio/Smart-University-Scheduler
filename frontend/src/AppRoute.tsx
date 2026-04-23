@@ -68,68 +68,68 @@ function AppRoute() {
                         {/*==================== EDIT EMPLOYEES ====================*/}
                         <Route path="/employees" element={<EmployeesPage/>}/>
 
-                        {/*==================== VIEW PLANS MAIN ====================*/}
-                        <Route path="/plans" element={<ChooseScheduleTypePage/>}/>
+                        {/*==================== VIEW schedules MAIN ====================*/}
+                        <Route path="/schedules" element={<ChooseScheduleTypePage/>}/>
 
-                        {/*==================== VIEW PLANS FACILITIES ====================*/}
-                        <Route path="/plans/rooms/campus" element={<SchedulesFacilitiesPage view="campuses"/>}/>
-                        <Route path="/plans/rooms/campus/:campusId/building"
+                        {/*==================== VIEW schedules FACILITIES ====================*/}
+                        <Route path="/schedules/rooms/campus" element={<SchedulesFacilitiesPage view="campuses"/>}/>
+                        <Route path="/schedules/rooms/campus/:campusId/building"
                                element={<SchedulesFacilitiesPage view="buildings"/>}/>
-                        <Route path="/plans/rooms/campus/:campusId/building/:buildingId/room"
+                        <Route path="/schedules/rooms/campus/:campusId/building/:buildingId/room"
                                element={<SchedulesFacilitiesPage view="rooms"/>}/>
-                        <Route path="/plans/rooms/campus/:campusId/building/:buildingId/room/:roomId"
+                        <Route path="/schedules/rooms/campus/:campusId/building/:buildingId/room/:roomId"
                                element={<RoomSchedulePage/>}/>
 
-                        {/*==================== VIEW PLANS STUDENTS ====================*/}
+                        {/*==================== VIEW schedules STUDENTS ====================*/}
                         <Route
-                            path="/plans/study/faculty"
+                            path="/schedules/study/faculty"
                             element={<StudentsSchedulesPage view="faculties"/>}
                         />
                         <Route
-                            path="/plans/study/faculty/:facultyId/field"
+                            path="/schedules/study/faculty/:facultyId/field"
                             element={<StudentsSchedulesPage view="fields"/>}
                         />
                         <Route
-                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester"
+                            path="/schedules/study/faculty/:facultyId/field/:fieldOfStudyId/semester"
                             element={<StudentsSchedulesPage view="semesters"/>}
                         />
                         <Route
-                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/specialization"
+                            path="/schedules/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/major"
                             element={<StudentsSchedulesPage view="majors"/>}
                         />
                         <Route
-                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/group"
+                            path="/schedules/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/group"
                             element={<StudentsSchedulesPage view="groups"/>}
                         />
                         <Route
-                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/group"
+                            path="/schedules/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/major/:majorId/group"
                             element={<StudentsSchedulesPage view="groups"/>}
                         />
 
                         <Route
-                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/plan"
+                            path="/schedules/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/plan"
                             element={<StudentSchedulePage/>}
                         />
                         <Route
-                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/plan"
+                            path="/schedules/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/major/:majorId/plan"
                             element={<StudentSchedulePage/>}
                         />
                         <Route
-                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/group/:groupId/plan"
+                            path="/schedules/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/group/:groupId/plan"
                             element={<StudentSchedulePage/>}
                         />
                         <Route
-                            path="/plans/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/specialization/:specializationId/group/:groupId/plan"
+                            path="/schedules/study/faculty/:facultyId/field/:fieldOfStudyId/semester/:semesterId/major/:majorId/group/:groupId/plan"
                             element={<StudentSchedulePage/>}
                         />
 
-                        {/*==================== VIEW PLANS LECTURERS ====================*/}
-                        <Route path="/plans/lecturers/faculty" element={<EmployeesSchedulesPage view="faculties"/>}/>
-                        <Route path="/plans/lecturers/faculty/:facultyId/unit"
+                        {/*==================== VIEW schedules LECTURERS ====================*/}
+                        <Route path="/schedules/lecturers/faculty" element={<EmployeesSchedulesPage view="faculties"/>}/>
+                        <Route path="/schedules/lecturers/faculty/:facultyId/unit"
                                element={<EmployeesSchedulesPage view="units"/>}/>
-                        <Route path="/plans/lecturers/faculty/:facultyId/unit/:unitId/lecturer"
+                        <Route path="/schedules/lecturers/faculty/:facultyId/unit/:unitId/lecturer"
                                element={<EmployeesSchedulesPage view="lecturers"/>}/>
-                        <Route path="/plans/lecturers/faculty/:facultyId/unit/:unitId/lecturer/:lecturerId"
+                        <Route path="/schedules/lecturers/faculty/:facultyId/unit/:unitId/lecturer/:lecturerId"
                                element={<EmployeeSchedulePage/>}/>
                     </Route>
 

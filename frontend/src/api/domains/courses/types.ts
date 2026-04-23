@@ -30,13 +30,13 @@ export interface StudyField {
     language?: string;
     study_mode?: string;
     semesters_count?: number;
-    specializations_count?: number | null;
+    major_count?: number | null;
 }
 
 export interface StudyFieldSemesterSummary {
     semester_number: number;
     groups_count: number;
-    specializations_count?: number | null;
+    major_count?: number | null;
     elective_blocks_count?: number | null;
 }
 

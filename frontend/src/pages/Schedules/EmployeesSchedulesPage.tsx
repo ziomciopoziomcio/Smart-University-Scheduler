@@ -45,25 +45,25 @@ export default function EmployeesSchedulesPage({view}: EmployeesSchedulesPagePro
         const items: BreadcrumbItem[] = [
             {
                 label: intl.formatMessage({id: 'plans.plans'}),
-                path: '/plans'
+                path: '/schedules'
             },
             {
                 label: intl.formatMessage({id: 'plans.lecturerPlan.title', defaultMessage: 'Plany prowadzących'}),
-                path: '/plans/lecturers/faculty'
+                path: '/schedules/lecturers/faculty'
             }
         ];
 
         if (facultyId) {
             items.push({
                 label: currentFaculty ? (currentFaculty.faculty_short || currentFaculty.faculty_name) : facultyId,
-                path: `/plans/lecturers/faculty/${facultyId}/unit`
+                path: `/schedules/lecturers/faculty/${facultyId}/unit`
             });
         }
 
         if (unitId) {
             items.push({
                 label: currentUnit ? (currentUnit.unit_short || currentUnit.unit_name) : unitId,
-                path: `/plans/lecturers/faculty/${facultyId}/unit/${unitId}/lecturer`
+                path: `/schedules/lecturers/faculty/${facultyId}/unit/${unitId}/lecturer`
             });
         }
         return items;

@@ -1,4 +1,4 @@
-import type {StudyPlanGroupSummary} from '@api/types';
+import type {StudyPlanGroupSummary} from '@api';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -31,7 +31,7 @@ const MOCK_SPECIALIZATION_GROUPS: Record<number, StudyPlanGroupSummary[]> = {
     ],
 };
 
-export async function fetchMockStudyPlanSpecializationGroups(
+export async function fetchMockStudyPlanMajorGroups(
     specializationId: number,
 ): Promise<StudyPlanGroupSummary[]> {
     await sleep(300);
