@@ -7,6 +7,7 @@ from helpers.db_seeder.generators.groups import (
     generate_common_groups,
     assign_students_to_common_groups,
     generate_major_groups,
+    assign_students_to_major_groups,
 )
 from helpers.db_seeder.generators.students import generate_students
 from src.database.database import SessionLocal, get_db
@@ -181,13 +182,22 @@ assign_students_to_common_groups(
 session.commit()
 
 
-generate_major_groups(
+db_major_groups = generate_major_groups(
     session=session,
     db_students=db_students,
     db_study_programs=db_study_programs,
     db_majors=db_majors,
     db_curr_courses=db_curr_courses,
     group_size=15,
+)
+session.commit()
+
+assign_students_to_major_groups(
+    session=session,
+    db_major_groups=db_major_groups,
+    db_students=db_students,
+    db_study_programs=db_study_programs,
+    db_curr_courses=db_curr_courses,
 )
 session.commit()
 
