@@ -202,6 +202,7 @@ def create_elective_block(
 )
 def list_elective_blocks(
     study_field: int | None = Query(None),
+    semester: int | None = Query(None),
     elective_block_name: str | None = Query(None, min_length=1),
     limit: int | None = Query(ELECTIVE_BLOCK_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
@@ -212,12 +213,21 @@ def list_elective_blocks(
 ):
     query = db.query(models.Elective_block)
 
+    if semester is not None:
+        query = query.join(
+            models.Curriculum_course,
+            models.Elective_block.id == models.Curriculum_course.elective_block,
+        ).filter(models.Curriculum_course.semester == semester)
+
     if study_field is not None:
         query = query.filter(models.Elective_block.study_field == study_field)
     if elective_block_name is not None:
         query = query.filter(
             models.Elective_block.elective_block_name.ilike(f"%{elective_block_name}%")
         )
+
+    if semester is not None:
+        query = query.distinct()
 
     return paginate(query, limit, offset, models.Elective_block.id)
 
