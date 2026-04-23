@@ -105,9 +105,11 @@ class ScheduleTileVariant(str, enum.Enum):
 
 
 class ScheduleEntry(BaseSchema):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
     id: str
     title: str
     date: date
-    startTime: str
-    endTime: str
+    start_time: str = Field(alias="startTime")
+    end_time: str = Field(alias="endTime")
     variant: ScheduleTileVariant
