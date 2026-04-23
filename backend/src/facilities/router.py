@@ -285,7 +285,9 @@ def create_faculty(
     return new_faculty
 
 
-@router.get("/faculties", response_model=PaginatedResponse[schemas.FacultyRead])
+@router.get(
+    "/faculties", response_model=PaginatedResponse[schemas.FacultyReadWithCounter]
+)
 def list_faculties(
     faculty_name: str | None = Query(None, min_length=1),
     faculty_short: str | None = Query(None, min_length=1),
@@ -334,7 +336,7 @@ def list_faculties(
     )
 
     pagination_result.items = [
-        schemas.FacultyRead(
+        schemas.FacultyReadWithCounter(
             id=row.Faculty.id,
             faculty_name=row.Faculty.faculty_name,
             faculty_short=row.Faculty.faculty_short,
@@ -347,7 +349,7 @@ def list_faculties(
     return pagination_result
 
 
-@router.get("/faculties/{faculty_id}", response_model=schemas.FacultyRead)
+@router.get("/faculties/{faculty_id}", response_model=schemas.FacultyReadWithCounter)
 def get_faculty(
     faculty_id: int,
     db: Session = Depends(get_db),
@@ -387,7 +389,7 @@ def get_faculty(
             status_code=status.HTTP_404_NOT_FOUND, detail="Faculty not found"
         )
 
-    return schemas.FacultyRead(
+    return schemas.FacultyReadWithCounter(
         id=row.Faculty.id,
         faculty_name=row.Faculty.faculty_name,
         faculty_short=row.Faculty.faculty_short,
