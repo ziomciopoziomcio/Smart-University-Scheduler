@@ -144,7 +144,7 @@ def list_majors(
 
     query = db.query(models.Major, func.coalesce(groups_subq, 0).label("group_count"))
 
-    count_query = db.query(func.count(models.Major.id))
+    count_query = db.query(models.Major.id)
 
     if study_field is not None:
         query = query.filter(models.Major.study_field == study_field)
