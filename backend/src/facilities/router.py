@@ -314,7 +314,7 @@ def list_faculties(
     )
     query = db.query(
         models.Faculty,
-        func.coalesce(lecturers_subq, 0).label("lacturers_count"),
+        func.coalesce(lecturers_subq, 0).label("lecturers_count"),
         func.coalesce(students_subq, 0).label("students_count"),
     )
 
