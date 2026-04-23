@@ -6,9 +6,8 @@ import {useIntl} from 'react-intl';
 import ListView from '@components/Common/ListView.tsx';
 import ActionMenu from '@components/Common/ActionMenu.tsx';
 import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog.tsx';
-import {type Student} from '@api/types';
+import {type Student, deleteStudent} from '@api';
 import StudentModal from "@components/Students/StudentModal.tsx";
-import {deleteStudent} from '@api/academics';
 
 interface StudentViewProps {
     data: Student[];

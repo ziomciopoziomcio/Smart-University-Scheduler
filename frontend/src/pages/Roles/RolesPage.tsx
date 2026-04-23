@@ -5,8 +5,7 @@ import {useIntl} from 'react-intl';
 
 import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
 import SearchBar from "@components/Common/SearchBar.tsx";
-import {fetchRoles, getRole, fetchPermissions} from '@api/users';
-import {type Role, type Permission} from '@api/types';
+import {type Role, type Permission, fetchRoles, getRole, fetchPermissions} from '@api';
 
 import RoleView from '@components/Roles/RoleView';
 import RoleDashboardView from '@components/Roles/RoleDashboardView';

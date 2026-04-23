@@ -1,7 +1,7 @@
 import {useNavigate} from 'react-router-dom';
 import TileView from '@components/Common/TileView.tsx';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import type {Faculty} from '@api/types';
+import {type Faculty} from '@api';
 
 interface PlansFacultyViewProps {
     data: Faculty[];

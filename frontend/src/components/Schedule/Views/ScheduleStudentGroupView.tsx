@@ -4,7 +4,7 @@ import {useIntl} from 'react-intl';
 import PeopleIcon from '@mui/icons-material/People';
 import ListView from '@components/Common/ListView.tsx';
 import ListPagination from '@components/Common/ListPagination.tsx';
-import type {StudyPlanGroupSummary} from '@api/types';
+import {type StudyPlanGroupSummary} from '@api';
 
 interface PlansStudentGroupViewProps {
     data: StudyPlanGroupSummary[];

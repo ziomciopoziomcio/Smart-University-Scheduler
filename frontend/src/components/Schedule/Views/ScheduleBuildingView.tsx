@@ -5,7 +5,7 @@ import ListView, {type ListColumn} from '@components/Common/ListView.tsx';
 import ListPagination from '@components/Common/ListPagination.tsx';
 // @ts-expect-error: some internal issue with svgr types, but it works
 import ApartmentIcon from '@assets/icons/building.svg?react';
-import type {Building} from '@api/types';
+import type {Building} from '@api';
 
 interface PlansBuildingViewProps {
     data: Building[];

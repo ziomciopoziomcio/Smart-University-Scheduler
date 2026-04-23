@@ -1,8 +1,7 @@
 import {useState, useEffect} from 'react';
 import {Box, Typography, CircularProgress, Switch, Button, Snackbar, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
-import {type Role, type Permission} from '@api/types';
-import {updateRolePermissions} from '@api/users';
+import {type Role, type Permission, updateRolePermissions} from '@api';
 
 interface RolePermissionsViewProps {
     role: Role;

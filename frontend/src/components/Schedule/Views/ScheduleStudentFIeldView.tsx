@@ -4,7 +4,7 @@ import {useIntl} from 'react-intl';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import ListView from '@components/Common/ListView.tsx';
 import ListPagination from '@components/Common/ListPagination.tsx';
-import type {StudyField} from '@api/types';
+import {type StudyField} from '@api';
 
 interface PlansStudentFieldViewProps {
     data: StudyField[];

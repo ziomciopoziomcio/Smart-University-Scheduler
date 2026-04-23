@@ -4,7 +4,7 @@ import {useIntl} from 'react-intl';
 import DateRangeIcon from '@mui/icons-material/DateRange';
 import ListView from '@components/Common/ListView.tsx';
 import ListPagination from '@components/Common/ListPagination.tsx';
-import type {StudyFieldSemesterSummary} from '@api/types';
+import {type StudyFieldSemesterSummary} from '@api';
 
 interface PlansStudentSemesterViewProps {
     data: StudyFieldSemesterSummary[];
@@ -20,8 +20,15 @@ interface PlansStudentSemesterViewProps {
 type SemesterWithId = StudyFieldSemesterSummary & { id: number };
 
 export default function PlansStudentSemesterView({
-    data, facultyId, fieldOfStudyId, page, pageSize, totalItems, onPageChange, onPageSizeChange
-}: PlansStudentSemesterViewProps) {
+                                                     data,
+                                                     facultyId,
+                                                     fieldOfStudyId,
+                                                     page,
+                                                     pageSize,
+                                                     totalItems,
+                                                     onPageChange,
+                                                     onPageSizeChange
+                                                 }: PlansStudentSemesterViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 
@@ -35,16 +42,27 @@ export default function PlansStudentSemesterView({
             <ListView<SemesterWithId>
                 items={itemsWithId}
                 icon={DateRangeIcon}
-                getTitle={(item) => `${intl.formatMessage({id: 'plans.studentsPlan.studySemester.semester', defaultMessage: 'Semestr'})} ${item.semester_number}`}
+                getTitle={(item) => `${intl.formatMessage({
+                    id: 'plans.studentsPlan.studySemester.semester',
+                    defaultMessage: 'Semestr'
+                })} ${item.semester_number}`}
                 titleWidth="250px"
                 columns={[
-                    { render: (item) => `${item.groups_count} ${intl.formatMessage({id: 'plans.studentsPlan.studyGroup.groups', defaultMessage: 'Grup'})}`, variant: 'secondary', width: '150px' }
+                    {
+                        render: (item) => `${item.groups_count} ${intl.formatMessage({
+                            id: 'plans.studentsPlan.studyGroup.groups',
+                            defaultMessage: 'Grup'
+                        })}`, variant: 'secondary', width: '150px'
+                    }
                 ]}
                 onItemClick={(item) => {
                     const nextStep = item.specializations_count ? 'specialization' : 'group';
                     navigate(`/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${item.semester_number}/${nextStep}`);
                 }}
-                emptyMessage={intl.formatMessage({id: 'plans.studentsPlan.studySemester.noSemesters', defaultMessage: 'Brak semestrów'})}
+                emptyMessage={intl.formatMessage({
+                    id: 'plans.studentsPlan.studySemester.noSemesters',
+                    defaultMessage: 'Brak semestrów'
+                })}
                 hideDividerOnLastItem
             />
             {totalItems > 0 && (

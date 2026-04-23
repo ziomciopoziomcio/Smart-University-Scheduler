@@ -2,7 +2,7 @@ import {useState} from 'react';
 import {Stack, Typography, Button, Alert, CircularProgress} from '@mui/material';
 import {FormattedMessage} from 'react-intl';
 import AuthLayout from '@components/Login/AuthLayout';
-import {forgotPassword} from '@api/auth';
+import {forgotPassword} from '@api';
 import EmailInput from "@components/Login/EmailInput.tsx";
 import BackToLoginButton from "@components/Login/BackToLoginButton.tsx";
 

@@ -3,12 +3,11 @@ import {Box} from '@mui/material';
 import {MeetingRoom, Chair, Computer, Videocam} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 
-import {deleteRoom} from '@api/facilities';
+import {deleteRoom, type Room} from '@api';
 import RoomModal from './RoomModal';
 import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
 import ListView from "@components/Common/ListView.tsx";
 import ActionMenu from "@components/Common/ActionMenu.tsx";
-import type {Room} from "@api/types.ts";
 
 interface RoomViewProps {
     data: Room[];

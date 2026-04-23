@@ -15,7 +15,7 @@ import {FormattedMessage, useIntl, type IntlShape} from 'react-intl';
 import AuthLayout from '@components/Login/AuthLayout';
 import AuthPasswordField from '@components/Login/AuthPasswordField';
 import BackToLoginButton from '@components/Login/BackToLoginButton';
-import {resetPassword} from '@api/auth';
+import {resetPassword} from '@api';
 
 
 interface StrengthProps {

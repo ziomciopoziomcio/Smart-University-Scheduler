@@ -1,36 +1,36 @@
 import {type PaginatedResponse, FACILITIES_URL, getHeaders} from "@api/core";
+import {type Faculty} from "./types";
 
-
-export const fetchFaculties = async (): Promise<PaginatedResponse<unknown>> => {
-    const res = await fetch(`${FACILITIES_URL}/faculties`, {headers: getHeaders()});
-    if (!res.ok) throw new Error('Błąd pobierania wydziałów');
-    return res.json();
-};
-
-// export const fetchFaculties = async (
-//     page: number = 1,
-//     limit: number = 10,
-//     filters: {
-//         faculty_name?: string;
-//         faculty_short?: string;
-//     } = {}
-// ): Promise<PaginatedResponse<Faculty>> => {
-//     const offset = (page - 1) * limit;
-//
-//     const query = new URLSearchParams({
-//         limit: limit.toString(),
-//         offset: offset.toString(),
-//         ...(filters.faculty_name?.trim() && {faculty_name: filters.faculty_name.trim()}),
-//         ...(filters.faculty_short?.trim() && {faculty_short: filters.faculty_short.trim()}),
-//     });
-//
-//     const response = await fetch(`${BASE_URL}/faculties?${query.toString()}`, {
-//         headers: getHeaders(),
-//     });
-//
-//     if (!response.ok) throw new Error('Nie udało się pobrać wydziałów');
-//     return response.json();
+// export const fetchFaculties = async (): Promise<PaginatedResponse<unknown>> => {
+//     const res = await fetch(`${FACILITIES_URL}/faculties`, {headers: getHeaders()});
+//     if (!res.ok) throw new Error('Błąd pobierania wydziałów');
+//     return res.json();
 // };
+
+export const fetchFaculties = async (
+    page: number = 1,
+    limit: number = 10,
+    filters: {
+        faculty_name?: string;
+        faculty_short?: string;
+    } = {}
+): Promise<PaginatedResponse<Faculty>> => {
+    const offset = (page - 1) * limit;
+
+    const query = new URLSearchParams({
+        limit: limit.toString(),
+        offset: offset.toString(),
+        ...(filters.faculty_name?.trim() && {faculty_name: filters.faculty_name.trim()}),
+        ...(filters.faculty_short?.trim() && {faculty_short: filters.faculty_short.trim()}),
+    });
+
+    const response = await fetch(`${FACILITIES_URL}/faculties?${query.toString()}`, {
+        headers: getHeaders(),
+    });
+
+    if (!response.ok) throw new Error('Nie udało się pobrać wydziałów');
+    return response.json();
+};
 
 export const getFaculty = async (id: number): Promise<unknown> => {
     const res = await fetch(`${FACILITIES_URL}/faculties/${id}`, {headers: getHeaders()});

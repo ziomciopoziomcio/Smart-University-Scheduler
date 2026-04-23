@@ -6,9 +6,8 @@ import {useIntl} from 'react-intl';
 import ListView from '@components/Common/ListView.tsx';
 import ActionMenu from '@components/Common/ActionMenu.tsx';
 import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog.tsx';
-import {type Employee} from '@api/types';
+import {type Employee, deleteEmployee} from '@api';
 import EmployeeModal from './EmployeeModal';
-import {deleteEmployee} from '@api/academics';
 
 interface EmployeeViewProps {
     data: Employee[];

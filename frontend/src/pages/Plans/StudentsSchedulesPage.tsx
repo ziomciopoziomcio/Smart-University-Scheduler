@@ -6,11 +6,18 @@ import {useIntl} from 'react-intl';
 import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
 import SearchBar from "@components/Common/SearchBar.tsx";
 
-import {fetchFaculties} from '@api/facilities.ts';
-import {getFaculty} from '@api/structures.ts';
-// import {fetchStudyFields, getStudyField, fetchMajors, fetchStudyPlanGroups} from '@api/courses.ts';
-import {fetchStudyFields, getStudyField, fetchMajors} from '@api/courses.ts';
-import type {Faculty, StudyField, StudyFieldSemesterSummary, StudyPlanGroupSummary} from '@api/types';
+import {
+    fetchFaculties,
+    getFaculty,
+    fetchStudyFields,
+    getStudyField,
+    fetchMajors,
+    type Faculty,
+    type StudyField,
+    type StudyFieldSemesterSummary,
+    type StudyPlanGroupSummary
+} from '@api';
+
 
 import PlansStudentFacultyView from '@components/Schedule/Views/ScheduleStudentFacultyView.tsx';
 import PlansStudentFieldView from '@components/Schedule/Views/ScheduleStudentFIeldView.tsx';

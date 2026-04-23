@@ -4,7 +4,7 @@ import {useIntl} from 'react-intl';
 import {MeetingRoom, Chair, Computer, Videocam} from '@mui/icons-material';
 import ListView, {type ListColumn} from '@components/Common/ListView.tsx';
 import ListPagination from '@components/Common/ListPagination.tsx';
-import type {Room} from '@api/types';
+import {type Room} from '@api';
 
 interface PlansRoomViewProps {
     data: Room[];

@@ -2,7 +2,7 @@ import {useNavigate} from 'react-router-dom';
 import TileView from '@components/Common/TileView.tsx';
 // @ts-expect-error: some internal issue with svgr types, but it works
 import ApartmentIcon from '@assets/icons/buildings.svg?react';
-import type {Campus} from '@api/types';
+import type {Campus} from '@api';
 
 interface PlansCampusViewProps {
     data: Campus[];

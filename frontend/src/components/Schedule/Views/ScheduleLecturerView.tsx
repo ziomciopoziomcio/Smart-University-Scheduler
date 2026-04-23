@@ -3,7 +3,7 @@ import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 import ListView from '@components/Common/ListView.tsx';
 import ListPagination from '@components/Common/ListPagination.tsx';
-import type {CourseInstructor} from '@api/types';
+import {type CourseInstructor} from '@api';
 import UserAvatar from "@components/Common/UserAvatar.tsx";
 
 interface PlansLecturerViewProps {
@@ -38,7 +38,7 @@ export default function PlansLecturerView({
                 titleWidth={0}
                 columns={[
                     {
-                        render: (item) => <UserAvatar name={item.name} surname={item.surname} />
+                        render: (item) => <UserAvatar name={item.name} surname={item.surname}/>
                     },
                     {
                         render: (item) => `${item.name || ''} ${item.surname || ''}`.trim() || '—',

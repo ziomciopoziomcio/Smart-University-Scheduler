@@ -5,8 +5,7 @@ import {useIntl} from 'react-intl';
 
 // @ts-expect-error: vite svg import workaround
 import buildingIcon from '@assets/icons/building.svg?react';
-import {type Building} from '@api/types';
-import {deleteBuilding} from '@api/facilities';
+import {type Building, deleteBuilding} from '@api';
 import BuildingModal from './BuildingModal.tsx';
 import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog';
 import ListView from '@components/Common/ListView';

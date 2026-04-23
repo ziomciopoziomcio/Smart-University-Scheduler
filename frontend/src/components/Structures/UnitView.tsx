@@ -3,12 +3,11 @@ import {Box} from '@mui/material';
 import {Groups} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 
-import {deleteUnit} from '@api/structures';
+import {type Unit, deleteUnit} from '@api';
 import UnitModal from './UnitModal';
 import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
 import ListView from "@components/Common/ListView.tsx";
 import ActionMenu from "@components/Common/ActionMenu.tsx";
-import {type Unit} from '@api/types';
 
 interface UnitViewProps {
     data: Unit[];

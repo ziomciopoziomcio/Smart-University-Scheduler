@@ -7,8 +7,7 @@ import {useNavigate} from 'react-router-dom';
 import TileView from '@components/Common/TileView.tsx';
 import ActionMenu from '@components/Common/ActionMenu.tsx';
 import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog.tsx';
-import {type Role} from '@api/types';
-import {deleteRole} from '@api/users';
+import {type Role, deleteRole} from '@api';
 import RoleModal from './RoleModal';
 
 interface RoleViewProps {

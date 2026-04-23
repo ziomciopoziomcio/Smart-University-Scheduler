@@ -2,7 +2,7 @@ import {Box} from '@mui/material';
 import {Group, ToggleOn} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 import {useNavigate} from 'react-router-dom';
-import {type Role} from '@api/types';
+import {type Role} from '@api';
 import TileView from '@components/Common/TileView.tsx';
 
 interface RoleDashboardViewProps {

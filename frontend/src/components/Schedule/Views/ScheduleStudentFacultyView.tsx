@@ -1,7 +1,7 @@
 import {useNavigate} from 'react-router-dom';
 import TileView from '@components/Common/TileView.tsx';
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
-import type {Faculty} from '@api/types';
+import {type Faculty} from '@api';
 
 interface PlansStudentFacultyViewProps {
     data: Faculty[];

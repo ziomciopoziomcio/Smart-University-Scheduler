@@ -2,12 +2,11 @@ import {Box, CircularProgress} from '@mui/material';
 import {useEffect, useMemo, useState} from 'react';
 import {useParams} from 'react-router-dom';
 import {useIntl} from 'react-intl';
-import type {ScheduleEntry, Building, Room, Campus} from '@api/types.ts';
+import {type ScheduleEntry, type Building, type Room, type Campus, getBuilding, getCampus, getRoom} from '@api';
 import {WeekSchedule} from '@components/Schedule/WeekSchedule.tsx';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils.ts';
 import {getMockRoomScheduleEntries} from '../../mocks/roomPlansMock.tsx';
 import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
-import {getBuilding, getCampus, getRoom} from '@api/facilities.ts';
 
 // TODO: Replace with backend API call when Issue #XYZ is done
 export async function getRoomScheduleForWeek(

@@ -1,8 +1,7 @@
 import {useState, useEffect} from 'react';
 import {Dialog, DialogContent, Typography, TextField, Box, Button, CircularProgress} from '@mui/material';
 import {useIntl} from 'react-intl';
-import {createBuilding, updateBuilding} from '@api/facilities';
-import {type Building} from '@api/types';
+import {createBuilding, updateBuilding, type Building} from '@api';
 
 interface BuildingModalProps {
     open: boolean;

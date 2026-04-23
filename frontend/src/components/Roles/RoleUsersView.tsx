@@ -1,5 +1,5 @@
 import {Box, Typography} from '@mui/material';
-import {type Role} from '@api/types';
+import {type Role} from '@api';
 
 interface RoleUsersViewProps {
     role: Role;

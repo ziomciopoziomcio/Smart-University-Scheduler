@@ -6,7 +6,7 @@ import AuthLayout from '@components/Login/AuthLayout';
 import AuthPasswordField from '@components/Login/AuthPasswordField';
 import {useAuthStore} from '@store/useAuthStore';
 import OtpInput from '@components/Login/OtpInput';
-import {verify2FA} from '@api/auth';
+import {verify2FA} from '@api';
 import EmailInput from "@components/Login/EmailInput.tsx";
 import BackToLoginButton from "@components/Login/BackToLoginButton.tsx";
 

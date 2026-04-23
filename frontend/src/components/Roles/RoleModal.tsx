@@ -1,8 +1,7 @@
 import {useState, useEffect} from 'react';
 import {Dialog, DialogContent, Typography, Box, Button, CircularProgress, TextField} from '@mui/material';
 import {useIntl} from 'react-intl';
-import {type Role} from '@api/types';
-import {createRole, updateRole} from '@api/users';
+import {createRole, updateRole, type Role} from '@api';
 
 interface RoleModalProps {
     open: boolean;

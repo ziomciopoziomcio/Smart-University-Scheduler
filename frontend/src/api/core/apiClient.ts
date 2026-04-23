@@ -1,26 +1,11 @@
 import {useAuthStore} from '@store/useAuthStore';
 
-const BASE_URL = import.meta.env.VITE_API_URL as string || 'http://localhost:3000';
+export const BASE_URL = (import.meta.env.VITE_API_URL as string || 'http://localhost:8000').replace(/\/+$/, '');
 
-export const ACADEMICS_URL = (BASE_URL ?
-        `${BASE_URL}/academics` :
-        'http://localhost:3000/academics'
-).replace(/\/+$/, '');
-
-export const FACILITIES_URL = (BASE_URL ?
-    `${BASE_URL}/facilities` :
-    'http://localhost:3000/facilities'
-).replace(/\/+$/, '');
-
-export const USERS_URL = (BASE_URL ?? (BASE_URL ?
-    `${BASE_URL}/users` :
-    'http://localhost:3000/users'
-)).replace(/\/+$/, '');
-
-export const COURSES_URL = (BASE_URL ?
-    `${BASE_URL}/course` :
-    'http://localhost:3000/course'
-).replace(/\/+$/, '');
+export const USERS_URL = `${BASE_URL}/users`;
+export const ACADEMICS_URL = `${BASE_URL}/academics`;
+export const FACILITIES_URL = `${BASE_URL}/facilities`;
+export const COURSES_URL = `${BASE_URL}/course`;
 
 
 export const getHeaders = () => ({

@@ -5,8 +5,7 @@ import {useIntl} from 'react-intl';
 
 import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
 import SearchBar from "@components/Common/SearchBar.tsx";
-import {fetchCampuses, fetchBuildings, fetchRooms, getBuilding, getCampus} from '@api/facilities.ts';
-import {type Campus, type Building, type Room} from '@api/types';
+import {fetchCampuses, fetchBuildings, fetchRooms, getBuilding, getCampus, type Campus, type Building, type Room} from '@api';
 import CampusView from '@components/Facilities/CampusView';
 import BuildingView from '@components/Facilities/BuildingView';
 import RoomView from '@components/Facilities/RoomView';

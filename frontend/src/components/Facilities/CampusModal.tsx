@@ -1,8 +1,7 @@
 import {useState, useEffect} from 'react';
 import {Dialog, DialogContent, Typography, TextField, Box, Button, CircularProgress} from '@mui/material';
 import {useIntl} from 'react-intl';
-import {createCampus, updateCampus} from '@api/facilities';
-import type {Campus} from '@api/types';
+import {createCampus, updateCampus, type Campus} from '@api';
 
 interface CampusModalProps {
     open: boolean;

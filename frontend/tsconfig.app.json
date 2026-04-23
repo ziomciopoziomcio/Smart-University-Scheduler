@@ -12,7 +12,9 @@
       "@components/*": ["src/components/*"],
       "@assets/*": ["src/assets/*"],
       "@api/*": ["src/api/*"],
-      "@store/*": ["src/store/*"]
+      "@api": ["src/api/index.ts"],
+      "@store/*": ["src/store/*"],
+      "@constants/*": ["src/constants/*"]
     },
 
     /* Bundler mode */

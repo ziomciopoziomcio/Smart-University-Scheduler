@@ -6,9 +6,8 @@ import {useIntl} from 'react-intl';
 import ListView from '@components/Common/ListView.tsx';
 import ActionMenu from '@components/Common/ActionMenu.tsx';
 import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog.tsx';
-import {type User} from '@api/types';
+import {type User, deleteUser} from '@api';
 import UserModal from './UserModal';
-import {deleteUser} from '@api/users';
 
 export const DEGREES_SHORT_MAP = new Map<string, string>([
     ['inz', 'inż.'],

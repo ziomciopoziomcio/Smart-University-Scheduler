@@ -6,9 +6,15 @@ import {useIntl} from 'react-intl';
 import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
 import SearchBar from "@components/Common/SearchBar.tsx";
 
-import {fetchFaculties} from '@api/facilities.ts';
-import {fetchUnits, getFaculty} from '@api/structures.ts';
-import type {Faculty, Unit, CourseInstructor, PaginatedResponse} from '@api/types';
+import {
+    fetchUnits,
+    getFaculty,
+    fetchFaculties,
+    type Faculty,
+    type Unit,
+    type CourseInstructor,
+    type PaginatedResponse
+} from '@api';
 
 import ScheduleFacultyView from '@components/Schedule/Views/ScheduleFacultyView.tsx';
 import ScheduleUnitView from '@components/Schedule/Views/ScheduleUnitView.tsx';

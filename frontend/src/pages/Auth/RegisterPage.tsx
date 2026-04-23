@@ -5,7 +5,7 @@ import {useNavigate} from 'react-router-dom';
 import AuthLayout from '@components/Login/AuthLayout';
 import AuthPasswordField from '@components/Login/AuthPasswordField';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import {registerUser} from '@api/auth';
+import {registerUser} from '@api';
 
 const DEGREES = [
     {value: 'none', id: 'register.degrees.none'},

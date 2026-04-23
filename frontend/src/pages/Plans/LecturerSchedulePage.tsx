@@ -1,12 +1,20 @@
 import {Box, CircularProgress} from '@mui/material';
 import {useEffect, useMemo, useState} from 'react';
 import {useParams} from 'react-router-dom';
-import type {CourseInstructor, Faculty, Unit, PaginatedResponse, ScheduleEntry} from '@api/types';
+import {
+    type CourseInstructor,
+    type Faculty,
+    type Unit,
+    type PaginatedResponse,
+    type ScheduleEntry,
+    getFaculty,
+    fetchUnits
+} from '@api';
+
 import {WeekSchedule} from '@components/Schedule/WeekSchedule';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 import {getMockLecturerScheduleEntries} from '../../mocks/lecturerPlansMock.tsx';
 import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
-import {getFaculty, fetchUnits} from '@api/structures.ts';
 import {useIntl} from 'react-intl';
 
 export async function getLecturerScheduleForWeek(facultyId: string, lecturerId: string, weekStart: Date): Promise<ScheduleEntry[]> {

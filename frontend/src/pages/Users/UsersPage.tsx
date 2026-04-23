@@ -5,8 +5,7 @@ import {useIntl} from 'react-intl';
 import PageBreadcrumbs from '@components/Common/BreadCrumb.tsx';
 import SearchBar from "@components/Common/SearchBar.tsx";
 import UserView from '@components/Users/UserView';
-import {type User} from '@api/types';
-import {fetchUsers} from '@api/users';
+import {type User, fetchUsers} from '@api';
 
 export default function UsersPage() {
     const intl = useIntl();
