@@ -2,19 +2,19 @@ from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from . import models, schemas
-from ..database.database import get_db
+from src.common.pagination.pagination import paginate
+from src.common.pagination.pagination_model import PaginatedResponse
 from src.common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
 )
-from src.common.pagination.pagination import paginate
-from src.common.pagination.pagination_model import PaginatedResponse
-from ..common.require_permission import require_permission
-from ..users import models as user_models
+from . import models, schemas
 from ..academics import models as ac_models
+from ..common.require_permission import require_permission
 from ..courses import models as courses_models
+from ..database.database import get_db
+from ..users import models as user_models
 
 router = APIRouter(prefix="/facilities", tags=["facilities"])
 
