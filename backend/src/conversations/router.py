@@ -162,7 +162,8 @@ def _save_ai_msg_sync(
     :param chat_id: Value of the chat_id path parameter from the API endpoint, used to associate the AI message with the correct chat
     :param content: The final content of the AI assistant's message to be saved in the database
     :param sugg_data: A dictionary containing schedule suggestion data if the AI's response included a rescheduling suggestion.
-    This may include reason, proposed timeslot and room IDs, and a validated UUID for the target class session. If no suggestion is included, this will be None.
+    This may include reason, proposed timeslot and room IDs, and a validated UUID for the target class session.
+    If no suggestion is included, this will be None.
     :param context: A snapshot of the user's scheduling context at the time of the AI's response,
     which will be stored in the state_before field of any created schedule suggestion for reference during review.
     This should be a string representation of the relevant scheduling information that was provided to the AI agent as part of the system prompt.
