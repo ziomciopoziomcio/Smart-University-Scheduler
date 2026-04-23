@@ -44,6 +44,7 @@ class MajorCreate(MajorBase):
 
 class MajorRead(MajorBase):
     id: int
+    group_count: int = 0
 
 
 class MajorUpdate(BaseModel):

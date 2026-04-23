@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -13,6 +14,7 @@ from src.common.pagination.pagination import paginate
 from src.common.pagination.pagination_model import PaginatedResponse
 from ..common.require_permission import require_permission
 from ..users import models as user_models
+from ..academics import models as ac_models
 
 router = APIRouter(prefix="/course", tags=["course"])
 
@@ -125,19 +127,48 @@ def create_major(
 def list_majors(
     study_field: int | None = Query(None),
     major_name: str | None = Query(None, min_length=1),
+    semester: int | None = Query(None, description="Filter groups by semester"),
     limit: int | None = Query(MAJOR_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("majors:view")),
 ):
-    query = db.query(models.Major)
+    groups_subq = db.query(func.count(ac_models.Groups.id)).filter(
+        ac_models.Groups.major == models.Major.id
+    )
+
+    if semester is not None:
+        groups_subq = groups_subq.filter(ac_models.Groups.semester == semester)
+
+    groups_subq = groups_subq.scalar_subquery()
+
+    query = db.query(models.Major, func.coalesce(groups_subq, 0).label("group_count"))
+
+    count_query = db.query(func.count(models.Major.id))
 
     if study_field is not None:
         query = query.filter(models.Major.study_field == study_field)
+        count_query = count_query.filter(models.Major.study_field == study_field)
     if major_name is not None:
-        query = query.filter(models.Major.major_name.ilike(f"%{major_name}%"))
+        filter_stmt = models.Major.major_name.ilike(f"%{major_name}%")
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
 
-    return paginate(query, limit, offset, models.Major.id)
+    pagination_result = paginate(
+        query, limit, offset, order_by=models.Major.id, count_query=count_query
+    )
+
+    pagination_result.items = [
+        schemas.MajorRead(
+            id=row.Major.id,
+            study_field=row.Major.study_field,
+            major_name=row.Major.major_name,
+            group_count=row.group_count,
+        )
+        for row in pagination_result.items
+    ]
+
+    return pagination_result
 
 
 @router.get("/majors/{major_id}", response_model=schemas.MajorRead)
@@ -146,7 +177,29 @@ def get_major(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("major:view")),
 ):
-    return _get_or_404(db, models.Major, major_id, "Major")
+    groups_subq = (
+        db.query(func.count(ac_models.Groups.id))
+        .filter(ac_models.Groups.major == models.Major.id)
+        .scalar_subquery()
+    )
+
+    row = (
+        db.query(models.Major, func.coalesce(groups_subq, 0).label("group_count"))
+        .filter(models.Major.id == major_id)
+        .first()
+    )
+
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Major not found"
+        )
+
+    return schemas.MajorRead(
+        id=row.Major.id,
+        study_field=row.Major.study_field,
+        major_name=row.Major.major_name,
+        group_count=row.group_count,
+    )
 
 
 @router.patch("/majors/{major_id}", response_model=schemas.MajorRead)
