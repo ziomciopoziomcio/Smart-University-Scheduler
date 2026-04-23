@@ -353,7 +353,47 @@ def get_faculty(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("faculty:view")),
 ):
-    return _get_or_404(db, models.Faculty, faculty_id, "Faculty")
+    lecturers_subq = (
+        db.query(func.count(ac_models.Employees.id))
+        .filter(ac_models.Employees.faculty_id == models.Faculty.id)
+        .scalar_subquery()
+    )
+    students_subq = (
+        db.query(func.count(ac_models.Students.id))
+        .join(
+            courses_models.Study_program,
+            ac_models.Students.study_program == courses_models.Study_program.id,
+        )
+        .join(
+            courses_models.Study_fields,
+            courses_models.Study_program.study_field == courses_models.Study_fields.id,
+        )
+        .filter(courses_models.Study_fields.faculty == models.Faculty.id)
+        .scalar_subquery()
+    )
+
+    row = (
+        db.query(
+            models.Faculty,
+            func.coalesce(lecturers_subq, 0).label("lecturers_count"),
+            func.coalesce(students_subq, 0).label("students_count"),
+        )
+        .filter(models.Faculty.id == faculty_id)
+        .first()
+    )
+
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Faculty not found"
+        )
+
+    return schemas.FacultyRead(
+        id=row.Faculty.id,
+        faculty_name=row.Faculty.faculty_name,
+        faculty_short=row.Faculty.faculty_short,
+        lecturers_count=row.lecturers_count,
+        students_count=row.students_count,
+    )
 
 
 @router.patch("/faculties/{faculty_id}", response_model=schemas.FacultyRead)
