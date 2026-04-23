@@ -1,6 +1,7 @@
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
+from sqlalchemy import func
 from sqlalchemy.orm import Session, selectinload
 import pyotp
 import json
@@ -272,12 +273,42 @@ def list_roles(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("roles:view")),
 ):
-    query = db.query(models.Roles)
+    users_subq = (
+        db.query(func.count(models.Users.c.user_id))
+        .filter(models.user_roles.c.role_id == models.Roles.id)
+        .scalar_subquery()
+    )
+
+    query = db.query(
+        models.Roles, func.coalesce(users_subq, 0).label("users_count")
+    ).options(selectinload(models.Roles.permissions))
+
+    count_query = db.query(func.count(models.Roles.id))
 
     if role_name is not None:
-        query = query.filter(models.Roles.role_name.ilike(f"%{role_name}%"))
+        filter_stmt = models.Roles.role_name.ilike(f"%{role_name}%")
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
 
-    return paginate(query, limit, offset, models.Roles.id)
+    pagination_result = paginate(
+        query,
+        limit,
+        offset,
+        order_by=models.Roles.id,
+        count_query=count_query,
+    )
+
+    pagination_result.items = [
+        schemas.RoleRead(
+            id=row.Roles.id,
+            role_name=row.Roles.role_name,
+            permissions=row.Roles.permissions,
+            users_count=row.users_count,
+        )
+        for row in pagination_result.items
+    ]
+
+    return pagination_result
 
 
 @router.get("/roles/{role_id}", response_model=schemas.RoleRead)
@@ -286,7 +317,30 @@ def get_role(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("role:view")),
 ):
-    return _get_or_404(db, models.Roles, role_id, "Role")
+    users_subq = (
+        db.query(func.count(models.user_roles.c.user_id))
+        .filter(models.user_roles.c.role_id == models.Roles.id)
+        .scalar_subquery()
+    )
+
+    row = (
+        db.query(models.Roles, func.coalesce(users_subq, 0).label("users_count"))
+        .options(selectinload(models.Roles.permissions))
+        .filter(models.Roles.id == role_id)
+        .first()
+    )
+
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Role not found"
+        )
+
+    return schemas.RoleRead(
+        id=row.Roles.id,
+        role_name=row.Roles.role_name,
+        permissions=row.Roles.permissions,
+        users_count=row.users_count,
+    )
 
 
 @router.patch("/roles/{role_id}", response_model=schemas.RoleRead)
