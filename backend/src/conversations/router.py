@@ -202,10 +202,14 @@ async def _process_llm_tool_chain(
 ) -> tuple[str, dict | None]:
     """
     Process the chain of LLM responses and tool calls until a final text response is obtained or a maximum number of iterations is reached.
-    This function handles the interaction with the LLM agent, including processing tool calls such as checking availability in Neo4j and creating schedule suggestions.
-    :param messages: A list of message dictionaries representing the conversation history, which will be passed to the LLM agent for context. This list will be updated with tool call results as needed.
-    :param neo4j_session: A Neo4j session object that can be used to execute queries against the Neo4j database when processing tool calls from the LLM agent. This is passed in to allow for asynchronous processing of tool calls without blocking the main event loop.
-    :return: A tuple containing the final content of the AI assistant's message (which may be a confirmation message if a schedule suggestion was created) and a dictionary of schedule suggestion data if a suggestion was created, or None if no suggestion was created.
+    This function handles the interaction with the LLM agent,
+    including processing tool calls such as checking availability in Neo4j and creating schedule suggestions.
+    :param messages: A list of message dictionaries representing the conversation history, which will be passed to the LLM agent for context.
+    This list will be updated with tool call results as needed.
+    :param neo4j_session: A Neo4j session object that can be used to execute queries against the Neo4j database
+    when processing tool calls from the LLM agent. This is passed in to allow for asynchronous processing of tool calls without blocking the main event loop.
+    :return: A tuple containing the final content of the AI assistant's message (which may be a confirmation message if a schedule suggestion was created)
+    and a dictionary of schedule suggestion data if a suggestion was created, or None if no suggestion was created.
     """
     final_content = "Something went wrong."
     suggestion_data = None
