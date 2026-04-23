@@ -1,13 +1,13 @@
 import {useNavigate} from 'react-router-dom';
-import TileView from '@components/Common/TileView.tsx';
+import {TileView} from '@components/Common';
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
 import {type Faculty} from '@api';
 
-interface PlansStudentFacultyViewProps {
+interface ScheduleStudentFacultyViewProps {
     data: Faculty[];
 }
 
-export default function PlansStudentFacultyView({data}: PlansStudentFacultyViewProps) {
+export function ScheduleStudentFacultyView({data}: ScheduleStudentFacultyViewProps) {
     const navigate = useNavigate();
 
     return (

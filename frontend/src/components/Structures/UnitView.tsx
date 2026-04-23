@@ -5,9 +5,7 @@ import {useIntl} from 'react-intl';
 
 import {type Unit, deleteUnit} from '@api';
 import UnitModal from './UnitModal';
-import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
-import ListView from "@components/Common/ListView.tsx";
-import ActionMenu from "@components/Common/ActionMenu.tsx";
+import {DeleteConfirmDialog, ListView, ActionMenu} from "@components/Common";
 
 interface UnitViewProps {
     data: Unit[];
@@ -15,7 +13,7 @@ interface UnitViewProps {
     onRefresh: () => void;
 }
 
-export default function UnitView({data, facultyId, onRefresh}: UnitViewProps) {
+export function UnitView({data, facultyId, onRefresh}: UnitViewProps) {
     const intl = useIntl();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);

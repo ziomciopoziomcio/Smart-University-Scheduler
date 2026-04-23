@@ -3,9 +3,7 @@ import {Box, Chip, Tooltip} from '@mui/material';
 import {Person, Email, Badge, Shield, Security} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 
-import ListView from '@components/Common/ListView.tsx';
-import ActionMenu from '@components/Common/ActionMenu.tsx';
-import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog.tsx';
+import {ListView, ActionMenu, DeleteConfirmDialog} from '@components/Common';
 import {type User, deleteUser} from '@api';
 import UserModal from './UserModal';
 

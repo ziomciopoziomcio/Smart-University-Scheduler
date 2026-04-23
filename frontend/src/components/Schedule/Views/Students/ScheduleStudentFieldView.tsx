@@ -2,11 +2,11 @@ import {Box} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
-import ListView from '@components/Common/ListView.tsx';
-import ListPagination from '@components/Common/ListPagination.tsx';
+
+import {ListPagination, ListView} from '@components/Common';
 import {type StudyField} from '@api';
 
-interface PlansStudentFieldViewProps {
+interface ScheduleStudentFieldViewProps {
     data: StudyField[];
     facultyId: number;
     page: number;
@@ -16,7 +16,7 @@ interface PlansStudentFieldViewProps {
     onPageSizeChange: (size: number) => void;
 }
 
-export default function PlansStudentFieldView({
+export function ScheduleStudentFieldView({
                                                   data,
                                                   facultyId,
                                                   page,
@@ -24,7 +24,7 @@ export default function PlansStudentFieldView({
                                                   totalItems,
                                                   onPageChange,
                                                   onPageSizeChange
-                                              }: PlansStudentFieldViewProps) {
+                                              }: ScheduleStudentFieldViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 

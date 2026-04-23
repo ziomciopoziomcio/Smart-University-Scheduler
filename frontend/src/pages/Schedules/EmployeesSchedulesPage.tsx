@@ -3,9 +3,7 @@ import {useParams} from 'react-router-dom';
 import {Box, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
 
-import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
-import SearchBar from "@components/Common/SearchBar.tsx";
-
+import {PageBreadcrumbs, type BreadcrumbItem, SearchBar} from '@components/Common';
 import {
     fetchUnits,
     getFaculty,
@@ -16,15 +14,14 @@ import {
     type PaginatedResponse
 } from '@api';
 
-import ScheduleFacultyView from '@components/Schedule/Views/ScheduleFacultyView.tsx';
-import ScheduleUnitView from '@components/Schedule/Views/ScheduleUnitView.tsx';
-import ScheduleLecturerView from '@components/Schedule/Views/ScheduleLecturerView.tsx';
+import {ScheduleEmployeeFacultyView, ScheduleEmployeeUnitView, ScheduleEmployeeView} from '@components/Schedule';
 
-interface LecturersSchedulesPageProps {
+
+interface EmployeesSchedulesPageProps {
     view: 'faculties' | 'units' | 'lecturers';
 }
 
-export default function LecturersSchedulesPage({view}: LecturersSchedulesPageProps) {
+export default function EmployeesSchedulesPage({view}: EmployeesSchedulesPageProps) {
     const {facultyId, unitId} = useParams();
     const intl = useIntl();
 
@@ -156,10 +153,10 @@ export default function LecturersSchedulesPage({view}: LecturersSchedulesPagePro
                 {!loading && !error && (
                     <>
                         {view === 'faculties' && (
-                            <ScheduleFacultyView data={data as Faculty[]}/>
+                            <ScheduleEmployeeFacultyView data={data as Faculty[]}/>
                         )}
                         {view === 'units' && (
-                            <ScheduleUnitView
+                            <ScheduleEmployeeUnitView
                                 data={data as Unit[]}
                                 facultyId={Number(facultyId)}
                                 page={page}
@@ -173,7 +170,7 @@ export default function LecturersSchedulesPage({view}: LecturersSchedulesPagePro
                             />
                         )}
                         {view === 'lecturers' && (
-                            <ScheduleLecturerView
+                            <ScheduleEmployeeView
                                 data={data as CourseInstructor[]}
                                 facultyId={Number(facultyId)}
                                 unitId={Number(unitId)}

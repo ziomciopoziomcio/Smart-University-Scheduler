@@ -7,8 +7,7 @@ import EaselIcon from '@assets/icons/easel.svg?react';
 import BackpackIcon from '@assets/icons/backpack.svg?react';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
-import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
-import TileView from '@components/Common/TileView.tsx';
+import {PageBreadcrumbs, type BreadcrumbItem, TileView} from '@components/Common';
 
 export default function ChooseScheduleTypePage() {
     const navigate = useNavigate();

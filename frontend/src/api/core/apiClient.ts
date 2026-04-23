@@ -1,6 +1,6 @@
 import {useAuthStore} from '@store/useAuthStore';
 
-export const BASE_URL = (import.meta.env.VITE_API_URL as string || 'http://localhost:8000').replace(/\/+$/, '');
+export const BASE_URL = (import.meta.env.VITE_API_URL as string || 'http://localhost:3000').replace(/\/+$/, '');
 
 export const USERS_URL = `${BASE_URL}/users`;
 export const ACADEMICS_URL = `${BASE_URL}/academics`;

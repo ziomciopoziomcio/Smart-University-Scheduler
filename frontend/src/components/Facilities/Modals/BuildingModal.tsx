@@ -11,7 +11,7 @@ interface BuildingModalProps {
     onSuccess: () => void;
 }
 
-export default function BuildingModal({open, campusId, building, onClose, onSuccess}: BuildingModalProps) {
+export function BuildingModal({open, campusId, building, onClose, onSuccess}: BuildingModalProps) {
     const intl = useIntl();
     const [number, setNumber] = useState('');
     const [name, setName] = useState('');

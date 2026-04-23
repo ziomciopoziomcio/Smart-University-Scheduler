@@ -2,11 +2,11 @@ import {Box} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 import DateRangeIcon from '@mui/icons-material/DateRange';
-import ListView from '@components/Common/ListView.tsx';
-import ListPagination from '@components/Common/ListPagination.tsx';
+
+import {ListPagination, ListView} from '@components/Common';
 import {type StudyFieldSemesterSummary} from '@api';
 
-interface PlansStudentSemesterViewProps {
+interface ScheduleStudentSemesterViewProps {
     data: StudyFieldSemesterSummary[];
     facultyId: number;
     fieldOfStudyId: number;
@@ -19,7 +19,7 @@ interface PlansStudentSemesterViewProps {
 
 type SemesterWithId = StudyFieldSemesterSummary & { id: number };
 
-export default function PlansStudentSemesterView({
+export function ScheduleStudentSemesterView({
                                                      data,
                                                      facultyId,
                                                      fieldOfStudyId,
@@ -28,7 +28,7 @@ export default function PlansStudentSemesterView({
                                                      totalItems,
                                                      onPageChange,
                                                      onPageSizeChange
-                                                 }: PlansStudentSemesterViewProps) {
+                                                 }: ScheduleStudentSemesterViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 

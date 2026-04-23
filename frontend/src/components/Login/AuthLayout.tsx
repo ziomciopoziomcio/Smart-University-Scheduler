@@ -8,7 +8,7 @@ type Props = {
     children: ReactNode;
 };
 
-function AuthLayout({title, children}: Props) {
+export function AuthLayout({title, children}: Props) {
     return (
         <Box
             sx={{

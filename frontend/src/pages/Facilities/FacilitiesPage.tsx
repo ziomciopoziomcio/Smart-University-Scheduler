@@ -3,12 +3,19 @@ import {useParams} from 'react-router-dom';
 import {Box, Paper, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
 
-import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
-import SearchBar from "@components/Common/SearchBar.tsx";
-import {fetchCampuses, fetchBuildings, fetchRooms, getBuilding, getCampus, type Campus, type Building, type Room} from '@api';
-import CampusView from '@components/Facilities/CampusView';
-import BuildingView from '@components/Facilities/BuildingView';
-import RoomView from '@components/Facilities/RoomView';
+import {CampusView, BuildingView, RoomView} from '@components/Facilities';
+import {type BreadcrumbItem, PageBreadcrumbs, SearchBar} from '@components/Common';
+import {
+    fetchCampuses,
+    fetchBuildings,
+    fetchRooms,
+    getBuilding,
+    getCampus,
+    type Campus,
+    type Building,
+    type Room
+} from '@api';
+
 
 interface FacilitiesPageProps {
     view: 'campuses' | 'buildings' | 'rooms';

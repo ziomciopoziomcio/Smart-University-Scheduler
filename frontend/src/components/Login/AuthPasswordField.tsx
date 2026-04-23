@@ -11,7 +11,7 @@ type Props = {
     disabled?: boolean;
 };
 
-function AuthPasswordField({
+export function AuthPasswordField({
                                label,
                                placeholder,
                                showPassword,

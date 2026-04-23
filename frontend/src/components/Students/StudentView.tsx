@@ -3,11 +3,9 @@ import {Box} from '@mui/material';
 import {School, Email, Book} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 
-import ListView from '@components/Common/ListView.tsx';
-import ActionMenu from '@components/Common/ActionMenu.tsx';
-import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog.tsx';
+import {ListView, ActionMenu, DeleteConfirmDialog} from '@components/Common';
 import {type Student, deleteStudent} from '@api';
-import StudentModal from "@components/Students/StudentModal.tsx";
+import StudentModal from "./StudentModal.tsx";
 
 interface StudentViewProps {
     data: Student[];

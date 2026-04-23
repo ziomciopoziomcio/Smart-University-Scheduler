@@ -1,6 +1,8 @@
 import {Box, CircularProgress} from '@mui/material';
 import {useEffect, useMemo, useState} from 'react';
 import {useParams} from 'react-router-dom';
+import {useIntl} from 'react-intl';
+
 import {
     type CourseInstructor,
     type Faculty,
@@ -10,12 +12,11 @@ import {
     getFaculty,
     fetchUnits
 } from '@api';
-
 import {WeekSchedule} from '@components/Schedule/WeekSchedule';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 import {getMockLecturerScheduleEntries} from '../../mocks/lecturerPlansMock.tsx';
-import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
-import {useIntl} from 'react-intl';
+import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
+
 
 export async function getLecturerScheduleForWeek(facultyId: string, lecturerId: string, weekStart: Date): Promise<ScheduleEntry[]> {
     const weekEnd = addDays(weekStart, 6);
@@ -37,7 +38,7 @@ const mockedLecturers: CourseInstructor[] = [
     {id: 3, name: 'Anna', surname: 'Nowak', degree: 'dr hab. inż.'},
 ];
 
-export default function LecturerSchedulePage() {
+export default function EmployeeSchedulePage() {
     const intl = useIntl();
     const {facultyId, unitId, lecturerId} = useParams();
 

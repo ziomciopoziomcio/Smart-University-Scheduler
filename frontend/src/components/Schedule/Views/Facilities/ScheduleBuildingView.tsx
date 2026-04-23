@@ -1,13 +1,13 @@
 import {Box} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
-import ListView, {type ListColumn} from '@components/Common/ListView.tsx';
-import ListPagination from '@components/Common/ListPagination.tsx';
+
 // @ts-expect-error: some internal issue with svgr types, but it works
 import ApartmentIcon from '@assets/icons/building.svg?react';
 import type {Building} from '@api';
+import {ListPagination, ListView, type ListColumn} from '@components/Common';
 
-interface PlansBuildingViewProps {
+interface ScheduleBuildingViewProps {
     data: Building[];
     campusId: number;
     page: number;
@@ -17,9 +17,9 @@ interface PlansBuildingViewProps {
     onPageSizeChange: (size: number) => void;
 }
 
-export default function PlansBuildingView({
+export function ScheduleBuildingView({
                                               data, campusId, page, pageSize, totalItems, onPageChange, onPageSizeChange
-                                          }: PlansBuildingViewProps) {
+                                          }: ScheduleBuildingViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 

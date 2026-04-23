@@ -2,11 +2,10 @@ import {Box} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 import PeopleIcon from '@mui/icons-material/People';
-import ListView from '@components/Common/ListView.tsx';
-import ListPagination from '@components/Common/ListPagination.tsx';
+import {ListView, ListPagination} from '@components/Common';
 import {type StudyPlanGroupSummary} from '@api';
 
-interface PlansStudentGroupViewProps {
+interface ScheduleStudentGroupViewProps {
     data: StudyPlanGroupSummary[];
     facultyId: number;
     fieldOfStudyId: number;
@@ -19,7 +18,7 @@ interface PlansStudentGroupViewProps {
     onPageSizeChange: (size: number) => void;
 }
 
-export default function PlansStudentGroupView({
+export function ScheduleStudentGroupView({
                                                   data,
                                                   facultyId,
                                                   fieldOfStudyId,
@@ -30,7 +29,7 @@ export default function PlansStudentGroupView({
                                                   totalItems,
                                                   onPageChange,
                                                   onPageSizeChange
-                                              }: PlansStudentGroupViewProps) {
+                                              }: ScheduleStudentGroupViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 

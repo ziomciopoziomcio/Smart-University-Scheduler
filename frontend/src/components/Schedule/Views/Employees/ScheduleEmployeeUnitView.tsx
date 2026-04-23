@@ -1,12 +1,11 @@
 import {Box} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
-import ListView from '@components/Common/ListView.tsx';
-import ListPagination from '@components/Common/ListPagination.tsx';
+import {ListView, ListPagination} from '@components/Common';
 import {type Unit} from '@api';
 import {Groups} from "@mui/icons-material";
 
-interface PlansUnitViewProps {
+interface ScheduleEmployeeUnitViewProps {
     data: Unit[];
     facultyId: number;
     page: number;
@@ -16,7 +15,7 @@ interface PlansUnitViewProps {
     onPageSizeChange: (size: number) => void;
 }
 
-export default function PlansUnitView({
+export function ScheduleEmployeeUnitView({
                                           data,
                                           facultyId,
                                           page,
@@ -24,7 +23,7 @@ export default function PlansUnitView({
                                           totalItems,
                                           onPageChange,
                                           onPageSizeChange
-                                      }: PlansUnitViewProps) {
+                                      }: ScheduleEmployeeUnitViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
     return (

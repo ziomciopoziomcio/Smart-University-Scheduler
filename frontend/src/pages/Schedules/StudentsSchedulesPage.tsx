@@ -3,9 +3,7 @@ import {useParams} from 'react-router-dom';
 import {Box, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
 
-import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
-import SearchBar from "@components/Common/SearchBar.tsx";
-
+import {PageBreadcrumbs, type BreadcrumbItem, SearchBar} from '@components/Common';
 import {
     fetchFaculties,
     getFaculty,
@@ -19,16 +17,18 @@ import {
 } from '@api';
 
 
-import PlansStudentFacultyView from '@components/Schedule/Views/ScheduleStudentFacultyView.tsx';
-import PlansStudentFieldView from '@components/Schedule/Views/ScheduleStudentFIeldView.tsx';
-import PlansStudentSemesterView from '@components/Schedule/Views/ScheduleStudentSemesterView.tsx';
-import PlansStudentSpecializationView from '@components/Schedule/Views/ScheduleStudentSpecializationView.tsx';
-import PlansStudentGroupView from '@components/Schedule/Views/ScheduleStudentGroupView.tsx';
+import {
+    ScheduleStudentFacultyView,
+    ScheduleStudentSemesterView,
+    ScheduleStudentMajorView,
+    ScheduleStudentGroupView,
+    ScheduleStudentFieldView
+} from '@components/Schedule';
 import {fetchMockStudyPlanSpecializationGroups} from "../../mocks/studyPlanSpecializationGroupsMock.tsx";
 import {fetchMockStudyPlanGroups} from "../../mocks/studyPlanSemesterGroupsMock.tsx";
 
 interface StudentsSchedulesPageProps {
-    view: 'faculties' | 'fields' | 'semesters' | 'specializations' | 'groups';
+    view: 'faculties' | 'fields' | 'semesters' | 'majors' | 'groups';
 }
 
 export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps) {
@@ -113,7 +113,7 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                 );
                 setData(semesterList);
                 setTotalItems(semesterList.length);
-            } else if (view === 'specializations' && fieldOfStudyId) {
+            } else if (view === 'majors' && fieldOfStudyId) {
                 const res = await fetchMajors(page, pageSize, {
                     study_field: Number(fieldOfStudyId),
                     major_name: search.trim() || undefined
@@ -166,15 +166,15 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                 {error && <Alert severity="error">{error}</Alert>}
                 {!loading && !error && (
                     <>
-                        {view === 'faculties' && <PlansStudentFacultyView data={data as Faculty[]}/>}
+                        {view === 'faculties' && <ScheduleStudentFacultyView data={data as Faculty[]}/>}
                         {view === 'fields' &&
-                            <PlansStudentFieldView data={data as StudyField[]} facultyId={Number(facultyId)} page={page}
+                            <ScheduleStudentFieldView data={data as StudyField[]} facultyId={Number(facultyId)} page={page}
                                                    pageSize={pageSize} totalItems={totalItems} onPageChange={setPage}
                                                    onPageSizeChange={(v) => {
                                                        setPageSize(v);
                                                        setPage(1);
                                                    }}/>}
-                        {view === 'semesters' && <PlansStudentSemesterView data={data as StudyFieldSemesterSummary[]}
+                        {view === 'semesters' && <ScheduleStudentSemesterView data={data as StudyFieldSemesterSummary[]}
                                                                            facultyId={Number(facultyId)}
                                                                            fieldOfStudyId={Number(fieldOfStudyId)}
                                                                            page={page} pageSize={pageSize}
@@ -184,8 +184,8 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                                                                                setPageSize(v);
                                                                                setPage(1);
                                                                            }}/>}
-                        {view === 'specializations' &&
-                            <PlansStudentSpecializationView data={data} facultyId={Number(facultyId)}
+                        {view === 'majors' &&
+                            <ScheduleStudentMajorView data={data} facultyId={Number(facultyId)}
                                                             fieldOfStudyId={Number(fieldOfStudyId)}
                                                             semesterId={Number(semesterId)} page={page}
                                                             pageSize={pageSize} totalItems={totalItems}
@@ -194,7 +194,7 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                                 setPage(1);
                             }}/>}
                         {view === 'groups' &&
-                            <PlansStudentGroupView data={data as StudyPlanGroupSummary[]} facultyId={Number(facultyId)}
+                            <ScheduleStudentGroupView data={data as StudyPlanGroupSummary[]} facultyId={Number(facultyId)}
                                                    fieldOfStudyId={Number(fieldOfStudyId)}
                                                    semesterId={Number(semesterId)}
                                                    specializationId={specializationId ? Number(specializationId) : undefined}

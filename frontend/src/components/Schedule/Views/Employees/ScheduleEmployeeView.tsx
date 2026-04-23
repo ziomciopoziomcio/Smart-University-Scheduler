@@ -1,12 +1,11 @@
 import {Box} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
-import ListView from '@components/Common/ListView.tsx';
-import ListPagination from '@components/Common/ListPagination.tsx';
-import {type CourseInstructor} from '@api';
-import UserAvatar from "@components/Common/UserAvatar.tsx";
 
-interface PlansLecturerViewProps {
+import {ListView, ListPagination, UserAvatar} from '@components/Common';
+import {type CourseInstructor} from '@api';
+
+interface ScheduleEmployeeViewProps {
     data: CourseInstructor[];
     facultyId: number;
     unitId: number;
@@ -17,7 +16,7 @@ interface PlansLecturerViewProps {
     onPageSizeChange: (size: number) => void;
 }
 
-export default function PlansLecturerView({
+export function ScheduleEmployeeView({
                                               data,
                                               facultyId,
                                               unitId,
@@ -26,7 +25,7 @@ export default function PlansLecturerView({
                                               totalItems,
                                               onPageChange,
                                               onPageSizeChange
-                                          }: PlansLecturerViewProps) {
+                                          }: ScheduleEmployeeViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 

@@ -1,3 +1,4 @@
+import {useIntl} from 'react-intl';
 import {
     Accordion,
     AccordionDetails,
@@ -26,9 +27,7 @@ import {
 
 import {WeekSchedule} from '@components/Schedule/WeekSchedule';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
-import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
-import {useIntl} from 'react-intl';
-
+import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 import {getMockStudyPlanScheduleEntries} from '../../mocks/studyPlansMock';
 
 // ---------------------------------------------------------------------------
@@ -160,7 +159,7 @@ export default function StudentSchedulePage() {
                 : `/plans/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group`
         },
         {
-            label: intl.formatMessage({id: 'plans.studentsPlan.studySchedule.title', defaultMessage: 'Plan zajęć'}),
+            label: intl.formatMessage({id: 'plans.studentsPlan.studySchedule.title', defaultMessage: 'MySchedule zajęć'}),
             path: ''
         }
     ], [intl, faculty, field, specializationName, facultyId, fieldOfStudyId, semesterId, specializationId]);

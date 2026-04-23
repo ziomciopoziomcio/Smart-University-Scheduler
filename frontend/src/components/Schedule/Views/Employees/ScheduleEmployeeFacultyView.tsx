@@ -1,13 +1,14 @@
 import {useNavigate} from 'react-router-dom';
-import TileView from '@components/Common/TileView.tsx';
+
+import {TileView} from '@components/Common';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import {type Faculty} from '@api';
 
-interface PlansFacultyViewProps {
+interface ScheduleEmployeeFacultyViewProps {
     data: Faculty[];
 }
 
-export default function PlansFacultyView({data}: PlansFacultyViewProps) {
+export function ScheduleEmployeeFacultyView({data}: ScheduleEmployeeFacultyViewProps) {
     const navigate = useNavigate();
     return (
         <TileView<Faculty>

@@ -1,6 +1,6 @@
 import {Box} from '@mui/material';
 import {useEffect, useState} from 'react';
-import type {ScheduleEntry} from '@api/types';
+import type {ScheduleEntry} from '@api';
 import {WeekSchedule} from '@components/Schedule/WeekSchedule';
 import {scheduleMock} from '../../mocks/scheduleMock';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
@@ -22,7 +22,7 @@ export async function getScheduleForWeek(weekStart: Date): Promise<ScheduleEntry
     });
 }
 
-export default function MyPlan() {
+export default function MySchedule() {
     const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() =>
         getStartOfWeek(new Date()),
     );

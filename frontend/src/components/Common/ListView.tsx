@@ -27,21 +27,21 @@ interface ListViewProps<T> {
     titleSx?: object;
 }
 
-export default function ListView<T extends { id: number | string }>({
-                                                                        items,
-                                                                        icon: Icon,
-                                                                        getTitle,
-                                                                        titleWidth,
-                                                                        columns = [],
-                                                                        onItemClick,
-                                                                        onMenuOpen,
-                                                                        onAddClick,
-                                                                        addLabel,
-                                                                        emptyMessage,
-                                                                        hideDividerOnLastItem = true,
-                                                                        rowSx = {},
-                                                                        titleSx = {},
-                                                                    }: ListViewProps<T>) {
+export function ListView<T extends { id: number | string }>({
+                                                                items,
+                                                                icon: Icon,
+                                                                getTitle,
+                                                                titleWidth,
+                                                                columns = [],
+                                                                onItemClick,
+                                                                onMenuOpen,
+                                                                onAddClick,
+                                                                addLabel,
+                                                                emptyMessage,
+                                                                hideDividerOnLastItem = true,
+                                                                rowSx = {},
+                                                                titleSx = {},
+                                                            }: ListViewProps<T>) {
     return (
         <Box sx={{width: '100%'}}>
             {items.length === 0 && (

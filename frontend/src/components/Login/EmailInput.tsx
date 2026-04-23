@@ -8,7 +8,7 @@ interface Props {
     disabled?: boolean;
 }
 
-function EmailInput({value, onChange, disabled = false}: Props) {
+export function EmailInput({value, onChange, disabled = false}: Props) {
     const intl = useIntl();
 
     return (

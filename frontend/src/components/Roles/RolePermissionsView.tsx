@@ -8,7 +8,7 @@ interface RolePermissionsViewProps {
     allPermissions: Permission[];
 }
 
-export default function RolePermissionsView({role, allPermissions}: RolePermissionsViewProps) {
+export function RolePermissionsView({role, allPermissions}: RolePermissionsViewProps) {
     const intl = useIntl();
 
     const [selectedPermIds, setSelectedPermIds] = useState<number[]>([]);

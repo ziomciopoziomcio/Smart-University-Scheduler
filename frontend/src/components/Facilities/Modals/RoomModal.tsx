@@ -15,7 +15,7 @@ interface RoomModalProps {
     onSuccess: () => void;
 }
 
-export default function RoomModal({open, buildingId, room, onClose, onSuccess}: RoomModalProps) {
+export function RoomModal({open, buildingId, room, onClose, onSuccess}: RoomModalProps) {
     const intl = useIntl();
 
     const [name, setName] = useState('');

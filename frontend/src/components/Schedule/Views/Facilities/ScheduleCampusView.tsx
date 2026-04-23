@@ -1,14 +1,15 @@
 import {useNavigate} from 'react-router-dom';
-import TileView from '@components/Common/TileView.tsx';
+
+import {TileView} from '@components/Common';
 // @ts-expect-error: some internal issue with svgr types, but it works
 import ApartmentIcon from '@assets/icons/buildings.svg?react';
 import type {Campus} from '@api';
 
-interface PlansCampusViewProps {
+interface ScheduleCampusViewProps {
     data: Campus[];
 }
 
-export default function PlansCampusView({data}: PlansCampusViewProps) {
+export function ScheduleCampusView({data}: ScheduleCampusViewProps) {
     const navigate = useNavigate();
 
     return (

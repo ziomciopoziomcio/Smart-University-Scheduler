@@ -4,10 +4,8 @@ import {MeetingRoom, Chair, Computer, Videocam} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 
 import {deleteRoom, type Room} from '@api';
-import RoomModal from './RoomModal';
-import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
-import ListView from "@components/Common/ListView.tsx";
-import ActionMenu from "@components/Common/ActionMenu.tsx";
+import {RoomModal} from '@components/Facilities/Modals/RoomModal';
+import {ListView, ActionMenu, DeleteConfirmDialog} from '@components/Common';
 
 interface RoomViewProps {
     data: Room[];
@@ -15,7 +13,7 @@ interface RoomViewProps {
     onRefresh: () => void;
 }
 
-export default function RoomView({data, buildingId, onRefresh}: RoomViewProps) {
+export function RoomView({data, buildingId, onRefresh}: RoomViewProps) {
     const intl = useIntl();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);

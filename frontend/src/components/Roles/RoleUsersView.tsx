@@ -5,7 +5,7 @@ interface RoleUsersViewProps {
     role: Role;
 }
 
-export default function RoleUsersView({role}: RoleUsersViewProps) {
+export function RoleUsersView({role}: RoleUsersViewProps) {
 
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, width: '100%'}}>

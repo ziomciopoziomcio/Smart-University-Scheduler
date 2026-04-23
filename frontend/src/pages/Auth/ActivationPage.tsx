@@ -2,7 +2,8 @@ import {useEffect, useState, useRef} from 'react';
 import {useSearchParams, useNavigate} from 'react-router-dom';
 import {CircularProgress, Alert, Stack, Typography, Button} from '@mui/material';
 import {FormattedMessage} from 'react-intl';
-import AuthLayout from '@components/Login/AuthLayout';
+
+import {AuthLayout} from '@components/Login';
 import {verifyEmail} from '@api';
 
 function ActivationPage() {

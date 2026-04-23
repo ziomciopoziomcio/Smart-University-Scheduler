@@ -10,7 +10,7 @@ interface CampusModalProps {
     onSuccess: () => void;
 }
 
-export default function CampusModal({open, campus, onClose, onSuccess}: CampusModalProps) {
+export function CampusModal({open, campus, onClose, onSuccess}: CampusModalProps) {
     const intl = useIntl();
     const [name, setName] = useState('');
     const [short, setShort] = useState('');

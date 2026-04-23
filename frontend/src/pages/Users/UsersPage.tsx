@@ -2,8 +2,7 @@ import {useState, useEffect, useCallback} from 'react';
 import {Box, Paper, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
 
-import PageBreadcrumbs from '@components/Common/BreadCrumb.tsx';
-import SearchBar from "@components/Common/SearchBar.tsx";
+import {PageBreadcrumbs, SearchBar} from '@components/Common';
 import UserView from '@components/Users/UserView';
 import {type User, fetchUsers} from '@api';
 

@@ -1,10 +1,9 @@
 import {useState} from 'react';
 import {Stack, Typography, Button, Alert, CircularProgress} from '@mui/material';
 import {FormattedMessage} from 'react-intl';
-import AuthLayout from '@components/Login/AuthLayout';
+
+import {AuthLayout, EmailInput, BackToLoginButton} from '@components/Login';
 import {forgotPassword} from '@api';
-import EmailInput from "@components/Login/EmailInput.tsx";
-import BackToLoginButton from "@components/Login/BackToLoginButton.tsx";
 
 function ForgotPasswordPage() {
     const [email, setEmail] = useState('');

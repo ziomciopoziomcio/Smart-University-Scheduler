@@ -3,10 +3,8 @@ import {useParams} from 'react-router-dom';
 import {Box, Paper, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
 
-import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
-import SearchBar from "@components/Common/SearchBar.tsx";
-import FacultyView from '@components/Structures/FacultyView';
-import UnitView from '@components/Structures/UnitView';
+import {PageBreadcrumbs, type BreadcrumbItem, SearchBar} from '@components/Common';
+import {FacultyView, UnitView} from '@components/Structures';
 import {type Faculty, type Unit, fetchFaculties, fetchUnits, getFaculty} from '@api';
 
 interface StructuresPageProps {

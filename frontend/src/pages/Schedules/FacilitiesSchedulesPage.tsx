@@ -3,8 +3,8 @@ import {useParams} from 'react-router-dom';
 import {Box, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
 
-import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
-import SearchBar from "@components/Common/SearchBar.tsx";
+import {ScheduleCampusView, ScheduleBuildingView, ScheduleRoomView} from '@components/Schedule';
+import {PageBreadcrumbs, type BreadcrumbItem, SearchBar} from '@components/Common';
 import {
     fetchCampuses,
     fetchBuildings,
@@ -16,15 +16,12 @@ import {
     type Room
 } from '@api';
 
-import PlansCampusView from '@components/Schedule/Views/ScheduleCampusView.tsx';
-import PlansBuildingView from '@components/Schedule/Views/ScheduleBuildingView.tsx';
-import PlansRoomView from '@components/Schedule/Views/ScheduleRoomView.tsx';
 
-interface PlansFacilitiesPageProps {
+interface SchedulesFacilitiesPageProps {
     view: 'campuses' | 'buildings' | 'rooms';
 }
 
-export default function PlansFacilitiesPage({view}: PlansFacilitiesPageProps) {
+export default function SchedulesFacilitiesPage({view}: SchedulesFacilitiesPageProps) {
     const {campusId, buildingId} = useParams();
     const intl = useIntl();
 
@@ -155,10 +152,10 @@ export default function PlansFacilitiesPage({view}: PlansFacilitiesPageProps) {
                 {!loading && !error && (
                     <>
                         {view === 'campuses' && (
-                            <PlansCampusView data={filteredData as Campus[]}/>
+                            <ScheduleCampusView data={filteredData as Campus[]}/>
                         )}
                         {view === 'buildings' && (
-                            <PlansBuildingView
+                            <ScheduleBuildingView
                                 data={filteredData as Building[]}
                                 campusId={Number(campusId)}
                                 page={page}
@@ -172,7 +169,7 @@ export default function PlansFacilitiesPage({view}: PlansFacilitiesPageProps) {
                             />
                         )}
                         {view === 'rooms' && (
-                            <PlansRoomView
+                            <ScheduleRoomView
                                 data={filteredData as Room[]}
                                 campusId={Number(campusId)}
                                 buildingId={Number(buildingId)}

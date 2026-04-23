@@ -1,12 +1,12 @@
 import {Box} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
+
 import {MeetingRoom, Chair, Computer, Videocam} from '@mui/icons-material';
-import ListView, {type ListColumn} from '@components/Common/ListView.tsx';
-import ListPagination from '@components/Common/ListPagination.tsx';
+import {ListView, type ListColumn, ListPagination} from '@components/Common';
 import {type Room} from '@api';
 
-interface PlansRoomViewProps {
+interface ScheduleRoomViewProps {
     data: Room[];
     campusId: number;
     buildingId: number;
@@ -17,7 +17,7 @@ interface PlansRoomViewProps {
     onPageSizeChange: (size: number) => void;
 }
 
-export default function PlansRoomView({
+export function ScheduleRoomView({
                                           data,
                                           campusId,
                                           buildingId,
@@ -26,7 +26,7 @@ export default function PlansRoomView({
                                           totalItems,
                                           onPageChange,
                                           onPageSizeChange
-                                      }: PlansRoomViewProps) {
+                                      }: ScheduleRoomViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 

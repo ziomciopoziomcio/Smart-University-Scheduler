@@ -6,10 +6,8 @@ import {useIntl} from 'react-intl';
 // @ts-expect-error: vite svg import workaround
 import buildingIcon from '@assets/icons/building.svg?react';
 import {type Building, deleteBuilding} from '@api';
-import BuildingModal from './BuildingModal.tsx';
-import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog';
-import ListView from '@components/Common/ListView';
-import ActionMenu from "@components/Common/ActionMenu.tsx";
+import {BuildingModal} from '../Modals/BuildingModal.tsx';
+import {ListView, ActionMenu, DeleteConfirmDialog} from '@components/Common';
 
 interface BuildingViewProps {
     data: Building[];
@@ -17,7 +15,7 @@ interface BuildingViewProps {
     onRefresh: () => void;
 }
 
-export default function BuildingView({data, campusId, onRefresh}: BuildingViewProps) {
+export function BuildingView({data, campusId, onRefresh}: BuildingViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 

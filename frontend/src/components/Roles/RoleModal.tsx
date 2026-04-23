@@ -10,7 +10,7 @@ interface RoleModalProps {
     onSuccess: () => void;
 }
 
-export default function RoleModal({open, role, onClose, onSuccess}: RoleModalProps) {
+export function RoleModal({open, role, onClose, onSuccess}: RoleModalProps) {
     const intl = useIntl();
     const isEditMode = Boolean(role);
 
