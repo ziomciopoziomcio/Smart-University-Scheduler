@@ -979,6 +979,7 @@ def get_faculty_instructors(
         .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
         .filter(models.Employees.faculty_id == faculty_id)
         .order_by(user_models.Users.surname, user_models.Users.name)
+        .limit(1000)
         .all()
     )
     return instructors
