@@ -8,6 +8,7 @@ from helpers.db_seeder.generators.groups import (
     assign_students_to_common_groups,
     generate_major_groups,
     assign_students_to_major_groups,
+    generate_elective_groups,
 )
 from helpers.db_seeder.generators.students import generate_students
 from src.database.database import SessionLocal, get_db
@@ -142,7 +143,7 @@ db_curr_courses = generate_curriculum_courses(
 )
 session.commit()
 
-generate_curriculum_courses_elective_blocks(
+db_elective_curr_courses = generate_curriculum_courses_elective_blocks(
     sourcefile=PATH,
     session=session,
     db_study_programs=db_study_programs,
@@ -198,6 +199,17 @@ assign_students_to_major_groups(
     db_students=db_students,
     db_study_programs=db_study_programs,
     db_curr_courses=db_curr_courses,
+)
+session.commit()
+
+
+db_elective_groups = generate_elective_groups(
+    session=session,
+    db_students=db_students,
+    db_study_programs=db_study_programs,
+    db_elective_blocks=db_elective_blocks,
+    db_curr_courses=db_elective_curr_courses,
+    group_size=15,
 )
 session.commit()
 
