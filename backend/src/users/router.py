@@ -265,7 +265,7 @@ def create_role(
     return obj
 
 
-@router.get("/roles", response_model=PaginatedResponse[schemas.RoleRead])
+@router.get("/roles", response_model=PaginatedResponse[schemas.RoleReadWithCount])
 def list_roles(
     role_name: str | None = Query(None, min_length=1),
     limit: int = Query(ROLE_LIMIT, ge=1, le=200),
@@ -298,7 +298,7 @@ def list_roles(
     )
 
     pagination_result.items = [
-        schemas.RoleRead(
+        schemas.RoleReadWithCount(
             id=row.Roles.id,
             role_name=row.Roles.role_name,
             permissions=row.Roles.permissions,
@@ -310,7 +310,7 @@ def list_roles(
     return pagination_result
 
 
-@router.get("/roles/{role_id}", response_model=schemas.RoleRead)
+@router.get("/roles/{role_id}", response_model=schemas.RoleReadWithCount)
 def get_role(
     role_id: int,
     db: Session = Depends(get_db),
@@ -334,7 +334,7 @@ def get_role(
             status_code=status.HTTP_404_NOT_FOUND, detail="Role not found"
         )
 
-    return schemas.RoleRead(
+    return schemas.RoleReadWithCount(
         id=row.Roles.id,
         role_name=row.Roles.role_name,
         permissions=row.Roles.permissions,

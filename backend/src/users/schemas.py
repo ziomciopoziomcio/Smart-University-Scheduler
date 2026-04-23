@@ -103,6 +103,9 @@ class RoleCreate(RoleBase):
 class RoleRead(RoleBase):
     id: int
     permissions: List[PermissionRead] = Field(default_factory=list)
+
+
+class RoleReadWithCount(RoleRead):
     users_count: int = 0
 
 
