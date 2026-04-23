@@ -85,15 +85,18 @@ def list_study_fields(
             models.Study_fields.mode,
         )
     )
+    count_query = db.query(func.count(models.Study_fields.id))
     if faculty is not None:
         query = query.filter(models.Study_fields.faculty == faculty)
+        count_query = count_query.filter(models.Study_fields.faculty == faculty)
     if field_name is not None:
-        query = query.filter(models.Study_fields.field_name.ilike(f"%{field_name}%"))
-
-    total = query.count()
-    rows = query.order_by(models.Study_fields.id).offset(offset).limit(limit).all()
-
-    items = [
+        filter_stmt = models.Study_fields.field_name.ilike(f"%{field_name}%")
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
+    pagination_result = paginate(
+        query, limit, offset, order_by=models.Study_fields.id, count_query=count_query
+    )
+    pagination_result.items = [
         schemas.StudyFieldListSummary(
             id=row.id,
             faculty=row.faculty,
@@ -105,10 +108,9 @@ def list_study_fields(
             semesters_count=row.semesters_count or 0,
             specializations_count=row.specializations_count or 0,
         )
-        for row in rows
+        for row in pagination_result.items
     ]
-
-    return PaginatedResponse(items=items, total=total, limit=limit, offset=offset)
+    return pagination_result
 
 
 @router.get("/study-fields/{field_id}", response_model=schemas.StudyFieldRead)
