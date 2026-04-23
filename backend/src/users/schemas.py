@@ -44,6 +44,7 @@ class UserRead(UserBase):
     id: int
     created_at: datetime
     roles: list[str] = Field(default_factory=list)
+    two_factor_enabled: bool
 
     @classmethod
     def _parse_single_role(cls, role: Any) -> str:
