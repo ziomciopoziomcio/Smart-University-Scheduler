@@ -274,16 +274,15 @@ def list_roles(
     _current_user: user_models.Users = Depends(require_permission("roles:view")),
 ):
     users_subq = (
-        db.query(func.count(models.user_roles.c.user_id))
-        .select_from(models.user_roles)
-        .filter(models.user_roles.c.role_id == models.Roles.id)
-        .scalar_subquery()
+    query = (
+        db.query(
+            models.Roles,
+            func.count(models.user_roles.c.user_id).label("users_count"),
+        )
+        .outerjoin(models.user_roles, models.user_roles.c.role_id == models.Roles.id)
+        .options(selectinload(models.Roles.permissions))
+        .group_by(models.Roles.id)
     )
-
-    query = db.query(
-        models.Roles, func.coalesce(users_subq, 0).label("users_count")
-    ).options(selectinload(models.Roles.permissions))
-
     count_query = db.query(func.count(models.Roles.id))
 
     if role_name is not None:
