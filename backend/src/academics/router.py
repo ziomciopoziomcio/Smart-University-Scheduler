@@ -958,7 +958,7 @@ def _get_semester_stats_query(db: Session, study_field_id: int) -> list[Any]:
 def get_faculty_instructors(
     faculty_id: int,
     db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(require_permission("instructors:view")),
+    _current_user: user_models.Users = Depends(require_permission("employees:view")),
 ):
     """
     Get list of instructors for a given faculty.
