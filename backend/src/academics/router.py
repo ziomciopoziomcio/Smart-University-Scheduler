@@ -1,7 +1,8 @@
 from datetime import date
-from typing import List
+from typing import List, Any
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
+from sqlalchemy import func, case
 from sqlalchemy.orm import Session
 
 from src.common.pagination.pagination import paginate
@@ -872,3 +873,79 @@ def delete_calendar_day(
     db.delete(obj)
     _commit_or_rollback(db)
     return None
+
+
+@router.get(
+    "/semesters/summary/by-study-field/{study_field_id}",
+    response_model=list[schemas.StudyFieldSemesterSummary],
+)
+def get_study_field_semester_summary(
+    study_field_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("study-fields:view")),
+):
+    """
+    Return semester-by-semester summary data for the given study field.
+
+    The response contains one item per semester found in curriculum courses for
+    study programs belonging to the study field. ``groups_count`` is the total
+    number of regular groups in the study field, where regular groups are those
+    with neither ``major`` nor ``elective_block`` assigned. For each semester,
+    ``specializations_count`` is the number of distinct curriculum course
+    majors, and ``elective_blocks_count`` is the number of distinct curriculum
+    course elective blocks. Counts equal to zero are returned as ``None`` for
+    the semester-specific fields.
+    """
+    _get_or_404(db, course_models.Study_fields, study_field_id, "Study Field")
+
+    semester_stats = _get_semester_stats_query(db, study_field_id)
+
+    results = []
+    for semester, spec_count, elec_count, base_groups_count in semester_stats:
+        results.append(
+            schemas.StudyFieldSemesterSummary(
+                semester_number=semester,
+                groups_count=base_groups_count,
+                specializations_count=spec_count if spec_count > 0 else None,
+                elective_blocks_count=elec_count if elec_count > 0 else None,
+            )
+        )
+    return results
+
+
+def _get_semester_stats_query(db: Session, study_field_id: int) -> list[Any]:
+    return (
+        db.query(
+            course_models.Curriculum_course.semester,
+            func.count(func.distinct(course_models.Curriculum_course.major)).label(
+                "spec_count"
+            ),
+            func.count(
+                func.distinct(course_models.Curriculum_course.elective_block)
+            ).label("elec_count"),
+            func.count(
+                func.distinct(
+                    case(
+                        (
+                            (models.Groups.major.is_(None))
+                            & (models.Groups.elective_block.is_(None)),
+                            models.Groups.id,
+                        ),
+                        else_=None,
+                    )
+                )
+            ).label("base_groups_count"),
+        )
+        .join(
+            course_models.Study_program,
+            course_models.Curriculum_course.study_program
+            == course_models.Study_program.id,
+        )
+        .outerjoin(
+            models.Groups, models.Groups.study_program == course_models.Study_program.id
+        )
+        .filter(course_models.Study_program.study_field == study_field_id)
+        .group_by(course_models.Curriculum_course.semester)
+        .order_by(course_models.Curriculum_course.semester)
+        .all()
+    )
