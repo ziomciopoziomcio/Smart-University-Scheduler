@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
 from helpers.db_seeder.generators.students import generate_students
-from src.database.database import SessionLocal, get_db
-from src.database.base import Base
+from backend.src.database.database import SessionLocal, get_db
+from backend.src.database.base import Base
 
 
 from helpers.db_seeder.generators.academics import generate_units
