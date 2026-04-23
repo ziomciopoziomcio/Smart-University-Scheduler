@@ -782,7 +782,7 @@ def delete_calendar_day(
 
 
 @router.get(
-    "/study-fields/{study_field_id}/semesters/summary",
+    "/semesters/summary/by-study-field/{study_field_id}",
     response_model=list[schemas.StudyFieldSemesterSummary],
 )
 def get_study_field_semester_summary(
