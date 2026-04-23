@@ -21,9 +21,9 @@ def _map_students_to_study_programs(
         if sp_id not in mapping:
             mapping[sp_id] = []
 
-        l = mapping[sp_id]
-        l.append(s_obj)
-        mapping[sp_id] = l
+        list_of_students = mapping[sp_id]
+        list_of_students.append(s_obj)
+        mapping[sp_id] = list_of_students
 
     return mapping
 
@@ -134,7 +134,7 @@ def assign_students_to_common_groups(
         s_idx = 0
         exit_cond = False
         for group_obj in sp_groups:
-            for i in range(1, group_size + 1):
+            for _ in range(1, group_size + 1):
                 curr_student_obj = sp_students[s_idx]
                 s_idx += 1
 
