@@ -1,4 +1,3 @@
-import enum
 import re
 import uuid
 from datetime import datetime, date
@@ -16,6 +15,7 @@ from pydantic import (
 from .models import AbsenceStatus
 from .models import SuggestionStatus
 from ..academics.models import SemesterType
+from ..courses.models import ClassType
 
 
 class BaseSchema(BaseModel):
@@ -95,19 +95,10 @@ class EmployeeAbsenceUpdate(BaseModel):
         return self
 
 
-class ScheduleTileVariant(str, enum.Enum):
-    LECTURE = "Lecture"
-    TUTORIALS = "Tutorials"
-    LABORATORY = "Laboratory"
-    SEMINAR = "Seminar"
-    OTHER = "Other"
-    ELEARNING = "E-learning"
-
-
 class ScheduleEntry(BaseSchema):
     id: str
     title: str
     date: date
     startTime: str
     endTime: str
-    variant: ScheduleTileVariant
+    variant: ClassType
