@@ -127,7 +127,9 @@ def create_major(
 def list_majors(
     study_field: int | None = Query(None),
     major_name: str | None = Query(None, min_length=1),
-    semester: int | None = Query(None, description="Filter groups by semester"),
+    semester: int | None = Query(
+        None, description="Compute group_count for the given semester"
+    ),
     limit: int | None = Query(MAJOR_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
