@@ -100,7 +100,7 @@ def list_study_fields(
                 row.language.value if hasattr(row.language, "value") else row.language
             ),
             mode=row.mode.value if hasattr(row.mode, "value") else row.mode,
-            semesters_count=row.semester_count or 0,
+            semesters_count=row.semesters_count or 0,
             specializations_count=row.specializations_count or 0,
         )
         for row in rows
