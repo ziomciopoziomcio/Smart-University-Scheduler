@@ -202,7 +202,7 @@ def create_elective_block(
 )
 def list_elective_blocks(
     study_field: int | None = Query(None),
-    semester: int | None = Query(None),
+    semester: int | None = Query(None, gt=0),
     elective_block_name: str | None = Query(None, min_length=1),
     limit: int | None = Query(ELECTIVE_BLOCK_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
