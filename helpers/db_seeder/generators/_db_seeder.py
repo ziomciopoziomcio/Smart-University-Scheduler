@@ -9,6 +9,7 @@ from helpers.db_seeder.generators.groups import (
     generate_major_groups,
     assign_students_to_major_groups,
     generate_elective_groups,
+    assign_students_to_elective_groups,
 )
 from helpers.db_seeder.generators.students import generate_students
 from src.database.database import SessionLocal, get_db
@@ -210,6 +211,15 @@ db_elective_groups = generate_elective_groups(
     db_elective_blocks=db_elective_blocks,
     db_curr_courses=db_elective_curr_courses,
     group_size=15,
+)
+session.commit()
+
+
+assign_students_to_elective_groups(
+    session=session,
+    db_elective_groups=db_elective_groups,
+    db_students=db_students,
+    db_study_programs=db_study_programs,
 )
 session.commit()
 
