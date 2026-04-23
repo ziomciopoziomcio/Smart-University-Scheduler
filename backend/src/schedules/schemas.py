@@ -1,3 +1,4 @@
+import enum
 import re
 import uuid
 from datetime import datetime, date
@@ -92,3 +93,21 @@ class EmployeeAbsenceUpdate(BaseModel):
             if self.start_date > self.end_date:
                 raise ValueError("Start date must be before end date.")
         return self
+
+
+class ScheduleTileVariant(str, enum.Enum):
+    LECTURE = "Lecture"
+    TUTORIALS = "Tutorials"
+    LABORATORY = "Laboratory"
+    SEMINAR = "Seminar"
+    OTHER = "Other"
+    ELEARNING = "E-learning"
+
+
+class ScheduleEntry(BaseSchema):
+    id: str
+    title: str
+    date: date
+    startTime: str
+    endTime: str
+    variant: ScheduleTileVariant
