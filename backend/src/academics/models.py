@@ -78,7 +78,7 @@ class Groups(Base):
     elective_block: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("elective_block.id")
     )  # Major and elective_block can't be set at the same time
-    semester: Mapped[int] = mapped_column(Integer)
+    semester: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
 
     __table_args__ = (
         CheckConstraint(
