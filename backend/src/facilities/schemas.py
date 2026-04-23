@@ -90,6 +90,8 @@ class FacultyCreate(FacultyBase):
 
 class FacultyRead(FacultyBase):
     id: int
+    lecturers_count: Annotated[int, Field(ge=0)] = 0
+    students_count: Annotated[int, Field(ge=0)] = 0
 
 
 class FacultyUpdate(BaseModel):
