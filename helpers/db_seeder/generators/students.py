@@ -101,7 +101,7 @@ def _get_email_by_user_id(
     for user_obj in db_not_teachers.values():
         if user_obj.id == u_id:
             return user_obj.email
-    return "error"
+    raise KeyError(f"User with id {u_id} not found")
 
 
 def _get_study_program_name_by_id(
@@ -110,7 +110,7 @@ def _get_study_program_name_by_id(
     for sp_obj in db_study_programs.values():
         if sp_obj.id == sp_id:
             return sp_obj.program_name
-    return "error"
+    raise KeyError(f"Study program with id {sp_id} not found")
 
 
 def generate_students(
