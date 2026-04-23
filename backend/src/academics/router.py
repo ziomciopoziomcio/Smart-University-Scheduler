@@ -949,3 +949,35 @@ def _get_semester_stats_query(db: Session, study_field_id: int) -> list[Any]:
         .order_by(course_models.Curriculum_course.semester)
         .all()
     )
+
+
+@router.get(
+    "/faculties/{faculty_id}/instructors", response_model=list[schemas.CourseInstructor]
+)
+def get_faculty_instructors(
+    faculty_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("instructors:view")),
+):
+    """
+    Get list of instructors for a given faculty.
+    :param faculty_id: ID of the faculty to get instructors for
+    :param db: Database session
+    :param _current_user: Currently authenticated user
+    :return: List of instructors belonging to the specified faculty
+    """
+
+    _get_or_404(db, facilities_models.Faculty, faculty_id, "Faculty")
+    instructors = (
+        db.query(
+            models.Employees.id,
+            user_models.Users.name,
+            user_models.Users.surname,
+            user_models.Users.degree,
+        )
+        .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
+        .filter(models.Employees.faculty_id == faculty_id)
+        .order_by(user_models.Users.surname, user_models.Users.name)
+        .all()
+    )
+    return instructors
