@@ -181,3 +181,9 @@ class StudyFieldSemesterSummary(BaseSchema):
     groups_count: int
     specializations_count: int | None = None
     elective_blocks_count: int | None = None
+      
+      
+class StudyPlanGroupSummary(BaseSchema):
+    id: int
+    group_name: str = Field(..., max_length=255)
+    academic_year: str = Field(..., max_length=20, examples=["2025/2026"])
