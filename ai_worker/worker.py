@@ -369,6 +369,62 @@ async def process_task(
             )
 
 
+async def process_reschedule_task(
+    task_data: dict,
+    neo4j_prov: Neo4jProvider,
+    producer: AIOKafkaProducer,
+) -> None:
+    """
+    Handler for rescheduling tasks triggered by schedule update events.
+    This function listens for events indicating that a class session has been rescheduled
+    (e.g., due to a room change or time change) and updates the Neo4j graph accordingly.
+    It may also trigger re-evaluation of the schedule if necessary and publish results back to Kafka.
+    :param task_data: Dictionary containing details about the rescheduling event. Expected keys may include:
+    :param neo4j_prov: Neo4jProvider instance used to interact with the Neo4j database,
+    allowing the function to update the graph with new scheduling information.
+    :param producer: AIOKafkaProducer instance used to publish any necessary results or notifications back to Kafka after processing the rescheduling event.
+    :return: None
+    """
+    suggestion_id = task_data.get("suggestion_id")
+    class_session_id = task_data.get("class_session_id")
+    result_topic = os.getenv("KAFKA_RESULT_TOPIC", "schedule.optimization.results")
+
+    logger.info(
+        f"Starting rescheduling task {suggestion_id} for session {class_session_id}"
+    )
+
+    try:
+        await neo4j_prov.save_class_session(task_data)
+
+        await producer.send_and_wait(
+            result_topic,
+            {
+                "task_id": suggestion_id,
+                "status": "COMPLETED",
+                "message": f"Successfully rescheduled {suggestion_id} for session {class_session_id}",
+                "type": "RESCHEDULE_UPDATE",
+            },
+        )
+        logger.info(f"Task {suggestion_id} rescheduled successfully")
+
+    except Exception as e:
+        logger.exception(f"Critical error: {e}")
+        try:
+            await producer.send_and_wait(
+                result_topic,
+                {
+                    "task_id": suggestion_id,
+                    "status": "FAILED",
+                    "error": str(e),
+                    "type": "RESCHEDULE_UPDATE",
+                },
+            )
+        except Exception as ex:
+            logger.exception(
+                f"Failed to publish failure result for reschedule task: {ex}"
+            )
+
+
 async def main() -> None:
     """
     Main function
@@ -377,6 +433,7 @@ async def main() -> None:
     kafka_url = os.getenv("KAFKA_URL", "kafka:29092")
     consumer = AIOKafkaConsumer(
         "schedule.optimization.requests",
+        "schedule.session.reschedule",
         bootstrap_servers=kafka_url,
         group_id="smart_scheduler_ai_group",
         value_deserializer=lambda m: json.loads(m.decode("utf-8")),
@@ -410,7 +467,12 @@ async def main() -> None:
 
     try:
         async for msg in consumer:
-            await process_task(msg.value, data_provider, neo4j_provider, producer)
+            if msg.topic == "schedule.optimization.requests":
+                await process_task(msg.value, data_provider, neo4j_provider, producer)
+            elif msg.topic == "schedule.session.reschedule":
+                await process_reschedule_task(msg.value, neo4j_provider, producer)
+            else:
+                logger.warning(f"Received message for unknown topic {msg.topic}")
     finally:
         await consumer.stop()
         await producer.stop()

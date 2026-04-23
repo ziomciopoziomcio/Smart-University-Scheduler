@@ -10,13 +10,13 @@ from . import schemas
 from ..academics import models as ac_mod
 from ..common.kafka_client import send_event
 from ..common.pagination.pagination import PaginatedResponse, paginate
+from ..common.require_permission import require_permission
 from ..common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
 )
 from ..database.database import get_db
-from ..common.require_permission import require_permission
 from ..users import models as user_models
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
@@ -132,11 +132,10 @@ def get_schedule_suggestion(suggestion_id: int, db: Session = Depends(get_db)):
 @router.patch(
     "/suggestions/{suggestion_id}", response_model=schemas.ScheduleSuggestionRead
 )
-def resolve_schedule_suggestion(
+async def resolve_schedule_suggestion(
     suggestion_id: int,
     payload: schemas.ScheduleSuggestionUpdate,
     db: Session = Depends(get_db),
-    # TODO: neo4j_driver
 ):
     obj = _get_or_404(
         db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
@@ -161,14 +160,34 @@ def resolve_schedule_suggestion(
             detail=f"Invalid target status. Suggestion status must be one of {allowed_str}",
         )
 
-    obj.status = payload.status
-    obj.resolved_at = datetime.now(timezone.utc)
-
-    # TODO: Neo4j implementation
+    obj.status, obj.resolved_at = payload.status, datetime.now(timezone.utc)
 
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
+
+    if payload.status == models.SuggestionStatus.ACCEPTED:
+        event_message = {
+            "suggestion_id": suggestion_id,
+            "class_session_id": str(obj.target_class_session_id),
+            "new_room_id": obj.state_after.get("proposed_room_id"),
+            "new_timeslot_id": obj.state_after.get("proposed_timeslot_id"),
+        }
+        try:
+            if not await send_event(
+                topic="schedule.session.reschedule", msg=event_message
+            ):
+                raise RuntimeError("Kafka emission returned False")
+        except Exception as e:
+            logger.error(f"Failed to reschedule {suggestion_id}: {e}")
+            obj.status, obj.resolved_at = models.SuggestionStatus.PENDING, None
+            db.add(obj)
+            _commit_or_rollback(db)
+            raise HTTPException(
+                status.HTTP_503_SERVICE_UNAVAILABLE,
+                f"Failed to reschedule {suggestion_id}",
+            )
+
     return obj
 
 
