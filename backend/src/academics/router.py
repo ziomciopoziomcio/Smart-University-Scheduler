@@ -952,7 +952,8 @@ def _get_semester_stats_query(db: Session, study_field_id: int) -> list[Any]:
 
 
 @router.get(
-    "/faculties/{faculty_id}/instructors", response_model=list[schemas.CourseInstructor]
+    "/instructors/by-faculty/{faculty_id}",
+    response_model=list[schemas.CourseInstructor],
 )
 def get_faculty_instructors(
     faculty_id: int,
