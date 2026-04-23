@@ -322,9 +322,7 @@ def assign_students_to_major_groups(
                         student=s_obj.id,
                     )
                     session.add(gm_obj)
-                    db_major_group_members[(g_obj.id, s_obj.id)] = (
-                        gm_obj
-                    )
+                    db_major_group_members[(g_obj.id, s_obj.id)] = gm_obj
 
                     # update counters
                     s_idx += 1
