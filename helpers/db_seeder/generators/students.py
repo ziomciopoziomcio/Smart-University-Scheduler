@@ -151,7 +151,9 @@ def generate_students(
 
         email = _get_email_by_user_id(db_not_teachers, s_obj.user_id)
         major = _get_major_name_by_id(db_majors, s_obj.major)
-        program_name = _get_study_program_name_by_id(db_study_programs, s_obj.study_program)
+        program_name = _get_study_program_name_by_id(
+            db_study_programs, s_obj.study_program
+        )
         db_students[(email, program_name, major)] = s_obj
     session.flush()
     return db_students
