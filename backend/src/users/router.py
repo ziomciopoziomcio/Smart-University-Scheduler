@@ -273,7 +273,6 @@ def list_roles(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("roles:view")),
 ):
-    users_subq = (
     query = (
         db.query(
             models.Roles,
