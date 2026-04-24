@@ -20,7 +20,9 @@ export function ScheduleStudentFacultyView({data}: ScheduleStudentFacultyViewPro
             hideMenu
             getTitle={(item) => item.faculty_short}
             getSubtitle={(item) => item.faculty_name}
-            onItemClick={(item) => navigate(`/schedules/study/faculty/${item.id}/field`)}
+            onItemClick={(item) => {
+                navigate(`/schedules/study/faculty/${item.id}/field`);
+            }}
         />
     );
 }

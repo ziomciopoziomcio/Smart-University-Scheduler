@@ -114,9 +114,9 @@ export default function EmployeeSchedulePage() {
         return [
             {label: intl.formatMessage({id: 'plans.plans'}), path: '/plans'},
             {label: intl.formatMessage({id: 'plans.lecturerPlan.title'}), path: '/schedules/lecturers/faculty'},
-            {label: facultyName || facultyId || '...', path: `/schedules/lecturers/faculty/${facultyId}/unit`},
-            {label: unitName || unitId || '...', path: `/schedules/lecturers/faculty/${facultyId}/unit/${unitId}/lecturer`},
-            {label: lecturerLabel || lecturerId || '...', path: ""},
+            {label: facultyName ?? facultyId ?? '...', path: `/schedules/lecturers/faculty/${facultyId}/unit`},
+            {label: unitName ?? unitId ?? '...', path: `/schedules/lecturers/faculty/${facultyId}/unit/${unitId}/lecturer`},
+            {label: lecturerLabel ?? lecturerId ?? '...', path: ""},
         ];
     }, [intl, facultyId, unitId, lecturerId, facultyName, unitName, lecturerLabel]);
 

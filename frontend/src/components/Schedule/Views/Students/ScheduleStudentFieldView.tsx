@@ -17,14 +17,14 @@ interface ScheduleStudentFieldViewProps {
 }
 
 export function ScheduleStudentFieldView({
-                                                  data,
-                                                  facultyId,
-                                                  page,
-                                                  pageSize,
-                                                  totalItems,
-                                                  onPageChange,
-                                                  onPageSizeChange
-                                              }: ScheduleStudentFieldViewProps) {
+                                             data,
+                                             facultyId,
+                                             page,
+                                             pageSize,
+                                             totalItems,
+                                             onPageChange,
+                                             onPageSizeChange
+                                         }: ScheduleStudentFieldViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 
@@ -38,7 +38,9 @@ export function ScheduleStudentFieldView({
                 columns={[
                     {render: (item) => item.study_mode || '—', variant: 'secondary', width: '150px'}
                 ]}
-                onItemClick={(item) => navigate(`/schedules/study/faculty/${facultyId}/field/${item.id}/semester`)}
+                onItemClick={(item) => {
+                    navigate(`/schedules/study/faculty/${facultyId}/field/${item.id}/semester`);
+                }}
                 emptyMessage={intl.formatMessage({id: 'plans.studentsPlan.noFields', defaultMessage: 'Brak kierunków'})}
                 hideDividerOnLastItem
             />

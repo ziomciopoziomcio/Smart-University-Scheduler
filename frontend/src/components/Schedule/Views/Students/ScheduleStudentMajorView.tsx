@@ -47,7 +47,9 @@ export function ScheduleStudentMajorView({
                         })}`, variant: 'secondary', width: '150px'
                     }
                 ]}
-                onItemClick={(item) => navigate(`/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/major/${item.id}/group`)}
+                onItemClick={(item) => {
+                    navigate(`/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/major/${item.id}/group`);
+                }}
                 emptyMessage={intl.formatMessage({
                     id: 'schedules.studentsSchedule.studyMajor.noMajors',
                     defaultMessage: 'Brak kierunków dyplomowania'

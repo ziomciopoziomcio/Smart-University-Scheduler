@@ -19,7 +19,9 @@ export function ScheduleEmployeeFacultyView({data}: ScheduleEmployeeFacultyViewP
             hideAdd hideMenu
             getTitle={(item) => item.faculty_short}
             getSubtitle={(item) => item.faculty_name}
-            onItemClick={(item) => navigate(`/schedules/lecturers/faculty/${item.id}/unit`)}
+            onItemClick={(item) => {
+                navigate(`/schedules/lecturers/faculty/${item.id}/unit`);
+            }}
         />
     );
 }

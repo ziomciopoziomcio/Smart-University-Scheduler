@@ -18,8 +18,8 @@ interface ScheduleBuildingViewProps {
 }
 
 export function ScheduleBuildingView({
-                                              data, campusId, page, pageSize, totalItems, onPageChange, onPageSizeChange
-                                          }: ScheduleBuildingViewProps) {
+                                         data, campusId, page, pageSize, totalItems, onPageChange, onPageSizeChange
+                                     }: ScheduleBuildingViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 
@@ -49,7 +49,9 @@ export function ScheduleBuildingView({
                 getTitle={(item: Building) => `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${item.building_number}`}
                 titleWidth="150px"
                 columns={columns}
-                onItemClick={(item) => navigate(`/schedules/rooms/campus/${campusId}/building/${item.id}/room`)}
+                onItemClick={(item) => {
+                    navigate(`/schedules/rooms/campus/${campusId}/building/${item.id}/room`);
+                }}
                 emptyMessage={intl.formatMessage({id: 'facilities.common.noData'})}
                 hideDividerOnLastItem
             />

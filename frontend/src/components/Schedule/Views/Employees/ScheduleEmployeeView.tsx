@@ -17,15 +17,15 @@ interface ScheduleEmployeeViewProps {
 }
 
 export function ScheduleEmployeeView({
-                                              data,
-                                              facultyId,
-                                              unitId,
-                                              page,
-                                              pageSize,
-                                              totalItems,
-                                              onPageChange,
-                                              onPageSizeChange
-                                          }: ScheduleEmployeeViewProps) {
+                                         data,
+                                         facultyId,
+                                         unitId,
+                                         page,
+                                         pageSize,
+                                         totalItems,
+                                         onPageChange,
+                                         onPageSizeChange
+                                     }: ScheduleEmployeeViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 
@@ -50,7 +50,9 @@ export function ScheduleEmployeeView({
                         width: 140
                     },
                 ]}
-                onItemClick={(item) => navigate(`/schedules/lecturers/faculty/${facultyId}/unit/${unitId}/lecturer/${item.id}`)}
+                onItemClick={(item) => {
+                    navigate(`/schedules/lecturers/faculty/${facultyId}/unit/${unitId}/lecturer/${item.id}`);
+                }}
                 emptyMessage={intl.formatMessage({id: 'facilities.common.noData'})}
                 hideDividerOnLastItem rowSx={{px: 1, minHeight: 58}} titleSx={{minWidth: 0, width: 0, p: 0}}
             />

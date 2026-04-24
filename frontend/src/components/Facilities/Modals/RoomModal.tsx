@@ -137,7 +137,9 @@ export function RoomModal({open, buildingId, room, onClose, onSuccess}: RoomModa
                         defaultMessage: 'np. 1.05'
                     })}
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => {
+                        setName(e.target.value);
+                    }}
                     fullWidth
                     InputProps={{sx: {borderRadius: '12px'}}}
                 />
@@ -179,7 +181,9 @@ export function RoomModal({open, buildingId, room, onClose, onSuccess}: RoomModa
                             id: 'facilities.room.selectUnit',
                             defaultMessage: 'Wybierz Jednostkę (Opcjonalne)'
                         })}
-                        onChange={(e) => setSelectedUnitId(e.target.value as number)}
+                        onChange={(e) => {
+                            setSelectedUnitId(e.target.value as number);
+                        }}
                     >
                         <MenuItem value=""><em>Brak (Cały wydział)</em></MenuItem>
                         {units.map((opt) => (
@@ -195,7 +199,9 @@ export function RoomModal({open, buildingId, room, onClose, onSuccess}: RoomModa
                         type="number"
                         label={intl.formatMessage({id: 'facilities.room.capacityLabel', defaultMessage: 'Pojemność'})}
                         value={capacity}
-                        onChange={(e) => setCapacity(Number(e.target.value))}
+                        onChange={(e) => {
+                            setCapacity(Number(e.target.value));
+                        }}
                         fullWidth
                         InputProps={{sx: {borderRadius: '12px'}}}
                     />
@@ -203,7 +209,9 @@ export function RoomModal({open, buildingId, room, onClose, onSuccess}: RoomModa
                         type="number"
                         label={intl.formatMessage({id: 'facilities.room.pcLabel', defaultMessage: 'Ilość PC'})}
                         value={pcAmount}
-                        onChange={(e) => setPcAmount(Number(e.target.value))}
+                        onChange={(e) => {
+                            setPcAmount(Number(e.target.value));
+                        }}
                         fullWidth
                         InputProps={{sx: {borderRadius: '12px'}}}
                     />
