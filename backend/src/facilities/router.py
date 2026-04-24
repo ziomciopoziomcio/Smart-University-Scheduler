@@ -373,7 +373,7 @@ def list_faculties(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("faculties:view")),
-    search: Optional[str] = Query(None),
+    search: str | None = Query(None),
 ):
     lecturers_subq = (
         db.query(func.count(ac_models.Employees.id))
