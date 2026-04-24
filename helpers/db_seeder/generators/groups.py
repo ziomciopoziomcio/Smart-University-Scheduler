@@ -221,7 +221,9 @@ def generate_major_groups(
             continue
 
         sp_id = sp_obj.id
-        students_in_sp: list = mapped_students[sp_id]
+        students_in_sp: list | None = mapped_students.get(sp_id)
+        if students_in_sp is None:
+            continue
         num_of_students = len(students_in_sp)
         # num_of_majors = len(major_ids)
 
