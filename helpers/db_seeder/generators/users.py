@@ -263,6 +263,7 @@ def generate_users(
             surname=surname,
             degree=degree,
             roles=[curr_role_obj],
+            email_verified=True,
         )
         session.add(user_obj)
         db_not_teachers[user_key] = user_obj
@@ -300,6 +301,7 @@ def generate_users(
             surname=surname,
             degree=degree,
             roles=[instructor_role_obj],
+            email_verified=True,
         )
         session.add(user_obj)
         db_teachers[user_key] = user_obj
