@@ -12,7 +12,7 @@ interface PageBreadcrumbsProps {
     sx?: SxProps<Theme>;
 }
 
-export default function PageBreadcrumbs({items, sx}: PageBreadcrumbsProps) {
+export function PageBreadcrumbs({items, sx}: PageBreadcrumbsProps) {
     return (
         <Box sx={{
             p: 2,

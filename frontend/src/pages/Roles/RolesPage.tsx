@@ -3,15 +3,9 @@ import {useParams} from 'react-router-dom';
 import {Box, Paper, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
 
-import PageBreadcrumbs, {type BreadcrumbItem} from '@components/Common/BreadCrumb.tsx';
-import SearchBar from "@components/Common/SearchBar.tsx";
-import {fetchRoles, getRole, fetchPermissions} from '@api/users';
-import {type Role, type Permission} from '@api/types';
-
-import RoleView from '@components/Roles/RoleView';
-import RoleDashboardView from '@components/Roles/RoleDashboardView';
-import RolePermissionsView from '@components/Roles/RolePermissionsView';
-import RoleUsersView from '@components/Roles/RoleUsersView';
+import {PageBreadcrumbs, type BreadcrumbItem, SearchBar} from '@components/Common';
+import {type Role, type Permission, fetchRoles, getRole, fetchPermissions} from '@api';
+import {RoleView, RoleDashboardView, RolePermissionsView, RoleUsersView} from '@components/Roles';
 
 interface RolesPageProps {
     view: 'roles' | 'dashboard' | 'permissions' | 'users';

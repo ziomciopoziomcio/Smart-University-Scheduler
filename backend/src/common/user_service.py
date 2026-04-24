@@ -56,7 +56,7 @@ def _send_verification_and_commit(
     background_tasks: BackgroundTasks,
 ):
     """
-    Schedule verification email in background and commit.
+    MySchedule verification email in background and commit.
 
     BackgroundTasks runs after the HTTP response is returned,
     so SMTP errors can't be caught here (they will be logged in send_email()).

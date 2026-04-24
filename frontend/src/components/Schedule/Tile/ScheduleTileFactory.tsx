@@ -1,4 +1,4 @@
-import type {ScheduleEntry} from '@api/types.ts';
+import {type ScheduleEntry} from '@api';
 import {
     getDayIndexFromDate,
     parseIsoDate,

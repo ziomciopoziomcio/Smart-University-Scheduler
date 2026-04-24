@@ -4,10 +4,17 @@ import {
     FormControl, InputLabel, Select, MenuItem, Autocomplete, TextField
 } from '@mui/material';
 import {useIntl} from 'react-intl';
-import {type Student, type User, type StudyProgramDetails, type MajorDetails} from '@api/types';
-import {createStudent, updateStudent} from '@api/academics';
-import {fetchUsers} from '@api/users';
-import {fetchStudyPrograms, fetchMajors} from '@api/courses';
+import {
+    type Student,
+    type User,
+    type StudyProgramDetails,
+    type MajorDetails,
+    createStudent,
+    updateStudent,
+    fetchUsers,
+    fetchStudyPrograms,
+    fetchMajors
+} from '@api';
 
 interface StudentModalProps {
     open: boolean;

@@ -1,5 +1,5 @@
 import {Box, CircularProgress, Paper} from '@mui/material';
-import type {WeekScheduleProps} from '@api/types';
+import type {WeekScheduleProps} from '@api';
 import {formatWeekRange} from './utils/dateUtils';
 import {WeekScheduleGrid} from './WeekScheduleGrid';
 import {WeekScheduleHeader} from './WeekScheduleHeader';
