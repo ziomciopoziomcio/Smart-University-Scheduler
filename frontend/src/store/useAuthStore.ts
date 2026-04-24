@@ -1,7 +1,6 @@
 import {create} from 'zustand';
 import {persist, createJSONStorage} from 'zustand/middleware';
-import {loginUser, fetchUserData} from '@api/auth';
-import type {AuthResponse, User} from '@api/types';
+import {type AuthResponse, type User, loginUser, fetchUserData} from '@api';
 
 export interface AuthState {
     token: string | null;

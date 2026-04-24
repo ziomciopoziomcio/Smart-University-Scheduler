@@ -1,6 +1,6 @@
 import CloseRounded from '@mui/icons-material/CloseRounded';
 import {Box, IconButton, Paper, Typography} from '@mui/material';
-import type {ScheduleEntry, ScheduleEntryDetails} from '@api/types';
+import type {ScheduleEntry, ScheduleEntryDetails} from '@api';
 import {getTilePaletteByVariant} from './utils/tileColorUtils';
 import {useIntl} from 'react-intl';
 

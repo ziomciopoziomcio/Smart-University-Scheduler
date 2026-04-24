@@ -1,14 +1,11 @@
 import {useState} from 'react';
 import {Box} from '@mui/material';
-import {Work, Email, AccountBalance} from '@mui/icons-material';
+import {Email, AccountBalance} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 
-import ListView from '@components/Common/ListView.tsx';
-import ActionMenu from '@components/Common/ActionMenu.tsx';
-import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog.tsx';
-import {type Employee} from '@api/types';
+import {ListView, ActionMenu, DeleteConfirmDialog, UserAvatar} from '@components/Common';
+import {type Employee, deleteEmployee} from '@api';
 import EmployeeModal from './EmployeeModal';
-import {deleteEmployee} from '@api/academics';
 
 interface EmployeeViewProps {
     data: Employee[];
@@ -45,17 +42,26 @@ export default function EmployeeView({data, onRefresh}: EmployeeViewProps) {
         <Box>
             <ListView
                 items={data}
-                icon={Work}
-                getTitle={(item: Employee) => {
-                    const validDegrees = ['none', 'inz', 'mgr', 'dr', 'dr_hab', 'prof'];
-                    const degreeLabel = item.user.degree && validDegrees.includes(item.user.degree)
-                        ? intl.formatMessage({id: `register.degrees.${item.user.degree}`}) + ' '
-                        : (item.user.degree ? item.user.degree + ' ' : '');
-
-                    return `${degreeLabel}${item.user.name} ${item.user.surname}`;
-                }}
-                titleWidth="300px"
+                getTitle={() => ''}
+                titleWidth={0}
+                titleSx={{minWidth: 0, width: 0, p: 0}}
+                rowSx={{px: 1, minHeight: 58}}
                 columns={[
+                    {
+                        render: (item: Employee) => <UserAvatar name={item.user.name} surname={item.user.surname}/>
+                    },
+                    {
+                        render: (item: Employee) => {
+                            const validDegrees = ['none', 'inz', 'mgr', 'dr', 'dr_hab', 'prof'];
+                            const degreeLabel = item.user.degree && validDegrees.includes(item.user.degree)
+                                ? intl.formatMessage({id: `register.degrees.${item.user.degree}`}) + ' '
+                                : (item.user.degree ? item.user.degree + ' ' : '');
+
+                            return `${degreeLabel}${item.user.name} ${item.user.surname}`;
+                        },
+                        variant: 'primary',
+                        width: '300px'
+                    },
                     {
                         render: (item: Employee) => item.user.email,
                         icon: Email,

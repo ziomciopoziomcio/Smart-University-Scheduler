@@ -12,10 +12,9 @@ import {
 } from '@mui/material';
 import {Check, Close, InfoOutlined} from '@mui/icons-material';
 import {FormattedMessage, useIntl, type IntlShape} from 'react-intl';
-import AuthLayout from '@components/Login/AuthLayout';
-import AuthPasswordField from '@components/Login/AuthPasswordField';
-import BackToLoginButton from '@components/Login/BackToLoginButton';
-import {resetPassword} from '@api/auth';
+
+import {AuthLayout, AuthPasswordField, BackToLoginButton} from '@components/Login';
+import {resetPassword} from '@api';
 
 
 interface StrengthProps {
@@ -30,16 +29,16 @@ interface StatusRowProps {
     messageId: string;
 }
 
-const StatusRow = ({ isValid, messageId }: StatusRowProps) => (
+const StatusRow = ({isValid, messageId}: StatusRowProps) => (
     <Stack direction="row" spacing={1} alignItems="center">
-        {isValid ? <Check color="success" sx={{ fontSize: 14 }} /> : <Close color="error" sx={{ fontSize: 14 }} />}
+        {isValid ? <Check color="success" sx={{fontSize: 14}}/> : <Close color="error" sx={{fontSize: 14}}/>}
         <Typography variant="caption" color={isValid ? "success.main" : "error.main"}>
-            <FormattedMessage id={messageId} />
+            <FormattedMessage id={messageId}/>
         </Typography>
     </Stack>
 );
 
-const StrengthBar = ({ len }: { len: number }) => {
+const StrengthBar = ({len}: { len: number }) => {
     const strengthValue = Math.min((len / 16) * 100, 100);
     const strengthColor = len < 8 ? 'error' : len < 12 ? 'warning' : 'success' as 'error' | 'warning' | 'success';
 
@@ -48,17 +47,17 @@ const StrengthBar = ({ len }: { len: number }) => {
             variant="determinate"
             value={strengthValue}
             color={strengthColor}
-            sx={{ height: 4, borderRadius: 2, mb: 2 }}
+            sx={{height: 4, borderRadius: 2, mb: 2}}
         />
     );
 };
 
-function PasswordStrengthIndicator({ len, isMinLength, isMatching, intl }: StrengthProps) {
+function PasswordStrengthIndicator({len, isMinLength, isMatching, intl}: StrengthProps) {
     return (
         <Box>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{mb: 1}}>
                 <Typography variant="caption" color="text.secondary">
-                    <FormattedMessage id="forgotPassword.passwordStrength" defaultMessage="Siła hasła" />
+                    <FormattedMessage id="forgotPassword.passwordStrength" defaultMessage="Siła hasła"/>
                 </Typography>
                 <Tooltip
                     title={intl.formatMessage({
@@ -67,15 +66,15 @@ function PasswordStrengthIndicator({ len, isMinLength, isMatching, intl }: Stren
                     })}
                     arrow
                 >
-                    <InfoOutlined sx={{ fontSize: 14, color: 'text.disabled', cursor: 'pointer' }} />
+                    <InfoOutlined sx={{fontSize: 14, color: 'text.disabled', cursor: 'pointer'}}/>
                 </Tooltip>
             </Stack>
 
-            <StrengthBar len={len} />
+            <StrengthBar len={len}/>
 
             <Stack spacing={0.5}>
-                <StatusRow isValid={isMinLength} messageId="register.validation.length" />
-                <StatusRow isValid={isMatching} messageId="register.validation.match" />
+                <StatusRow isValid={isMinLength} messageId="register.validation.length"/>
+                <StatusRow isValid={isMatching} messageId="register.validation.match"/>
             </Stack>
         </Box>
     );
@@ -100,14 +99,18 @@ function ResetPasswordPage() {
 
     useEffect(() => {
         if (!token || token.length < 43) {
-            setErrorMsg(intl.formatMessage({ id: 'forgotPassword.errorInvalidToken' }));
+            setErrorMsg(intl.formatMessage({id: 'forgotPassword.errorInvalidToken'}));
         }
     }, [token, intl]);
 
     useEffect(() => {
         if (pageStatus === 'success' && countdown > 0) {
-            const timer = setInterval(() => { setCountdown(prev => prev - 1); }, 1000);
-            return () => { clearInterval(timer); };
+            const timer = setInterval(() => {
+                setCountdown(prev => prev - 1);
+            }, 1000);
+            return () => {
+                clearInterval(timer);
+            };
         } else if (pageStatus === 'success' && countdown === 0) {
             navigate('/login');
         }
@@ -124,7 +127,7 @@ function ResetPasswordPage() {
                 setPageStatus('success');
             } catch (err: any) {
                 setPageStatus('form');
-                setErrorMsg(err.message || intl.formatMessage({ id: 'activate.error.generic' }));
+                setErrorMsg(err.message || intl.formatMessage({id: 'activate.error.generic'}));
             }
         };
 
@@ -132,14 +135,14 @@ function ResetPasswordPage() {
     };
 
     return (
-        <AuthLayout title={<FormattedMessage id="forgotPassword.title" />}>
+        <AuthLayout title={<FormattedMessage id="forgotPassword.title"/>}>
             <Stack spacing={3} width="100%">
                 {pageStatus === 'success' ? (
                     <Alert severity="success">
                         <FormattedMessage
                             id="forgotPassword.successRedirect"
                             defaultMessage="Hasło zmienione. Powrót za {countdown}s..."
-                            values={{ countdown }}
+                            values={{countdown}}
                         />
                     </Alert>
                 ) : (
@@ -156,21 +159,29 @@ function ResetPasswordPage() {
                         <form onSubmit={handleSubmit}>
                             <Stack spacing={2}>
                                 <AuthPasswordField
-                                    label={intl.formatMessage({ id: 'forgotPassword.newPassword' })}
-                                    placeholder={intl.formatMessage({ id: 'forgotPassword.newPassword' })}
+                                    label={intl.formatMessage({id: 'forgotPassword.newPassword'})}
+                                    placeholder={intl.formatMessage({id: 'forgotPassword.newPassword'})}
                                     value={password}
-                                    onChange={(e) => { setPassword(e.target.value); }}
+                                    onChange={(e) => {
+                                        setPassword(e.target.value);
+                                    }}
                                     showPassword={showPassword}
-                                    onTogglePassword={() => { setShowPassword(!showPassword); }}
+                                    onTogglePassword={() => {
+                                        setShowPassword(!showPassword);
+                                    }}
                                     disabled={pageStatus === 'loading'}
                                 />
                                 <AuthPasswordField
-                                    label={intl.formatMessage({ id: 'forgotPassword.confirmNewPassword' })}
-                                    placeholder={intl.formatMessage({ id: 'forgotPassword.confirmNewPassword' })}
+                                    label={intl.formatMessage({id: 'forgotPassword.confirmNewPassword'})}
+                                    placeholder={intl.formatMessage({id: 'forgotPassword.confirmNewPassword'})}
                                     value={password2}
-                                    onChange={(e) => { setPassword2(e.target.value); }}
+                                    onChange={(e) => {
+                                        setPassword2(e.target.value);
+                                    }}
                                     showPassword={showPassword}
-                                    onTogglePassword={() => { setShowPassword(!showPassword); }}
+                                    onTogglePassword={() => {
+                                        setShowPassword(!showPassword);
+                                    }}
                                     disabled={pageStatus === 'loading'}
                                 />
                                 <Button
@@ -182,11 +193,11 @@ function ResetPasswordPage() {
                                 >
                                     {pageStatus === 'loading'
                                         ? <CircularProgress size={24}/>
-                                        : <FormattedMessage id="forgotPassword.submitNew" />
+                                        : <FormattedMessage id="forgotPassword.submitNew"/>
                                     }
                                 </Button>
 
-                                <BackToLoginButton disabled={pageStatus === 'loading'} />
+                                <BackToLoginButton disabled={pageStatus === 'loading'}/>
                             </Stack>
                         </form>
                     </>

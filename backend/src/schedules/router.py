@@ -196,7 +196,7 @@ def list_schedule_suggestions(
 )
 def get_schedule_suggestion(suggestion_id: int, db: Session = Depends(get_db)):
     return _get_or_404(
-        db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
+        db, models.ScheduleSuggestion, suggestion_id, "MySchedule Suggestion"
     )
 
 
@@ -209,7 +209,7 @@ async def resolve_schedule_suggestion(
     db: Session = Depends(get_db),
 ):
     obj = _get_or_404(
-        db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
+        db, models.ScheduleSuggestion, suggestion_id, "MySchedule Suggestion"
     )
 
     if obj.status != models.SuggestionStatus.PENDING:
@@ -265,7 +265,7 @@ async def resolve_schedule_suggestion(
 @router.delete("/suggestions/{suggestion_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_schedule_suggestion(suggestion_id: int, db: Session = Depends(get_db)):
     obj = _get_or_404(
-        db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
+        db, models.ScheduleSuggestion, suggestion_id, "MySchedule Suggestion"
     )
     db.delete(obj)
     _commit_or_rollback(db)
