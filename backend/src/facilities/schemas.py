@@ -3,6 +3,7 @@ Data validation schemas
 """
 
 from typing import Optional, Annotated
+
 from pydantic import BaseModel, Field, StringConstraints, ConfigDict
 
 
@@ -91,6 +92,11 @@ class FacultyCreate(FacultyBase):
 
 class FacultyRead(FacultyBase):
     id: int
+
+
+class FacultyReadWithCounter(FacultyRead):
+    lecturers_count: Annotated[int, Field(ge=0)] = 0
+    students_count: Annotated[int, Field(ge=0)] = 0
 
 
 class FacultyUpdate(BaseModel):
