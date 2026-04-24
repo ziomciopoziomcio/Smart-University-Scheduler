@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
-
+from typing import Optional
 from . import models, schemas
 from ..database.database import get_db
 from src.common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
+    build_ilike_search_filter,
 )
 from src.common.pagination.pagination import paginate
 from src.common.pagination.pagination_model import PaginatedResponse
@@ -45,6 +46,7 @@ def list_campuses(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("campuses:view")),
+    search: Optional[str] = Query(None),
 ):
     query = db.query(models.Campus)
 
@@ -52,6 +54,12 @@ def list_campuses(
         query = query.filter(models.Campus.campus_name.ilike(f"%{campus_name}%"))
     if campus_short is not None:
         query = query.filter(models.Campus.campus_short.ilike(f"%{campus_short}%"))
+    if search:
+        f = build_ilike_search_filter(
+            search, columns=[models.Campus.campus_name, models.Campus.campus_short]
+        )
+        if f is not None:
+            query = query.filter(f)
 
     return paginate(query, limit, offset, models.Campus.id)
 
@@ -119,6 +127,7 @@ def list_buildings(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("buildings:view")),
+    search: Optional[str] = Query(None),
 ):
     query = db.query(models.Building)
 
@@ -130,6 +139,13 @@ def list_buildings(
         query = query.filter(
             models.Building.building_number.ilike(f"%{building_number}%")
         )
+    if search:
+        f = build_ilike_search_filter(
+            search,
+            columns=[models.Building.building_name, models.Building.building_number],
+        )
+        if f is not None:
+            query = query.filter(f)
 
     return paginate(query, limit, offset, models.Building.id)
 
@@ -201,6 +217,7 @@ def list_rooms(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("rooms:view")),
+    search: Optional[str] = Query(None),
 ):
     query = db.query(models.Room)
 
@@ -224,6 +241,10 @@ def list_rooms(
         query = query.filter(models.Room.room_capacity >= min_room_capacity)
     if max_room_capacity is not None:
         query = query.filter(models.Room.room_capacity <= max_room_capacity)
+    if search:
+        f = build_ilike_search_filter(search, columns=[models.Room.room_name])
+        if f is not None:
+            query = query.filter(f)
 
     return paginate(query, limit, offset, models.Room.id)
 
@@ -290,6 +311,7 @@ def list_faculties(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("faculties:view")),
+    search: Optional[str] = Query(None),
 ):
     query = db.query(models.Faculty)
 
@@ -297,6 +319,12 @@ def list_faculties(
         query = query.filter(models.Faculty.faculty_name.ilike(f"%{faculty_name}%"))
     if faculty_short is not None:
         query = query.filter(models.Faculty.faculty_short.ilike(f"%{faculty_short}%"))
+    if search:
+        f = build_ilike_search_filter(
+            search, columns=[models.Faculty.faculty_name, models.Faculty.faculty_short]
+        )
+        if f is not None:
+            query = query.filter(f)
 
     return paginate(query, limit, offset, models.Faculty.id)
 
