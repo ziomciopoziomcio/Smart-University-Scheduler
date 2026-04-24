@@ -1,4 +1,4 @@
-from typing import Iterable, Any
+from typing import Iterable, Any, List
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, MultipleResultsFound
 from sqlalchemy.orm import Session
@@ -167,6 +167,24 @@ def serialize_employee_nested(row: tuple[Any, Any, Any, Any]) -> dict:
         "unit_id": emp.unit_id,
     }
 
+def _build_phrase_condition(phrase_pattern: str, columns: list, extra_phrase_columns: list | None = None) -> Any:
+    """
+    Return OR(...) over all columns and optional extra_phrase_columns using ilike(phrase_pattern).
+    """
+    targets: List = list(columns)
+    if extra_phrase_columns:
+        targets.extend(extra_phrase_columns)
+    return or_(*[c.ilike(phrase_pattern) for c in targets])
+
+
+def _build_tokens_condition(tokens: list[str], columns: list) -> Any | None:
+    """
+    Build AND( OR(col ilike %token%) for each token ). Returns None if tokens length <= 1.
+    """
+    if len(tokens) <= 1:
+        return None
+    per_token = [or_(*[c.ilike(f"%{tok}%") for c in columns]) for tok in tokens]
+    return and_(*per_token)
 
 def build_ilike_search_filter(
     search: str,
@@ -199,20 +217,7 @@ def build_ilike_search_filter(
     tokens = [t for t in s.split() if t]
     phrase_pattern = f"%{s}%"
 
-    phrase_targets = list(columns)
-    if extra_phrase_columns:
-        phrase_targets.extend(extra_phrase_columns)
+    phrase_cond = _build_phrase_condition(phrase_pattern, columns, extra_phrase_columns)
+    tokens_cond = _build_tokens_condition(tokens, columns)
 
-    phrase_cond = or_(*[c.ilike(phrase_pattern) for c in phrase_targets])
-
-    if len(tokens) <= 1:
-        return phrase_cond
-
-    token_conds = []
-    for tok in tokens:
-        tok_pattern = f"%{tok}%"
-        token_conds.append(or_(*[c.ilike(tok_pattern) for c in columns]))
-
-    tokens_cond = and_(*token_conds)
-
-    return or_(phrase_cond, tokens_cond)
+    return phrase_cond if tokens_cond is None else or_(phrase_cond, tokens_cond)
