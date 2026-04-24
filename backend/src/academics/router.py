@@ -457,7 +457,7 @@ def list_groups(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("groups:view")),
-    search: Optional[str] = Query(None),
+    search: str | None = Query(None),
 ):
     query = db.query(models.Groups)
 
