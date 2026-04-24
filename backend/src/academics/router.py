@@ -69,10 +69,6 @@ def list_students(
         filters.append(models.Students.major == major)
 
     count_q = db.query(models.Students)
-    if search:
-        count_q = count_q.join(
-            user_models.Users, models.Students.user_id == user_models.Users.id
-        )
     if filters:
         count_q = count_q.filter(*filters)
 
@@ -96,9 +92,10 @@ def list_students(
         .outerjoin(course_models.Major, models.Students.major == course_models.Major.id)
     )
 
-    if search:
+    trimmed_search = (search or "").strip()
+    if trimmed_search:
         search_filter = build_ilike_search_filter(
-            search,
+            trimmed_search,
             columns=[
                 user_models.Users.name,
                 user_models.Users.surname,
@@ -111,8 +108,10 @@ def list_students(
             ],
         )
         if search_filter is not None:
+            count_q = count_q.join(
+                user_models.Users, models.Students.user_id == user_models.Users.id
+            ).filter(search_filter)
             joined_q = joined_q.filter(search_filter)
-            count_q = count_q.filter(search_filter)
 
     if filters:
         joined_q = joined_q.filter(*filters)
@@ -232,12 +231,6 @@ def list_employees(
         filters.append(models.Employees.unit_id == unit_id)
 
     count_q = db.query(models.Employees)
-    if search:
-        count_q = (
-            db.query(models.Employees)
-            .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
-            .outerjoin(models.Units, models.Employees.unit_id == models.Units.id)
-        )
     if filters:
         count_q = count_q.filter(*filters)
 
@@ -256,9 +249,10 @@ def list_employees(
         )
     )
 
-    if search:
+    trimmed_search = (search or "").strip()
+    if trimmed_search:
         search_filter = build_ilike_search_filter(
-            search,
+            trimmed_search,
             columns=[
                 user_models.Users.name,
                 user_models.Users.surname,
@@ -272,8 +266,12 @@ def list_employees(
             ],
         )
         if search_filter is not None:
+            count_q = (
+                count_q.join(user_models.Users, models.Employees.user_id == user_models.Users.id)
+                .outerjoin(models.Units, models.Employees.unit_id == models.Units.id)
+                .filter(search_filter)
+            )
             joined_q = joined_q.filter(search_filter)
-            count_q = count_q.filter(search_filter)
 
     if filters:
         joined_q = joined_q.filter(*filters)
