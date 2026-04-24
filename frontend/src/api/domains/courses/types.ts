@@ -1,3 +1,5 @@
+import {type CourseLanguage} from "@api/core";
+
 export interface CourseInstructor {
     id: number;
     name: string;
@@ -5,17 +7,39 @@ export interface CourseInstructor {
     degree?: string | null;
 }
 
-export interface Major {
+export interface MajorBase {
+    study_field: number | null;
+    major_name: string;
+}
+
+export type MajorCreate = MajorBase;
+
+export interface MajorUpdate {
+    study_field?: number | null;
+    major_name?: string;
+}
+
+export interface Major extends MajorBase{
     id: number;
     study_field: number | null;
     major_name: string;
     group_count?: number;
 }
 
-export interface ElectiveBlock {
-    id: number;
-    elective_block_name: string;
+export interface ElectiveBlockBase {
     study_field: number;
+    elective_block_name: string;
+}
+
+export interface ElectiveBlock extends ElectiveBlockBase {
+    id: number;
+}
+
+export type ElectiveBlockCreate = ElectiveBlockBase;
+
+export interface ElectiveBlockUpdate {
+    study_field?: number;
+    elective_block_name?: string;
 }
 
 export interface MajorDetails {
@@ -23,7 +47,19 @@ export interface MajorDetails {
     major_name: string;
 }
 
-export interface StudyField {
+export interface StudyFieldBase {
+    faculty: number;
+    field_name: string;
+}
+
+export type StudyFieldCreate = StudyFieldBase;
+
+export interface StudyFieldUpdate {
+    faculty?: number;
+    field_name?: string;
+}
+
+export interface StudyField extends StudyFieldBase {
     id: number;
     faculty: number;
     field_name: string;
@@ -51,4 +87,16 @@ export interface StudyPlanGroupSummary {
     id: number;
     group_name: string;
     group_code: string;
+}
+
+export interface Course {
+    name: string;
+    ects_points: number;
+    language: CourseLanguage;
+}
+
+export interface CourseFilters {
+    min_ects_points?: number;
+    max_ects_points?: number;
+    language?: CourseLanguage;
 }

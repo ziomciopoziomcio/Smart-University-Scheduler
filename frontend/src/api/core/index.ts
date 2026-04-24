@@ -1,2 +1,2 @@
 export * from './apiClient';
-export * from './types';
+export {type ClassType, type CourseLanguage, type PaginatedResponse} from './types';

@@ -1,16 +1,15 @@
 import {COURSES_URL, type PaginatedResponse, getHeaders} from '@api/core';
-import type {StudyField, StudyPlanGroupSummary} from './types';
+import type {StudyField, StudyFieldCreate, StudyPlanGroupSummary, StudyFieldUpdate} from './types';
+
 
 export const fetchStudyFields = async (
-    page = 1,
-    limit = 10,
+    limit = 100,
+    offset = 0,
     filters: {
         faculty?: number;
         field_name?: string;
     } = {}
 ): Promise<PaginatedResponse<StudyField>> => {
-    const offset = (page - 1) * limit;
-
     const query = new URLSearchParams({
         limit: limit.toString(),
         offset: offset.toString(),
@@ -22,7 +21,7 @@ export const fetchStudyFields = async (
         headers: getHeaders(),
     });
 
-    if (!response.ok) throw new Error('Failed to fetch study field');
+    if (!response.ok) throw new Error('Nie udało się pobrać listy kierunków');
     return response.json();
 };
 
@@ -30,8 +29,43 @@ export const getStudyField = async (id: number): Promise<StudyField> => {
     const response = await fetch(`${COURSES_URL}/study-fields/${id}`, {
         headers: getHeaders(),
     });
-    if (!response.ok) throw new Error('Failed to fetch data about study field');
+
+    if (!response.ok) throw new Error('Nie udało się pobrać szczegółów kierunku');
     return response.json();
+};
+
+
+export const createStudyField = async (payload: StudyFieldCreate): Promise<StudyField> => {
+    const response = await fetch(`${COURSES_URL}/study-fields`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error('Nie udało się utworzyć kierunku');
+    return response.json();
+};
+
+
+export const updateStudyField = async (id: number, payload: StudyFieldUpdate): Promise<StudyField> => {
+    const response = await fetch(`${COURSES_URL}/study-fields/${id}`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error('Nie udało się zaktualizować kierunku');
+    return response.json();
+};
+
+
+export const deleteStudyField = async (id: number): Promise<void> => {
+    const response = await fetch(`${COURSES_URL}/study-fields/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+    });
+
+    if (!response.ok) throw new Error('Nie udało się usunąć kierunku');
 };
 
 //TODO: NOT WORKING YET!!!!!!

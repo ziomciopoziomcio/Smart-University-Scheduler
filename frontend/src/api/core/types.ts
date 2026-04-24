@@ -4,3 +4,13 @@ export interface PaginatedResponse<T> {
     limit: number;
     offset: number;
 }
+
+export type CourseLanguage = 'Polish' | 'English' | 'French';
+
+export type ClassType =
+    | 'Lecture'
+    | 'Tutorials'
+    | 'Laboratory'
+    | 'Seminar'
+    | 'Other'
+    | 'E-learning';
