@@ -91,9 +91,9 @@ def _map_groups_to_study_programs(db_common_groups: dict[str, Groups]):
         if sp_id not in mapping:
             mapping[sp_id] = []
 
-        l = mapping[sp_id]
-        l.append(g_obj)
-        mapping[sp_id] = l
+        list_of_groups = mapping[sp_id]
+        list_of_groups.append(g_obj)
+        mapping[sp_id] = list_of_groups
 
     return mapping
 
