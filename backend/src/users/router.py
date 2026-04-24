@@ -2,6 +2,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy import func
 import pyotp
 import json
 import logging
@@ -14,6 +15,7 @@ from src.common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
+    build_ilike_search_filter,
 )
 from src.common.pagination.pagination import paginate
 from src.common.pagination.pagination_model import PaginatedResponse
@@ -368,6 +370,7 @@ def list_users(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("users:view")),
+    search: str | None = Query(None, min_length=1),
 ):
     query = db.query(models.Users).options(selectinload(models.Users.roles))
 
@@ -381,6 +384,24 @@ def list_users(
         query = query.filter(models.Users.surname.ilike(f"%{surname}%"))
     if degree is not None:
         query = query.filter(models.Users.degree.ilike(f"%{degree}%"))
+
+    if search:
+        f = build_ilike_search_filter(
+            search,
+            columns=[
+                models.Users.email,
+                models.Users.phone_number,
+                models.Users.name,
+                models.Users.surname,
+                models.Users.degree,
+            ],
+            extra_phrase_columns=[
+                func.concat(models.Users.name, " ", models.Users.surname),
+                func.concat(models.Users.surname, " ", models.Users.name),
+            ],
+        )
+        if f is not None:
+            query = query.filter(f)
 
     return paginate(query, limit, offset, models.Users.id)
 
