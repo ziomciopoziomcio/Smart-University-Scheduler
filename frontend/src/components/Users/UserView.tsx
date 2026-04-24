@@ -1,9 +1,9 @@
 import {useState} from 'react';
 import {Box, Chip, Tooltip} from '@mui/material';
-import {Person, Email, Badge, Shield, Security} from '@mui/icons-material';
+import {Email, Badge, Shield, Security} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 
-import {ListView, ActionMenu, DeleteConfirmDialog} from '@components/Common';
+import {ListView, ActionMenu, DeleteConfirmDialog, UserAvatar} from '@components/Common';
 import {type User, deleteUser} from '@api';
 import UserModal from './UserModal';
 
@@ -56,10 +56,19 @@ export default function UserView({data, onRefresh}: UserViewProps) {
         <Box>
             <ListView
                 items={data}
-                icon={Person}
-                getTitle={(item: User) => `${formatDegree(item.degree)}${item.name} ${item.surname}`}
-                titleWidth="250px"
+                getTitle={() => ''}
+                titleWidth={0}
+                titleSx={{minWidth: 0, width: 0, p: 0}}
+                rowSx={{px: 1, minHeight: 58}}
                 columns={[
+                    {
+                        render: (item: User) => <UserAvatar name={item.name} surname={item.surname}/>
+                    },
+                    {
+                        render: (item: User) => `${formatDegree(item.degree)}${item.name} ${item.surname}`,
+                        variant: 'primary',
+                        width: '250px'
+                    },
                     {
                         render: (item: User) => item.email,
                         icon: Email,
