@@ -105,6 +105,10 @@ class RoleRead(RoleBase):
     permissions: List[PermissionRead] = Field(default_factory=list)
 
 
+class RoleReadWithCount(RoleRead):
+    users_count: int = 0
+
+
 class RoleUpdate(BaseModel):
     role_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     permissions: Optional[List[int]] = None
