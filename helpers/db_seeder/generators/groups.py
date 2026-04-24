@@ -321,6 +321,8 @@ def assign_students_to_major_groups(
 
             # groups related to major
             groups_with_major = _get_groups_with_major(sp_groups, major_id)
+            if not groups_with_major:
+                continue
 
             while students_with_major_len > 0:
                 for g_obj in groups_with_major:
