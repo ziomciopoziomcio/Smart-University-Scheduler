@@ -44,3 +44,10 @@ export interface Unit {
     unit_short: string;
     faculty_id: number;
 }
+
+export interface StudyFieldSemesterSummary {
+    semester_number: number;
+    groups_count: number;
+    major_count?: number | null;
+    elective_blocks_count?: number | null;
+}

@@ -33,13 +33,6 @@ export interface StudyField {
     major_count?: number | null;
 }
 
-export interface StudyFieldSemesterSummary {
-    semester_number: number;
-    groups_count: number;
-    major_count?: number | null;
-    elective_blocks_count?: number | null;
-}
-
 export interface StudyProgramDetails {
     id: number;
     study_field: number;
