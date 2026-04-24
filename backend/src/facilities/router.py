@@ -399,7 +399,7 @@ def list_faculties(
         func.coalesce(students_subq, 0).label("students_count"),
     )
 
-    count_query = db.query(func.count(models.Faculty.id))
+    count_query = db.query(models.Faculty.id)
 
     if faculty_name is not None:
         filter_stmt = models.Faculty.faculty_name.ilike(f"%{faculty_name}%")
