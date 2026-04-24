@@ -1,8 +1,7 @@
 import {useState, useEffect} from 'react';
 import {Dialog, DialogContent, Typography, TextField, Button, CircularProgress, Box} from '@mui/material';
-import {createUnit, updateUnit} from '@api/structures';
 import {useIntl} from "react-intl";
-import {type Unit} from '@api/types';
+import {type Unit, createUnit, updateUnit} from '@api';
 
 interface UnitModalProps {
     open: boolean;

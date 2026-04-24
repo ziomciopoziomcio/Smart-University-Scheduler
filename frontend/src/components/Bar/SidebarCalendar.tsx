@@ -59,7 +59,7 @@ export default function SidebarCalendar({open}: { open: boolean }) {
             p: 2,
             borderRadius: '24px',
             width: '100%',
-            boxShadow: '0px 2px 12px rgba(0,0,0,0.06)'
+            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
         }}>
             <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5}}>
 

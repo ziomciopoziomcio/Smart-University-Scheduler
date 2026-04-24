@@ -1,4 +1,4 @@
-import type {StudyPlanGroupSummary} from '@api/types';
+import type {StudyPlanGroupSummary} from '@api';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

@@ -8,7 +8,7 @@ interface Props {
     onClick?: () => void;
 }
 
-function BackToLoginButton({ disabled = false, onClick }: Props) {
+export function BackToLoginButton({ disabled = false, onClick }: Props) {
     const navigate = useNavigate();
     const handleClick = () => {
         if (onClick) {

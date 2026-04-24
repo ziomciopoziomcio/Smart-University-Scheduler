@@ -1,14 +1,11 @@
 import {useState} from 'react';
 import {Box} from '@mui/material';
-import {School, Email, Book} from '@mui/icons-material';
+import {Email, Book} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 
-import ListView from '@components/Common/ListView.tsx';
-import ActionMenu from '@components/Common/ActionMenu.tsx';
-import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog.tsx';
-import {type Student} from '@api/types';
-import StudentModal from "@components/Students/StudentModal.tsx";
-import {deleteStudent} from '@api/academics';
+import {ListView, ActionMenu, DeleteConfirmDialog, UserAvatar} from '@components/Common';
+import {type Student, deleteStudent} from '@api';
+import StudentModal from "./StudentModal.tsx";
 
 interface StudentViewProps {
     data: Student[];
@@ -45,10 +42,19 @@ export default function StudentView({data, onRefresh}: StudentViewProps) {
         <Box>
             <ListView
                 items={data}
-                icon={School}
-                getTitle={(item: Student) => `${item.user.name} ${item.user.surname}`}
-                titleWidth="250px"
+                getTitle={() => ''}
+                titleWidth={0}
+                titleSx={{minWidth: 0, width: 0, p: 0}}
+                rowSx={{px: 1, minHeight: 58}}
                 columns={[
+                    {
+                        render: (item: Student) => <UserAvatar name={item.user.name} surname={item.user.surname}/>
+                    },
+                    {
+                        render: (item: Student) => `${item.user.name} ${item.user.surname}`,
+                        variant: 'primary',
+                        width: '250px'
+                    },
                     {
                         render: (item: Student) => item.user.email,
                         icon: Email,

@@ -8,7 +8,7 @@ interface Props {
     disabled?: boolean;
 }
 
-function OtpInput({length = 6, value, onChange, disabled = false}: Props) {
+export function OtpInput({length = 6, value, onChange, disabled = false}: Props) {
     const [otp, setOtp] = useState<string[]>(new Array(length).fill(''));
 
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
