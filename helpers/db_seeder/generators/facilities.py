@@ -350,7 +350,7 @@ def generate_rooms(
             "unit_short": "I21",
         },
         {
-            "room_name": "i21 E101",
+            "room_name": "i21 E11",
             "projector_availability": True,
             "pc_amount": 20,
             "room_capacity": 20,
