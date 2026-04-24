@@ -44,6 +44,7 @@ class UserRead(UserBase):
     id: int
     created_at: datetime
     roles: list[str] = Field(default_factory=list)
+    two_factor_enabled: bool
 
     @classmethod
     def _parse_single_role(cls, role: Any) -> str:
@@ -103,6 +104,10 @@ class RoleCreate(RoleBase):
 class RoleRead(RoleBase):
     id: int
     permissions: List[PermissionRead] = Field(default_factory=list)
+
+
+class RoleReadWithCount(RoleRead):
+    users_count: int = 0
 
 
 class RoleUpdate(BaseModel):

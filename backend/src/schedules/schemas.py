@@ -15,6 +15,7 @@ from pydantic import (
 from .models import AbsenceStatus
 from .models import SuggestionStatus
 from ..academics.models import SemesterType
+from ..courses.models import ClassType
 
 
 class BaseSchema(BaseModel):
@@ -107,3 +108,14 @@ class CourseDetailResponse(BaseModel):
     location: CourseLocation
     lecturer: str
     targetAudience: list[str]
+
+
+class ScheduleEntry(BaseModel):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    id: str
+    title: str
+    date: date
+    start_time: str = Field(alias="startTime")
+    end_time: str = Field(alias="endTime")
+    variant: ClassType
