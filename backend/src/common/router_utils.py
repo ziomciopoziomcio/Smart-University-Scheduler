@@ -167,7 +167,10 @@ def serialize_employee_nested(row: tuple[Any, Any, Any, Any]) -> dict:
         "unit_id": emp.unit_id,
     }
 
-def _build_phrase_condition(phrase_pattern: str, columns: list, extra_phrase_columns: list | None = None) -> Any:
+
+def _build_phrase_condition(
+    phrase_pattern: str, columns: list, extra_phrase_columns: list | None = None
+) -> Any:
     """
     Return OR(...) over all columns and optional extra_phrase_columns using ilike(phrase_pattern).
     """
@@ -185,6 +188,7 @@ def _build_tokens_condition(tokens: list[str], columns: list) -> Any | None:
         return None
     per_token = [or_(*[c.ilike(f"%{tok}%") for c in columns]) for tok in tokens]
     return and_(*per_token)
+
 
 def build_ilike_search_filter(
     search: str,

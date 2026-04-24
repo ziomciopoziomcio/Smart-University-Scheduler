@@ -134,7 +134,7 @@ def list_study_fields(
 
     return pagination_result
 
-  
+
 @router.get("/study-fields/{field_id}", response_model=schemas.StudyFieldRead)
 def get_study_field(
     field_id: int,
@@ -227,7 +227,7 @@ def list_majors(
         query = query.filter(filter_stmt)
         count_query = count_query.filter(filter_stmt)
 
-    if search: 
+    if search:
         query = query.join(
             models.Study_fields,
             models.Major.study_field == models.Study_fields.id,
@@ -705,7 +705,9 @@ def delete_course_instructor(
 
 
 # Course
-@router.post("/", response_model=schemas.CourseRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/", response_model=schemas.CourseRead, status_code=status.HTTP_201_CREATED
+)
 def create_course(
     payload: schemas.CourseCreate,
     db: Session = Depends(get_db),
@@ -818,6 +820,8 @@ def delete_course(
     db.delete(obj)
     _commit_or_rollback(db)
     return None
+
+
 # Study Programs
 @router.post(
     "/study-programs",

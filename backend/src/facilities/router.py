@@ -410,7 +410,7 @@ def list_faculties(
         filter_stmt = models.Faculty.faculty_name.ilike(f"%{faculty_name}%")
         query = query.filter(filter_stmt)
         count_query = count_query.filter(filter_stmt)
-       if faculty_short is not None:
+    if faculty_short is not None:
         filter_stmt = models.Faculty.faculty_short.ilike(f"%{faculty_short}%")
         query = query.filter(filter_stmt)
         count_query = count_query.filter(filter_stmt)
