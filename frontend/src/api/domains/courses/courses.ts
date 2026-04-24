@@ -15,7 +15,7 @@ export const fetchCourses = async (
         ...(filters.language && {language: filters.language}),
     });
 
-    const response = await fetch(`${COURSES_URL}/courses?${query.toString()}`, {
+    const response = await fetch(`${COURSES_URL}?${query.toString()}`, {
         headers: getHeaders(),
     });
 
@@ -24,7 +24,7 @@ export const fetchCourses = async (
 };
 
 export const getCourse = async (courseCode: number): Promise<Course> => {
-    const response = await fetch(`${COURSES_URL}/courses/${courseCode}`, {
+    const response = await fetch(`${COURSES_URL}/${courseCode}`, {
         headers: getHeaders(),
     });
 
@@ -33,7 +33,7 @@ export const getCourse = async (courseCode: number): Promise<Course> => {
 };
 
 export const createCourse = async (payload: Course): Promise<Course> => {
-    const response = await fetch(`${COURSES_URL}/courses`, {
+    const response = await fetch(`${COURSES_URL}`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(payload),
@@ -44,7 +44,7 @@ export const createCourse = async (payload: Course): Promise<Course> => {
 };
 
 export const updateCourse = async (courseCode: number, payload: Course): Promise<Course> => {
-    const response = await fetch(`${COURSES_URL}/courses/${courseCode}`, {
+    const response = await fetch(`${COURSES_URL}/${courseCode}`, {
         method: 'PATCH',
         headers: getHeaders(),
         body: JSON.stringify(payload),
@@ -56,7 +56,7 @@ export const updateCourse = async (courseCode: number, payload: Course): Promise
 
 
 export const deleteCourse = async (courseCode: number): Promise<void> => {
-    const response = await fetch(`${COURSES_URL}/courses/${courseCode}`, {
+    const response = await fetch(`${COURSES_URL}/${courseCode}`, {
         method: 'DELETE',
         headers: getHeaders(),
     });

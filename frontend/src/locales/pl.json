@@ -565,6 +565,26 @@
     },
     "units": {
       "empty": "Brak jednostek dla tego wydziału."
+    },
+    "courses": {
+      "add": "Dodaj Przedmiot",
+      "edit": "Edytuj Przedmiot",
+      "deleteTitle": "Usuń przedmiot",
+      "deleteDesc": "Czy na pewno chcesz usunąć przedmiot \"{name}\"? Tej operacji nie można cofnąć.",
+      "empty": "Brak przypisanych przedmiotów do tej jednostki.",
+      "nameLabel": "Nazwa Przedmiotu",
+      "namePlaceholder": "np. Analiza Matematyczna 1",
+      "codeLabel": "Kod Przedmiotu",
+      "codePlaceholder": "np. 1024",
+      "ectsLabel": "Punkty ECTS",
+      "languageLabel": "Język Wykładowy",
+      "coordinatorLabel": "Koordynator przedmiotu",
+      "coordinatorPlaceholder": "Wybierz koordynatora",
+      "coordinatorLoading": "Ładowanie pracowników...",
+      "noEmployees": "Brak dostępnych pracowników",
+      "languagePolish": "Polski",
+      "languageEnglish": "Angielski",
+      "languageFrench": "Francuski"
     }
   }
 }

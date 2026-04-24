@@ -44,7 +44,7 @@ export function DidacticsStudyFieldView({ data, facultyId, onRefresh }: Didactic
                 items={data || []}
                 icon={AutoStories}
                 getTitle={(item) => item.field_name}
-                columns={[{ render: (item) => `${intl.formatMessage({ id: 'didactics.fields.majorsCount' })}: ${item.major_count || 0}`, variant: 'secondary' }]}
+                // columns={[{ render: (item) => `${intl.formatMessage({ id: 'didactics.fields.majorsCount' })}: ${item.major_count || 0}`, variant: 'secondary' }]}
                 onItemClick={(item) => navigate(`/didactics/fields/faculty/${facultyId}/field/${item.id}`)}
                 onMenuOpen={(e, item) => { setAnchorEl(e.currentTarget); setSelectedField(item); }}
                 onAddClick={() => { setSelectedField(null); setIsModalOpen(true); }}

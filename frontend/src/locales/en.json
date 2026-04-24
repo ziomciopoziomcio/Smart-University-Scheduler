@@ -565,6 +565,27 @@
     },
     "units": {
       "empty": "No units to display."
+    },
+    "courses": {
+      "add": "Add Course",
+      "edit": "Edit Course",
+      "deleteTitle": "Delete course",
+      "deleteDesc": "Are you sure you want to delete the course \"{name}\"? This action cannot be undone.",
+      "empty": "No assigned to this Unit.",
+      "nameLabel": "Course name",
+      "namePlaceholder": "e.g. Introduction to Programming",
+      "codeLabel": "Course code",
+      "codePlaceholder": "e.g. CS101",
+      "ectsLabel": "ECTS credits",
+      "languageLabel": "Language of instruction",
+      "coordinatorLabel": "Course coordinator",
+      "coordinatorPlaceholder": "Choose course coordinator",
+      "coordinatorLoading": "Loading employees...",
+      "noEmployees": "No employees available",
+      "languagePolish": "Polish",
+      "languageEnglish": "English",
+      "languageFrench": "French"
+
     }
   }
 }

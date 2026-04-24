@@ -1,11 +1,4 @@
-import {type CourseLanguage} from "@api/core";
-
-export interface CourseInstructor {
-    id: number;
-    name: string;
-    surname: string;
-    degree?: string | null;
-}
+import {type ClassType, type CourseLanguage} from "@api/core";
 
 export interface MajorBase {
     study_field: number | null;
@@ -19,7 +12,7 @@ export interface MajorUpdate {
     major_name?: string;
 }
 
-export interface Major extends MajorBase{
+export interface Major extends MajorBase {
     id: number;
     study_field: number | null;
     major_name: string;
@@ -89,13 +82,37 @@ export interface StudyPlanGroupSummary {
     group_code: string;
 }
 
-export interface Course {
-    name: string;
+export interface CourseBase {
+    course_name: string;
     ects_points: number;
-    language: CourseLanguage;
+    leading_unit: number;
+    course_language: CourseLanguage;
+    course_coordinator: number;
+    major?: number | null;
+    elective_block?: number | null;
+}
+
+export interface Course extends CourseBase {
+    course_code: number;
+}
+
+export interface CourseCreate extends CourseBase {
+    course_code: number;
+}
+
+export type CourseUpdate = Partial<CourseBase>;
+
+export interface CourseInstructor {
+    employee: number;
+    course: number;
+    class_type: ClassType;
+    hours: number;
 }
 
 export interface CourseFilters {
+    leading_unit?: number;
+    major?: number;
+    elective_block?: number;
     min_ects_points?: number;
     max_ects_points?: number;
     language?: CourseLanguage;
