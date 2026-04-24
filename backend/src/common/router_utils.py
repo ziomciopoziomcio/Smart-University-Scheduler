@@ -244,7 +244,7 @@ def apply_filters_to_queries(query, count_query, filters: Iterable):
 
 
 def apply_search_to_queries(
-    search: Optional[str],
+    search: str | None,
     query,
     count_query,
     columns: List,
