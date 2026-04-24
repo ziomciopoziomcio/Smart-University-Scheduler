@@ -90,7 +90,7 @@ def list_study_fields(
             models.Study_fields.mode,
         )
     )
-    count_query = db.query(func.count(models.Study_fields.id))
+    count_query = db.query(models.Study_fields.id)
 
     if faculty is not None:
         filter_stmt = models.Study_fields.faculty == faculty
