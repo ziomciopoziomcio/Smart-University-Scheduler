@@ -54,10 +54,11 @@ export default function ChooseScheduleTypePage() {
                     px: {xs: 2, md: 3},
                     py: {xs: 2.5, md: 3},
                     borderRadius: 2,
-                    bgcolor: '#FBFCFF',
+                    background: '#ffffff',
                     minHeight: 140,
                     display: 'flex',
                     alignItems: 'center',
+                    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
                 }}
             >
                 <TileView

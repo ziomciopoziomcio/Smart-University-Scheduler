@@ -452,6 +452,7 @@
         }
       },
       "studySemester": {
+        "semester": "Semester",
         "searchPlaceholder": "Search semester...",
         "semesterLabel": "Semester {number}",
         "groupsCount": "{count, plural, one {# group} other {# groups}}",
