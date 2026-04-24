@@ -132,7 +132,7 @@ def list_buildings(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("buildings:view")),
-    search: Optional[str] = Query(None),
+    search: str | None = Query(None),
 ):
     rooms_subq = (
         db.query(func.count(models.Room.id))
