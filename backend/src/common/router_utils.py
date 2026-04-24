@@ -249,7 +249,7 @@ def apply_search_to_queries(
     count_query,
     columns: List,
     *,
-    extra_phrase_columns: Optional[List] = None,
+    extra_phrase_columns: list | None = None,
 ):
     """
     Build the ilike-based search condition (using build_ilike_search_filter)
