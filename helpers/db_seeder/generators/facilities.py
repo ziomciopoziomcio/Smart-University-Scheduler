@@ -1430,3 +1430,6 @@ def generate_rooms(
         )
         session.add(new_room)
         db_rooms[room["room_name"]] = new_room
+
+    session.flush()
+    return db_rooms
