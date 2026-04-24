@@ -1,4 +1,4 @@
-import {type PaginatedResponse, FACILITIES_URL, getHeaders} from "@api/core";
+import {FACILITIES_URL, getHeaders, type PaginatedResponse} from "@api/core";
 import {type Faculty} from "./types";
 
 // export const fetchFaculties = async (): Promise<PaginatedResponse<unknown>> => {
@@ -32,11 +32,11 @@ export const fetchFaculties = async (
     return response.json();
 };
 
-export const getFaculty = async (id: number): Promise<unknown> => {
+export const getFaculty = async (id: number): Promise<Faculty> => {
     const res = await fetch(`${FACILITIES_URL}/faculties/${id}`, {headers: getHeaders()});
     if (!res.ok) throw new Error('Błąd pobierania wydziału');
-    return res.json();
-};
+    return await res.json();
+}
 
 export const createFaculty = async (data: { faculty_name: string; faculty_short: string }) => {
     const res = await fetch(`${FACILITIES_URL}/faculties`, {
