@@ -125,9 +125,11 @@ def assign_students_to_common_groups(
 
     for sp_obj in db_study_programs.values():
         sp_id = sp_obj.id
-        sp_students = mapped_students[sp_id]
-        sp_groups = mapped_groups[sp_id]
+        sp_students = mapped_students.get(sp_id)
+        sp_groups = mapped_groups.get(sp_id)
 
+        if not sp_students or not sp_groups:
+            continue
         num_of_students = len(sp_students)
         # num_of_groups = len(sp_groups)
 
