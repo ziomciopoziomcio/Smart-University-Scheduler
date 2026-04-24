@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -36,8 +37,21 @@ from helpers.db_seeder.generators.users import generate_users
 
 # Base.metadata.create_all(bind=engine)
 
-ROOMS_PATH = r"..\data\rooms.json"
-PATH = r"..\..\..\helpers\data_collector\final-programy.json"
+BASE_DIR = Path(__file__).resolve().parent
+
+ROOMS_PATH = str((BASE_DIR / ".." / "data" / "rooms.json").resolve())
+PATH = str(
+    (
+        BASE_DIR
+        / ".."
+        / ".."
+        / ".."
+        / "helpers"
+        / "data_collector"
+        / "final-programy.json"
+    ).resolve()
+)
+
 PERMS_EXCEL_PATH = r"..\data\role_uprawnienia.xlsx"
 PERMS_EXCEL_SHEET = "Arkusz1"
 SEED = 1234
