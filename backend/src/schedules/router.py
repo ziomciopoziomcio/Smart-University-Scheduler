@@ -368,7 +368,7 @@ async def get_course_session_details(
     if not record:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Nie znaleziono sesji o podanym ID w bazie grafowej.",
+            detail="Session with the provided ID was not found in the graph database.",
         )
 
     return schemas.CourseDetailResponse(
