@@ -102,12 +102,14 @@ class CourseLocation(BaseModel):
 
 
 class CourseDetailResponse(BaseModel):
-    courseName: str
-    type: ClassType
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    course_name: str = Field(alias="courseName")
+    type: str
     time: str
     location: CourseLocation
     lecturer: str
-    targetAudience: list[str]
+    target_audience: list[str] = Field(alias="targetAudience")
 
 
 class ScheduleEntry(BaseModel):
