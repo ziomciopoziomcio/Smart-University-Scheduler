@@ -174,7 +174,7 @@ def _build_phrase_condition(
     """
     Return OR(...) over all columns and optional extra_phrase_columns using ilike(phrase_pattern).
     """
-    targets: List = list(columns)
+    targets: list = list(columns)
     if extra_phrase_columns:
         targets.extend(extra_phrase_columns)
     return or_(*[c.ilike(phrase_pattern) for c in targets])
