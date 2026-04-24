@@ -2,6 +2,7 @@ from typing import Iterable, Any
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, MultipleResultsFound
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, and_
 import logging
 
 logger = logging.getLogger(__name__)
@@ -165,3 +166,53 @@ def serialize_employee_nested(row: tuple[Any, Any, Any, Any]) -> dict:
         "user_id": emp.user_id,
         "unit_id": emp.unit_id,
     }
+
+
+def build_ilike_search_filter(
+    search: str,
+    columns: list,
+    *,
+    extra_phrase_columns: list | None = None,
+):
+    """
+    Build an SQLAlchemy boolean filter for case-insensitive substring search across multiple columns.
+
+    Behavior:
+    - Performs full-phrase ILIKE matching (ILIKE '%search%') against provided columns and
+      optional extra phrase expressions.
+    - If the search contains multiple whitespace-separated tokens, also requires each token
+      to appear somewhere among `columns` (AND of per-token ORs).
+    - Returns a single SQLAlchemy boolean expression usable in `Query.filter(...)`, or None
+      when the trimmed search string is empty.
+
+    :param search: str - raw user-provided search string (will be trimmed). If empty, function returns None.
+    :param columns: list - sequence of SQLAlchemy column/expression objects to search (e.g. User.name).
+    :param extra_phrase_columns: list | None - optional expressions used only for full-phrase matching
+        (e.g. func.concat(User.name, " ", User.surname)).
+    :returns: SQLAlchemy boolean expression or None - an expression suitable for `Query.filter(...)`,
+        or None when `search` is empty.
+    """
+    s = (search or "").strip()
+    if not s:
+        return None
+
+    tokens = [t for t in s.split() if t]
+    phrase_pattern = f"%{s}%"
+
+    phrase_targets = list(columns)
+    if extra_phrase_columns:
+        phrase_targets.extend(extra_phrase_columns)
+
+    phrase_cond = or_(*[c.ilike(phrase_pattern) for c in phrase_targets])
+
+    if len(tokens) <= 1:
+        return phrase_cond
+
+    token_conds = []
+    for tok in tokens:
+        tok_pattern = f"%{tok}%"
+        token_conds.append(or_(*[c.ilike(tok_pattern) for c in columns]))
+
+    tokens_cond = and_(*token_conds)
+
+    return or_(phrase_cond, tokens_cond)
