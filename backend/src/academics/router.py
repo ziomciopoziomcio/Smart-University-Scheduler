@@ -267,7 +267,9 @@ def list_employees(
         )
         if search_filter is not None:
             count_q = (
-                count_q.join(user_models.Users, models.Employees.user_id == user_models.Users.id)
+                count_q.join(
+                    user_models.Users, models.Employees.user_id == user_models.Users.id
+                )
                 .outerjoin(models.Units, models.Employees.unit_id == models.Units.id)
                 .filter(search_filter)
             )
