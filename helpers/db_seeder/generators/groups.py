@@ -303,7 +303,9 @@ def assign_students_to_major_groups(
 
     for sp_obj in db_study_programs.values():
         sp_id = sp_obj.id
-        sp_students = mapped_students[sp_id]
+        sp_students = mapped_students.get(sp_id)
+        if sp_students is None:
+            continue
         try:
             sp_groups = mapped_groups[sp_id]
         except KeyError:
