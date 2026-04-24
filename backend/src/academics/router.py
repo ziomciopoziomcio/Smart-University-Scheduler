@@ -1,5 +1,5 @@
 from datetime import date
-from typing import List, Any, Optional
+from typing import List, Any
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy import func, case
