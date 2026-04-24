@@ -2,17 +2,17 @@ from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from . import models, schemas
-from ..database.database import get_db
+from src.common.pagination.pagination import paginate
+from src.common.pagination.pagination_model import PaginatedResponse
 from src.common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
     _get_by_fields_or_404,
 )
-from src.common.pagination.pagination import paginate
-from src.common.pagination.pagination_model import PaginatedResponse
+from . import models, schemas
 from ..common.require_permission import require_permission
+from ..database.database import get_db
 from ..users import models as user_models
 from ..academics import models as ac_models
 
@@ -48,7 +48,9 @@ def create_study_field(
     return obj
 
 
-@router.get("/study-fields", response_model=PaginatedResponse[schemas.StudyFieldRead])
+@router.get(
+    "/study-fields", response_model=PaginatedResponse[schemas.StudyFieldListSummary]
+)
 def list_study_fields(
     faculty: int | None = Query(None),
     field_name: str | None = Query(None, min_length=1),
@@ -57,14 +59,59 @@ def list_study_fields(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("study-fields:view")),
 ):
-    query = db.query(models.Study_fields)
-
+    query = (
+        db.query(
+            models.Study_fields.id,
+            models.Study_fields.faculty,
+            models.Study_fields.field_name,
+            models.Study_fields.language,
+            models.Study_fields.mode,
+            func.count(func.distinct(models.Major.id)).label("specializations_count"),
+            func.max(models.Curriculum_course.semester).label("semesters_count"),
+        )
+        .outerjoin(models.Major, models.Study_fields.id == models.Major.study_field)
+        .outerjoin(
+            models.Study_program,
+            models.Study_fields.id == models.Study_program.study_field,
+        )
+        .outerjoin(
+            models.Curriculum_course,
+            models.Study_program.id == models.Curriculum_course.study_program,
+        )
+        .group_by(
+            models.Study_fields.id,
+            models.Study_fields.faculty,
+            models.Study_fields.field_name,
+            models.Study_fields.language,
+            models.Study_fields.mode,
+        )
+    )
+    count_query = db.query(func.count(models.Study_fields.id))
     if faculty is not None:
         query = query.filter(models.Study_fields.faculty == faculty)
+        count_query = count_query.filter(models.Study_fields.faculty == faculty)
     if field_name is not None:
-        query = query.filter(models.Study_fields.field_name.ilike(f"%{field_name}%"))
-
-    return paginate(query, limit, offset, models.Study_fields.id)
+        filter_stmt = models.Study_fields.field_name.ilike(f"%{field_name}%")
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
+    pagination_result = paginate(
+        query, limit, offset, order_by=models.Study_fields.id, count_query=count_query
+    )
+    pagination_result.items = [
+        schemas.StudyFieldListSummary(
+            id=row.id,
+            faculty=row.faculty,
+            field_name=row.field_name,
+            language=(
+                row.language.value if hasattr(row.language, "value") else row.language
+            ),
+            mode=row.mode.value if hasattr(row.mode, "value") else row.mode,
+            semesters_count=row.semesters_count or 0,
+            specializations_count=row.specializations_count or 0,
+        )
+        for row in pagination_result.items
+    ]
+    return pagination_result
 
 
 @router.get("/study-fields/{field_id}", response_model=schemas.StudyFieldRead)

@@ -6,7 +6,7 @@ from typing import Optional, Annotated
 
 from pydantic import BaseModel, model_validator, Field, StringConstraints, ConfigDict
 
-from .models import CourseLanguage, ClassType, FrequencyType
+from .models import CourseLanguage, ClassType, FrequencyType, StudyMode
 
 
 class BaseSchema(BaseModel):
@@ -17,6 +17,8 @@ class BaseSchema(BaseModel):
 class StudyFieldBase(BaseSchema):
     faculty: int
     field_name: Annotated[str, StringConstraints(max_length=255)]
+    language: CourseLanguage = CourseLanguage.POLISH
+    mode: StudyMode = StudyMode.FULL_TIME
 
 
 class StudyFieldCreate(StudyFieldBase):
@@ -30,6 +32,13 @@ class StudyFieldRead(StudyFieldBase):
 class StudyFieldUpdate(BaseModel):
     faculty: Optional[int] = None
     field_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    language: Optional[CourseLanguage] = None
+    mode: Optional[StudyMode] = None
+
+
+class StudyFieldListSummary(StudyFieldRead):
+    semesters_count: int
+    specializations_count: int
 
 
 # Major
