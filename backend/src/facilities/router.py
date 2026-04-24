@@ -1,4 +1,5 @@
 from typing import Optional
+
 from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -169,6 +170,7 @@ def list_buildings(
             campus_id=row.Building.campus_id,
             rooms_number=row.rooms_number,
         )
+    ]
     if search:
         f = build_ilike_search_filter(
             search,
