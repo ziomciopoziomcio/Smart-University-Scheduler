@@ -1,4 +1,4 @@
-from typing import Iterable, Any, List
+from typing import Iterable, Any
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, MultipleResultsFound
 from sqlalchemy.orm import Session
