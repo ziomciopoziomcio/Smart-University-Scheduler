@@ -49,8 +49,8 @@ export function ScheduleStudentMajorView({
                 ]}
                 onItemClick={(item) => navigate(`/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/major/${item.id}/group`)}
                 emptyMessage={intl.formatMessage({
-                    id: 'plans.studentsPlan.studySpecialization.noSpecializations',
-                    defaultMessage: 'Brak specjalizacji'
+                    id: 'schedules.studentsSchedule.studyMajor.noMajors',
+                    defaultMessage: 'Brak kierunków dyplomowania'
                 })}
                 hideDividerOnLastItem
             />

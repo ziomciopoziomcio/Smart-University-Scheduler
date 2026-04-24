@@ -19,17 +19,17 @@ interface ScheduleStudentGroupViewProps {
 }
 
 export function ScheduleStudentGroupView({
-                                                  data,
-                                                  facultyId,
-                                                  fieldOfStudyId,
-                                                  semesterId,
-                                                  majorId,
-                                                  page,
-                                                  pageSize,
-                                                  totalItems,
-                                                  onPageChange,
-                                                  onPageSizeChange
-                                              }: ScheduleStudentGroupViewProps) {
+                                             data,
+                                             facultyId,
+                                             fieldOfStudyId,
+                                             semesterId,
+                                             majorId,
+                                             page,
+                                             pageSize,
+                                             totalItems,
+                                             onPageChange,
+                                             onPageSizeChange
+                                         }: ScheduleStudentGroupViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 
@@ -45,9 +45,9 @@ export function ScheduleStudentGroupView({
                 ]}
                 onItemClick={(item) => {
                     if (majorId) {
-                        navigate(`/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/specialization/${majorId}/group/${item.id}/plan`);
+                        navigate(`/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/major/${majorId}/group/${item.id}/schedule`);
                     } else {
-                        navigate(`/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group/${item.id}/plan`);
+                        navigate(`/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group/${item.id}/schedule`);
                     }
                 }}
                 emptyMessage={intl.formatMessage({

@@ -56,7 +56,7 @@ export function ScheduleStudentSemesterView({
                     }
                 ]}
                 onItemClick={(item) => {
-                    const nextStep = item.major_count ? 'specialization' : 'group';
+                    const nextStep = item.major_count ? 'major' : 'group';
                     navigate(`/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${item.semester_number}/${nextStep}`);
                 }}
                 emptyMessage={intl.formatMessage({
