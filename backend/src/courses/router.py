@@ -737,7 +737,7 @@ def list_courses(
     search: str | None = Query(None, min_length=1),
 ):
     query = db.query(models.Course)
-    count_query = db.query(func.count(models.Course.course_code))
+    count_query = db.query(models.Course.course_code)
 
     filters = []
     if course_name is not None:
