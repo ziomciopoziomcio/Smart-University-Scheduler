@@ -103,7 +103,7 @@ class CourseLocation(BaseModel):
 
 class CourseDetailResponse(BaseModel):
     courseName: str
-    type: str
+    type: ClassType
     time: str
     location: CourseLocation
     lecturer: str
