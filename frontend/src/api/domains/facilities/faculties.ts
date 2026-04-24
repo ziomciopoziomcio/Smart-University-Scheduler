@@ -8,8 +8,8 @@ import {type Faculty} from "./types";
 // };
 
 export const fetchFaculties = async (
-    page: number = 1,
-    limit: number = 10,
+    page = 1,
+    limit = 10,
     filters: {
         faculty_name?: string;
         faculty_short?: string;

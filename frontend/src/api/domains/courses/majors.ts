@@ -2,8 +2,8 @@ import {COURSES_URL, type PaginatedResponse, getHeaders} from "@api/core";
 import type {Major} from "./types";
 
 export const fetchMajors = async (
-    page: number = 1,
-    limit: number = 100,
+    page = 1,
+    limit = 100,
     filters: {
         study_field?: number;
         major_name?: string;

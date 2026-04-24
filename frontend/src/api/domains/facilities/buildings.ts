@@ -3,8 +3,8 @@ import type {Building} from "./types";
 
 export const fetchBuildings = async (
     campusId: number,
-    limit: number = 20,
-    offset: number = 0
+    limit = 20,
+    offset = 0
 ): Promise<PaginatedResponse<Building>> => {
     const response = await fetch(
         `${FACILITIES_URL}/buildings?campus_id=${campusId}&limit=${limit}&offset=${offset}`,

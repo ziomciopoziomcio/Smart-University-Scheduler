@@ -22,7 +22,9 @@ export function ScheduleCampusView({data}: ScheduleCampusViewProps) {
             hideMenu
             getTitle={(item) => item.campus_short}
             getSubtitle={(item) => item.campus_name || undefined}
-            onItemClick={(item) => navigate(`/schedules/rooms/campus/${item.id}/building`)}
+            onItemClick={(item) => {
+                navigate(`/schedules/rooms/campus/${item.id}/building`);
+            }}
         />
     );
 }

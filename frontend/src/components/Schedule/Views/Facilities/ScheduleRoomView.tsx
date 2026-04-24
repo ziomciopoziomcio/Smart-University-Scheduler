@@ -18,15 +18,15 @@ interface ScheduleRoomViewProps {
 }
 
 export function ScheduleRoomView({
-                                          data,
-                                          campusId,
-                                          buildingId,
-                                          page,
-                                          pageSize,
-                                          totalItems,
-                                          onPageChange,
-                                          onPageSizeChange
-                                      }: ScheduleRoomViewProps) {
+                                     data,
+                                     campusId,
+                                     buildingId,
+                                     page,
+                                     pageSize,
+                                     totalItems,
+                                     onPageChange,
+                                     onPageSizeChange
+                                 }: ScheduleRoomViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 
@@ -61,9 +61,9 @@ export function ScheduleRoomView({
                 getTitle={(item: Room) => item.room_name}
                 titleWidth="180px"
                 columns={columns}
-                onItemClick={(item) =>
-                    navigate(`/schedules/rooms/campus/${campusId}/building/${buildingId}/room/${item.id}`)
-                }
+                onItemClick={(item) => {
+                    navigate(`/schedules/rooms/campus/${campusId}/building/${buildingId}/room/${item.id}`);
+                }}
                 emptyMessage={intl.formatMessage({id: 'facilities.common.noData'})}
                 hideDividerOnLastItem
             />

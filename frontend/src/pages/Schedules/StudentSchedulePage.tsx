@@ -142,15 +142,15 @@ export default function StudentSchedulePage() {
             path: '/schedules/study/faculty'
         },
         {
-            label: faculty ? (faculty.faculty_short || faculty.faculty_name) : facultyId || '...',
+            label: faculty ? (faculty.faculty_short || faculty.faculty_name) : facultyId ?? '...',
             path: `/schedules/study/faculty/${facultyId}/field`
         },
         {
-            label: field ? field.field_name : fieldOfStudyId || '...',
+            label: field ? field.field_name : fieldOfStudyId ?? '...',
             path: `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester`
         },
         {
-            label: specializationName || `${intl.formatMessage({
+            label: specializationName ?? `${intl.formatMessage({
                 id: 'plans.studentsPlan.studySemester.semester',
                 defaultMessage: 'Semestr'
             })} ${semesterId}`,
@@ -159,7 +159,10 @@ export default function StudentSchedulePage() {
                 : `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group`
         },
         {
-            label: intl.formatMessage({id: 'plans.studentsPlan.studySchedule.title', defaultMessage: 'MySchedule zajęć'}),
+            label: intl.formatMessage({
+                id: 'plans.studentsPlan.studySchedule.title',
+                defaultMessage: 'MySchedule zajęć'
+            }),
             path: ''
         }
     ], [intl, faculty, field, specializationName, facultyId, fieldOfStudyId, semesterId, specializationId]);
@@ -186,8 +189,12 @@ export default function StudentSchedulePage() {
                         entries={entries}
                         currentWeekStart={currentWeekStart}
                         isLoading={isScheduleLoading}
-                        onPrevWeek={() => setCurrentWeekStart(prev => addWeeks(prev, -1))}
-                        onNextWeek={() => setCurrentWeekStart(prev => addWeeks(prev, 1))}
+                        onPrevWeek={() => {
+                            setCurrentWeekStart(prev => addWeeks(prev, -1));
+                        }}
+                        onNextWeek={() => {
+                            setCurrentWeekStart(prev => addWeeks(prev, 1));
+                        }}
                     />
 
                     {blocks.length > 0 && (

@@ -2,8 +2,8 @@ import {getHeaders, type PaginatedResponse, ACADEMICS_URL} from '@api/core';
 import {type Group} from './types.ts';
 
 export const fetchGroups = async (
-    page: number = 1,
-    limit: number = 100,
+    page = 1,
+    limit = 100,
     filters: {
         study_program?: number;
         major?: number;

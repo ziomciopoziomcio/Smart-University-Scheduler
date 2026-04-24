@@ -2,8 +2,8 @@ import {COURSES_URL, type PaginatedResponse, getHeaders} from '@api/core';
 import type {StudyField, StudyPlanGroupSummary} from './types';
 
 export const fetchStudyFields = async (
-    page: number = 1,
-    limit: number = 10,
+    page = 1,
+    limit = 10,
     filters: {
         faculty?: number;
         field_name?: string;

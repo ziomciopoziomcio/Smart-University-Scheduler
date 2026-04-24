@@ -3,8 +3,8 @@ import type {Room} from "./types";
 
 export const fetchRooms = async (
     buildingId: number,
-    page: number = 1,
-    limit: number = 10,
+    page = 1,
+    limit = 10,
     filters: {
         room_name?: string;
         projector_availability?: boolean;

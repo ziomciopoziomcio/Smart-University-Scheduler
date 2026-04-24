@@ -3,8 +3,8 @@ import {type ElectiveBlock} from "./types";
 
 
 export const fetchElectiveBlocks = async (
-    page: number = 1,
-    limit: number = 100,
+    page = 1,
+    limit = 100,
     filters: {
         study_field?: number;
         elective_block_name?: string;
