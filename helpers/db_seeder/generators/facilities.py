@@ -1,3 +1,6 @@
+import json
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from backend.src.academics.models import Units
@@ -81,7 +84,7 @@ def generate_buildings(
     :return: a dictionary mapping campus short names to Building objects
     """
     buildings_map: dict[str, list[str]] = {
-        "A": ["A10", "A11", "A12a", "A12b", "A15"],
+        "A": ["A7", "A10", "A11", "A12a", "A12b", "A15"],
         "B": ["B9", "B18", "B19"],
         "C": ["C3", "C6", "C8"],
     }
@@ -102,6 +105,7 @@ def generate_buildings(
 
 def generate_rooms(
     session: Session,
+    sourcefile: str,
     faculties: dict[str, Faculty],
     units: dict[str, Units],
     buildings: dict[str, Building],
@@ -109,22 +113,15 @@ def generate_rooms(
     """
     Generates rooms and adds them to the database session.
     :param session: database session
+    :param sourcefile: path to JSON file containing room data
     :param faculties: faculties
     :param units: units
     :param buildings: buildings
     :return: a dictionary mapping rooms short names to Room objects
     """
-    room_map: list[dict[str, any]] = [
-        {
-            "room_name": "",
-            "projector_availability": False,
-            "pc_amount": 0,
-            "room_capacity": 15,
-            "building_short": "",
-            "faculty_short": "WEEIA",
-            "unit_short": "",
-        },  # Currently, it's just a template
-    ]
+    with open(sourcefile, "r", encoding="utf-8") as f:
+        room_map: list[dict[str, Any]] = json.load(f)
+
     db_rooms: dict[str, Room] = {}
 
     for room in room_map:
@@ -152,3 +149,6 @@ def generate_rooms(
         )
         session.add(new_room)
         db_rooms[room["room_name"]] = new_room
+
+    session.flush()
+    return db_rooms
