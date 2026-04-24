@@ -2,13 +2,10 @@ import {useState} from 'react';
 import {Box} from '@mui/material';
 import {AccountBalance} from '@mui/icons-material';
 import {useNavigate} from 'react-router-dom';
-import {deleteFaculty} from '@api/structures';
+import {deleteFaculty, type Faculty} from '@api';
 import FacultyModal from './FacultyModal';
-import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
-import TileView from "@components/Common/TileView.tsx";
+import {TileView, ActionMenu, DeleteConfirmDialog} from "@components/Common";
 import {useIntl} from "react-intl";
-import ActionMenu from "@components/Common/ActionMenu.tsx";
-import type {Faculty} from '@api/types';
 
 interface FacultyViewProps {
     data: Faculty[];
@@ -16,7 +13,7 @@ interface FacultyViewProps {
     onRefresh: () => void;
 }
 
-export default function FacultyView({data, onRefresh}: FacultyViewProps) {
+export function FacultyView({data, onRefresh}: FacultyViewProps) {
 
     const intl = useIntl();
     const navigate = useNavigate();

@@ -3,12 +3,9 @@ import {Box} from '@mui/material';
 import {Groups} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 
-import {deleteUnit} from '@api/structures';
+import {type Unit, deleteUnit} from '@api';
 import UnitModal from './UnitModal';
-import DeleteConfirmDialog from "@components/Common/DeleteConfirmDialog.tsx";
-import ListView from "@components/Common/ListView.tsx";
-import ActionMenu from "@components/Common/ActionMenu.tsx";
-import {type Unit} from '@api/types';
+import {DeleteConfirmDialog, ListView, ActionMenu} from "@components/Common";
 
 interface UnitViewProps {
     data: Unit[];
@@ -16,7 +13,7 @@ interface UnitViewProps {
     onRefresh: () => void;
 }
 
-export default function UnitView({data, facultyId, onRefresh}: UnitViewProps) {
+export function UnitView({data, facultyId, onRefresh}: UnitViewProps) {
     const intl = useIntl();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);

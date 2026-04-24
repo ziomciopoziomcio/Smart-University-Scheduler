@@ -2,11 +2,9 @@ import {useState, useEffect, useCallback} from 'react';
 import {Box, Paper, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
 
-import PageBreadcrumbs from '@components/Common/BreadCrumb.tsx';
-import SearchBar from "@components/Common/SearchBar.tsx";
+import {PageBreadcrumbs, SearchBar} from '@components/Common';
 import EmployeeView from '@components/Employees/EmployeeView';
-import {type Employee} from '@api/types';
-import {fetchEmployees} from '@api/academics';
+import {type Employee, fetchEmployees} from '@api';
 
 export default function EmployeesPage() {
     const intl = useIntl();

@@ -4,8 +4,7 @@ import {
     TextField, FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 import {useIntl} from 'react-intl';
-import {type User} from '@api/types';
-import {createUser, updateUser} from '@api/users';
+import {type User, createUser, updateUser} from '@api';
 import AuthPasswordField from '@components/Login/AuthPasswordField';
 
 interface UserModalProps {

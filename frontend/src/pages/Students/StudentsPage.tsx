@@ -2,11 +2,9 @@ import {useState, useEffect, useCallback} from 'react';
 import {Box, Paper, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
 
-import PageBreadcrumbs from '@components/Common/BreadCrumb.tsx';
-import SearchBar from "@components/Common/SearchBar.tsx";
+import {PageBreadcrumbs, SearchBar} from '@components/Common';
 import StudentView from '@components/Students/StudentView';
-import {type Student} from '@api/types';
-import {fetchStudents} from '@api/academics';
+import {type Student, fetchStudents} from '@api';
 
 export default function StudentsPage() {
     const intl = useIntl();
