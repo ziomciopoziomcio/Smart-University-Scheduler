@@ -1,7 +1,6 @@
 import {Box, CssBaseline} from '@mui/material';
 import {Outlet} from 'react-router-dom';
-import Sidebar from '@components/Bar/Sidebar';
-import Navbar from '@components/Bar/Navbar';
+import {Sidebar, Navbar} from '@components/Bar';
 import {theme} from "../../theme/theme.ts";
 
 export default function MainLayout() {
@@ -14,10 +13,11 @@ export default function MainLayout() {
                 component="main"
                 sx={{
                     flexGrow: 1,
-                    p: 4,
-                    mt: '80px',
+                    pt: "100px",
                     width: '100%',
-                    overflowX: 'hidden'
+                    overflowX: 'hidden',
+                    gap: 2,
+                    pr: 2,
                 }}
             >
                 <Outlet/>

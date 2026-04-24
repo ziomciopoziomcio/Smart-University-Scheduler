@@ -4,19 +4,16 @@ import {Security} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 import {useNavigate} from 'react-router-dom';
 
-import TileView from '@components/Common/TileView.tsx';
-import ActionMenu from '@components/Common/ActionMenu.tsx';
-import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog.tsx';
-import {type Role} from '@api/types';
-import {deleteRole} from '@api/users';
-import RoleModal from './RoleModal';
+import {TileView, ActionMenu, DeleteConfirmDialog} from '@components/Common';
+import {type Role, deleteRole} from '@api';
+import {RoleModal} from './RoleModal';
 
 interface RoleViewProps {
     data: Role[];
     onRefresh: () => void;
 }
 
-export default function RoleView({data, onRefresh}: RoleViewProps) {
+export function RoleView({data, onRefresh}: RoleViewProps) {
     const intl = useIntl();
     const navigate = useNavigate();
 

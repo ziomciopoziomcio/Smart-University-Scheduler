@@ -1,4 +1,4 @@
-import type {ScheduleEntryDetails} from '@api/types';
+import type {ScheduleEntryDetails} from '@api';
 
 export const scheduleDetailsMock: Record<string, ScheduleEntryDetails> = {
     '1': {

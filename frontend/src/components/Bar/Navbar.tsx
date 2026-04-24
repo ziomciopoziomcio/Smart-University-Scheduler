@@ -7,7 +7,7 @@ import {useNavigate} from 'react-router-dom';
 import {theme} from "../../theme/theme.ts";
 import UserAvatar from "@components/Common/UserAvatar.tsx";
 
-export default function Navbar() {
+export function Navbar() {
     const intl = useIntl();
     const navigate = useNavigate();
 
@@ -36,7 +36,7 @@ export default function Navbar() {
         <AppBar position="fixed" sx={{
             zIndex: (theme) => theme.zIndex.drawer + 1,
             background: theme.palette.gradients.brand,
-            height: 80,
+            height: "80px",
             justifyContent: 'center',
             boxShadow: 'none',
             borderRadius: 0

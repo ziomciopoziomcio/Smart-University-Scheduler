@@ -1,8 +1,7 @@
 import {useState, useEffect} from 'react';
 import {Dialog, DialogContent, Typography, Box, Button, CircularProgress, TextField} from '@mui/material';
 import {useIntl} from 'react-intl';
-import {type Role} from '@api/types';
-import {createRole, updateRole} from '@api/users';
+import {createRole, updateRole, type Role} from '@api';
 
 interface RoleModalProps {
     open: boolean;
@@ -11,7 +10,7 @@ interface RoleModalProps {
     onSuccess: () => void;
 }
 
-export default function RoleModal({open, role, onClose, onSuccess}: RoleModalProps) {
+export function RoleModal({open, role, onClose, onSuccess}: RoleModalProps) {
     const intl = useIntl();
     const isEditMode = Boolean(role);
 
