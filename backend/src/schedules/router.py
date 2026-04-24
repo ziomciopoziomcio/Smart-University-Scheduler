@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import timezone, datetime, date
+from datetime import timezone, datetime, date, timedelta
 
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -10,14 +10,16 @@ from . import schemas
 from ..academics import models as ac_mod
 from ..common.kafka_client import send_event
 from ..common.pagination.pagination import PaginatedResponse, paginate
+from ..common.require_permission import require_permission
 from ..common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
 )
 from ..database.database import get_db
-from ..common.require_permission import require_permission
 from ..users import models as user_models
+from ..database.neo4j import get_neo4j_session
+from ..courses.models import ClassType
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
 
@@ -29,6 +31,27 @@ EMPLOYEE_ABSENCE_LIMIT = 100
 
 # Schedules
 SUGGESTION_LIMIT = 50
+
+LECTURER_PLAN_ACADEMIC_QUERY = """
+    UNWIND $day_configs AS config
+    MATCH (i:Instructor {instructorId: $instructor_id})
+    WHERE ($unit_id IS NULL OR i.unitId = $unit_id)
+
+    MATCH (s:ClassSession)-[:TAUGHT_BY]->(i)
+    MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
+    MATCH (s)-[:OF_COURSE]->(c:Course)
+
+    WHERE config.week_number IN s.weeks
+
+    RETURN
+        s.sessionId AS session_id,
+        c.courseName AS title,
+        c.classType AS class_type,
+        config.physical_date AS physical_date,
+        t.startTime AS start_time,
+        t.endTime AS end_time
+    ORDER BY config.physical_date, t.startTime
+"""
 
 
 @router.post("/generate", status_code=status.HTTP_202_ACCEPTED)
@@ -132,11 +155,10 @@ def get_schedule_suggestion(suggestion_id: int, db: Session = Depends(get_db)):
 @router.patch(
     "/suggestions/{suggestion_id}", response_model=schemas.ScheduleSuggestionRead
 )
-def resolve_schedule_suggestion(
+async def resolve_schedule_suggestion(
     suggestion_id: int,
     payload: schemas.ScheduleSuggestionUpdate,
     db: Session = Depends(get_db),
-    # TODO: neo4j_driver
 ):
     obj = _get_or_404(
         db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
@@ -161,14 +183,34 @@ def resolve_schedule_suggestion(
             detail=f"Invalid target status. Suggestion status must be one of {allowed_str}",
         )
 
-    obj.status = payload.status
-    obj.resolved_at = datetime.now(timezone.utc)
-
-    # TODO: Neo4j implementation
+    obj.status, obj.resolved_at = payload.status, datetime.now(timezone.utc)
 
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
+
+    if payload.status == models.SuggestionStatus.ACCEPTED:
+        event_message = {
+            "suggestion_id": suggestion_id,
+            "class_session_id": str(obj.target_class_session_id),
+            "new_room_id": obj.state_after.get("proposed_room_id"),
+            "new_timeslot_id": obj.state_after.get("proposed_timeslot_id"),
+        }
+        try:
+            if not await send_event(
+                topic="schedule.session.reschedule", msg=event_message
+            ):
+                raise RuntimeError("Kafka emission returned False")
+        except Exception as e:
+            logger.error(f"Failed to reschedule {suggestion_id}: {e}")
+            obj.status, obj.resolved_at = models.SuggestionStatus.PENDING, None
+            db.add(obj)
+            _commit_or_rollback(db)
+            raise HTTPException(
+                status.HTTP_503_SERVICE_UNAVAILABLE,
+                f"Failed to reschedule {suggestion_id}",
+            )
+
     return obj
 
 
@@ -286,3 +328,105 @@ def delete_employee_absence(
     # TODO: KAFKA
 
     return None
+
+
+def _get_academic_day_configs(db: Session, start_date: date) -> list[dict]:
+    """
+    Academic day configs
+    :param db: Session
+    :param start_date: date
+    :return: List of dicts with keys: physical_date (str), academic_day (str), week_number (int)
+    """
+    end_date = start_date + timedelta(days=4)
+    days = (
+        db.query(ac_mod.Academic_calendar)
+        .filter(
+            ac_mod.Academic_calendar.calendar_date >= start_date,
+            ac_mod.Academic_calendar.calendar_date <= end_date,
+        )
+        .all()
+    )
+
+    neo_days = {
+        1: "Mondays",
+        2: "Tuesdays",
+        3: "Wednesdays",
+        4: "Thursdays",
+        5: "Fridays",
+        6: "Saturdays",
+        7: "Sundays",
+    }
+
+    return [
+        {
+            "physical_date": d.calendar_date.isoformat(),
+            "academic_day": neo_days.get(d.academic_day_of_week),
+            "week_number": d.week_number,
+        }
+        for d in days
+    ]
+
+
+def _parse_variant(class_type_str: str | None) -> ClassType:
+    if not class_type_str:
+        return ClassType.OTHER
+    clean_key = class_type_str.upper().replace("-", "")
+    mapping = {
+        "LECTURE": ClassType.LECTURE,
+        "TUTORIALS": ClassType.TUTORIALS,
+        "LABORATORY": ClassType.LABORATORY,
+        "SEMINAR": ClassType.SEMINAR,
+        "OTHER": ClassType.OTHER,
+        "ELEARNING": ClassType.ELEARNING,
+    }
+    return mapping.get(clean_key, ClassType.OTHER)
+
+
+@router.get("/lecturer-plan", response_model=list[schemas.ScheduleEntry])
+async def get_lecturer_plan(
+    instructor_id: int = Query(...),
+    start_date: date = Query(...),
+    unit_id: int | None = Query(None),
+    db: Session = Depends(get_db),
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(require_permission("schedule:view")),
+):
+    """
+    Get lecturer plan for a given week starting from start_date (which must be a Monday). Optionally filter by unit_id.
+    :param instructor_id: Instructor ID
+    :param start_date: Starting date of the week (must be a Monday)
+    :param unit_id: Optional unit ID to filter by
+    :param db: Session
+    :param neo4j_session: Neo4j session
+    :param _current_user: Current user (for permissions)
+    :return: List of ScheduleEntry objects representing the lecturer's plan for the week
+    """
+    if start_date.weekday() != 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="start_date must be a Monday.",
+        )
+
+    day_configs = _get_academic_day_configs(db, start_date)
+    if not day_configs:
+        return []
+
+    result = await neo4j_session.run(
+        LECTURER_PLAN_ACADEMIC_QUERY,
+        instructor_id=instructor_id,
+        unit_id=unit_id,
+        day_configs=day_configs,
+    )
+    records = await result.data()
+
+    return [
+        schemas.ScheduleEntry(
+            id=rec["session_id"],
+            title=rec["title"],
+            date=date.fromisoformat(rec["physical_date"]),
+            startTime=rec["start_time"],
+            endTime=rec["end_time"],
+            variant=_parse_variant(rec["class_type"]),
+        )
+        for rec in records
+    ]

@@ -7,10 +7,10 @@ from typing import Optional, Annotated
 
 from pydantic import BaseModel, model_validator, StringConstraints, ConfigDict, Field
 
-from .models import SemesterType
-from src.users import schemas as user_schemas
 from src.courses import schemas as courses_schemas
 from src.facilities import schemas as facilities_schemas
+from src.users import schemas as user_schemas
+from .models import SemesterType
 
 
 class BaseSchema(BaseModel):
@@ -174,3 +174,23 @@ class EmployeeNested(BaseSchema):
     faculty_id: int
     user_id: int
     unit_id: int
+
+
+class StudyFieldSemesterSummary(BaseSchema):
+    semester_number: int
+    groups_count: int
+    specializations_count: int | None = None
+    elective_blocks_count: int | None = None
+
+
+class StudyPlanGroupSummary(BaseSchema):
+    id: int
+    group_name: str = Field(..., max_length=255)
+    academic_year: str = Field(..., max_length=20, examples=["2025/2026"])
+
+
+class CourseInstructor(BaseSchema):
+    id: int
+    name: str
+    surname: str
+    degree: str | None

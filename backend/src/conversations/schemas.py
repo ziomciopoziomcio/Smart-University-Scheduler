@@ -36,3 +36,8 @@ class MessageRead(BaseSchema):
     role: MessageRole
     content: str
     created_at: datetime
+
+
+class ChatTurnResponse(BaseModel):
+    user_message: MessageRead
+    ai_message: MessageRead

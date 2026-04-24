@@ -1,5 +1,6 @@
 import logging
 import os
+import uuid
 
 import pandas as pd
 from neo4j import AsyncGraphDatabase, Query
@@ -21,7 +22,7 @@ SAVE_SCHEDULE_QUERY = Query("""
         MATCH (g:Group {groupId: row.group_id})
         MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
 
-        CREATE (s:ClassSession {weeks: row.weeks, facultyId: $faculty_id, createdAt: datetime()})
+        CREATE (s:ClassSession {sessionId: row.session_id, weeks: row.weeks, facultyId: $faculty_id, createdAt: datetime()})
         MERGE (s)-[:TAUGHT_BY]->(i)
         MERGE (s)-[:HELD_IN]->(r)
         MERGE (s)-[:FOR_GROUP]->(g)
@@ -119,7 +120,75 @@ class Neo4jProvider:
         :param session_data: A dictionary containing class session details
         :return: None
         """
-        raise NotImplementedError("save_class_session is not implemented yet.")
+        raw_class_session_id = session_data.get("class_session_id")
+        new_room_id = session_data.get("new_room_id")
+        new_timeslot_id = session_data.get("new_timeslot_id")
+
+        if raw_class_session_id is None or (
+            isinstance(raw_class_session_id, str) and not raw_class_session_id.strip()
+        ):
+            raise ValueError("class_session_id is required")
+
+        class_session_id = str(raw_class_session_id)
+        queries = []
+        parameters = {"session_id": class_session_id}
+        if new_room_id is not None:
+            queries.append(
+                {
+                    "cypher": """
+            MATCH (s:ClassSession {sessionId: $session_id})
+            MATCH (new_r:Room {roomId: $new_room_id})
+            OPTIONAL MATCH (s)-[old_rel:HELD_IN]->(:Room)
+            DELETE old_rel
+            MERGE (s)-[:HELD_IN]->(new_r)
+            RETURN s.sessionId AS updated_id
+            """,
+                    "error_msg": f"Failed to update room: ClassSession '{class_session_id}' or Room '{new_room_id}' not found in Neo4j.",
+                }
+            )
+            parameters["new_room_id"] = int(new_room_id)
+
+        if new_timeslot_id is not None:
+            queries.append(
+                {
+                    "cypher": """
+            MATCH (s:ClassSession {sessionId: $session_id})
+            MATCH (new_t:TimeSlot {timeSlotId: $new_timeslot_id})
+            OPTIONAL MATCH (s)-[old_rel:AT_TIME]->(:TimeSlot)
+            DELETE old_rel
+            MERGE (s)-[:AT_TIME]->(new_t)
+            RETURN s.sessionId AS updated_id
+            """,
+                    "error_msg": f"Failed to update timeslot: ClassSession '{class_session_id}' or TimeSlot '{new_timeslot_id}' not found in Neo4j.",
+                }
+            )
+            parameters["new_timeslot_id"] = int(new_timeslot_id)
+
+        if not queries:
+            logger.info(
+                f"No valid updates provided for ClassSession {class_session_id}."
+            )
+            return
+
+        try:
+            async with self.driver.session() as session:
+                for q_info in queries:
+                    result = await session.run(Query(q_info["cypher"]), **parameters)
+                    record = await result.single()
+                    if not record:
+                        err_msg = q_info["error_msg"]
+                        raise ValueError(
+                            f"Failed to update ClassSession {class_session_id}: {err_msg}"
+                        )
+                    await result.consume()
+                logger.info(
+                    f"Successfully updated ClassSession {class_session_id} in Neo4j."
+                )
+        except Exception as e:
+            logger.exception(
+                f"Failed to update ClassSession {class_session_id} in Neo4j: {e}"
+            )
+            raise ValueError(f"Failed to update ClassSession {class_session_id}: {e}")
 
     async def load_infrastructure(self, rooms_df: pd.DataFrame) -> None:
         """
@@ -318,6 +387,7 @@ class Neo4jProvider:
         """
         return [
             {
+                "session_id": str(uuid.uuid4()),
                 "instructor_id": int(gene.instructor_id),
                 "room_id": int(gene.room_id),
                 "group_id": int(gene.group_id),

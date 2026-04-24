@@ -1,16 +1,19 @@
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from . import models, schemas
-from ..database.database import get_db
+from src.common.pagination.pagination import paginate
+from src.common.pagination.pagination_model import PaginatedResponse
 from src.common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
 )
-from src.common.pagination.pagination import paginate
-from src.common.pagination.pagination_model import PaginatedResponse
+from . import models, schemas
+from ..academics import models as ac_models
 from ..common.require_permission import require_permission
+from ..courses import models as courses_models
+from ..database.database import get_db
 from ..users import models as user_models
 
 router = APIRouter(prefix="/facilities", tags=["facilities"])
@@ -120,18 +123,46 @@ def list_buildings(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("buildings:view")),
 ):
-    query = db.query(models.Building)
+    rooms_subq = (
+        db.query(func.count(models.Room.id))
+        .filter(models.Room.building_id == models.Building.id)
+        .scalar_subquery()
+    )
+
+    query = db.query(
+        models.Building, func.coalesce(rooms_subq, 0).label("rooms_number")
+    )
+
+    count_query = db.query(models.Building.id)
 
     if campus_id is not None:
         query = query.filter(models.Building.campus_id == campus_id)
+        count_query = count_query.filter(models.Building.campus_id == campus_id)
     if building_name is not None:
-        query = query.filter(models.Building.building_name.ilike(f"%{building_name}%"))
+        filter_stmt = models.Building.building_name.ilike(f"%{building_name}%")
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
     if building_number is not None:
-        query = query.filter(
-            models.Building.building_number.ilike(f"%{building_number}%")
-        )
+        filter_stmt = models.Building.building_number.ilike(f"%{building_number}%")
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
 
-    return paginate(query, limit, offset, models.Building.id)
+    pagination_result = paginate(
+        query, limit, offset, order_by=models.Building.id, count_query=count_query
+    )
+
+    pagination_result.items = [
+        schemas.BuildingRead(
+            id=row.Building.id,
+            building_name=row.Building.building_name,
+            building_number=row.Building.building_number,
+            campus_id=row.Building.campus_id,
+            rooms_number=row.rooms_number,
+        )
+        for row in pagination_result.items
+    ]
+
+    return pagination_result
 
 
 @router.get("/buildings/{building_id}", response_model=schemas.BuildingRead)
@@ -140,7 +171,30 @@ def get_building(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("building:view")),
 ):
-    return _get_or_404(db, models.Building, building_id, "Building")
+    rooms_subq = (
+        db.query(func.count(models.Room.id))
+        .filter(models.Room.building_id == models.Building.id)
+        .scalar_subquery()
+    )
+
+    row = (
+        db.query(models.Building, func.coalesce(rooms_subq, 0).label("rooms_number"))
+        .filter(models.Building.id == building_id)
+        .first()
+    )
+
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Building not found"
+        )
+
+    return schemas.BuildingRead(
+        id=row.Building.id,
+        building_name=row.Building.building_name,
+        building_number=row.Building.building_number,
+        campus_id=row.Building.campus_id,
+        rooms_number=row.rooms_number,
+    )
 
 
 @router.patch("/buildings/{building_id}", response_model=schemas.BuildingRead)
@@ -282,7 +336,9 @@ def create_faculty(
     return new_faculty
 
 
-@router.get("/faculties", response_model=PaginatedResponse[schemas.FacultyRead])
+@router.get(
+    "/faculties", response_model=PaginatedResponse[schemas.FacultyReadWithCounter]
+)
 def list_faculties(
     faculty_name: str | None = Query(None, min_length=1),
     faculty_short: str | None = Query(None, min_length=1),
@@ -291,23 +347,106 @@ def list_faculties(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("faculties:view")),
 ):
-    query = db.query(models.Faculty)
+    lecturers_subq = (
+        db.query(func.count(ac_models.Employees.id))
+        .filter(ac_models.Employees.faculty_id == models.Faculty.id)
+        .scalar_subquery()
+    )
+    students_subq = (
+        db.query(func.count(ac_models.Students.id))
+        .join(
+            courses_models.Study_program,
+            ac_models.Students.study_program == courses_models.Study_program.id,
+        )
+        .join(
+            courses_models.Study_fields,
+            courses_models.Study_program.study_field == courses_models.Study_fields.id,
+        )
+        .filter(courses_models.Study_fields.faculty == models.Faculty.id)
+        .scalar_subquery()
+    )
+    query = db.query(
+        models.Faculty,
+        func.coalesce(lecturers_subq, 0).label("lecturers_count"),
+        func.coalesce(students_subq, 0).label("students_count"),
+    )
+
+    count_query = db.query(func.count(models.Faculty.id))
 
     if faculty_name is not None:
-        query = query.filter(models.Faculty.faculty_name.ilike(f"%{faculty_name}%"))
+        filter_stmt = models.Faculty.faculty_name.ilike(f"%{faculty_name}%")
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
     if faculty_short is not None:
-        query = query.filter(models.Faculty.faculty_short.ilike(f"%{faculty_short}%"))
+        filter_stmt = models.Faculty.faculty_short.ilike(f"%{faculty_short}%")
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
 
-    return paginate(query, limit, offset, models.Faculty.id)
+    pagination_result = paginate(
+        query, limit, offset, order_by=models.Faculty.id, count_query=count_query
+    )
+
+    pagination_result.items = [
+        schemas.FacultyReadWithCounter(
+            id=row.Faculty.id,
+            faculty_name=row.Faculty.faculty_name,
+            faculty_short=row.Faculty.faculty_short,
+            lecturers_count=row.lecturers_count,
+            students_count=row.students_count,
+        )
+        for row in pagination_result.items
+    ]
+
+    return pagination_result
 
 
-@router.get("/faculties/{faculty_id}", response_model=schemas.FacultyRead)
+@router.get("/faculties/{faculty_id}", response_model=schemas.FacultyReadWithCounter)
 def get_faculty(
     faculty_id: int,
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("faculty:view")),
 ):
-    return _get_or_404(db, models.Faculty, faculty_id, "Faculty")
+    lecturers_subq = (
+        db.query(func.count(ac_models.Employees.id))
+        .filter(ac_models.Employees.faculty_id == models.Faculty.id)
+        .scalar_subquery()
+    )
+    students_subq = (
+        db.query(func.count(ac_models.Students.id))
+        .join(
+            courses_models.Study_program,
+            ac_models.Students.study_program == courses_models.Study_program.id,
+        )
+        .join(
+            courses_models.Study_fields,
+            courses_models.Study_program.study_field == courses_models.Study_fields.id,
+        )
+        .filter(courses_models.Study_fields.faculty == models.Faculty.id)
+        .scalar_subquery()
+    )
+
+    row = (
+        db.query(
+            models.Faculty,
+            func.coalesce(lecturers_subq, 0).label("lecturers_count"),
+            func.coalesce(students_subq, 0).label("students_count"),
+        )
+        .filter(models.Faculty.id == faculty_id)
+        .first()
+    )
+
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Faculty not found"
+        )
+
+    return schemas.FacultyReadWithCounter(
+        id=row.Faculty.id,
+        faculty_name=row.Faculty.faculty_name,
+        faculty_short=row.Faculty.faculty_short,
+        lecturers_count=row.lecturers_count,
+        students_count=row.students_count,
+    )
 
 
 @router.patch("/faculties/{faculty_id}", response_model=schemas.FacultyRead)

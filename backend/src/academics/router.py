@@ -1,7 +1,8 @@
 from datetime import date
-from typing import List
+from typing import List, Any
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
+from sqlalchemy import func, case
 from sqlalchemy.orm import Session
 
 from src.common.pagination.pagination import paginate
@@ -412,6 +413,100 @@ def list_groups(
     return paginate(query, limit, offset, models.Groups.id)
 
 
+def _build_groups_summary_query(
+    db: Session,
+    faculty_id: int,
+    study_field: int,
+    semester: int,
+    specialization_id: int | None,
+    elective_block_id: int | None,
+):
+    """
+    Builds the base query for fetching study plan groups summary based on the provided filters.
+    :param db: Session
+    :param faculty_id: Faculty id
+    :param study_field: Study field id
+    :param semester: Semester number
+    :param specialization_id: Specialization id (optional)
+    :param elective_block_id: Elective block id (optional)
+    :return: SQLAlchemy query object
+    """
+    query = (
+        db.query(models.Groups, course_models.Study_program)
+        .join(
+            course_models.Study_program,
+            models.Groups.study_program == course_models.Study_program.id,
+        )
+        .join(
+            course_models.Study_fields,
+            course_models.Study_program.study_field == course_models.Study_fields.id,
+        )
+        .join(
+            course_models.Curriculum_course,
+            course_models.Study_program.id
+            == course_models.Curriculum_course.study_program,
+        )
+        .filter(
+            course_models.Study_fields.faculty == faculty_id,
+            course_models.Study_fields.id == study_field,
+            course_models.Curriculum_course.semester == semester,
+        )
+    )
+
+    if specialization_id is not None:
+        query = query.filter(
+            models.Groups.major == specialization_id,
+            course_models.Curriculum_course.major == specialization_id,
+        )
+    elif elective_block_id is not None:
+        query = query.filter(
+            models.Groups.elective_block == elective_block_id,
+            course_models.Curriculum_course.elective_block == elective_block_id,
+        )
+    return query
+
+
+@router.get("/groups/summary", response_model=list[schemas.StudyPlanGroupSummary])
+def get_study_plan_groups_summary(
+    faculty_id: int = Query(...),
+    study_field: int = Query(...),
+    semester: int = Query(..., gt=0),
+    specialization_id: int | None = Query(None),
+    elective_block_id: int | None = Query(None),
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("groups:view")),
+):
+    """
+    Get study plan groups summary
+    :param faculty_id: ID of faculty
+    :param study_field: ID of study field
+    :param semester: ID of semester
+    :param specialization_id: ID of specialization (optional)
+    :param elective_block_id: ID of elective block (optional)
+    :param db: Session
+    :param _current_user: Current user
+    :return: List of study plan groups summary
+    """
+    if specialization_id is not None and elective_block_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot filter by both specialization and elective block",
+        )
+
+    query = _build_groups_summary_query(
+        db, faculty_id, study_field, semester, specialization_id, elective_block_id
+    )
+
+    return [
+        schemas.StudyPlanGroupSummary(
+            id=group.id,
+            group_name=group.group_name,
+            academic_year=f"{study_prog.start_year}/{int(study_prog.start_year) + 1}",
+        )
+        for group, study_prog in query.distinct().limit(1000).all()
+    ]
+
+
 @router.get("/groups/{group_id}", response_model=schemas.GroupsRead)
 def get_group(
     group_id: int,
@@ -778,3 +873,113 @@ def delete_calendar_day(
     db.delete(obj)
     _commit_or_rollback(db)
     return None
+
+
+@router.get(
+    "/semesters/summary/by-study-field/{study_field_id}",
+    response_model=list[schemas.StudyFieldSemesterSummary],
+)
+def get_study_field_semester_summary(
+    study_field_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("study-fields:view")),
+):
+    """
+    Return semester-by-semester summary data for the given study field.
+
+    The response contains one item per semester found in curriculum courses for
+    study programs belonging to the study field. ``groups_count`` is the total
+    number of regular groups in the study field, where regular groups are those
+    with neither ``major`` nor ``elective_block`` assigned. For each semester,
+    ``specializations_count`` is the number of distinct curriculum course
+    majors, and ``elective_blocks_count`` is the number of distinct curriculum
+    course elective blocks. Counts equal to zero are returned as ``None`` for
+    the semester-specific fields.
+    """
+    _get_or_404(db, course_models.Study_fields, study_field_id, "Study Field")
+
+    semester_stats = _get_semester_stats_query(db, study_field_id)
+
+    results = []
+    for semester, spec_count, elec_count, base_groups_count in semester_stats:
+        results.append(
+            schemas.StudyFieldSemesterSummary(
+                semester_number=semester,
+                groups_count=base_groups_count,
+                specializations_count=spec_count if spec_count > 0 else None,
+                elective_blocks_count=elec_count if elec_count > 0 else None,
+            )
+        )
+    return results
+
+
+def _get_semester_stats_query(db: Session, study_field_id: int) -> list[Any]:
+    return (
+        db.query(
+            course_models.Curriculum_course.semester,
+            func.count(func.distinct(course_models.Curriculum_course.major)).label(
+                "spec_count"
+            ),
+            func.count(
+                func.distinct(course_models.Curriculum_course.elective_block)
+            ).label("elec_count"),
+            func.count(
+                func.distinct(
+                    case(
+                        (
+                            (models.Groups.major.is_(None))
+                            & (models.Groups.elective_block.is_(None)),
+                            models.Groups.id,
+                        ),
+                        else_=None,
+                    )
+                )
+            ).label("base_groups_count"),
+        )
+        .join(
+            course_models.Study_program,
+            course_models.Curriculum_course.study_program
+            == course_models.Study_program.id,
+        )
+        .outerjoin(
+            models.Groups, models.Groups.study_program == course_models.Study_program.id
+        )
+        .filter(course_models.Study_program.study_field == study_field_id)
+        .group_by(course_models.Curriculum_course.semester)
+        .order_by(course_models.Curriculum_course.semester)
+        .all()
+    )
+
+
+@router.get(
+    "/instructors/by-faculty/{faculty_id}",
+    response_model=list[schemas.CourseInstructor],
+)
+def get_faculty_instructors(
+    faculty_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("employees:view")),
+):
+    """
+    Get list of instructors for a given faculty.
+    :param faculty_id: ID of the faculty to get instructors for
+    :param db: Database session
+    :param _current_user: Currently authenticated user
+    :return: List of instructors belonging to the specified faculty
+    """
+
+    _get_or_404(db, facilities_models.Faculty, faculty_id, "Faculty")
+    instructors = (
+        db.query(
+            models.Employees.id,
+            user_models.Users.name,
+            user_models.Users.surname,
+            user_models.Users.degree,
+        )
+        .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
+        .filter(models.Employees.faculty_id == faculty_id)
+        .order_by(user_models.Users.surname, user_models.Users.name)
+        .limit(1000)
+        .all()
+    )
+    return instructors
