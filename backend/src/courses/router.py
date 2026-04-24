@@ -144,7 +144,14 @@ def list_majors(
     if major_name is not None:
         query = query.filter(models.Major.major_name.ilike(f"%{major_name}%"))
     if search:
-        f = build_ilike_search_filter(search, columns=[models.Study_fields.field_name])
+        query = query.join(
+            models.Study_fields,
+            models.Major.study_field == models.Study_fields.id,
+        )
+        f = build_ilike_search_filter(
+            search,
+            columns=[models.Major.major_name, models.Study_fields.field_name],
+        )
         if f is not None:
             query = query.filter(f)
 
