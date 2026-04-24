@@ -247,7 +247,7 @@ def apply_search_to_queries(
     search: str | None,
     query,
     count_query,
-    columns: List,
+    columns: list,
     *,
     extra_phrase_columns: list | None = None,
 ):
