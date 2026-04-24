@@ -3,7 +3,6 @@ from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
 from sqlalchemy import func
 from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import func
 import pyotp
 import json
 import logging
