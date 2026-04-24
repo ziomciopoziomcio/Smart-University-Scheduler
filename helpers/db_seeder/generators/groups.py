@@ -314,12 +314,12 @@ def assign_students_to_major_groups(
         major_ids = _get_majors_from_study_program(sp_obj, db_curr_courses)
 
         for major_id in major_ids:
-            # studenci z danym major
+            # students related to major
             students_with_major = _get_students_with_major(sp_students, major_id)
             students_with_major_len = len(students_with_major)
             s_idx = 0
 
-            # grupy z danym major
+            # groups related to major
             groups_with_major = _get_groups_with_major(sp_groups, major_id)
 
             while students_with_major_len > 0:
