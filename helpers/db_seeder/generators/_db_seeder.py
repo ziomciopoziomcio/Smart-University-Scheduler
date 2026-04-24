@@ -56,8 +56,8 @@ session.commit()
 db_units = generate_units(session, db_faculties)
 session.commit()
 
-# db_rooms = generate_rooms(session, db_faculties, db_units, db_buildings)
-# session.commit()
+db_rooms = generate_rooms(session, db_faculties, db_units, db_buildings)
+session.commit()
 
 db_study_fields = generate_study_fields(session, db_faculties, PATH)
 session.commit()
