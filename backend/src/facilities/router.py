@@ -1,4 +1,5 @@
 from typing import Optional
+import row
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy import func
