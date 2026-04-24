@@ -1,5 +1,4 @@
 from typing import Optional
-import row
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy import func
@@ -144,20 +143,32 @@ def list_buildings(
     query = db.query(
         models.Building, func.coalesce(rooms_subq, 0).label("rooms_number")
     )
-
-    count_query = db.query(models.Building.id)
+    # poprawione: count_query powinno zwracać liczbę
+    count_query = db.query(func.count(models.Building.id))
 
     if campus_id is not None:
-        query = query.filter(models.Building.campus_id == campus_id)
-        count_query = count_query.filter(models.Building.campus_id == campus_id)
+        filter_stmt = models.Building.campus_id == campus_id
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
+
     if building_name is not None:
         filter_stmt = models.Building.building_name.ilike(f"%{building_name}%")
         query = query.filter(filter_stmt)
         count_query = count_query.filter(filter_stmt)
+
     if building_number is not None:
         filter_stmt = models.Building.building_number.ilike(f"%{building_number}%")
         query = query.filter(filter_stmt)
         count_query = count_query.filter(filter_stmt)
+
+    if search:
+        f = build_ilike_search_filter(
+            search,
+            columns=[models.Building.building_name, models.Building.building_number],
+        )
+        if f is not None:
+            query = query.filter(f)
+            count_query = count_query.filter(f)
 
     pagination_result = paginate(
         query, limit, offset, order_by=models.Building.id, count_query=count_query
@@ -170,22 +181,6 @@ def list_buildings(
             building_number=row.Building.building_number,
             campus_id=row.Building.campus_id,
             rooms_number=row.rooms_number,
-        )
-    ]
-    if search:
-        f = build_ilike_search_filter(
-            search,
-            columns=[models.Building.building_name, models.Building.building_number],
-        )
-        if f is not None:
-            query = query.filter(f)
-            count_query = count_query.filter(f)
-
-    pagination_result.items = [
-        schemas.BuildingRead(
-            id=row.id,
-            building_name=row.building_name,
-            building_number=row.building_number,
         )
         for row in pagination_result.items
     ]
