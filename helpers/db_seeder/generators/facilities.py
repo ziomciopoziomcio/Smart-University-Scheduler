@@ -1,4 +1,5 @@
 import json
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -119,7 +120,7 @@ def generate_rooms(
     :return: a dictionary mapping rooms short names to Room objects
     """
     with open(sourcefile, "r", encoding="utf-8") as f:
-        room_map: list[dict[str, any]] = json.load(f)
+        room_map: list[dict[str, Any]] = json.load(f)
 
     db_rooms: dict[str, Room] = {}
 
