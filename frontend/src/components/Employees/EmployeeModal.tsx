@@ -4,10 +4,17 @@ import {
     FormControl, InputLabel, Select, MenuItem, Autocomplete, TextField
 } from '@mui/material';
 import {useIntl} from 'react-intl';
-import {type Employee, type User, type Faculty, type Unit} from '@api/types';
-import {createEmployee, updateEmployee} from '@api/academics';
-import {fetchUsers} from '@api/users';
-import {fetchFaculties, fetchUnits} from '@api/structures';
+import {
+    type Employee,
+    type User,
+    type Faculty,
+    type Unit,
+    createEmployee,
+    updateEmployee,
+    fetchFaculties,
+    fetchUnits,
+    fetchUsers
+} from '@api';
 
 interface EmployeeModalProps {
     open: boolean;

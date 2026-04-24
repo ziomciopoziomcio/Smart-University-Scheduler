@@ -1,4 +1,4 @@
-import type {StudyPlanGroupSummary} from '@api/types';
+import type {StudyPlanGroupSummary} from '@api';
 
 export interface StudyPlanElectiveBlockSummary {
     id: number;

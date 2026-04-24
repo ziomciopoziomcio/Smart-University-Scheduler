@@ -1,6 +1,6 @@
 import {Box, Typography} from '@mui/material';
 import {useMemo, useState, useEffect} from 'react';
-import type {ScheduleEntry, ScheduleEntryDetails} from '@api/types';
+import type {ScheduleEntry, ScheduleEntryDetails} from '@api';
 import {SCHEDULE_LAYOUT, scheduleHours, weekdayMessageIds} from '@constants/schedule';
 import {ScheduleTileFactory} from './Tile/ScheduleTileFactory';
 import {SubjectDetailsPopup} from './SubjectDetailsPopup';

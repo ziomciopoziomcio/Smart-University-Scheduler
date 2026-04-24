@@ -1,11 +1,11 @@
 import {useState} from 'react';
 import {Button, Stack, TextField, Alert, CircularProgress, Typography, Link, Box, MenuItem} from '@mui/material';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useNavigate} from 'react-router-dom';
-import AuthLayout from '@components/Login/AuthLayout';
-import AuthPasswordField from '@components/Login/AuthPasswordField';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import {registerUser} from '@api/auth';
+import {useNavigate} from 'react-router-dom';
+
+import {AuthLayout, AuthPasswordField} from '@components/Login';
+import {registerUser} from '@api';
 
 const DEGREES = [
     {value: 'none', id: 'register.degrees.none'},

@@ -22,6 +22,9 @@
       "@api/*": [
         "src/api/*"
       ],
+      "@api": [
+        "src/api/index.ts"
+      ],
       "@store/*": [
         "src/store/*"
       ],

@@ -17,9 +17,8 @@ export default function SearchBar({value, onChange, placeholder = 'Szukaj...'}: 
                 display: 'flex',
                 alignItems: 'center',
                 width: '100%',
-                height: 56,
+                height: 53,
                 borderRadius: '16px',
-                border: '1px solid rgba(0,0,0,0.05)',
                 background: 'white'
             }}
         >
