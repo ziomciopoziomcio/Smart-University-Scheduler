@@ -1,6 +1,7 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
-from typing import Optional
+
 from . import models, schemas
 from ..database.database import get_db
 from src.common.router_utils import (
