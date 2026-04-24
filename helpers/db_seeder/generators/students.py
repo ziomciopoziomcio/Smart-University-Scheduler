@@ -143,6 +143,20 @@ def generate_students(
         ("Informatyka", 2): 100,
     }
     students = _get_only_students(db_not_teachers)
+    requested_students = sum(amount_of_students.values())
+    available_students = len(students)
+
+    if available_students < requested_students:
+        raise ValueError(
+            "Not enough student users to generate Students rows: "
+            f"requested {requested_students}, available {available_students}."
+        )
+
+    if available_students > requested_students:
+        distribution_keys = list(amount_of_students.keys())
+        for index in range(available_students - requested_students):
+            key = distribution_keys[index % len(distribution_keys)]
+            amount_of_students[key] += 1
     students_objs = _assign_students_to_study_program(
         amount_of_students, students, db_study_programs, db_curr_courses
     )
