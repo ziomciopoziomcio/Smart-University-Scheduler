@@ -262,11 +262,12 @@ def apply_search_to_queries(
     :param extra_phrase_columns: optional list of columns used only for phrase match
     :returns: tuple (query, count_query) with search filter applied (if any)
     """
-    if not search:
+    normalized_search = (search or "").strip()
+    if not normalized_search:
         return query, count_query
 
     f = build_ilike_search_filter(
-        search, columns=columns, extra_phrase_columns=extra_phrase_columns
+        normalized_search, columns=columns, extra_phrase_columns=extra_phrase_columns
     )
     if f is not None:
         query = query.filter(f)
