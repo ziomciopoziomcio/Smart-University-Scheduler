@@ -36,7 +36,7 @@ from helpers.db_seeder.generators.users import generate_users
 
 # Base.metadata.create_all(bind=engine)
 
-
+ROOMS_PATH = r"..\data\rooms.json"
 PATH = r"..\..\..\helpers\data_collector\final-programy.json"
 PERMS_EXCEL_PATH = r"..\data\role_uprawnienia.xlsx"
 PERMS_EXCEL_SHEET = "Arkusz1"
@@ -56,7 +56,7 @@ session.commit()
 db_units = generate_units(session, db_faculties)
 session.commit()
 
-db_rooms = generate_rooms(session, db_faculties, db_units, db_buildings)
+db_rooms = generate_rooms(session, ROOMS_PATH, db_faculties, db_units, db_buildings)
 session.commit()
 
 db_study_fields = generate_study_fields(session, db_faculties, PATH)
