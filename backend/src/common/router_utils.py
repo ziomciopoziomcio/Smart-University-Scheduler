@@ -1,4 +1,4 @@
-from typing import Iterable, Any, List
+from typing import Iterable, Any, List, Optional
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, MultipleResultsFound
 from sqlalchemy.orm import Session
@@ -225,3 +225,50 @@ def build_ilike_search_filter(
     tokens_cond = _build_tokens_condition(tokens, columns)
 
     return phrase_cond if tokens_cond is None else or_(phrase_cond, tokens_cond)
+
+
+def apply_filters_to_queries(query, count_query, filters: Iterable):
+    """
+    Apply provided SQLAlchemy filter expressions to both query and count_query.
+
+    :param query: the main SQLAlchemy query (selecting rows)
+    :param count_query: the SQLAlchemy count query used to compute total
+    :param filters: iterable of SQLAlchemy filter expressions (or None)
+    :returns: tuple (query, count_query) with filters applied
+    """
+    for f in filters:
+        if f is not None:
+            query = query.filter(f)
+            count_query = count_query.filter(f)
+    return query, count_query
+
+
+def apply_search_to_queries(
+    search: Optional[str],
+    query,
+    count_query,
+    columns: List,
+    *,
+    extra_phrase_columns: Optional[List] = None,
+):
+    """
+    Build the ilike-based search condition (using build_ilike_search_filter)
+    and apply it to both query and count_query.
+
+    :param search: search string (can be None)
+    :param query: main SQLAlchemy query
+    :param count_query: count query to keep total consistent
+    :param columns: list of columns used for token matching
+    :param extra_phrase_columns: optional list of columns used only for phrase match
+    :returns: tuple (query, count_query) with search filter applied (if any)
+    """
+    if not search:
+        return query, count_query
+
+    f = build_ilike_search_filter(
+        search, columns=columns, extra_phrase_columns=extra_phrase_columns
+    )
+    if f is not None:
+        query = query.filter(f)
+        count_query = count_query.filter(f)
+    return query, count_query

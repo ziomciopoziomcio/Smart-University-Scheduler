@@ -10,6 +10,8 @@ from src.common.router_utils import (
     _apply_patch_or_reject_nulls,
     _get_by_fields_or_404,
     build_ilike_search_filter,
+    apply_search_to_queries,
+    apply_filters_to_queries,
 )
 from . import models, schemas
 from ..common.require_permission import require_permission
@@ -737,41 +739,25 @@ def list_courses(
     query = db.query(models.Course)
     count_query = db.query(func.count(models.Course.course_code))
 
+    filters = []
     if course_name is not None:
-        filter_stmt = models.Course.course_name.ilike(f"%{course_name}%")
-        query = query.filter(filter_stmt)
-        count_query = count_query.filter(filter_stmt)
-
+        filters.append(models.Course.course_name.ilike(f"%{course_name}%"))
     if course_language is not None:
-        filter_stmt = models.Course.course_language == course_language
-        query = query.filter(filter_stmt)
-        count_query = count_query.filter(filter_stmt)
-
+        filters.append(models.Course.course_language == course_language)
     if leading_unit is not None:
-        filter_stmt = models.Course.leading_unit == leading_unit
-        query = query.filter(filter_stmt)
-        count_query = count_query.filter(filter_stmt)
-
+        filters.append(models.Course.leading_unit == leading_unit)
     if course_coordinator is not None:
-        filter_stmt = models.Course.course_coordinator == course_coordinator
-        query = query.filter(filter_stmt)
-        count_query = count_query.filter(filter_stmt)
-
+        filters.append(models.Course.course_coordinator == course_coordinator)
     if min_ects_points is not None:
-        filter_stmt = models.Course.ects_points >= min_ects_points
-        query = query.filter(filter_stmt)
-        count_query = count_query.filter(filter_stmt)
-
+        filters.append(models.Course.ects_points >= min_ects_points)
     if max_ects_points is not None:
-        filter_stmt = models.Course.ects_points <= max_ects_points
-        query = query.filter(filter_stmt)
-        count_query = count_query.filter(filter_stmt)
+        filters.append(models.Course.ects_points <= max_ects_points)
 
-    if search:
-        f = build_ilike_search_filter(search, columns=[models.Course.course_name])
-        if f is not None:
-            query = query.filter(f)
-            count_query = count_query.filter(f)
+    query, count_query = apply_filters_to_queries(query, count_query, filters)
+
+    query, count_query = apply_search_to_queries(
+        search, query, count_query, [models.Course.course_name]
+    )
 
     pagination_result = paginate(
         query,

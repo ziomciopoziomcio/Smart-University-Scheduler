@@ -143,7 +143,6 @@ def list_buildings(
     query = db.query(
         models.Building, func.coalesce(rooms_subq, 0).label("rooms_number")
     )
-    # poprawione: count_query powinno zwracać liczbę
     count_query = db.query(func.count(models.Building.id))
 
     if campus_id is not None:
