@@ -19,7 +19,6 @@ from ..common.router_utils import (
 from ..database.database import get_db
 from ..database.neo4j import get_neo4j_session
 from ..users import models as user_models
-from ..database.neo4j import get_neo4j_session
 from ..courses.models import ClassType
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
