@@ -266,7 +266,7 @@ def _get_students_with_major(students: list[Students], major_id: int) -> list[St
     return res
 
 
-def _get_groups_with_major(groups: list[Groups], major_id: int) -> list[Students]:
+def _get_groups_with_major(groups: list[Groups], major_id: int) -> list[Groups]:
     res = []
     for g_obj in groups:
         if g_obj.major == major_id:
