@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from . import models, schemas
 from ..database.database import get_db
@@ -8,6 +9,7 @@ from src.common.router_utils import (
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
     _get_by_fields_or_404,
+    build_ilike_search_filter,
 )
 from src.common.pagination.pagination import paginate
 from src.common.pagination.pagination_model import PaginatedResponse
@@ -54,6 +56,7 @@ def list_study_fields(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("study-fields:view")),
+    search: str | None = Query(None, min_length=1),
 ):
     query = db.query(models.Study_fields)
 
@@ -61,6 +64,10 @@ def list_study_fields(
         query = query.filter(models.Study_fields.faculty == faculty)
     if field_name is not None:
         query = query.filter(models.Study_fields.field_name.ilike(f"%{field_name}%"))
+    if search:
+        f = build_ilike_search_filter(search, columns=[models.Study_fields.field_name])
+        if f is not None:
+            query = query.filter(f)
 
     return paginate(query, limit, offset, models.Study_fields.id)
 
@@ -129,6 +136,7 @@ def list_majors(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("majors:view")),
+    search: str | None = Query(None, min_length=1),
 ):
     query = db.query(models.Major)
 
@@ -136,6 +144,10 @@ def list_majors(
         query = query.filter(models.Major.study_field == study_field)
     if major_name is not None:
         query = query.filter(models.Major.major_name.ilike(f"%{major_name}%"))
+    if search:
+        f = build_ilike_search_filter(search, columns=[models.Study_fields.field_name])
+        if f is not None:
+            query = query.filter(f)
 
     return paginate(query, limit, offset, models.Major.id)
 
@@ -209,6 +221,7 @@ def list_elective_blocks(
     _current_user: user_models.Users = Depends(
         require_permission("elective-blocks:view")
     ),
+    search: str | None = Query(None, min_length=1),
 ):
     query = db.query(models.Elective_block)
 
@@ -218,6 +231,12 @@ def list_elective_blocks(
         query = query.filter(
             models.Elective_block.elective_block_name.ilike(f"%{elective_block_name}%")
         )
+    if search:
+        f = build_ilike_search_filter(
+            search, columns=[models.Elective_block.elective_block_name]
+        )
+        if f is not None:
+            query = query.filter(f)
 
     return paginate(query, limit, offset, models.Elective_block.id)
 
@@ -567,6 +586,7 @@ def list_courses(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("courses:view")),
+    search: str | None = Query(None, min_length=1),
 ):
     query = db.query(models.Course)
 
@@ -582,6 +602,10 @@ def list_courses(
         query = query.filter(models.Course.ects_points >= min_ects_points)
     if max_ects_points is not None:
         query = query.filter(models.Course.ects_points <= max_ects_points)
+    if search:
+        f = build_ilike_search_filter(search, columns=[models.Course.course_name])
+        if f is not None:
+            query = query.filter(f)
 
     return paginate(query, limit, offset, models.Course.course_code)
 
@@ -658,6 +682,7 @@ def list_study_programs(
     _current_user: user_models.Users = Depends(
         require_permission("study-programs:view")
     ),
+    search: str | None = Query(None, min_length=1),
 ):
     query = db.query(models.Study_program)
 
@@ -669,6 +694,16 @@ def list_study_programs(
         query = query.filter(
             models.Study_program.program_name.ilike(f"%{program_name}%")
         )
+    if search:
+        f = build_ilike_search_filter(
+            search,
+            columns=[
+                models.Study_program.program_name,
+                models.Study_program.start_year,
+            ],
+        )
+        if f is not None:
+            query = query.filter(f)
 
     return paginate(query, limit, offset, models.Study_program.id)
 
