@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -120,18 +121,46 @@ def list_buildings(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("buildings:view")),
 ):
-    query = db.query(models.Building)
+    rooms_subq = (
+        db.query(func.count(models.Room.id))
+        .filter(models.Room.building_id == models.Building.id)
+        .scalar_subquery()
+    )
+
+    query = db.query(
+        models.Building, func.coalesce(rooms_subq, 0).label("rooms_number")
+    )
+
+    count_query = db.query(models.Building.id)
 
     if campus_id is not None:
         query = query.filter(models.Building.campus_id == campus_id)
+        count_query = count_query.filter(models.Building.campus_id == campus_id)
     if building_name is not None:
-        query = query.filter(models.Building.building_name.ilike(f"%{building_name}%"))
+        filter_stmt = models.Building.building_name.ilike(f"%{building_name}%")
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
     if building_number is not None:
-        query = query.filter(
-            models.Building.building_number.ilike(f"%{building_number}%")
-        )
+        filter_stmt = models.Building.building_number.ilike(f"%{building_number}%")
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
 
-    return paginate(query, limit, offset, models.Building.id)
+    pagination_result = paginate(
+        query, limit, offset, order_by=models.Building.id, count_query=count_query
+    )
+
+    pagination_result.items = [
+        schemas.BuildingRead(
+            id=row.Building.id,
+            building_name=row.Building.building_name,
+            building_number=row.Building.building_number,
+            campus_id=row.Building.campus_id,
+            rooms_number=row.rooms_number,
+        )
+        for row in pagination_result.items
+    ]
+
+    return pagination_result
 
 
 @router.get("/buildings/{building_id}", response_model=schemas.BuildingRead)
@@ -140,7 +169,30 @@ def get_building(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("building:view")),
 ):
-    return _get_or_404(db, models.Building, building_id, "Building")
+    rooms_subq = (
+        db.query(func.count(models.Room.id))
+        .filter(models.Room.building_id == models.Building.id)
+        .scalar_subquery()
+    )
+
+    row = (
+        db.query(models.Building, func.coalesce(rooms_subq, 0).label("rooms_number"))
+        .filter(models.Building.id == building_id)
+        .first()
+    )
+
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Building not found"
+        )
+
+    return schemas.BuildingRead(
+        id=row.Building.id,
+        building_name=row.Building.building_name,
+        building_number=row.Building.building_number,
+        campus_id=row.Building.campus_id,
+        rooms_number=row.rooms_number,
+    )
 
 
 @router.patch("/buildings/{building_id}", response_model=schemas.BuildingRead)

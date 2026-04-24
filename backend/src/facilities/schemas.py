@@ -41,6 +41,7 @@ class BuildingCreate(BuildingBase):
 
 class BuildingRead(BuildingBase):
     id: int
+    rooms_number: int = 0
 
 
 class BuildingUpdate(BaseModel):
