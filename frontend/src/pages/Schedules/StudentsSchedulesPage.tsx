@@ -83,93 +83,99 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
     };
 
     const loadData = useCallback(async () => {
-        setLoading(true);
-        setError(null);
+                setLoading(true);
+                setError(null);
 
-        try {
-            const offset = (page - 1) * pageSize;
+                try {
+                    const offset = (page - 1) * pageSize;
 
-            if (facultyId && !currentFaculty) {
-                setCurrentFaculty(await getFaculty(Number(facultyId)) as Faculty);
+                    if (facultyId && !currentFaculty) {
+                        setCurrentFaculty(await getFaculty(Number(facultyId)) as Faculty);
+                    }
+
+                    if (fieldOfStudyId && !currentField) {
+                        setCurrentField(await getStudyField(Number(fieldOfStudyId)));
+                    }
+
+                    if (view === 'faculties') {
+                        const res = await fetchFaculties(page, pageSize, {
+                            faculty_name: search.trim() || undefined
+                        });
+
+                        setData(res.items);
+                        setTotalItems(res.total);
+                    } else if (view === 'fields' && facultyId) {
+                        const res = await fetchStudyFields(page, pageSize, {
+                            faculty: Number(facultyId),
+                            field_name: search.trim() || undefined
+                        });
+
+                        setData(res.items);
+                        setTotalItems(res.total);
+                    } else if (view === 'semesters' && fieldOfStudyId) {
+                        const res = await fetchStudyFieldSemesterSummary(Number(fieldOfStudyId));
+                        const filtered = search.trim()
+                            ? res.filter((semester) =>
+                                String(semester.semester_number).includes(search.trim())
+                            )
+                            : res;
+
+                        setData(filtered.slice(offset, offset + pageSize));
+                        setTotalItems(filtered.length);
+                    } else if (view === 'majors' && fieldOfStudyId && semesterId) {
+                        const res = await fetchMajors(page, pageSize, {
+                            study_field: Number(fieldOfStudyId),
+                            semester: Number(semesterId),
+                            major_name: search.trim() || undefined
+                        });
+
+                        const mapped = res.items.map((m) => ({
+                            id: m.id,
+                            name: m.major_name,
+                            groups_count: m.group_count || 0
+                        }));
+
+                        setData(mapped);
+                        setTotalItems(res.total);
+                    } else if (view === 'groups' && facultyId && fieldOfStudyId && semesterId) {
+                        const res = await fetchStudyPlanGroupsSummary({
+                            faculty_id: Number(facultyId),
+                            study_field: Number(fieldOfStudyId),
+                            semester: Number(semesterId),
+                            specialization_id: majorId ? Number(majorId) : undefined
+                        });
+
+                        const filtered = search.trim()
+                            ? res.filter((g) =>
+                                g.group_name.toLowerCase().includes(search.toLowerCase())
+                            )
+                            : res;
+
+                        setData(filtered.slice(offset, offset + pageSize));
+                        setTotalItems(filtered.length);
+                    }
+                } catch
+                    (err: any) {
+                    setError(err.message ?? 'Wystąpił błąd');
+                } finally {
+                    setLoading(false);
+                }
             }
-
-            if (fieldOfStudyId && !currentField) {
-                setCurrentField(await getStudyField(Number(fieldOfStudyId)));
-            }
-
-            if (view === 'faculties') {
-                const res = await fetchFaculties(page, pageSize, {
-                    faculty_name: search.trim() || undefined
-                });
-
-                setData(res.items);
-                setTotalItems(res.total);
-            } else if (view === 'fields' && facultyId) {
-                const res = await fetchStudyFields(page, pageSize, {
-                    faculty: Number(facultyId),
-                    field_name: search.trim() || undefined
-                });
-
-                setData(res.items);
-                setTotalItems(res.total);
-            } else if (view === 'semesters' && fieldOfStudyId) {
-                const res = await fetchStudyFieldSemesterSummary(Number(fieldOfStudyId));
-                const filtered = search.trim()
-                    ? res.filter((semester) =>
-                        String(semester.semester_number).includes(search.trim())
-                    )
-                    : res;
-
-                setData(filtered.slice(offset, offset + pageSize));
-                setTotalItems(filtered.length);
-            } else if (view === 'majors' && fieldOfStudyId) {
-                const res = await fetchMajors(page, pageSize, {
-                    study_field: Number(fieldOfStudyId),
-                    major_name: search.trim() || undefined
-                });
-
-                const mapped = res.items.map((m) => ({
-                    id: m.id,
-                    name: m.major_name,
-                    groups_count: m.group_count || 0
-                }));
-
-                setData(mapped);
-                setTotalItems(res.total);
-            } else if (view === 'groups' && facultyId && fieldOfStudyId && semesterId) {
-                const res = await fetchStudyPlanGroupsSummary({
-                    faculty_id: Number(facultyId),
-                    study_field: Number(fieldOfStudyId),
-                    semester: Number(semesterId),
-                    specialization_id: majorId ? Number(majorId) : undefined
-                });
-
-                const filtered = search.trim()
-                    ? res.filter((g) =>
-                        g.group_name.toLowerCase().includes(search.toLowerCase())
-                    )
-                    : res;
-
-                setData(filtered.slice(offset, offset + pageSize));
-                setTotalItems(filtered.length);
-            }
-        } catch (err: any) {
-            setError(err.message ?? 'Wystąpił błąd');
-        } finally {
-            setLoading(false);
-        }
-    }, [
-        view,
-        facultyId,
-        fieldOfStudyId,
-        semesterId,
-        majorId,
-        page,
-        pageSize,
-        search,
-        currentFaculty,
-        currentField
-    ]);
+            ,
+            [
+                view,
+                facultyId,
+                fieldOfStudyId,
+                semesterId,
+                majorId,
+                page,
+                pageSize,
+                search,
+                currentFaculty,
+                currentField
+            ]
+        )
+    ;
 
     useEffect(() => {
         void loadData();
