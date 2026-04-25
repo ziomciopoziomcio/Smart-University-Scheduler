@@ -501,7 +501,7 @@ def get_study_plan_groups_summary(
         schemas.StudyPlanGroupSummary(
             id=group.id,
             group_name=group.group_name,
-            academic_year=f"{study_prog.start_year}/{int(study_prog.start_year) + 1}",
+            academic_year=study_prog.start_year,
         )
         for group, study_prog in query.distinct().limit(1000).all()
     ]
