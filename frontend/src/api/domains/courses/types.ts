@@ -28,9 +28,9 @@ export interface StudyField {
     faculty: number;
     field_name: string;
     language?: string;
-    study_mode?: string;
+    mode?: string;
     semesters_count?: number;
-    major_count?: number | null;
+    specializations_count?: number;
 }
 
 export interface StudyProgramDetails {
