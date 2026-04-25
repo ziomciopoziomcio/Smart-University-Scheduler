@@ -72,7 +72,9 @@ def _generate_email(name: str, surname: str, domain: str) -> str:
     surname = _normalize(surname)
     domain = _normalize(domain)
 
-    return f"{name}.{surname}@{domain}"
+    random_num = random.randint(1000, 9999)
+
+    return f"{name}.{surname}.{random_num}@{domain}"
 
 
 def _generate_unique_phone_numbers(n: int, phone_len: int = 9) -> list[str]:
