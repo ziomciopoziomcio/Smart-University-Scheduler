@@ -496,6 +496,8 @@ def assign_students_to_elective_groups(
         sp_id = sp_obj.id
 
         # students
+        if sp_id not in mapped_students.keys():
+            continue
         sp_students = mapped_students[sp_id]
         num_of_students = len(sp_students)
         s_idx = 0
