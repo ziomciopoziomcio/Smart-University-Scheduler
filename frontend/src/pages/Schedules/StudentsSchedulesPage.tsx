@@ -24,8 +24,6 @@ import {
     ScheduleStudentGroupView,
     ScheduleStudentFieldView
 } from '@components/Schedule';
-// import {fetchMockStudyPlanMajorGroups} from '../../mocks/studyPlanMajorsGroupsMock.tsx';
-// import {fetchMockStudyPlanGroups} from '../../mocks/studyPlanSemesterGroupsMock.tsx';
 
 interface StudentsSchedulesPageProps {
     view: 'faculties' | 'fields' | 'semesters' | 'majors' | 'groups';
