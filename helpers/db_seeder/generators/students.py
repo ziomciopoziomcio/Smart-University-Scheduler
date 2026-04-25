@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from backend.src.users.models import Users
-from backend.src.academics.models import Students
+from backend.src.academics.models import Students, Groups
 from backend.src.courses.models import Study_program, Curriculum_course, Major
 
 
@@ -113,6 +113,60 @@ def _get_study_program_name_by_id(
     raise KeyError(f"Study program with id {sp_id} not found")
 
 
+def _get_specified_study_program(
+    db_study_programs: dict[tuple[str, str, int], Study_program],
+    study_field: str,
+    degree: str,
+    year: int,
+) -> Study_program | None:
+    key_words = [study_field, f"({degree}. stopień)"]
+
+    matches_per_name: list[Study_program] = []
+    for sp_obj in db_study_programs.values():
+        program_name = sp_obj.program_name
+        if program_name is None:
+            continue
+        program_name = program_name.lower()
+
+        match = True
+        for kw in key_words:
+            if kw not in program_name:
+                match = False
+                break
+
+        if not match:
+            continue
+
+        matches_per_name.append(sp_obj)
+
+    if len(matches_per_name) < year:
+        return None
+
+    return matches_per_name[-year]
+
+
+def _get_groups_from_study_program(
+    db_major_groups: dict[str, Groups], sp_id: int
+) -> list[Groups]:
+    res: list[Groups] = []
+    for g_obj in db_major_groups.values():
+        if g_obj.study_program == sp_id:
+            res.append(g_obj)
+
+    return res
+
+
+def _get_unique_major_ids_from_groups(groups: list[Groups]) -> list[int]:
+    major_ids: set[int] = set()
+
+    for g_obj in groups:
+        m_id = g_obj.major
+        if m_id is not None:
+            major_ids.add(m_id)
+
+    return list(major_ids)
+
+
 def generate_students(
     session: Session,
     db_not_teachers: dict[tuple[str | None, str, str, str, str, bool], Users],
@@ -121,6 +175,7 @@ def generate_students(
         tuple[str | None, int, int, str | None, str | None], Curriculum_course
     ],
     db_majors: dict[tuple[str, str], Major],
+    db_major_groups: dict[str, Groups],
 ) -> dict[tuple[str, str | None, str | None], Students]:
     """
     Generates Students objects by assigning Users to study programs and majors
@@ -133,41 +188,78 @@ def generate_students(
     db_students: dict[tuple[str, str | None, str | None], Students] = {}
     # email, study_program_name, major_name
     amount_of_students: dict = {
-        ("Automatyka i sterowanie robotów", 1): 50,
-        ("Biomedical engineering and technologies", 1): 50,
-        ("Computer science", 1): 50,
-        ("Computer science and information technology", 2): 30,
-        ("Elektronika i telekomunikacja", 1): 50,
-        ("Elektrotechnika", 2): 50,
-        ("Informatyka", 1): 150,
-        ("Informatyka", 2): 100,
+        ("automatyka i sterowanie robotów", 1, 1): 90,
+        ("automatyka i sterowanie robotów", 1, 2): 75,
+        ("automatyka i sterowanie robotów", 1, 3): 45,
+        ("biomedical engineering and technologies", 1, 1): 60,
+        ("biomedical engineering and technologies", 1, 2): 30,
+        ("biomedical engineering and technologies", 1, 3): 30,
+        ("computer science", 1, 1): 75,
+        ("computer science", 1, 2): 60,
+        ("computer science", 1, 3): 45,
+        ("computer science and information technology", 2, 1): 75,
+        ("computer science and information technology", 2, 2): 30,
+        ("elektronika i telekomunikacja", 1, 1): 60,
+        ("elektronika i telekomunikacja", 1, 2): 45,
+        ("elektronika i telekomunikacja", 1, 3): 30,
+        ("elektrotechnika", 2, 1): 60,
+        ("elektrotechnika", 2, 2): 30,
+        ("informatyka", 1, 1): 220,
+        ("informatyka", 1, 2): 160,
+        ("informatyka", 1, 3): 160,
+        ("informatyka", 2, 1): 70,
+        ("informatyka", 2, 2): 30,
     }
     students = _get_only_students(db_not_teachers)
-    requested_students = sum(amount_of_students.values())
-    available_students = len(students)
+    students_objects = list(students.values())
+    student_idx = 0
 
-    if available_students < requested_students:
-        raise ValueError(
-            "Not enough student users to generate Students rows: "
-            f"requested {requested_students}, available {available_students}."
-        )
+    for sp_tuple, num_of_students in amount_of_students.items():
+        # get study program object
+        sf_name, degree, year = sp_tuple
+        sp_obj = _get_specified_study_program(db_study_programs, sf_name, degree, year)
+        if sp_obj is None:
+            raise KeyError("Study program not found")
 
-    if available_students > requested_students:
-        distribution_keys = list(amount_of_students.keys())
-        for index in range(available_students - requested_students):
-            key = distribution_keys[index % len(distribution_keys)]
-            amount_of_students[key] += 1
-    students_objs = _assign_students_to_study_program(
-        amount_of_students, students, db_study_programs, db_curr_courses
-    )
-    for s_obj in students_objs:
-        session.add(s_obj)
+        # get groups in sp
+        major_groups = _get_groups_from_study_program(db_major_groups, sp_obj.id)
 
-        email = _get_email_by_user_id(db_not_teachers, s_obj.user_id)
-        major = _get_major_name_by_id(db_majors, s_obj.major)
-        program_name = _get_study_program_name_by_id(
-            db_study_programs, s_obj.study_program
-        )
-        db_students[(email, program_name, major)] = s_obj
+        # students with major = None
+        if len(major_groups) == 0:
+            for _ in range(num_of_students):
+                user_obj = students_objects[student_idx]
+                student_idx += 1
+
+                s_obj = Students(
+                    user_id=user_obj.id, study_program=sp_obj.id, major=None
+                )
+                session.add(s_obj)
+                db_students[(user_obj.email, sp_obj.program_name, None)] = s_obj
+
+        else:
+            # get majors ids from groups in sp
+            unique_major_ids: list[int] = _get_unique_major_ids_from_groups(
+                groups=major_groups
+            )
+            major_idx = 0
+            num_of_unique_majors = len(unique_major_ids)
+
+            for _ in range(num_of_students):
+                user_obj = students_objects[student_idx]
+                student_idx += 1
+
+                major_id: int = unique_major_ids[major_idx]
+                major_idx += 1
+                if major_idx == num_of_unique_majors:
+                    major_idx = 0
+
+                s_obj = Students(
+                    user_id=user_obj.id, study_program=sp_obj.id, major=major_id
+                )
+                session.add(s_obj)
+                major_name = _get_major_name_by_id(db_majors=db_majors, m_id=major_id)
+                db_students[(user_obj.email, sp_obj.program_name, major_name)] = s_obj
+
     session.flush()
+    print(f"Added {len(db_students.keys())} students")
     return db_students
