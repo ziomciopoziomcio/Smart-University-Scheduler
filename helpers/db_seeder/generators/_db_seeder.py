@@ -179,6 +179,7 @@ db_course_instructors = generate_course_instructors(
     num_of_groups=5,
     db_teachers=db_teachers,
     db_courses=db_courses,
+    db_employees=db_employees,
     debug=False,
 )
 session.commit()
