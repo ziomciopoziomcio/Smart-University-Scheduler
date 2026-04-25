@@ -153,7 +153,17 @@ export default function EmployeesSchedulesPage({view}: EmployeesSchedulesPagePro
                 {!loading && !error && (
                     <>
                         {view === 'faculties' && (
-                            <ScheduleEmployeeFacultyView data={data as Faculty[]}/>
+                            <ScheduleEmployeeFacultyView
+                                data={data as Faculty[]}
+                                page={page}
+                                pageSize={pageSize}
+                                totalItems={totalItems}
+                                onPageChange={setPage}
+                                onPageSizeChange={(value) => {
+                                    setPageSize(value);
+                                    setPage(1);
+                                }}
+                            />
                         )}
                         {view === 'units' && (
                             <ScheduleEmployeeUnitView
