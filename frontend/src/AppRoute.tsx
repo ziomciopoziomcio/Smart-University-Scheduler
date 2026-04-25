@@ -122,18 +122,26 @@ function AppRoute() {
                                element={<EmployeeSchedulePage/>}/>
 
                         {/*==================== DIDACTICS - COURSES AND FIELDS ====================*/}
-                        <Route path="/didactics" element={<DidacticsPage view="dashboard"/>}/>
+                        <Route path="/didactics">
+                            <Route index element={<DidacticsPage view="dashboard"/>}/>
 
-                        <Route path="/didactics/fields" element={<DidacticsPage view="faculties_for_fields"/>}/>
-                        <Route path="/didactics/fields/faculty/:facultyId" element={<DidacticsPage view="fields"/>}/>
-                        <Route path="/didactics/fields/faculty/:facultyId/field/:fieldId" element={<DidacticsPage view="field_dashboard"/>}/>
-                        <Route path="/didactics/fields/faculty/:facultyId/field/:fieldId/majors" element={<DidacticsPage view="majors"/>}/>
-                        <Route path="/didactics/fields/faculty/:facultyId/field/:fieldId/blocks" element={<DidacticsPage view="blocks"/>}/>
+                            <Route path="fields" element={<DidacticsPage view="faculties_for_fields"/>}/>
+                            <Route path="fields/faculty/:facultyId" element={<DidacticsPage view="fields"/>}/>
+                            <Route path="fields/faculty/:facultyId/field/:fieldId"
+                                   element={<DidacticsPage view="field_dashboard"/>}/>
+                            <Route path="fields/faculty/:facultyId/field/:fieldId/majors"
+                                   element={<DidacticsPage view="majors"/>}/>
+                            <Route path="fields/faculty/:facultyId/field/:fieldId/blocks"
+                                   element={<DidacticsPage view="blocks"/>}/>
 
-                        <Route path="/didactics/courses" element={<DidacticsPage view="faculties_for_courses"/>}/>
-                        <Route path="/didactics/courses/faculty/:facultyId" element={<DidacticsPage view="units_for_courses"/>}/>
-                        <Route path="/didactics/courses/faculty/:facultyId/unit/:unitId" element={<DidacticsPage view="catalog"/>}/>
-
+                            <Route path="courses" element={<DidacticsPage view="faculties_for_courses"/>}/>
+                            <Route path="courses/faculty/:facultyId"
+                                   element={<DidacticsPage view="units_for_courses"/>}/>
+                            <Route path="courses/faculty/:facultyId/unit/:unitId"
+                                   element={<DidacticsPage view="catalog"/>}/>
+                            <Route path="courses/faculty/:facultyId/unit/:unitId/course/:courseCode/instructors"
+                                   element={<DidacticsPage view="course_instructors"/>}/>
+                        </Route>
                     </Route>
 
                     {/*==================== DEFAULT ====================*/}

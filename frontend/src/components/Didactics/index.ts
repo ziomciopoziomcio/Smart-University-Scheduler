@@ -10,3 +10,4 @@ export {DidacticsFacultyView} from './Views/DidacticsFacultyView.tsx';
 export {DidacticsStudyFieldView} from './Views/StudyFieldView.tsx';
 export {DidacticsUnitView} from './Views/DidacticsUnitView.tsx';
 export {DidacticsCourseView} from './Views/DidacticsCourseView.tsx';
+export {CourseInstructorsView} from './Views/CourseInstructorView.tsx';

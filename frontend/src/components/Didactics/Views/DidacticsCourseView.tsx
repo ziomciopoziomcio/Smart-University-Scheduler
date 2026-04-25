@@ -2,6 +2,8 @@ import {useState, useEffect} from 'react';
 import {Box} from '@mui/material';
 import {AutoStories} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
+import {useNavigate} from 'react-router-dom';
+
 import {ListView, ActionMenu, DeleteConfirmDialog} from '@components/Common';
 import {type Course, fetchCourses, deleteCourse} from '@api';
 import CourseModal from '../Modals/CourseModal.tsx';
@@ -10,14 +12,17 @@ type CourseListItem = Course & { id: number };
 
 interface DidacticsCourseViewProps {
     unitId: number;
+    facultyId: number;
 }
 
-export function DidacticsCourseView({unitId}: DidacticsCourseViewProps) {
+export function DidacticsCourseView({unitId, facultyId}: DidacticsCourseViewProps) {
     const intl = useIntl();
+    const navigate = useNavigate();
 
     const [data, setData] = useState<CourseListItem[]>([]);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selected, setSelected] = useState<CourseListItem | null>(null);
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
@@ -30,7 +35,6 @@ export function DidacticsCourseView({unitId}: DidacticsCourseViewProps) {
                 ...item,
                 id: item.course_code
             }));
-
             setData(itemsWithId);
         } catch {
             setData([]);
@@ -64,6 +68,8 @@ export function DidacticsCourseView({unitId}: DidacticsCourseViewProps) {
                     setAnchorEl(e.currentTarget);
                     setSelected(item);
                 }}
+
+                onItemClick={(item) => navigate(`/didactics/courses/faculty/${facultyId}/unit/${unitId}/course/${item.course_code}/instructors`)}
                 onAddClick={() => {
                     setSelected(null);
                     setIsModalOpen(true);
@@ -71,7 +77,7 @@ export function DidacticsCourseView({unitId}: DidacticsCourseViewProps) {
                 addLabel={intl.formatMessage({id: 'didactics.courses.add'})}
                 emptyMessage={intl.formatMessage({id: 'didactics.courses.empty'})}
             />
-
+{/*TODO fix getting to instructors page*/}
             <ActionMenu
                 anchorEl={anchorEl}
                 onClose={() => setAnchorEl(null)}

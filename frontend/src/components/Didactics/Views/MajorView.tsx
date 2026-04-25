@@ -38,7 +38,7 @@ export function MajorView({fieldId}: { fieldId: number }) {
                     setSelected(null);
                     setIsModalOpen(true);
                 }}
-                addLabel="Dodaj Specjalność"
+                addLabel={intl.formatMessage({id: 'didactics.majors.add'})}
             />
             <ActionMenu
                 anchorEl={anchorEl}

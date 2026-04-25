@@ -4,4 +4,5 @@ export * from './studyFields';
 export * from './studyPrograms';
 export * from './courses';
 export * from './curriculums';
+export * from './courseInstructors';
 export * from './types';

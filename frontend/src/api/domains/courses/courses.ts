@@ -10,6 +10,7 @@ export const fetchCourses = async (
     const query = new URLSearchParams({
         limit: limit.toString(),
         offset: offset.toString(),
+        ...(filters.leading_unit !== undefined && {leading_unit: filters.leading_unit.toString()}),
         ...(filters.min_ects_points !== undefined && {min_ects_points: filters.min_ects_points.toString()}),
         ...(filters.max_ects_points !== undefined && {max_ects_points: filters.max_ects_points.toString()}),
         ...(filters.language && {language: filters.language}),

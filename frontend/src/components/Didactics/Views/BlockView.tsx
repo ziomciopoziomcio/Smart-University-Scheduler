@@ -37,7 +37,7 @@ export function BlockView({fieldId}: { fieldId: number }) {
                     setSelected(null);
                     setIsModalOpen(true);
                 }}
-                addLabel="Dodaj Blok"
+                addLabel={intl.formatMessage({id: 'didactics.blocks.add'})}
             />
             <ActionMenu
                 anchorEl={anchorEl}

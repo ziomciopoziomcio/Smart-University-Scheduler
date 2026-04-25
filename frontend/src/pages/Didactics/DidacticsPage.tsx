@@ -5,10 +5,17 @@ import {useIntl} from 'react-intl';
 
 import {PageBreadcrumbs, type BreadcrumbItem, SearchBar} from '@components/Common';
 import {
-    fetchFaculties, getFaculty,
-    fetchUnits, getUnit,
-    fetchStudyFields, getStudyField,
-    type Faculty, type Unit, type StudyField
+    fetchFaculties,
+    getFaculty,
+    fetchUnits,
+    getUnit,
+    fetchStudyFields,
+    getStudyField,
+    type Faculty,
+    type Unit,
+    type StudyField,
+    getCourse,
+    type Course
 } from '@api';
 
 import {
@@ -19,11 +26,12 @@ import {
     DidacticsFacultyView,
     DidacticsStudyFieldView,
     DidacticsUnitView,
-    DidacticsCourseView
+    DidacticsCourseView,
+    CourseInstructorsView
 } from '@components/Didactics';
 
 export default function DidacticsPage({view}: { view: string }) {
-    const {facultyId, fieldId, unitId} = useParams();
+    const {facultyId, fieldId, unitId, courseCode} = useParams();
     const intl = useIntl();
 
     const [loading, setLoading] = useState(true);
@@ -34,6 +42,7 @@ export default function DidacticsPage({view}: { view: string }) {
     const [currentFaculty, setCurrentFaculty] = useState<Faculty | null>(null);
     const [currentField, setCurrentField] = useState<StudyField | null>(null);
     const [currentUnit, setCurrentUnit] = useState<Unit | null>(null);
+    const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
 
     const loadData = async () => {
         setLoading(true);
@@ -45,6 +54,8 @@ export default function DidacticsPage({view}: { view: string }) {
                 setCurrentField(await getStudyField(Number(fieldId)));
             if (unitId && (!currentUnit || currentUnit.id !== Number(unitId)))
                 setCurrentUnit(await getUnit(Number(unitId)));
+            if (courseCode && (!currentCourse || currentCourse.course_code !== Number(courseCode)))
+                setCurrentCourse(await getCourse(Number(courseCode)));
 
             if (view === 'faculties_for_fields' || view === 'faculties_for_courses') {
                 let res;
@@ -71,7 +82,7 @@ export default function DidacticsPage({view}: { view: string }) {
 
     useEffect(() => {
         void loadData();
-    }, [view, facultyId, fieldId, unitId, search]);
+    }, [view, facultyId, fieldId, unitId, courseCode, search]);
 
     const getBreadcrumbs = (): BreadcrumbItem[] => {
         const breadcrumbs: BreadcrumbItem[] = [
@@ -83,37 +94,34 @@ export default function DidacticsPage({view}: { view: string }) {
                 label: intl.formatMessage({id: 'didactics.breadcrumbs.fields'}),
                 path: '/didactics/fields'
             });
-
-            if (currentFaculty && facultyId) {
-                breadcrumbs.push({
-                    label: currentFaculty.faculty_short,
-                    path: view !== 'fields' ? `/didactics/fields/faculty/${facultyId}` : undefined
-                });
-            }
-            if (currentField && fieldId) {
-                breadcrumbs.push({
-                    label: currentField.field_name,
-                    path: view !== 'field_dashboard' ? `/didactics/fields/faculty/${facultyId}/field/${fieldId}` : undefined
-                });
-            }
+            if (currentFaculty && facultyId) breadcrumbs.push({
+                label: currentFaculty.faculty_short,
+                path: view !== 'fields' ? `/didactics/fields/faculty/${facultyId}` : undefined
+            });
+            if (currentField && fieldId) breadcrumbs.push({
+                label: currentField.field_name,
+                path: view !== 'field_dashboard' ? `/didactics/fields/faculty/${facultyId}/field/${fieldId}` : undefined
+            });
             if (view === 'majors') breadcrumbs.push({label: intl.formatMessage({id: 'didactics.breadcrumbs.majors'})});
             if (view === 'blocks') breadcrumbs.push({label: intl.formatMessage({id: 'didactics.breadcrumbs.blocks'})});
         }
 
-        if (['faculties_for_courses', 'units_for_courses', 'catalog'].includes(view)) {
+        if (['faculties_for_courses', 'units_for_courses', 'catalog', 'course_instructors'].includes(view)) {
             breadcrumbs.push({
                 label: intl.formatMessage({id: 'didactics.breadcrumbs.courses'}),
                 path: '/didactics/courses'
             });
+            if (currentFaculty && facultyId) breadcrumbs.push({
+                label: currentFaculty.faculty_short,
+                path: view !== 'units_for_courses' ? `/didactics/courses/faculty/${facultyId}` : undefined
+            });
+            if (currentUnit && unitId) breadcrumbs.push({
+                label: currentUnit.unit_short || currentUnit.unit_name,
+                path: view !== 'catalog' ? `/didactics/courses/faculty/${facultyId}/unit/${unitId}` : undefined
+            });
 
-            if (currentFaculty && facultyId) {
-                breadcrumbs.push({
-                    label: currentFaculty.faculty_short,
-                    path: view !== 'units_for_courses' ? `/didactics/courses/faculty/${facultyId}` : undefined
-                });
-            }
-            if (currentUnit && unitId) {
-                breadcrumbs.push({label: currentUnit.unit_short || currentUnit.unit_name});
+            if (currentCourse && courseCode && view === 'course_instructors') {
+                breadcrumbs.push({label: currentCourse.course_name});
             }
         }
         return breadcrumbs;
@@ -157,7 +165,12 @@ export default function DidacticsPage({view}: { view: string }) {
                         {view === 'faculties_for_courses' &&
                             <DidacticsFacultyView data={data} basePath="/didactics/courses/faculty"/>}
                         {view === 'units_for_courses' && <DidacticsUnitView data={data} facultyId={Number(facultyId)}/>}
-                        {view === 'catalog' && <DidacticsCourseView unitId={Number(unitId)}/>}
+
+                        {view === 'catalog' &&
+                            <DidacticsCourseView unitId={Number(unitId)} facultyId={Number(facultyId)}/>}
+
+                        {view === 'course_instructors' &&
+                            <CourseInstructorsView courseCode={Number(courseCode)} facultyId={Number(facultyId)}/>}
                     </Box>
                 )}
             </Box>

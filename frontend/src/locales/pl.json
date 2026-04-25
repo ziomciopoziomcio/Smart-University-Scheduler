@@ -586,6 +586,17 @@
       "languagePolish": "Polski",
       "languageEnglish": "Angielski",
       "languageFrench": "Francuski"
+    },
+    "instructors": {
+      "title": "Prowadzący przedmiot: {course}",
+      "add": "Przypisz",
+      "employeeLabel": "Prowadzący",
+      "classTypeLabel": "Typ zajęć",
+      "hoursLabel": "Liczba godzin",
+      "empty": "Brak przypisanych prowadzących.",
+      "deleteTitle": "Usuń przypisanie",
+      "deleteDesc": "Czy na pewno chcesz usunąć to przypisanie prowadzącego?",
+      "manage": "Zarządzaj prowadzącymi"
     }
   }
 }

@@ -587,6 +587,17 @@
       "languageEnglish": "English",
       "languageFrench": "French"
 
+    },
+    "instructors": {
+      "title": "Course instructors",
+      "add": "Add instructor assignment",
+      "employeeLabel": "Instructor",
+      "classTypeLabel": "Class type",
+      "hoursLabel": "Hours per semester",
+      "empty": "No instructors assigned to this course.",
+      "deleteTitle": "Delete instructor assignment",
+      "deleteDesc": "Are you sure you want to delete the assignment of {employee} as an instructor for {course}? This action cannot be undone.",
+      "manage": "Manage instructors"
     }
   }
 }
