@@ -18,7 +18,6 @@ from src.database.database import get_db
 from helpers.db_seeder.generators.academics import generate_units
 from helpers.db_seeder.generators.course_instructors import (
     extract_teachers,
-    generate_course_instructors,
 )
 from helpers.db_seeder.generators.courses import (
     generate_study_fields,
