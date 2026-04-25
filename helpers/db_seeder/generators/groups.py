@@ -1,5 +1,4 @@
 import json
-import math
 
 from sqlalchemy.orm import Session
 
