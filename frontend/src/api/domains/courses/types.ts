@@ -19,6 +19,11 @@ export interface Major extends MajorBase {
     group_count?: number;
 }
 
+export interface MajorDetails {
+    id: number;
+    major_name: string;
+}
+
 export interface ElectiveBlockBase {
     study_field: number;
     elective_block_name: string;
@@ -35,10 +40,7 @@ export interface ElectiveBlockUpdate {
     elective_block_name?: string;
 }
 
-export interface MajorDetails {
-    id: number;
-    major_name: string;
-}
+
 
 export interface StudyFieldBase {
     faculty: number;
@@ -69,12 +71,7 @@ export interface StudyFieldSemesterSummary {
     elective_blocks_count?: number | null;
 }
 
-export interface StudyProgramDetails {
-    id: number;
-    study_field: number;
-    start_year: string;
-    program_name?: string | null;
-}
+
 
 export interface StudyPlanGroupSummary {
     id: number;
@@ -116,4 +113,45 @@ export interface CourseFilters {
     min_ects_points?: number;
     max_ects_points?: number;
     language?: CourseLanguage;
+}
+
+export interface StudyProgramBase {
+    study_field: number;
+    start_year: string;
+    program_name?: string | null;
+}
+
+export interface StudyProgram extends StudyProgramBase {
+    id: number;
+}
+
+export type StudyProgramCreate = StudyProgramBase;
+export type StudyProgramUpdate = Partial<StudyProgramBase>;
+
+export type StudyProgramDetails = StudyProgram;
+
+
+export interface CurriculumCourseBase {
+    study_program: number;
+    course: number;
+    semester: number;
+    major?: number | null;
+    elective_block?: number | null;
+}
+
+export interface CurriculumCourse extends CurriculumCourseBase {}
+
+export type CurriculumCourseCreate = CurriculumCourseBase;
+
+export interface CurriculumCourseUpdate {
+    major?: number | null;
+    elective_block?: number | null;
+}
+
+export interface CurriculumFilters {
+    study_program?: number;
+    course?: number;
+    semester?: number;
+    major?: number;
+    elective_block?: number;
 }
