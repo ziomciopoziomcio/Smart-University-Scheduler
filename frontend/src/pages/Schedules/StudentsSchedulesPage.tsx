@@ -128,11 +128,11 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                             semester: Number(semesterId),
                             major_name: search.trim() || undefined
                         });
-
+                        debugger;
                         const mapped = res.items.map((m) => ({
                             id: m.id,
-                            name: m.major_name,
-                            groups_count: m.group_count || 0
+                            major_name: m.major_name,
+                            group_count: m.group_count || 0
                         }));
 
                         setData(mapped);

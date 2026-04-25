@@ -16,6 +16,7 @@ import {
 
 import {ScheduleEmployeeFacultyView, ScheduleEmployeeUnitView, ScheduleEmployeeView} from '@components/Schedule';
 
+//https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/183
 
 interface EmployeesSchedulesPageProps {
     view: 'faculties' | 'units' | 'lecturers';

@@ -1,5 +1,6 @@
 import type {ScheduleEntryDetails} from '@api';
 
+//to jest do details w weekschedulegrid
 export const scheduleDetailsMock: Record<string, ScheduleEntryDetails> = {
     '1': {
         typeLabel: 'Wykład',

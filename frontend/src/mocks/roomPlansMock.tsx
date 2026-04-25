@@ -1,6 +1,7 @@
 import type {ScheduleEntry} from '@api';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 
+//TO JEST DO ROOM SCHEDULE TYLKO JUZ
 export interface CampusItem {
     id: string;
     name: string;

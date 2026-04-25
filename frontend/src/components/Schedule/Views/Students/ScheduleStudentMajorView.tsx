@@ -2,12 +2,11 @@ import {Box} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 import ClassIcon from '@mui/icons-material/Class';
-
+import {type Major} from '@api';
 import {ListPagination, ListView} from '@components/Common';
-import {type StudyPlanSpecializationSummary} from '../../../../mocks/studyPlanMajorsMock.tsx';
 
 interface ScheduleStudentMajorViewProps {
-    data: StudyPlanSpecializationSummary[];
+    data: Major[];
     facultyId: number;
     fieldOfStudyId: number;
     semesterId: number;
@@ -34,10 +33,10 @@ export function ScheduleStudentMajorView({
 
     return (
         <Box>
-            <ListView<StudyPlanSpecializationSummary>
+            <ListView<Major>
                 items={data}
                 icon={ClassIcon}
-                getTitle={(item) => item.name}
+                getTitle={(item) => item.major_name}
                 titleWidth="400px"
                 columns={[
                     {
@@ -47,7 +46,7 @@ export function ScheduleStudentMajorView({
                                     id: 'plans.studentsPlan.studySpecialization.groupsCount',
                                     defaultMessage: '{count, plural, one {# group} other {# groups}}'
                                 },
-                                {count: item.groups_count ?? 0}
+                                {count: item.group_count ?? 0}
                             ),
                         variant: 'secondary',
                         width: '150px'

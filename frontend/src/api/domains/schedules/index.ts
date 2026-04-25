@@ -1,2 +1,2 @@
 export * from './types'
-export * from './lecturerSchedule';
+export * from './employeeSchedule.ts';

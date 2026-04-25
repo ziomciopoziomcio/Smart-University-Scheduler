@@ -1,6 +1,7 @@
 import type {ScheduleEntry} from '@api';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 
+//To do my schedule
 interface MockEntrySeed {
     id: string;
     title: string;

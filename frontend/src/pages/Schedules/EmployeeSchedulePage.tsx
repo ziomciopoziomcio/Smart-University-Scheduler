@@ -17,6 +17,7 @@ import {WeekSchedule} from '@components/Schedule/WeekSchedule';
 import {addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 
+//https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/184
 export async function getLecturerScheduleForWeek(
     lecturerId: string,
     weekStart: Date,

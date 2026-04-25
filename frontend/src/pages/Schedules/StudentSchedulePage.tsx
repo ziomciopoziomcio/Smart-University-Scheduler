@@ -30,6 +30,7 @@ import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 import {getMockStudyPlanScheduleEntries} from '../../mocks/studyPlansMock';
 
+//https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/115
 // ---------------------------------------------------------------------------
 // TODO: Replace with backend API call
 const fetchStudentScheduleFromApi = async (params: any): Promise<ScheduleEntry[]> => {
