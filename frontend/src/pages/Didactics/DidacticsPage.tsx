@@ -3,7 +3,7 @@ import {useParams} from 'react-router-dom';
 import {Box, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
 
-import {PageBreadcrumbs, SearchBar} from '@components/Common';
+import {PageBreadcrumbs, type BreadcrumbItem, SearchBar} from '@components/Common';
 import {
     fetchFaculties, getFaculty,
     fetchUnits, getUnit,
@@ -73,30 +73,31 @@ export default function DidacticsPage({view}: { view: string }) {
         void loadData();
     }, [view, facultyId, fieldId, unitId, search]);
 
-    const getBreadcrumbs = () => {
-        const breadcrumbs = [{label: intl.formatMessage({id: 'didactics.breadcrumbs.main'}), path: '/didactics'}];
+    const getBreadcrumbs = (): BreadcrumbItem[] => {
+        const breadcrumbs: BreadcrumbItem[] = [
+            {label: intl.formatMessage({id: 'didactics.breadcrumbs.main'}), path: '/didactics'}
+        ];
 
         if (['faculties_for_fields', 'fields', 'field_dashboard', 'majors', 'blocks'].includes(view)) {
             breadcrumbs.push({
                 label: intl.formatMessage({id: 'didactics.breadcrumbs.fields'}),
                 path: '/didactics/fields'
             });
-            if (currentFaculty) breadcrumbs.push({
-                label: currentFaculty.faculty_short,
-                path: `/didactics/fields/faculty/${facultyId}`
-            });
-            if (currentField) breadcrumbs.push({
-                label: currentField.field_name,
-                path: `/didactics/fields/faculty/${facultyId}/field/${fieldId}`
-            });
-            if (view === 'majors') breadcrumbs.push({
-                label: intl.formatMessage({id: 'didactics.breadcrumbs.majors'}),
-                path: '#'
-            });
-            if (view === 'blocks') breadcrumbs.push({
-                label: intl.formatMessage({id: 'didactics.breadcrumbs.blocks'}),
-                path: '#'
-            });
+
+            if (currentFaculty && facultyId) {
+                breadcrumbs.push({
+                    label: currentFaculty.faculty_short,
+                    path: view !== 'fields' ? `/didactics/fields/faculty/${facultyId}` : undefined
+                });
+            }
+            if (currentField && fieldId) {
+                breadcrumbs.push({
+                    label: currentField.field_name,
+                    path: view !== 'field_dashboard' ? `/didactics/fields/faculty/${facultyId}/field/${fieldId}` : undefined
+                });
+            }
+            if (view === 'majors') breadcrumbs.push({label: intl.formatMessage({id: 'didactics.breadcrumbs.majors'})});
+            if (view === 'blocks') breadcrumbs.push({label: intl.formatMessage({id: 'didactics.breadcrumbs.blocks'})});
         }
 
         if (['faculties_for_courses', 'units_for_courses', 'catalog'].includes(view)) {
@@ -104,11 +105,16 @@ export default function DidacticsPage({view}: { view: string }) {
                 label: intl.formatMessage({id: 'didactics.breadcrumbs.courses'}),
                 path: '/didactics/courses'
             });
-            if (currentFaculty) breadcrumbs.push({
-                label: currentFaculty.faculty_short,
-                path: `/didactics/courses/faculty/${facultyId}`
-            });
-            if (currentUnit) breadcrumbs.push({label: currentUnit.unit_short || currentUnit.unit_name, path: '#'});
+
+            if (currentFaculty && facultyId) {
+                breadcrumbs.push({
+                    label: currentFaculty.faculty_short,
+                    path: view !== 'units_for_courses' ? `/didactics/courses/faculty/${facultyId}` : undefined
+                });
+            }
+            if (currentUnit && unitId) {
+                breadcrumbs.push({label: currentUnit.unit_short || currentUnit.unit_name});
+            }
         }
         return breadcrumbs;
     };
