@@ -9,7 +9,10 @@ from backend.src.database.database import SessionLocal, get_db
 
 
 from helpers.db_seeder.generators.academics import generate_units
-from helpers.db_seeder.generators.course_instructors import extract_teachers
+from helpers.db_seeder.generators.course_instructors import (
+    extract_teachers,
+    generate_course_instructors,
+)
 from helpers.db_seeder.generators.courses import (
     generate_study_fields,
     generate_majors,
@@ -167,6 +170,16 @@ generate_students(
     db_study_programs=db_study_programs,
     db_curr_courses=db_curr_courses,
     db_majors=db_majors,
+)
+session.commit()
+
+db_course_instructors = generate_course_instructors(
+    session=session,
+    sourcefile=PATH,
+    num_of_groups=5,
+    db_teachers=db_teachers,
+    db_courses=db_courses,
+    debug=False,
 )
 session.commit()
 
