@@ -1,6 +1,5 @@
 [
-
-   {
+  {
     "kierunek": "automatyka i sterowanie robotów",
     "stopień": 1,
     "rok studiów": 1,
@@ -12,7 +11,6 @@
       }
     ]
   },
-
   {
     "kierunek": "automatyka i sterowanie robotów",
     "stopień": 1,
@@ -25,7 +23,6 @@
       }
     ]
   },
-
   {
     "kierunek": "automatyka i sterowanie robotów",
     "stopień": 1,
@@ -38,10 +35,6 @@
       }
     ]
   },
-
-
-
-
   {
     "kierunek": "elektronika i telekomunikacja",
     "stopień": 1,
@@ -54,7 +47,6 @@
       }
     ]
   },
-
   {
     "kierunek": "elektronika i telekomunikacja",
     "stopień": 1,
@@ -67,7 +59,6 @@
       }
     ]
   },
-
   {
     "kierunek": "elektronika i telekomunikacja",
     "stopień": 1,
@@ -80,9 +71,6 @@
       }
     ]
   },
-
-
-
   {
     "kierunek": "elektrotechnika",
     "stopień": 2,
@@ -95,8 +83,7 @@
       }
     ]
   },
-
-   {
+  {
     "kierunek": "elektrotechnika",
     "stopień": 2,
     "rok studiów": 2,
@@ -108,10 +95,6 @@
       }
     ]
   },
-
-
-
-
   {
     "kierunek": "biomedical engineering and technologies",
     "stopień": 1,
@@ -124,8 +107,7 @@
       }
     ]
   },
-
-   {
+  {
     "kierunek": "biomedical engineering and technologies",
     "stopień": 1,
     "rok studiów": 2,
@@ -137,8 +119,7 @@
       }
     ]
   },
-
-   {
+  {
     "kierunek": "biomedical engineering and technologies",
     "stopień": 1,
     "rok studiów": 3,
@@ -150,10 +131,6 @@
       }
     ]
   },
-
-
-
-
   {
     "kierunek": "informatyka.",
     "stopień": 1,
@@ -166,7 +143,6 @@
       }
     ]
   },
-
   {
     "kierunek": "informatyka.",
     "stopień": 1,
@@ -179,7 +155,6 @@
       }
     ]
   },
-
   {
     "kierunek": "informatyka.",
     "stopień": 1,
@@ -192,13 +167,7 @@
       }
     ]
   },
-
-
-
-
-
-
-   {
+  {
     "kierunek": "informatyka.",
     "stopień": 2,
     "rok studiów": 1,
@@ -210,7 +179,6 @@
       }
     ]
   },
-
   {
     "kierunek": "informatyka.",
     "stopień": 2,
@@ -223,53 +191,42 @@
       }
     ]
   },
-
-
-
-
   {
     "kierunek": "computer science",
     "stopień": 1,
     "rok studiów": 1,
     "grupy": [
       {
-        "ogólne": 10,
+        "ogólne": 5,
         "specjalizacja": 0,
         "blok obieralny": 0
       }
     ]
   },
-
-
-   {
+  {
     "kierunek": "computer science",
     "stopień": 1,
     "rok studiów": 2,
     "grupy": [
       {
-        "ogólne": 7,
+        "ogólne": 4,
         "specjalizacja": 0,
         "blok obieralny": 0
       }
     ]
   },
-
   {
     "kierunek": "computer science",
     "stopień": 1,
     "rok studiów": 3,
     "grupy": [
       {
-        "ogólne": 6,
+        "ogólne": 3,
         "specjalizacja": 0,
-        "blok obieralny": 2
+        "blok obieralny": 1
       }
     ]
   },
-
-
-
-
   {
     "kierunek": "computer science and information technology",
     "stopień": 2,
@@ -282,7 +239,6 @@
       }
     ]
   },
-
   {
     "kierunek": "computer science and information technology",
     "stopień": 2,
