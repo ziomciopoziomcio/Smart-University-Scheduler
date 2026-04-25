@@ -250,7 +250,7 @@ def _find_teacher_obj(
     degree: str,
     name: str,
     lastname: str,
-    teachers: list[dict[tuple[str | None, str, str, str, str], Users]],
+    teachers: dict[tuple[str | None, str, str, str, str], Users],
 ) -> Users | None:
     """
     Searches for a teacher object in a nested teacher structure based on degree, name, and surname.
@@ -260,11 +260,9 @@ def _find_teacher_obj(
     :param teachers: teachers list
     :return: found teacher object or None if not found
     """
-    for teacher_dict in teachers:
-        for user_key, user in teacher_dict.items():
-            d, n, s, _, _ = user_key
-            if d == degree and n == name and s == lastname:
-                return user
+    for (d, n, s, _, _), user in teachers.items():
+        if d == degree and n == name and s == lastname:
+            return user
     return None
 
 
@@ -292,7 +290,7 @@ def _map_course_type(class_type: str) -> ClassType | None:
 def _add_course_instructors_to_db(
     session: Session,
     entries: dict[tuple[str, str, str, int, str], int],
-    teachers: list[dict[tuple[str | None, str, str, str, str], Users]],
+    teachers: dict[tuple[str | None, str, str, str, str], Users],
     courses: dict[int, Course],
 ) -> dict[tuple[str, str, str, int, str], Courses_instructors]:
     """
@@ -426,7 +424,7 @@ def generate_course_instructors(
     session: Session,
     sourcefile: str,
     num_of_groups: int,
-    db_teachers: list[dict[tuple[str | None, str, str, str, str], Users]],
+    db_teachers: dict[tuple[str | None, str, str, str, str], Users],
     db_courses: dict[int, Course],
     debug: bool = True,
 ) -> dict[tuple[str, str, str, int, str], Courses_instructors]:
@@ -511,6 +509,7 @@ def generate_course_instructors(
 
     session.flush()
     return db_course_instructors
+
 
 # if __name__ == "__main__":
 #     teachers = extract_teachers()
