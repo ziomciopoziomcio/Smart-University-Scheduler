@@ -11,12 +11,12 @@ import {
     getStudyField,
     fetchMajors,
     fetchStudyFieldSemesterSummary,
+    fetchStudyPlanGroupsSummary,
     type Faculty,
     type StudyField,
     type StudyFieldSemesterSummary,
     type StudyPlanGroupSummary
 } from '@api';
-
 import {
     ScheduleStudentFacultyView,
     ScheduleStudentSemesterView,
@@ -24,8 +24,8 @@ import {
     ScheduleStudentGroupView,
     ScheduleStudentFieldView
 } from '@components/Schedule';
-import {fetchMockStudyPlanMajorGroups} from '../../mocks/studyPlanMajorsGroupsMock.tsx';
-import {fetchMockStudyPlanGroups} from '../../mocks/studyPlanSemesterGroupsMock.tsx';
+// import {fetchMockStudyPlanMajorGroups} from '../../mocks/studyPlanMajorsGroupsMock.tsx';
+// import {fetchMockStudyPlanGroups} from '../../mocks/studyPlanSemesterGroupsMock.tsx';
 
 interface StudentsSchedulesPageProps {
     view: 'faculties' | 'fields' | 'semesters' | 'majors' | 'groups';
@@ -138,17 +138,13 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
 
                 setData(mapped);
                 setTotalItems(res.total);
-            } else if (view === 'groups' && fieldOfStudyId && semesterId) {
-                let res: StudyPlanGroupSummary[];
-
-                if (majorId) {
-                    res = await fetchMockStudyPlanMajorGroups(Number(majorId));
-                } else {
-                    res = await fetchMockStudyPlanGroups(
-                        Number(fieldOfStudyId),
-                        Number(semesterId)
-                    );
-                }
+            } else if (view === 'groups' && facultyId && fieldOfStudyId && semesterId) {
+                const res = await fetchStudyPlanGroupsSummary({
+                    faculty_id: Number(facultyId),
+                    study_field: Number(fieldOfStudyId),
+                    semester: Number(semesterId),
+                    specialization_id: majorId ? Number(majorId) : undefined
+                });
 
                 const filtered = search.trim()
                     ? res.filter((g) =>

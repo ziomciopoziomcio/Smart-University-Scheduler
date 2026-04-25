@@ -51,3 +51,9 @@ export interface StudyFieldSemesterSummary {
     major_count?: number | null;
     elective_blocks_count?: number | null;
 }
+
+export interface StudyPlanGroupSummary {
+    id: number;
+    group_name: string;
+    academic_year: string;
+}
