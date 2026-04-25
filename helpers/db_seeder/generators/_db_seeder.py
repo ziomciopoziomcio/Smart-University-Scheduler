@@ -191,7 +191,6 @@ db_students = generate_students(
     session=session,
     db_not_teachers=db_not_teachers,
     db_study_programs=db_study_programs,
-    db_curr_courses=db_curr_courses,
     db_majors=db_majors,
     db_major_groups=db_major_groups,
 )
