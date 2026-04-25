@@ -34,3 +34,12 @@ export interface WeekScheduleProps {
     onPrevWeek: () => void;
     onNextWeek: () => void;
 }
+
+export interface ScheduleEntry {
+    id: string;
+    title: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    variant: string;
+}

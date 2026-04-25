@@ -43,6 +43,7 @@ export interface Unit {
     unit_name: string;
     unit_short: string;
     faculty_id: number;
+    lecturers_count?: number;
 }
 
 export interface StudyFieldSemesterSummary {
