@@ -95,7 +95,8 @@
     "facilities": "Facilities",
     "students": "Students",
     "structures": "Structures",
-    "users": "Users"
+    "users": "Users",
+    "didactics": "Didactics"
   },
   "navbar": {
     "guest": "Guest"
