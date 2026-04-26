@@ -1,6 +1,7 @@
 import type {ScheduleEntry} from '@api';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 
+//Mock planow studentow
 export interface CurriculumYearItem {
     id: string;
     name: string;
