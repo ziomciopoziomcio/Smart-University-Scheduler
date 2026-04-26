@@ -183,7 +183,7 @@ export default function StudentSchedulePage() {
     }, [fieldOfStudyId, semesterId, specializationId, groupId, currentWeekStart]);
 
     const breadcrumbs = useMemo((): BreadcrumbItem[] => [
-        {label: intl.formatMessage({id: 'plans.plans', defaultMessage: 'Plany'}), path: '/plans'},
+        {label: intl.formatMessage({id: 'plans.plans', defaultMessage: 'Plany'}), path: '/schedules'},
         {
             label: intl.formatMessage({id: 'plans.studentsPlan.title', defaultMessage: 'Plany studenckie'}),
             path: '/schedules/study/faculty'

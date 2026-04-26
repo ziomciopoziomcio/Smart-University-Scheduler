@@ -1,5 +1,5 @@
 import {Box, Typography} from '@mui/material';
-import {useMemo, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import {SCHEDULE_LAYOUT, scheduleHours, weekdayMessageIds} from '@constants/schedule';
@@ -177,24 +177,41 @@ export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
     }, [orderedEntries]);
 
     const getSubjectTypeLabel = (type: string) => {
-        switch (type) {
+        const normalizedType = type
+            ?.toLowerCase()
+            .replace(/[-_\s]/g, '');
+
+        switch (normalizedType) {
             case 'lecture':
                 return formatMessage({id: 'schedule.subjectType.lecture'});
 
             case 'laboratory':
+            case 'lab':
                 return formatMessage({id: 'schedule.subjectType.lab'});
 
             case 'tutorials':
+            case 'classes':
+            case 'exercise':
+            case 'exercises':
                 return formatMessage({id: 'schedule.subjectType.exercise'});
+
+            case 'project':
+                return formatMessage({id: 'schedule.subjectType.project'});
 
             case 'seminar':
                 return formatMessage({id: 'schedule.subjectType.seminar'});
 
             case 'other':
-                return formatMessage({id: 'schedule.subjectType.other', defaultMessage: 'Other'});
+                return formatMessage({
+                    id: 'schedule.subjectType.other',
+                    defaultMessage: 'Other'
+                });
 
-            case 'e-learning':
-                return formatMessage({id: 'schedule.subjectType.elearning', defaultMessage: 'E-learning'});
+            case 'elearning':
+                return formatMessage({
+                    id: 'schedule.subjectType.elearning',
+                    defaultMessage: 'E-learning'
+                });
 
             default:
                 return type || '—';
@@ -272,6 +289,10 @@ export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
         setSelectedEntry(null);
         setSelectedDetails(null);
     };
+
+    useEffect(() => {
+        handleClosePopup();
+    }, [entries]);
 
     return (
         <Box sx={{position: 'relative', px: 0, pb: 0}}>
