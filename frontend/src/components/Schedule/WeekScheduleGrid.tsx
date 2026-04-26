@@ -1,13 +1,19 @@
 import {Box, Typography} from '@mui/material';
-import {useMemo, useState, useEffect} from 'react';
-import type {ScheduleEntry, ScheduleEntryDetails} from '@api';
+import {useMemo, useRef, useState} from 'react';
+import {useIntl} from 'react-intl';
+
 import {SCHEDULE_LAYOUT, scheduleHours, weekdayMessageIds} from '@constants/schedule';
 import {ScheduleTileFactory} from './Tile/ScheduleTileFactory';
 import {SubjectDetailsPopup} from './SubjectDetailsPopup';
 import {formatMinutesToTimeLabel, getGridHeight, parseTimeToMinutes} from './utils/utils';
-import {scheduleDetailsMock} from '../../mocks/scheduleDetailsMock';
-import {useIntl} from 'react-intl';
 import {getDayIndexFromDate, parseIsoDate} from './utils/dateUtils';
+
+import type {
+    CourseSessionDetailsResponse,
+    ScheduleEntry,
+    ScheduleEntryDetails
+} from '@api';
+import {fetchCourseSessionDetails} from '@api';
 
 interface WeekScheduleGridProps {
     entries: ScheduleEntry[];
@@ -16,6 +22,27 @@ interface WeekScheduleGridProps {
 interface EntryLayout {
     columnIndex: number;
     columnCount: number;
+}
+
+const DETAILS_FETCH_TIMEOUT_MS = 2500;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T | null> {
+    return new Promise((resolve) => {
+        const timeoutId = window.setTimeout(() => {
+            resolve(null);
+        }, timeoutMs);
+
+        promise
+            .then((value) => {
+                resolve(value);
+            })
+            .catch(() => {
+                resolve(null);
+            })
+            .finally(() => {
+                window.clearTimeout(timeoutId);
+            });
+    });
 }
 
 function doEntriesOverlap(left: ScheduleEntry, right: ScheduleEntry) {
@@ -29,7 +56,6 @@ function doEntriesOverlap(left: ScheduleEntry, right: ScheduleEntry) {
 
 function getEntryLayouts(entries: ScheduleEntry[]): Record<string, EntryLayout> {
     const layouts: Record<string, EntryLayout> = {};
-
     const entriesByDay = new Map<number, ScheduleEntry[]>();
 
     for (const entry of entries) {
@@ -128,43 +154,121 @@ function getEntryLayouts(entries: ScheduleEntry[]): Record<string, EntryLayout> 
 export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
     const [selectedEntry, setSelectedEntry] = useState<ScheduleEntry | null>(null);
     const [selectedDetails, setSelectedDetails] = useState<ScheduleEntryDetails | null>(null);
+
+    const detailsRequestId = useRef(0);
+
     const {formatMessage} = useIntl();
     const gridHeight = getGridHeight();
 
     const orderedEntries = useMemo(() => {
-        return [...entries].sort((a, b) => a.startTime.localeCompare(b.startTime));
+        return [...entries].sort((a, b) => {
+            const dateDiff = a.date.localeCompare(b.date);
+
+            if (dateDiff !== 0) {
+                return dateDiff;
+            }
+
+            return parseTimeToMinutes(a.startTime) - parseTimeToMinutes(b.startTime);
+        });
     }, [entries]);
 
     const entryLayouts = useMemo(() => {
         return getEntryLayouts(orderedEntries);
     }, [orderedEntries]);
 
-    useEffect(() => {
+    const getSubjectTypeLabel = (type: string) => {
+        switch (type) {
+            case 'lecture':
+                return formatMessage({id: 'schedule.subjectType.lecture'});
+
+            case 'laboratory':
+                return formatMessage({id: 'schedule.subjectType.lab'});
+
+            case 'tutorials':
+                return formatMessage({id: 'schedule.subjectType.exercise'});
+
+            case 'seminar':
+                return formatMessage({id: 'schedule.subjectType.seminar'});
+
+            case 'other':
+                return formatMessage({id: 'schedule.subjectType.other', defaultMessage: 'Other'});
+
+            case 'e-learning':
+                return formatMessage({id: 'schedule.subjectType.elearning', defaultMessage: 'E-learning'});
+
+            default:
+                return type || '—';
+        }
+    };
+
+    const mapAudience = (targetAudience: string[]) => {
+        return targetAudience.map((item) => {
+            const parts = item.split(' | ');
+
+            if (parts.length === 2) {
+                return {
+                    fieldOfStudy: parts[0] || item,
+                    semester: '',
+                    specialization: parts[1] || '',
+                };
+            }
+
+            const [fieldOfStudy, semester, specialization] = parts;
+
+            return {
+                fieldOfStudy: fieldOfStudy || item,
+                semester: semester || '',
+                specialization: specialization || '',
+            };
+        });
+    };
+
+    const mapCourseSessionDetails = (
+        details: CourseSessionDetailsResponse,
+    ): ScheduleEntryDetails => {
+        const targetAudience = details.targetAudience ?? details.target_audience ?? [];
+
+        return {
+            typeLabel: getSubjectTypeLabel(details.type),
+            timeLabel: details.time,
+            location: {
+                campus: details.location.campus,
+                building: details.location.building,
+                room: details.location.room,
+            },
+            lecturer: details.lecturer,
+            audience: mapAudience(targetAudience),
+        };
+    };
+
+    const handleTileClick = async (entry: ScheduleEntry) => {
+        const currentRequestId = detailsRequestId.current + 1;
+        detailsRequestId.current = currentRequestId;
+
         setSelectedEntry(null);
         setSelectedDetails(null);
-    }, [entries]);
 
-    const halfHourLines = useMemo(() => {
-        const result: number[] = [];
+        const response = await withTimeout(
+            fetchCourseSessionDetails(entry.id),
+            DETAILS_FETCH_TIMEOUT_MS
+        );
 
-        for (let i = 0; i < scheduleHours.length - 1; i += 1) {
-            const hour = scheduleHours[i];
-            result.push(hour * 60);
-            result.push(hour * 60 + 30);
+        if (detailsRequestId.current !== currentRequestId) {
+            return;
         }
 
-        result.push(scheduleHours[scheduleHours.length - 1] * 60);
+        if (!response) {
+            setSelectedEntry(null);
+            setSelectedDetails(null);
+            return;
+        }
 
-        return result;
-    }, []);
-
-    const handleTileClick = (entry: ScheduleEntry) => {
         setSelectedEntry(entry);
-        const details = scheduleDetailsMock[entry.id] ?? null;
-        setSelectedDetails(details);
+        setSelectedDetails(mapCourseSessionDetails(response));
     };
 
     const handleClosePopup = () => {
+        detailsRequestId.current += 1;
         setSelectedEntry(null);
         setSelectedDetails(null);
     };
@@ -255,29 +359,19 @@ export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
                         />
                     ))}
 
-                    {halfHourLines.map((minutes, index) => {
-                        const top =
-                            ((minutes - scheduleHours[0] * 60) / 60) * SCHEDULE_LAYOUT.hourRowHeight;
-
-                        const isFullHour = minutes % 60 === 0;
-
-                        return (
-                            <Box
-                                key={`horizontal-${minutes}-${index}`}
-                                sx={{
-                                    position: 'absolute',
-                                    top,
-                                    left: 0,
-                                    width: '100%',
-                                    height: '1px',
-                                    bgcolor: isFullHour
-                                        ? 'rgba(68, 68, 68, 0.33)'
-                                        : 'rgba(68, 68, 68, 0.16)',
-                                    borderTop: isFullHour ? 'none' : '1px dashed rgba(68, 68, 68, 0.10)',
-                                }}
-                            />
-                        );
-                    })}
+                    {scheduleHours.map((hour: number, index: number) => (
+                        <Box
+                            key={`horizontal-${hour}`}
+                            sx={{
+                                position: 'absolute',
+                                top: index * SCHEDULE_LAYOUT.hourRowHeight,
+                                left: 0,
+                                width: '100%',
+                                height: '1px',
+                                bgcolor: 'rgba(68, 68, 68, 0.33)',
+                            }}
+                        />
+                    ))}
 
                     {orderedEntries.map((entry) => {
                         const layout = entryLayouts[entry.id] ?? {

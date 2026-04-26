@@ -98,7 +98,8 @@
     "users": "Users"
   },
   "navbar": {
-    "guest": "Guest"
+    "guest": "Guest",
+    "logout": "Logout"
   },
   "calendar": {
     "month": "Month",

@@ -1,2 +1,3 @@
 export * from './types'
-export * from './employeeSchedule.ts';
+export * from './employeeSchedule';
+export * from './schedules';

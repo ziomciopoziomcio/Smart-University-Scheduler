@@ -24,7 +24,7 @@ const scheduleSeeds: MockEntrySeed[] = [
         title: 'Programowanie\nsieciowe 1',
         weekOffset: 0,
         dayOffset: 0,
-        startTime: '10:15',
+        startTime: '10:30',
         endTime: '11:45',
         variant: 'lecture',
     },
