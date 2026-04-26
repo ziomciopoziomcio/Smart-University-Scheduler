@@ -96,7 +96,8 @@
     "students": "Students",
     "structures": "Structures",
     "users": "Users",
-    "didactics": "Didactics"
+    "didactics": "Didactics",
+    "generateSchedule": "Generate schedule"
   },
   "navbar": {
     "guest": "Guest",

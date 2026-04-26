@@ -96,7 +96,8 @@
     "students": "Studenci",
     "structures": "Struktury",
     "users": "Użytkownicy",
-    "didactics": "Dydaktyka"
+    "didactics": "Dydaktyka",
+    "generateSchedule": "Generuj plan"
   },
   "navbar": {
     "guest": "Gość",
