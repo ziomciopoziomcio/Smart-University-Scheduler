@@ -16,6 +16,7 @@ import {
 
 import {ScheduleEmployeeFacultyView, ScheduleEmployeeUnitView, ScheduleEmployeeView} from '@components/Schedule';
 
+//https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/183
 
 interface EmployeesSchedulesPageProps {
     view: 'faculties' | 'units' | 'lecturers';
@@ -153,7 +154,17 @@ export default function EmployeesSchedulesPage({view}: EmployeesSchedulesPagePro
                 {!loading && !error && (
                     <>
                         {view === 'faculties' && (
-                            <ScheduleEmployeeFacultyView data={data as Faculty[]}/>
+                            <ScheduleEmployeeFacultyView
+                                data={data as Faculty[]}
+                                page={page}
+                                pageSize={pageSize}
+                                totalItems={totalItems}
+                                onPageChange={setPage}
+                                onPageSizeChange={(value) => {
+                                    setPageSize(value);
+                                    setPage(1);
+                                }}
+                            />
                         )}
                         {view === 'units' && (
                             <ScheduleEmployeeUnitView

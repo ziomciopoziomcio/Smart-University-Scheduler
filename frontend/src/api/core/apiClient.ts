@@ -6,6 +6,7 @@ export const USERS_URL = `${BASE_URL}/users`;
 export const ACADEMICS_URL = `${BASE_URL}/academics`;
 export const FACILITIES_URL = `${BASE_URL}/facilities`;
 export const COURSES_URL = `${BASE_URL}/course`;
+export const SCHEDULES_URL = `${BASE_URL}/schedules`;
 
 
 export const getHeaders = () => ({
