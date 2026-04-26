@@ -95,6 +95,23 @@ class EmployeeAbsenceUpdate(BaseModel):
         return self
 
 
+class CourseLocation(BaseModel):
+    campus: str
+    building: str
+    room: str
+
+
+class CourseDetailResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    course_name: str = Field(alias="courseName")
+    type: str
+    time: str
+    location: CourseLocation
+    lecturer: str
+    target_audience: list[str] = Field(alias="targetAudience")
+
+
 class ScheduleEntry(BaseModel):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 

@@ -17,8 +17,8 @@ from ..common.router_utils import (
     _apply_patch_or_reject_nulls,
 )
 from ..database.database import get_db
-from ..users import models as user_models
 from ..database.neo4j import get_neo4j_session
+from ..users import models as user_models
 from ..courses.models import ClassType
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
@@ -31,6 +31,27 @@ EMPLOYEE_ABSENCE_LIMIT = 100
 
 # Schedules
 SUGGESTION_LIMIT = 50
+
+COURSE_DETAIL_QUERY = """
+    MATCH (s:ClassSession {sessionId: $session_id})
+    MATCH (s)-[:OF_COURSE]->(c:Course)
+    MATCH (s)-[:AT_TIME]->(t:TimeSlot)
+    MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
+    MATCH (s)-[:HELD_IN]->(r:Room)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(cp:Campus)
+
+    MATCH (s)-[:FOR_GROUP]->(g:Group)
+
+    RETURN
+        c.courseName AS course_name,
+        c.classType AS class_type,
+        t.startTime + " - " + t.endTime AS time_range,
+        cp.campusShort AS campus,
+        b.buildingNumber AS building,
+        r.roomName AS room,
+        (CASE WHEN i.degree IS NOT NULL THEN i.degree + " " ELSE "" END)
+        + i.firstName + " " + i.lastName AS lecturer,
+        collect(DISTINCT g.programName + " | " + g.groupName) AS audience_list
+"""
 
 LECTURER_PLAN_ACADEMIC_QUERY = """
     UNWIND $day_configs AS config
@@ -328,6 +349,38 @@ def delete_employee_absence(
     # TODO: KAFKA
 
     return None
+
+
+@router.get(
+    "/session/{session_id}/details", response_model=schemas.CourseDetailResponse
+)
+async def get_course_session_details(
+    session_id: str,
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(require_permission("schedule:view")),
+):
+    """
+    Fetches detailed information about a specific class session from the Graph Database.
+    """
+    result = await neo4j_session.run(COURSE_DETAIL_QUERY, session_id=session_id)
+    record = await result.single()
+
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session with the provided ID was not found in the graph database.",
+        )
+
+    return schemas.CourseDetailResponse(
+        courseName=record["course_name"],
+        type=_parse_variant(record["class_type"]),  # it will work after merging #155
+        time=record["time_range"],
+        location=schemas.CourseLocation(
+            campus=record["campus"], building=record["building"], room=record["room"]
+        ),
+        lecturer=record["lecturer"],
+        targetAudience=record["audience_list"],
+    )
 
 
 def _get_academic_day_configs(db: Session, start_date: date) -> list[dict]:
