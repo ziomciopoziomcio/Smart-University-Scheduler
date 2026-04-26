@@ -414,6 +414,7 @@
       "title": "Plany wykładowców",
       "description": "Sprawdź plan prowadzącego zajęcia.",
       "departmentSelect": {
+        "lecturersCountValue": "{count, plural, one {# lecturer} other {# lecturers}}",
         "searchPlaceholder": "Wyszukaj jednostkę lub wydział...",
         "show": "Pokaż:",
         "units": "Jednostki",

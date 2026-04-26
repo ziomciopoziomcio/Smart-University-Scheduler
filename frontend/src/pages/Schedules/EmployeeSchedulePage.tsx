@@ -23,7 +23,7 @@ export async function getLecturerScheduleForWeek(
     weekStart: Date,
     unitId?: string
 ): Promise<ScheduleEntry[]> {
-    return fetchLecturerPlan({
+    return await fetchLecturerPlan({
         instructorId: Number(lecturerId),
         unitId: unitId ? Number(unitId) : undefined,
         startDate: toIsoDate(weekStart),

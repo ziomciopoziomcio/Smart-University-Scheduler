@@ -128,7 +128,6 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                             semester: Number(semesterId),
                             major_name: search.trim() || undefined
                         });
-                        debugger;
                         const mapped = res.items.map((m) => ({
                             id: m.id,
                             major_name: m.major_name,
