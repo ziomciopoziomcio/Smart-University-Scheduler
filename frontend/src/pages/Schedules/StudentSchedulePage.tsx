@@ -11,7 +11,7 @@ import {
     Typography,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useParams} from 'react-router-dom';
 
 import {
@@ -21,7 +21,7 @@ import {
     type StudyPlanGroupSummary,
     getFaculty,
     fetchElectiveBlocks,
-    fetchStudyPlanGroups,
+    fetchStudyPlanGroupsSummary,
     getStudyField
 } from '@api';
 
@@ -30,6 +30,7 @@ import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 import {getMockStudyPlanScheduleEntries} from '../../mocks/studyPlansMock';
 
+//https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/115
 // ---------------------------------------------------------------------------
 // TODO: Replace with backend API call
 const fetchStudentScheduleFromApi = async (params: any): Promise<ScheduleEntry[]> => {
@@ -51,19 +52,23 @@ export default function StudentSchedulePage() {
     const [field, setField] = useState<StudyField | null>(null);
     const [specializationName, setSpecializationName] = useState<string | null>(null);
 
-    const [blocks, setBlocks] = useState<{ id: number, name: string }[]>([]);
+    const [blocks, setBlocks] = useState<{ id: number; name: string }[]>([]);
     const [blockGroups, setBlockGroups] = useState<Record<number, StudyPlanGroupSummary[]>>({});
     const [selectedBlockGroupIds, setSelectedBlockGroupIds] = useState<Record<number, number[]>>({});
+    const [loadingBlockGroups, setLoadingBlockGroups] = useState<Record<number, boolean>>({});
 
     useEffect(() => {
         if (!facultyId || !fieldOfStudyId) return;
+
         const fetchContext = async () => {
             setIsNamesLoading(true);
+
             try {
                 const [facRes, fieldRes] = await Promise.all([
                     getFaculty(Number(facultyId)) as Promise<Faculty>,
                     getStudyField(Number(fieldOfStudyId))
                 ]);
+
                 setFaculty(facRes);
                 setField(fieldRes);
 
@@ -71,40 +76,81 @@ export default function StudentSchedulePage() {
                     setSpecializationName(`Specjalizacja ${specializationId}`);
                 }
             } catch (err) {
-                console.error("Błąd ładowania kontekstu", err);
+                console.error('Błąd ładowania kontekstu', err);
             } finally {
                 setIsNamesLoading(false);
             }
         };
+
         void fetchContext();
     }, [facultyId, fieldOfStudyId, specializationId]);
 
     useEffect(() => {
         const loadBlocks = async () => {
             if (!fieldOfStudyId || !semesterId) return;
+
             try {
                 const res = await fetchElectiveBlocks(1, 100, {
-                    study_field: Number(fieldOfStudyId)
+                    study_field: Number(fieldOfStudyId),
+                    semester: Number(semesterId),
                 });
 
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const currentSemesterBlocks = res.items.filter((b: any) => b.semester === Number(semesterId));
-                setBlocks(currentSemesterBlocks.map(b => ({id: b.id, name: b.elective_block_name})));
+                setBlocks(
+                    res.items.map((block) => ({
+                        id: block.id,
+                        name: block.elective_block_name,
+                    }))
+                );
 
-                for (const block of currentSemesterBlocks) {
-                    const groups = await fetchStudyPlanGroups(
-                        Number(fieldOfStudyId),
-                        Number(semesterId),
-                        {elective_block_id: block.id}
-                    );
-                    setBlockGroups(prev => ({...prev, [block.id]: groups}));
-                }
+                setBlockGroups({});
+                setSelectedBlockGroupIds({});
+                setLoadingBlockGroups({});
             } catch (err) {
-                console.error("Nie udało się pobrać bloków obieralnych", err);
+                console.error('Nie udało się pobrać bloków obieralnych', err);
             }
         };
+
         void loadBlocks();
     }, [fieldOfStudyId, semesterId]);
+
+    const loadBlockGroups = useCallback(async (blockId: number) => {
+        if (!facultyId || !fieldOfStudyId || !semesterId) return;
+
+        if (blockGroups[blockId]) {
+            return;
+        }
+
+        setLoadingBlockGroups((prev) => ({
+            ...prev,
+            [blockId]: true,
+        }));
+
+        try {
+            const groups = await fetchStudyPlanGroupsSummary({
+                faculty_id: Number(facultyId),
+                study_field: Number(fieldOfStudyId),
+                semester: Number(semesterId),
+                elective_block_id: blockId,
+            });
+
+            setBlockGroups((prev) => ({
+                ...prev,
+                [blockId]: groups,
+            }));
+        } catch (err) {
+            console.error(`Nie udało się pobrać grup dla bloku ${blockId}`, err);
+
+            setBlockGroups((prev) => ({
+                ...prev,
+                [blockId]: [],
+            }));
+        } finally {
+            setLoadingBlockGroups((prev) => ({
+                ...prev,
+                [blockId]: false,
+            }));
+        }
+    }, [facultyId, fieldOfStudyId, semesterId, blockGroups]);
 
     useEffect(() => {
         const fetchPlan = async () => {
@@ -127,16 +173,17 @@ export default function StudentSchedulePage() {
 
                 setEntries(res.filter((entry) => entry.date >= startIso && entry.date <= endIso));
             } catch (err) {
-                console.error("Wystąpił błąd podczas ładowania planu", err);
+                console.error('Wystąpił błąd podczas ładowania planu', err);
             } finally {
                 setIsScheduleLoading(false);
             }
         };
+
         void fetchPlan();
     }, [fieldOfStudyId, semesterId, specializationId, groupId, currentWeekStart]);
 
     const breadcrumbs = useMemo((): BreadcrumbItem[] => [
-        {label: intl.formatMessage({id: 'plans.plans', defaultMessage: 'Plany'}), path: '/plans'},
+        {label: intl.formatMessage({id: 'plans.plans', defaultMessage: 'Plany'}), path: '/schedules'},
         {
             label: intl.formatMessage({id: 'plans.studentsPlan.title', defaultMessage: 'Plany studenckie'}),
             path: '/schedules/study/faculty'
@@ -161,17 +208,23 @@ export default function StudentSchedulePage() {
         {
             label: intl.formatMessage({
                 id: 'plans.studentsPlan.studySchedule.title',
-                defaultMessage: 'MySchedule zajęć'
+                defaultMessage: 'Plan zajęć'
             }),
             path: ''
         }
     ], [intl, faculty, field, specializationName, facultyId, fieldOfStudyId, semesterId, specializationId]);
 
     const handleGroupToggle = (blockId: number, groupId: number) => {
-        setSelectedBlockGroupIds(prev => {
+        setSelectedBlockGroupIds((prev) => {
             const current = prev[blockId] || [];
-            const next = current.includes(groupId) ? current.filter(id => id !== groupId) : [...current, groupId];
-            return {...prev, [blockId]: next};
+            const next = current.includes(groupId)
+                ? current.filter((id) => id !== groupId)
+                : [...current, groupId];
+
+            return {
+                ...prev,
+                [blockId]: next,
+            };
         });
     };
 
@@ -190,10 +243,10 @@ export default function StudentSchedulePage() {
                         currentWeekStart={currentWeekStart}
                         isLoading={isScheduleLoading}
                         onPrevWeek={() => {
-                            setCurrentWeekStart(prev => addWeeks(prev, -1));
+                            setCurrentWeekStart((prev) => addWeeks(prev, -1));
                         }}
                         onNextWeek={() => {
-                            setCurrentWeekStart(prev => addWeeks(prev, 1));
+                            setCurrentWeekStart((prev) => addWeeks(prev, 1));
                         }}
                     />
 
@@ -205,26 +258,58 @@ export default function StudentSchedulePage() {
                                     defaultMessage: 'Bloki obieralne'
                                 })}
                             </Typography>
-                            {blocks.map(block => (
-                                <Accordion key={block.id} elevation={0} sx={{border: '1px solid #eee', mb: 1}}>
-                                    <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
-                                        <Typography>{block.name}</Typography>
-                                    </AccordionSummary>
-                                    <AccordionDetails>
-                                        <FormGroup>
-                                            {(blockGroups[block.id] || []).map(group => (
-                                                <FormControlLabel
-                                                    key={group.id}
-                                                    control={<Checkbox
-                                                        checked={(selectedBlockGroupIds[block.id] || []).includes(group.id)}
-                                                        onChange={() => handleGroupToggle(block.id, group.id)}/>}
-                                                    label={`${group.group_name} (${group.group_code})`}
-                                                />
-                                            ))}
-                                        </FormGroup>
-                                    </AccordionDetails>
-                                </Accordion>
-                            ))}
+
+                            {blocks.map((block) => {
+                                const groups = blockGroups[block.id] || [];
+                                const isGroupsLoading = loadingBlockGroups[block.id];
+
+                                return (
+                                    <Accordion
+                                        key={block.id}
+                                        elevation={0}
+                                        sx={{border: '1px solid #eee', mb: 1}}
+                                        onChange={(_, expanded) => {
+                                            if (expanded) {
+                                                void loadBlockGroups(block.id);
+                                            }
+                                        }}
+                                    >
+                                        <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
+                                            <Typography>{block.name}</Typography>
+                                        </AccordionSummary>
+
+                                        <AccordionDetails>
+                                            {isGroupsLoading ? (
+                                                <Box sx={{display: 'flex', justifyContent: 'center', py: 2}}>
+                                                    <CircularProgress size={24}/>
+                                                </Box>
+                                            ) : groups.length > 0 ? (
+                                                <FormGroup>
+                                                    {groups.map((group) => (
+                                                        <FormControlLabel
+                                                            key={group.id}
+                                                            control={
+                                                                <Checkbox
+                                                                    checked={(selectedBlockGroupIds[block.id] || []).includes(group.id)}
+                                                                    onChange={() => handleGroupToggle(block.id, group.id)}
+                                                                />
+                                                            }
+                                                            label={`${group.group_name}`}
+                                                        />
+                                                    ))}
+                                                </FormGroup>
+                                            ) : (
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {intl.formatMessage({
+                                                        id: 'plans.studentsPlan.studyGroup.noGroups',
+                                                        defaultMessage: 'Brak grup do wyświetlenia.'
+                                                    })}
+                                                </Typography>
+                                            )}
+                                        </AccordionDetails>
+                                    </Accordion>
+                                );
+                            })}
                         </Box>
                     )}
                 </>

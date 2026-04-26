@@ -43,4 +43,18 @@ export interface Unit {
     unit_name: string;
     unit_short: string;
     faculty_id: number;
+    lecturers_count?: number;
+}
+
+export interface StudyFieldSemesterSummary {
+    semester_number: number;
+    groups_count: number;
+    specializations_count?: number | null;
+    elective_blocks_count?: number | null;
+}
+
+export interface StudyPlanGroupSummary {
+    id: number;
+    group_name: string;
+    academic_year: string;
 }
