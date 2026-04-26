@@ -28,16 +28,9 @@ export interface StudyField {
     faculty: number;
     field_name: string;
     language?: string;
-    study_mode?: string;
+    mode?: string;
     semesters_count?: number;
-    major_count?: number | null;
-}
-
-export interface StudyFieldSemesterSummary {
-    semester_number: number;
-    groups_count: number;
-    major_count?: number | null;
-    elective_blocks_count?: number | null;
+    specializations_count?: number;
 }
 
 export interface StudyProgramDetails {
@@ -45,10 +38,4 @@ export interface StudyProgramDetails {
     study_field: number;
     start_year: string;
     program_name?: string | null;
-}
-
-export interface StudyPlanGroupSummary {
-    id: number;
-    group_name: string;
-    group_code: string;
 }

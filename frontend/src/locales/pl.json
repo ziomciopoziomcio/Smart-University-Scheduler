@@ -98,7 +98,8 @@
     "users": "Użytkownicy"
   },
   "navbar": {
-    "guest": "Gość"
+    "guest": "Gość",
+    "logout": "Wyloguj się"
   },
   "calendar": {
     "month": "Miesiąc",
@@ -413,6 +414,7 @@
       "title": "Plany wykładowców",
       "description": "Sprawdź plan prowadzącego zajęcia.",
       "departmentSelect": {
+        "lecturersCountValue": "{count, plural, one {# prowadzący} few {# prowadzących} many {# prowadzących} other {# prowadzącego}}",
         "searchPlaceholder": "Wyszukaj jednostkę lub wydział...",
         "show": "Pokaż:",
         "units": "Jednostki",

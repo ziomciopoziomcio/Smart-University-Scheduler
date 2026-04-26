@@ -10,28 +10,27 @@ import {
     type PaginatedResponse,
     type ScheduleEntry,
     getFaculty,
-    fetchUnits
+    fetchUnits,
+    fetchLecturerPlan
 } from '@api';
 import {WeekSchedule} from '@components/Schedule/WeekSchedule';
-import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
-import {getMockLecturerScheduleEntries} from '../../mocks/lecturerPlansMock.tsx';
+import {addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 
-
-export async function getLecturerScheduleForWeek(facultyId: string, lecturerId: string, weekStart: Date): Promise<ScheduleEntry[]> {
-    const weekEnd = addDays(weekStart, 6);
-    const startIso = toIsoDate(weekStart);
-    const endIso = toIsoDate(weekEnd);
-
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const allEntries = getMockLecturerScheduleEntries({departmentId: facultyId, lecturerId});
-            resolve(allEntries.filter(entry => entry.date >= startIso && entry.date <= endIso));
-        }, 700);
+//https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/184
+export async function getLecturerScheduleForWeek(
+    lecturerId: string,
+    weekStart: Date,
+    unitId?: string
+): Promise<ScheduleEntry[]> {
+    return await fetchLecturerPlan({
+        instructorId: Number(lecturerId),
+        unitId: unitId ? Number(unitId) : undefined,
+        startDate: toIsoDate(weekStart),
     });
 }
 
-// TODO: Replace with backend API call
+// TODO: Replace with backend API call for lecturer names
 const mockedLecturers: CourseInstructor[] = [
     {id: 1, name: 'Piotr', surname: 'Duch', degree: 'dr inż.'},
     {id: 2, name: 'Robert', surname: 'Kapturski', degree: 'mgr inż.'},
@@ -53,23 +52,29 @@ export default function EmployeeSchedulePage() {
 
     useEffect(() => {
         if (!facultyId || !unitId || !lecturerId) return;
+
         let cancelled = false;
 
         const fetchNames = async () => {
             setIsNamesLoading(true);
+
             try {
                 const [faculty, unitsRes] = await Promise.all([
                     getFaculty(Number(facultyId)) as Promise<Faculty>,
                     fetchUnits(Number(facultyId)) as Promise<PaginatedResponse<Unit>>
                 ]);
 
-                const unit = unitsRes.items.find(u => String(u.id) === String(unitId));
-                const lecturer = mockedLecturers.find(item => String(item.id) === String(lecturerId));
+                const unit = unitsRes.items.find((u) => String(u.id) === String(unitId));
+                const lecturer = mockedLecturers.find((item) => String(item.id) === String(lecturerId));
 
                 if (!cancelled) {
                     setFacultyName(faculty.faculty_short || faculty.faculty_name);
-                    setUnitName(unit ? unit.unit_short : unitId);
-                    setLecturerLabel(lecturer ? [lecturer.degree, lecturer.name, lecturer.surname].filter(Boolean).join(' ') : lecturerId);
+                    setUnitName(unit ? unit.unit_short || unit.unit_name : unitId);
+                    setLecturerLabel(
+                        lecturer
+                            ? [lecturer.degree, lecturer.name, lecturer.surname].filter(Boolean).join(' ')
+                            : lecturerId
+                    );
                 }
             } catch (error) {
                 if (!cancelled) {
@@ -78,62 +83,109 @@ export default function EmployeeSchedulePage() {
                     setLecturerLabel('');
                 }
             } finally {
-                if (!cancelled) setIsNamesLoading(false);
+                if (!cancelled) {
+                    setIsNamesLoading(false);
+                }
             }
         };
 
         void fetchNames();
+
         return () => {
             cancelled = true;
         };
     }, [facultyId, unitId, lecturerId]);
 
     useEffect(() => {
-        if (!facultyId || !lecturerId) return;
+        if (!lecturerId) return;
+
         let isCancelled = false;
 
         const fetchWeekSchedule = async () => {
             setIsScheduleLoading(true);
+
             try {
-                const response = await getLecturerScheduleForWeek(facultyId, lecturerId, currentWeekStart);
-                if (!isCancelled) setEntries(response);
+                const response = await getLecturerScheduleForWeek(
+                    lecturerId,
+                    currentWeekStart,
+                    unitId
+                );
+
+                if (!isCancelled) {
+                    setEntries(response);
+                }
             } catch (error) {
-                if (!isCancelled) setEntries([]);
+                console.error('Nie udało się pobrać planu prowadzącego', error);
+
+                if (!isCancelled) {
+                    setEntries([]);
+                }
             } finally {
-                if (!isCancelled) setIsScheduleLoading(false);
+                if (!isCancelled) {
+                    setIsScheduleLoading(false);
+                }
             }
         };
 
         void fetchWeekSchedule();
+
         return () => {
             isCancelled = true;
         };
-    }, [facultyId, lecturerId, currentWeekStart]);
+    }, [lecturerId, unitId, currentWeekStart]);
 
     const breadcrumbs = useMemo((): BreadcrumbItem[] => {
         return [
-            {label: intl.formatMessage({id: 'plans.plans'}), path: '/plans'},
-            {label: intl.formatMessage({id: 'plans.lecturerPlan.title'}), path: '/schedules/lecturers/faculty'},
-            {label: facultyName ?? facultyId ?? '...', path: `/schedules/lecturers/faculty/${facultyId}/unit`},
-            {label: unitName ?? unitId ?? '...', path: `/schedules/lecturers/faculty/${facultyId}/unit/${unitId}/lecturer`},
-            {label: lecturerLabel ?? lecturerId ?? '...', path: ""},
+            {
+                label: intl.formatMessage({id: 'plans.plans'}),
+                path: '/schedules'
+            },
+            {
+                label: intl.formatMessage({id: 'plans.lecturerPlan.title'}),
+                path: '/schedules/lecturers/faculty'
+            },
+            {
+                label: facultyName || facultyId || '...',
+                path: `/schedules/lecturers/faculty/${facultyId}/unit`
+            },
+            {
+                label: unitName || unitId || '...',
+                path: `/schedules/lecturers/faculty/${facultyId}/unit/${unitId}/lecturer`
+            },
+            {
+                label: lecturerLabel || lecturerId || '...',
+                path: ''
+            },
         ];
     }, [intl, facultyId, unitId, lecturerId, facultyName, unitName, lecturerLabel]);
 
-    if (isNamesLoading) return <Box sx={{
-        width: '100%',
-        minHeight: 320,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-    }}><CircularProgress/></Box>;
+    if (isNamesLoading) {
+        return (
+            <Box
+                sx={{
+                    width: '100%',
+                    minHeight: 320,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}
+            >
+                <CircularProgress/>
+            </Box>
+        );
+    }
 
     return (
         <Box sx={{width: '100%', display: 'flex', flexDirection: 'column', gap: 2}}>
             <PageBreadcrumbs items={breadcrumbs}/>
-            <WeekSchedule entries={entries} currentWeekStart={currentWeekStart} isLoading={isScheduleLoading}
-                          onPrevWeek={() => setCurrentWeekStart(prev => addWeeks(prev, -1))}
-                          onNextWeek={() => setCurrentWeekStart(prev => addWeeks(prev, 1))}/>
+
+            <WeekSchedule
+                entries={entries}
+                currentWeekStart={currentWeekStart}
+                isLoading={isScheduleLoading}
+                onPrevWeek={() => setCurrentWeekStart((prev) => addWeeks(prev, -1))}
+                onNextWeek={() => setCurrentWeekStart((prev) => addWeeks(prev, 1))}
+            />
         </Box>
     );
 }

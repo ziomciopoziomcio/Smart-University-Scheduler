@@ -1,5 +1,5 @@
 import {getHeaders, type PaginatedResponse, ACADEMICS_URL} from '@api/core';
-import {type Group} from './types.ts';
+import {type Group, type StudyPlanGroupSummary} from './types.ts';
 
 export const fetchGroups = async (
     page = 1,
@@ -44,5 +44,35 @@ export const getGroup = async (id: number): Promise<Group> => {
     });
 
     if (!response.ok) throw new Error('Failed to fetch group');
+    return response.json();
+};
+
+export const fetchStudyPlanGroupsSummary = async (params: {
+    faculty_id: number;
+    study_field: number;
+    semester: number;
+    specialization_id?: number;
+    elective_block_id?: number;
+}): Promise<StudyPlanGroupSummary[]> => {
+    const query = new URLSearchParams({
+        faculty_id: params.faculty_id.toString(),
+        study_field: params.study_field.toString(),
+        semester: params.semester.toString(),
+        ...(params.specialization_id !== undefined && {
+            specialization_id: params.specialization_id.toString(),
+        }),
+        ...(params.elective_block_id !== undefined && {
+            elective_block_id: params.elective_block_id.toString(),
+        }),
+    });
+
+    const response = await fetch(`${ACADEMICS_URL}/groups/summary?${query.toString()}`, {
+        headers: getHeaders(),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch study plan groups summary');
+    }
+
     return response.json();
 };
