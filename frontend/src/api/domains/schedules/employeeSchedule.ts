@@ -1,5 +1,5 @@
 import {getHeaders, SCHEDULES_URL} from '@api/core';
-import {type ScheduleEntry} from './types';
+import {type ScheduleEntry} from '@api';
 
 type LecturerPlanApiEntry = {
     id: string;
@@ -9,7 +9,35 @@ type LecturerPlanApiEntry = {
     endTime?: string;
     start_time?: string;
     end_time?: string;
-    variant: string;
+    variant?: string | null;
+};
+
+type ScheduleEntryVariant = ScheduleEntry['variant'];
+
+const mapVariantToScheduleVariant = (
+    variant?: string | null
+): ScheduleEntryVariant => {
+    const normalized = variant?.toLowerCase();
+
+    switch (normalized) {
+        case 'lecture':
+            return 'lecture';
+
+        case 'laboratory':
+            return 'lab';
+
+        case 'tutorials':
+            return 'exercise';
+
+        case 'seminar':
+            return 'seminar';
+
+        case 'project':
+            return 'project';
+
+        default:
+            return 'lecture';
+    }
 };
 
 export const fetchLecturerPlan = async (params: {
@@ -41,6 +69,6 @@ export const fetchLecturerPlan = async (params: {
         date: entry.date,
         startTime: entry.startTime ?? entry.start_time ?? '',
         endTime: entry.endTime ?? entry.end_time ?? '',
-        variant: entry.variant,
+        variant: mapVariantToScheduleVariant(entry.variant),
     }));
 };

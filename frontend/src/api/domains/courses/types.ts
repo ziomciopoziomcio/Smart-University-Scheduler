@@ -39,9 +39,3 @@ export interface StudyProgramDetails {
     start_year: string;
     program_name?: string | null;
 }
-
-export interface StudyPlanGroupSummary {
-    id: number;
-    group_name: string;
-    group_code: string;
-}

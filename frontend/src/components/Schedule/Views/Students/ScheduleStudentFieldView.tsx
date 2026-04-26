@@ -73,7 +73,6 @@ export function ScheduleStudentFieldView({
     };
 
     const getStudyModeLabel = (item: StudyFieldWithSummary) => {
-        console.log(item.mode);
         switch (item.mode) {
             case 'Full-time':
                 return intl.formatMessage({

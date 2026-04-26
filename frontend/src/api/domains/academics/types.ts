@@ -49,7 +49,7 @@ export interface Unit {
 export interface StudyFieldSemesterSummary {
     semester_number: number;
     groups_count: number;
-    major_count?: number | null;
+    specializations_count?: number | null;
     elective_blocks_count?: number | null;
 }
 
