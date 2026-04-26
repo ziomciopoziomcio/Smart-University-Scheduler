@@ -8,7 +8,7 @@ import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule
 import {getMockRoomScheduleEntries} from '../../mocks/roomPlansMock.tsx';
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 
-// TODO: Replace with backend API call when Issue #XYZ is done
+// TODO: https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/113
 export async function getRoomScheduleForWeek(
     campusId: string,
     buildingId: string,

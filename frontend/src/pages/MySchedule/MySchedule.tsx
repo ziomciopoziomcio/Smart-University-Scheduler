@@ -6,6 +6,7 @@ import {scheduleMock} from '../../mocks/scheduleMock';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 
 // TODO: Replace with backend call
+// https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/106
 export async function getScheduleForWeek(weekStart: Date): Promise<ScheduleEntry[]> {
     const weekEnd = addDays(weekStart, 6);
     const startIso = toIsoDate(weekStart);

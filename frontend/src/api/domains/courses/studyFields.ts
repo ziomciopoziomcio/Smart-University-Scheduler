@@ -1,5 +1,6 @@
 import {COURSES_URL, type PaginatedResponse, getHeaders} from '@api/core';
-import type {StudyField, StudyPlanGroupSummary} from './types';
+import type {StudyField} from './types';
+import {type StudyPlanGroupSummary} from '@api';
 
 export const fetchStudyFields = async (
     page = 1,
