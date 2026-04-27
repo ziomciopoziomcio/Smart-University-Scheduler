@@ -4,8 +4,16 @@ from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
+from helpers.db_seeder.generators.groups import (
+    generate_common_groups,
+    assign_students_to_common_groups,
+    generate_major_groups,
+    assign_students_to_major_groups,
+    generate_elective_groups,
+    assign_students_to_elective_groups,
+)
 from helpers.db_seeder.generators.students import generate_students
-from backend.src.database.database import SessionLocal, get_db
+from src.database.database import get_db
 
 
 from helpers.db_seeder.generators.academics import generate_units
@@ -56,6 +64,7 @@ PATH = str(
 )
 
 PERMS_EXCEL_PATH = r"..\data\role_uprawnienia.xlsx"
+GROUPS_PATH = r"..\data\groups.json"
 PERMS_EXCEL_SHEET = "Arkusz1"
 SEED = 1234
 
@@ -110,7 +119,7 @@ num_of_roles_not_teachers = {
     "Dean's Office": 0,
     "Head of Unit": 0,
     "Instructor": 0,
-    "Student": 600,
+    "Student": 1500,
     "Administrative Staff": 0,
     "Guest": 0,
 }
@@ -118,7 +127,7 @@ teachers = extract_teachers(PATH)
 db_teachers, db_not_teachers = generate_users(
     session=session,
     roles=db_roles,
-    total_not_teacher_new_users=600,
+    total_not_teacher_new_users=1500,
     num_of_roles_not_teachers=num_of_roles_not_teachers,
     teachers=teachers,
     seed=SEED,
@@ -152,7 +161,7 @@ db_curr_courses = generate_curriculum_courses(
 )
 session.commit()
 
-generate_curriculum_courses_elective_blocks(
+db_elective_curr_courses = generate_curriculum_courses_elective_blocks(
     sourcefile=PATH,
     session=session,
     db_study_programs=db_study_programs,
@@ -164,12 +173,68 @@ generate_curriculum_courses_elective_blocks(
 session.commit()
 
 
-generate_students(
+# GROUPS
+db_common_groups = generate_common_groups(
+    session=session, db_study_programs=db_study_programs, sourcefile=GROUPS_PATH
+)
+session.commit()
+
+
+db_major_groups = generate_major_groups(
+    sourcefile=GROUPS_PATH,
+    session=session,
+    db_study_programs=db_study_programs,
+    db_majors=db_majors,
+    db_curr_courses=db_curr_courses,
+)
+session.commit()
+
+
+db_elective_groups = generate_elective_groups(
+    session=session,
+    sourcefile=GROUPS_PATH,
+    db_study_programs=db_study_programs,
+    db_elective_blocks=db_elective_blocks,
+    db_curr_courses=db_elective_curr_courses,
+)
+session.commit()
+
+
+# STUDENTS
+db_students = generate_students(
     session=session,
     db_not_teachers=db_not_teachers,
     db_study_programs=db_study_programs,
-    db_curr_courses=db_curr_courses,
     db_majors=db_majors,
+    db_major_groups=db_major_groups,
+)
+session.commit()
+
+
+# GROUP MEMBERS
+assign_students_to_common_groups(
+    session=session,
+    db_common_groups=db_common_groups,
+    db_students=db_students,
+    db_study_programs=db_study_programs,
+    group_size=15,
+)
+session.commit()
+
+assign_students_to_major_groups(
+    session=session,
+    db_major_groups=db_major_groups,
+    db_students=db_students,
+    db_study_programs=db_study_programs,
+    db_curr_courses=db_curr_courses,
+)
+session.commit()
+
+assign_students_to_elective_groups(
+    session=session,
+    db_elective_groups=db_elective_groups,
+    db_students=db_students,
+    db_study_programs=db_study_programs,
 )
 session.commit()
 
