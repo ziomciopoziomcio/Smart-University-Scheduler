@@ -1,27 +1,25 @@
-from fastapi.security import OAuth2PasswordRequestForm
-from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
-from sqlalchemy import func
-from sqlalchemy.orm import Session, selectinload
-import pyotp
 import json
 import logging
+from datetime import datetime, timezone, timedelta
+
+import pyotp
+from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import func, or_, and_
+from sqlalchemy.orm import Session, selectinload
 
 from src.common.notifications import send_password_reset_email
-from src.common.user_service import register_user
-from . import models, schemas
-from ..database.database import get_db
+from src.common.pagination.pagination import paginate
+from src.common.pagination.pagination_model import PaginatedResponse
 from src.common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
-    build_ilike_search_filter,
+    parse_csv_param,
+    apply_search_to_queries,
 )
-from src.common.pagination.pagination import paginate
-from src.common.pagination.pagination_model import PaginatedResponse
-from ..common.require_permission import require_permission
-from ..users import models as user_models
-
+from src.common.user_service import register_user
+from . import models, schemas
 from .auth import (
     authenticate_user,
     create_access_token,
@@ -36,6 +34,10 @@ from .auth import (
     _hash_token,
     verify_password,
 )
+from ..common.require_permission import require_permission
+from ..database.database import get_db
+from ..users import models as user_models
+from ..academics import models as academics_models
 
 router = APIRouter(prefix="/users", tags=["users"])
 logger = logging.getLogger(__name__)
@@ -420,26 +422,45 @@ def list_users(
     degree: str | None = Query(None, min_length=1),
     limit: int | None = Query(USER_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    roles: str | None = Query(None),
+    exclude_roles: str | None = Query(None),
+    has_roles: bool | None = Query(None),
+    profiles: str | None = Query(None),
+    exclude_profiles: str | None = Query(None),
+    has_profiles: bool | None = Query(None),
+    search: str | None = Query(None, min_length=1),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("users:view")),
-    search: str | None = Query(None, min_length=1),
 ):
+    roles_list = parse_csv_param(roles)
+    exclude_roles_list = parse_csv_param(exclude_roles)
+    profiles_list = parse_csv_param(profiles)
+    exclude_profiles_list = parse_csv_param(exclude_profiles)
+
     query = db.query(models.Users).options(selectinload(models.Users.roles))
+    count_query = db.query(func.count(models.Users.id))
 
     if email is not None:
-        query = query.filter(models.Users.email.ilike(f"%{email}%"))
+        f = models.Users.email.ilike(f"%{email}%")
+        query, count_query = query.filter(f), count_query.filter(f)
     if phone_number is not None:
-        query = query.filter(models.Users.phone_number.ilike(f"%{phone_number}%"))
+        f = models.Users.phone_number.ilike(f"%{phone_number}%")
+        query, count_query = query.filter(f), count_query.filter(f)
     if name is not None:
-        query = query.filter(models.Users.name.ilike(f"%{name}%"))
+        f = models.Users.name.ilike(f"%{name}%")
+        query, count_query = query.filter(f), count_query.filter(f)
     if surname is not None:
-        query = query.filter(models.Users.surname.ilike(f"%{surname}%"))
+        f = models.Users.surname.ilike(f"%{surname}%")
+        query, count_query = query.filter(f), count_query.filter(f)
     if degree is not None:
-        query = query.filter(models.Users.degree.ilike(f"%{degree}%"))
+        f = models.Users.degree.ilike(f"%{degree}%")
+        query, count_query = query.filter(f), count_query.filter(f)
 
     if search:
-        f = build_ilike_search_filter(
-            search,
+        query, count_query = apply_search_to_queries(
+            search=search,
+            query=query,
+            count_query=count_query,
             columns=[
                 models.Users.email,
                 models.Users.phone_number,
@@ -452,10 +473,72 @@ def list_users(
                 func.concat(models.Users.surname, " ", models.Users.name),
             ],
         )
-        if f is not None:
-            query = query.filter(f)
 
-    return paginate(query, limit, offset, models.Users.id)
+    if roles_list:
+        role_filter = models.Users.roles.any(models.Roles.role_name.in_(roles_list))
+        query, count_query = query.filter(role_filter), count_query.filter(role_filter)
+
+    if exclude_roles_list:
+        exclude_role_filter = ~models.Users.roles.any(
+            models.Roles.role_name.in_(exclude_roles_list)
+        )
+        query, count_query = query.filter(exclude_role_filter), count_query.filter(
+            exclude_role_filter
+        )
+
+    if has_roles is True:
+        hr_filter = models.Users.roles.any()
+        query, count_query = query.filter(hr_filter), count_query.filter(hr_filter)
+    elif has_roles is False:
+        hr_filter = ~models.Users.roles.any()
+        query, count_query = query.filter(hr_filter), count_query.filter(hr_filter)
+
+    student_exists = (
+        db.query(academics_models.Students.id)
+        .filter(academics_models.Students.user_id == user_models.User.id)
+        .exists()
+    )
+
+    employee_exists = (
+        db.query(academics_models.Employees.id)
+        .filter(academics_models.Employees.user_id == user_models.User.id)
+        .exists()
+    )
+    if profiles_list:
+        conds = []
+        profiles_lower = [p.lower() for p in profiles_list]
+        if "student" in profiles_lower:
+            conds.append(student_exists)
+        if "employee" in profiles_lower:
+            conds.append(employee_exists)
+
+        if conds:
+            profile_filter = or_(*conds)
+            query, count_query = query.filter(profile_filter), count_query.filter(
+                profile_filter
+            )
+
+    if exclude_profiles_list:
+        exclude_lower = [p.lower() for p in exclude_profiles_list]
+        if "student" in exclude_lower:
+            query, count_query = query.filter(~student_exists), count_query.filter(
+                ~student_exists
+            )
+        if "employee" in exclude_lower:
+            query, count_query = query.filter(~employee_exists), count_query.filter(
+                ~employee_exists
+            )
+
+    if has_profiles:
+        hp_filter = or_(student_exists, employee_exists)
+        query, count_query = query.filter(hp_filter), count_query.filter(hp_filter)
+    elif has_profiles is False:
+        hp_filter = and_(~student_exists, ~employee_exists)
+        query, count_query = query.filter(hp_filter), count_query.filter(hp_filter)
+
+    return paginate(
+        query, limit, offset, order_by=models.Users.id, count_query=count_query
+    )
 
 
 @router.post(
