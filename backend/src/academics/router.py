@@ -1056,7 +1056,7 @@ def get_faculty_instructors(
 def get_instructor_by_id(
     instructor_id: int,
     db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(require_permission("instructor:view")),
+    _current_user: user_models.Users = Depends(require_permission("employees:view")),
 ):
     """
     Get single instructor by employee id and return CourseInstructor { id, name, surname, degree }.
