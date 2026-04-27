@@ -15,6 +15,7 @@ from src.common.router_utils import (
     serialize_student_nested,
     serialize_employee_nested,
     build_ilike_search_filter,
+    apply_search_to_queries,
 )
 from . import models, schemas
 from ..database.database import get_db
@@ -366,7 +367,7 @@ def create_unit(
     return obj
 
 
-@router.get("/units", response_model=PaginatedResponse[schemas.UnitsRead])
+@router.get("/units", response_model=PaginatedResponse[schemas.UnitsReadWithCount])
 def list_units(
     faculty_id: int | None = Query(None),
     unit_name: str | None = Query(None, min_length=1),
@@ -377,31 +378,87 @@ def list_units(
     _current_user: user_models.Users = Depends(require_permission("units:view")),
     search: str | None = Query(None),
 ):
-    query = db.query(models.Units)
+    lecturers_subq = (
+        db.query(func.count(models.Employees.id))
+        .filter(models.Employees.unit_id == models.Units.id)
+        .scalar_subquery()
+    )
+
+    query = db.query(
+        models.Units, func.coalesce(lecturers_subq, 0).label("lecturers_count")
+    )
+    count_query = db.query(func.count(models.Units.id))
 
     if faculty_id is not None:
         query = query.filter(models.Units.faculty_id == faculty_id)
+        count_query = count_query.filter(models.Units.faculty_id == faculty_id)
     if unit_name is not None:
-        query = query.filter(models.Units.unit_name.ilike(f"%{unit_name}%"))
+        f_name = models.Units.unit_name.ilike(f"%{unit_name}%")
+        query = query.filter(f_name)
+        count_query = count_query.filter(f_name)
     if unit_short is not None:
-        query = query.filter(models.Units.unit_short.ilike(f"%{unit_short}%"))
-    if search:
-        f = build_ilike_search_filter(
-            search, columns=[models.Units.unit_name, models.Units.unit_short]
+        f_short = models.Units.unit_short.ilike(f"%{unit_short}%")
+        query = query.filter(f_short)
+        count_query = count_query.filter(f_short)
+
+    query, count_query = apply_search_to_queries(
+        search=search,
+        query=query,
+        count_query=count_query,
+        columns=[models.Units.unit_name, models.Units.unit_short],
+    )
+
+    pagination_result = paginate(
+        query, limit, offset, order_by=models.Units.id, count_query=count_query
+    )
+    pagination_result.items = [
+        schemas.UnitsReadWithCount(
+            id=row.Units.id,
+            unit_name=row.Units.unit_name,
+            unit_short=row.Units.unit_short,
+            faculty_id=row.Units.faculty_id,
+            lecturers_count=row.lecturers_count,
         )
-        if f is not None:
-            query = query.filter(f)
+        for row in pagination_result.items
+    ]
 
-    return paginate(query, limit, offset, models.Units.id)
+    return pagination_result
 
 
-@router.get("/units/{unit_id}", response_model=schemas.UnitsRead)
+@router.get("/units/{unit_id}", response_model=schemas.UnitsReadWithCount)
 def get_unit(
     unit_id: int,
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("unit:view")),
 ):
-    return _get_or_404(db, models.Units, unit_id, "Unit")
+    lecturers_subq = (
+        db.query(func.count(models.Employees.id))
+        .filter(models.Employees.unit_id == models.Units.id)
+        .scalar_subquery()
+    )
+
+    row = (
+        db.query(
+            models.Units,
+            func.coalesce(lecturers_subq, 0).label("lecturers_count"),
+        )
+        .filter(models.Units.id == models.Units.id)
+        .first()
+    )
+
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Unit with id {unit_id} not found",
+        )
+
+    return schemas.UnitsReadWithCount(
+        id=row.Units.id,
+        unit_name=row.Units.unit_name,
+        unit_short=row.Units.unit_short,
+        faculty_id=row.Units.faculty_id,
+        lecturers_count=row.lecturers_count,
+    )
 
 
 @router.patch("/units/{unit_id}", response_model=schemas.UnitsRead)
