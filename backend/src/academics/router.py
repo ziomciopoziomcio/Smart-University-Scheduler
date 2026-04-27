@@ -1047,3 +1047,44 @@ def get_faculty_instructors(
         .all()
     )
     return instructors
+
+
+@router.get(
+    "/instructors/{instructor_id}",
+    response_model=schemas.CourseInstructor,
+)
+def get_instructor_by_id(
+    instructor_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("instructor:view")),
+):
+    """
+    Get single instructor by employee id and return CourseInstructor { id, name, surname, degree }.
+    """
+    emp = (
+        db.query(models.Employees)
+        .filter(models.Employees.id == instructor_id)
+        .one_or_none()
+    )
+    if not emp:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Instructor not found"
+        )
+
+    user = (
+        db.query(user_models.Users)
+        .filter(user_models.Users.id == emp.user_id)
+        .one_or_none()
+    )
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User for instructor not found",
+        )
+
+    return {
+        "id": emp.id,
+        "name": user.name,
+        "surname": user.surname,
+        "degree": user.degree,
+    }
