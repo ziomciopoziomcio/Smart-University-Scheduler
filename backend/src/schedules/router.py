@@ -20,6 +20,8 @@ from ..database.database import get_db
 from ..database.neo4j import get_neo4j_session
 from ..users import models as user_models
 from ..courses.models import ClassType
+from ..courses import models as course_models
+from ..academics import models as ac_models
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
 
@@ -63,6 +65,30 @@ LECTURER_PLAN_ACADEMIC_QUERY = """
     MATCH (s)-[:OF_COURSE]->(c:Course)
 
     WHERE config.week_number IN s.weeks
+
+    RETURN
+        s.sessionId AS session_id,
+        c.courseName AS title,
+        c.classType AS class_type,
+        config.physical_date AS physical_date,
+        t.startTime AS start_time,
+        t.endTime AS end_time
+    ORDER BY config.physical_date, t.startTime
+"""
+
+STUDY_FIELD_PLAN_ACADEMIC_QUERY = """
+    UNWIND $day_configs AS config
+
+    MATCH (g:Group)
+    WHERE g.groupId IN $group_ids
+
+    MATCH (s:ClassSession)-[:FOR_GROUP]->(g)
+    MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
+    MATCH (s)-[:OF_COURSE]->(c:Course)
+
+    WHERE config.week_number IN s.weeks
+
+    WITH DISTINCT s, c, config, t
 
     RETURN
         s.sessionId AS session_id,
@@ -468,6 +494,97 @@ async def get_lecturer_plan(
         LECTURER_PLAN_ACADEMIC_QUERY,
         instructor_id=instructor_id,
         unit_id=unit_id,
+        day_configs=day_configs,
+    )
+    records = await result.data()
+
+    return [
+        schemas.ScheduleEntry(
+            id=rec["session_id"],
+            title=rec["title"],
+            date=date.fromisoformat(rec["physical_date"]),
+            startTime=rec["start_time"],
+            endTime=rec["end_time"],
+            variant=_parse_variant(rec["class_type"]),
+        )
+        for rec in records
+    ]
+
+
+@router.get("/study-field-plan", response_model=list[schemas.ScheduleEntry])
+async def get_study_field_plan(
+    start_date: date = Query(...),
+    study_program: int = Query(...),
+    study_field: int = Query(...),
+    semester: int = Query(..., gt=0),
+    specialization_id: int | None = Query(None),
+    elective_block_id: int | None = Query(None),
+    group_ids: list[int] | None = Query(None),
+    db: Session = Depends(get_db),
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(require_permission("schedule:view")),
+):
+    """
+    Get study field plan for a given week starting from start_date (which must be a Monday).
+    Optionally filter by specialization, elective block and groups.
+    :param start_date: Starting date of the week (must be a Monday)
+    :param study_program: Study program ID
+    :param study_field: Study field ID
+    :param semester: Semester number (1 or 2)
+    :param specialization_id: Specialization ID (optional)
+    :param elective_block_id: Elective block ID (optional)
+    :param group_ids: List of group IDs to filter by (optional)
+    :param db: Session
+    :param neo4j_session: Neo4j session
+    :param _current_user: Current user (for permissions)
+    :return: List of ScheduleEntry objects representing the study field's plan for the week
+    """
+    if start_date.weekday() != 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="start_date must be a Monday.",
+        )
+    if specialization_id and elective_block_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot filter by both specialization and elective block simultaneously.",
+        )
+
+    day_configs = _get_academic_day_configs(db, start_date)
+    if not day_configs:
+        return []
+
+    final_group_ids = group_ids or []
+
+    if not final_group_ids:
+        sql_query = (
+            db.query(ac_models.Groups.id)
+            .join(
+                course_models.Study_program,
+                ac_models.Groups.study_program == course_models.Study_program.id,
+            )
+            .filter(
+                ac_models.Groups.semester == semester,
+                course_models.Study_program.study_field == study_field,
+                course_models.Study_program.id == study_program,
+            )
+        )
+
+        if specialization_id:
+            sql_query = sql_query.filter(ac_models.Groups.major == specialization_id)
+        if elective_block_id:
+            sql_query = sql_query.filter(
+                ac_models.Groups.elective_block == elective_block_id
+            )
+
+        final_group_ids = [row[0] for row in sql_query.all()]
+
+    if not final_group_ids:
+        return []
+
+    result = await neo4j_session.run(
+        STUDY_FIELD_PLAN_ACADEMIC_QUERY,
+        group_ids=final_group_ids,
         day_configs=day_configs,
     )
     records = await result.data()
