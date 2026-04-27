@@ -30,7 +30,7 @@ import {
     ArrowBack,
     ArrowForward,
     GroupsOutlined,
-    InboxOutlined, School
+    InboxOutlined,
 } from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 import SidebarClock from './SidebarClock';
@@ -38,6 +38,7 @@ import SidebarCalendar from './SidebarCalendar';
 import {NavLink} from 'react-router-dom';
 import {theme} from "../../theme/theme";
 import {useAuthStore} from "@store/useAuthStore";
+import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
 
 interface SidebarMenuItem {
     id: string;
@@ -72,8 +73,8 @@ const menuConfig: SidebarMenuItem[] = [
         allowedRoles: []
     },
     {
-        id: 'sidebar.didactics', // structures (units, faculties)
-        icon: <School/>,
+        id: 'sidebar.didactics',
+        icon: <SchoolOutlinedIcon/>,
         path: '/didactics', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
