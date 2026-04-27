@@ -1,36 +1,38 @@
 import {useState} from 'react';
 import {Box} from '@mui/material';
-
+import {
+    type ScheduleVersion,
+    ScheduleVersionIssue,
+    type ScheduleNotification,
+    generateSchedule
+} from '@api/domains/schedules';
 import {
     GenerateHero,
     NotificationsPanel,
-    ScheduleVersionIssue,
-    type GenerateScheduleResponse,
-    type ScheduleNotification,
 } from '@components/Generate';
 
 //TODO: WHEN BACKEND WILL BE CREATED, PUT IT IN API AND DELETE MOCKS
 //https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/188
-const mockedGeneratedScheduleResult: GenerateScheduleResponse = {
+const mockedGeneratedScheduleResult: ScheduleVersion = {
     id: 1,
     notifications: [
         {
-            type: ScheduleVersionIssue.Warning,
+            issue: ScheduleVersionIssue.Warning,
             message: 'Nie udało się przypisać preferowanej sali dla przedmiotu Projektowanie systemów. Wybrano salę zastępczą B-214.',
         },
         {
-            type: ScheduleVersionIssue.Warning,
+            issue: ScheduleVersionIssue.Warning,
             message: 'Sale laboratoryjne są wykorzystane średnio w 82% dostępnego czasu.',
         },
         {
-            type: ScheduleVersionIssue.Critical,
+            issue: ScheduleVersionIssue.Critical,
             message: 'Plan został wygenerowany, ale część zajęć nie została przypisana do żadnego terminu.',
         },
     ],
 };
 
 
-const fetchGeneratedSchedule = async (): Promise<GenerateScheduleResponse> => {
+const fetchGeneratedSchedule = async (): Promise<ScheduleVersion> => {
     return Promise.resolve(mockedGeneratedScheduleResult);
 };
 
@@ -43,6 +45,7 @@ export default function GenerateSchedulePage() {
         setIsGenerating(true);
 
         try {
+            // const result = await generateSchedule(); //TODO WHEN READY
             const result = await fetchGeneratedSchedule();
 
             setNotifications(result.notifications);

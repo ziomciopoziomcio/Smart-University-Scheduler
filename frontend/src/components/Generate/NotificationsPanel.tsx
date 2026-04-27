@@ -1,4 +1,3 @@
-import {useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {
     Box,
@@ -8,11 +7,11 @@ import {
 } from '@mui/material';
 
 import {DashboardTileCard, type DashboardTileVariant} from '../Common/Notification';
+
 import {
-    getTileTypeFromNotificationType,
     ScheduleVersionIssue,
     type ScheduleNotification,
-} from './generateTypes';
+} from '@api/domains/schedules';
 
 const getTileVariantFromNotificationType = (type: ScheduleVersionIssue): DashboardTileVariant => {
     switch (type) {
@@ -41,36 +40,14 @@ export default function NotificationsPanel({
     const hasNotifications = notifications.length > 0;
 
     const hasCriticalIssues = notifications.some(
-        (notification) => notification.type === ScheduleVersionIssue.Critical
+        (notification) => notification.issue === ScheduleVersionIssue.Critical
     );
 
     const hasWarnings = notifications.some(
-        (notification) => notification.type === ScheduleVersionIssue.Warning
+        (notification) => notification.issue === ScheduleVersionIssue.Warning
     );
 
     const shouldShowResult = hasGeneratedSchedule || isLoading;
-
-    const tiles = useMemo<DashboardTile[]>(() => {
-        if (hasGeneratedSchedule && notifications.length === 0) {
-            return [
-                {
-                    id: 'success',
-                    type: 'success',
-                    title: intl.formatMessage({id: 'generateSchedule.notifications.successTitle'}),
-                    description: intl.formatMessage({id: 'generateSchedule.notifications.successDescription'}),
-                },
-            ];
-        }
-
-        return notifications.map((notification, index) => ({
-            id: `notification-${index}`,
-            type: getTileTypeFromNotificationType(notification.type),
-            title: notification.type === ScheduleVersionIssue.Critical
-                ? intl.formatMessage({id: 'generateSchedule.notifications.errorTitle'})
-                : intl.formatMessage({id: 'generateSchedule.notifications.warningTitle'}),
-            description: notification.message,
-        }));
-    }, [notifications, intl, hasGeneratedSchedule]);
 
     const statusConfig = hasCriticalIssues
         ? {
@@ -187,9 +164,9 @@ export default function NotificationsPanel({
                         notifications.map((notification, index) => (
                             <DashboardTileCard
                                 key={`notification-${index}`}
-                                variant={getTileVariantFromNotificationType(notification.type)}
+                                variant={getTileVariantFromNotificationType(notification.issue)}
                                 title={
-                                    notification.type === ScheduleVersionIssue.Critical
+                                    notification.issue === ScheduleVersionIssue.Critical
                                         ? intl.formatMessage({id: 'generateSchedule.notifications.errorTitle'})
                                         : intl.formatMessage({id: 'generateSchedule.notifications.warningTitle'})
                                 }
