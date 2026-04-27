@@ -96,7 +96,8 @@
     "students": "Students",
     "structures": "Structures",
     "users": "Users",
-    "didactics": "Didactics"
+    "didactics": "Didactics",
+    "generateSchedule": "Generate schedule"
   },
   "navbar": {
     "guest": "Guest",
@@ -588,7 +589,6 @@
       "languagePolish": "Polish",
       "languageEnglish": "English",
       "languageFrench": "French"
-
     },
     "instructors": {
       "title": "Course instructors",
@@ -600,6 +600,32 @@
       "deleteTitle": "Delete instructor assignment",
       "deleteDesc": "Are you sure you want to delete the assignment of {employee} as an instructor for {course}? This action cannot be undone.",
       "manage": "Manage instructors"
+    }
+  },
+  "generateSchedule": {
+    "hero": {
+      "title": "Generate plans",
+      "description": "Schedule generation may take a while. You can review the created version and check detected issues.",
+      "button": "Generate",
+      "versionNameLabel": "Plan name",
+      "versionNamePlaceholder": "Enter plan name",
+      "defaultVersionName": "Plan {number}",
+      "generating": "Generating..."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "After generating the schedule, you will see the most important information, warnings, and issues that require review here.",
+      "loading": "Generating schedule and loading notifications...",
+      "emptyTitle": "No notifications",
+      "emptyDescription": "No additional information was returned after generating the schedule.",
+      "warningTitle": "Warning",
+      "errorTitle": "Critical issue",
+      "infoTitle": "Information",
+      "statusSuccess": "No issues",
+      "statusWarnings": "Requires review",
+      "statusErrors": "Issues detected",
+      "successTitle": "Schedule generated successfully",
+      "successDescription": "No warnings or critical issues were detected. The schedule is ready to review."
     }
   }
 }

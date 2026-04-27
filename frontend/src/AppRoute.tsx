@@ -25,6 +25,7 @@ import RoomSchedulePage from "./pages/Schedules/RoomSchedulePage.tsx";
 import StudentSchedulePage from "./pages/Schedules/StudentSchedulePage.tsx";
 import StudentsSchedulesPage from "./pages/Schedules/StudentsSchedulesPage.tsx";
 import DidacticsPage from "./pages/Didactics/DidacticsPage.tsx";
+import GenerateSchedulePage from "./pages/GenerateSchedule/GenerateSchedulePage.tsx";
 
 function AppRoute() {
     const isAuthenticated = useAuthStore((state) => state.token !== null);
@@ -71,6 +72,9 @@ function AppRoute() {
 
                         {/*==================== VIEW SCHEDULES MAIN ====================*/}
                         <Route path="/schedules" element={<ChooseScheduleTypePage/>}/>
+
+                        {/*==================== GENERATE PLAN ====================*/}
+                        <Route path="/generate" element={<GenerateSchedulePage/>}/>
 
                         {/*==================== VIEW SCHEDULES FACILITIES ====================*/}
                         <Route path="/schedules/rooms/campus" element={<SchedulesFacilitiesPage view="campuses"/>}/>
