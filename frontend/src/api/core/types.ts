@@ -15,9 +15,9 @@ export type ClassType =
     | 'Other'
     | 'E-learning';
 
-// export type FrequencyType =
-//     | 'Every_week'
-//     | 'Biweekly'
-//     | 'First_half'
-//     | 'Second_half'
-//     | 'Manual';
+export type FrequencyType =
+    | 'Every_week'
+    | 'Biweekly'
+    | 'First_half'
+    | 'Second_half'
+    | 'Manual';

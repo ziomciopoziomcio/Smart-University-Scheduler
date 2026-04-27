@@ -60,8 +60,16 @@ export function DidacticsCourseView({unitId, facultyId}: DidacticsCourseViewProp
                 icon={AutoStories}
                 getTitle={(item) => item.course_name}
                 columns={[
-                    {render: (item) => `Kod: ${item.course_code}`, variant: 'secondary', width: '120px'},
-                    {render: (item) => `ECTS: ${item.ects_points}`, variant: 'secondary', width: '100px'},
+                    {
+                         render: (item) => `${intl.formatMessage({id: 'didactics.courses.code', defaultMessage: 'Kod'})}: ${item.course_code}`,
+                         variant: 'secondary',
+                         width: '120px'
+                     },
+                     {
+                         render: (item) => `${intl.formatMessage({id: 'didactics.courses.ects', defaultMessage: 'ECTS'})}: ${item.ects_points}`,
+                         variant: 'secondary',
+                         width: '100px'
+                     },
                     {render: (item) => item.course_language, variant: 'secondary'}
                 ]}
                 onMenuOpen={(e, item) => {

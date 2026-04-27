@@ -12,7 +12,7 @@ export const fetchMajors = async (
     const query = new URLSearchParams({
         limit: limit.toString(),
         offset: offset.toString(),
-        ...(filters.study_field !== undefined && {study_field_id: filters.study_field.toString()}),
+        ...(filters.study_field !== undefined && {study_field: filters.study_field.toString()}),
         ...(filters.major_name && {major_name: filters.major_name}),
     });
 

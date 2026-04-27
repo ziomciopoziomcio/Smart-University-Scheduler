@@ -572,7 +572,7 @@
       "edit": "Edit Course",
       "deleteTitle": "Delete course",
       "deleteDesc": "Are you sure you want to delete the course \"{name}\"? This action cannot be undone.",
-      "empty": "No assigned to this Unit.",
+      "empty": "No courses assigned to this unit.",
       "nameLabel": "Course name",
       "namePlaceholder": "e.g. Introduction to Programming",
       "codeLabel": "Course code",

@@ -119,7 +119,7 @@ export function CourseInstructorModal({open, course, instructor, facultyId, onCl
                     sx={{borderRadius: '12px', bgcolor: '#2b5073', py: 1.5}}
                 >
                     {loading ? <CircularProgress size={24}
-                                                 color="inherit"/> : intl.formatMessage({id: 'academics.common.save'})}
+                                                 color="inherit"/> : intl.formatMessage({id: 'didactics.common.save'})}
                 </Button>
             </DialogContent>
         </Dialog>

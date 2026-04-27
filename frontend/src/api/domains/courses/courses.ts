@@ -13,7 +13,7 @@ export const fetchCourses = async (
         ...(filters.leading_unit !== undefined && {leading_unit: filters.leading_unit.toString()}),
         ...(filters.min_ects_points !== undefined && {min_ects_points: filters.min_ects_points.toString()}),
         ...(filters.max_ects_points !== undefined && {max_ects_points: filters.max_ects_points.toString()}),
-        ...(filters.language && {language: filters.language}),
+        ...(filters.language && {course_language: filters.language}),
     });
 
     const response = await fetch(`${COURSES_URL}?${query.toString()}`, {
