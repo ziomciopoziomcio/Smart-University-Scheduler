@@ -605,11 +605,27 @@
   "generateSchedule": {
     "hero": {
       "title": "Generate plans",
-      "description": "Schedule generation may take a while. You can review the created versions and check detected issues before saving the final plan.",
-      "button": "Generate schedule",
-      "versionNameLabel": "New version name",
-      "versionNamePlaceholder": "Enter version name",
-      "defaultVersionName": "Version {number}"
+      "description": "Schedule generation may take a while. You can review the created version and check detected issues.",
+      "button": "Generate",
+      "versionNameLabel": "Plan name",
+      "versionNamePlaceholder": "Enter plan name",
+      "defaultVersionName": "Plan {number}",
+      "generating": "Generating..."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "description": "After generating the schedule, you will see the most important information, warnings, and issues that require review here.",
+      "loading": "Generating schedule and loading notifications...",
+      "emptyTitle": "No notifications",
+      "emptyDescription": "No additional information was returned after generating the schedule.",
+      "warningTitle": "Warning",
+      "errorTitle": "Critical issue",
+      "infoTitle": "Information",
+      "statusSuccess": "No issues",
+      "statusWarnings": "Requires review",
+      "statusErrors": "Issues detected",
+      "successTitle": "Schedule generated successfully",
+      "successDescription": "No warnings or critical issues were detected. The schedule is ready to review."
     }
   }
 }
