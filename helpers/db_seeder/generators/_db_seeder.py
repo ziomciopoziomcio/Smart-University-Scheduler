@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -18,6 +19,7 @@ from src.database.database import get_db
 from helpers.db_seeder.generators.academics import generate_units
 from helpers.db_seeder.generators.course_instructors import (
     extract_teachers,
+    generate_course_instructors,
 )
 from helpers.db_seeder.generators.courses import (
     generate_study_fields,
@@ -46,8 +48,21 @@ from helpers.db_seeder.generators.users import generate_users
 
 # Base.metadata.create_all(bind=engine)
 
+BASE_DIR = Path(__file__).resolve().parent
 
-PATH = r"..\..\..\helpers\data_collector\final-programy.json"
+ROOMS_PATH = str((BASE_DIR / ".." / "data" / "rooms.json").resolve())
+PATH = str(
+    (
+        BASE_DIR
+        / ".."
+        / ".."
+        / ".."
+        / "helpers"
+        / "data_collector"
+        / "final-programy.json"
+    ).resolve()
+)
+
 PERMS_EXCEL_PATH = r"..\data\role_uprawnienia.xlsx"
 GROUPS_PATH = r"..\data\groups.json"
 PERMS_EXCEL_SHEET = "Arkusz1"
@@ -67,8 +82,8 @@ session.commit()
 db_units = generate_units(session, db_faculties)
 session.commit()
 
-# db_rooms = generate_rooms(session, db_faculties, db_units, db_buildings)
-# session.commit()
+db_rooms = generate_rooms(session, ROOMS_PATH, db_faculties, db_units, db_buildings)
+session.commit()
 
 db_study_fields = generate_study_fields(session, db_faculties, PATH)
 session.commit()
@@ -220,6 +235,17 @@ assign_students_to_elective_groups(
     db_elective_groups=db_elective_groups,
     db_students=db_students,
     db_study_programs=db_study_programs,
+)
+session.commit()
+
+db_course_instructors = generate_course_instructors(
+    session=session,
+    sourcefile=PATH,
+    num_of_groups=5,
+    db_teachers=db_teachers,
+    db_courses=db_courses,
+    db_employees=db_employees,
+    debug=False,
 )
 session.commit()
 
