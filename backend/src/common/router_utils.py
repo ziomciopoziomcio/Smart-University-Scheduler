@@ -283,4 +283,5 @@ def parse_csv_param(param: str | None) -> list[str] | None:
     """
     if not param:
         return None
-    return [p.strip() for p in param.split(",") if p.strip()]
+    parsed = [p.strip() for p in param.split(",") if p.strip()]
+    return parsed or None
