@@ -4,9 +4,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
-import src.academics.models
-import src.users.models
-import src.facilities.models
+# import src.academics.models
+# import src.users.models
+# import src.facilities.models
 
 from helpers.db_seeder.generators.groups import (
     generate_common_groups,
