@@ -77,10 +77,12 @@ LECTURER_PLAN_ACADEMIC_QUERY = """
 """
 
 STUDY_FIELD_PLAN_ACADEMIC_QUERY = """
-    UNWIND $day_configs AS config
-
     MATCH (g:Group)
     WHERE g.groupId IN $group_ids
+
+    WITH collect(g) AS groups
+    UNWIND $day_configs AS config
+    UNWIND groups AS g
 
     MATCH (s:ClassSession)-[:FOR_GROUP]->(g)
     MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
