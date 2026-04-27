@@ -1050,11 +1050,11 @@ def get_faculty_instructors(
 
 
 @router.get(
-    "/instructors/{instructor_id}",
+    "/instructors/{employee_id}",
     response_model=schemas.CourseInstructor,
 )
 def get_instructor_by_id(
-    instructor_id: int,
+    employee_id: int,
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("employees:view")),
 ):
@@ -1063,7 +1063,7 @@ def get_instructor_by_id(
     """
     emp = (
         db.query(models.Employees)
-        .filter(models.Employees.id == instructor_id)
+        .filter(models.Employees.id == employee_id)
         .one_or_none()
     )
     if not emp:
@@ -1082,9 +1082,9 @@ def get_instructor_by_id(
             detail="User for instructor not found",
         )
 
-    return {
-        "id": emp.id,
-        "name": user.name,
-        "surname": user.surname,
-        "degree": user.degree,
-    }
+    return schemas.CourseInstructor(
+        id=emp.id,
+        name=user.name,
+        surname=user.surname,
+        degree=user.degree,
+    )
