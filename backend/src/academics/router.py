@@ -462,7 +462,7 @@ def list_unit_instructors(
         count_query=count_query,
     )
 
-    pagination_result.item = [
+    pagination_result.items = [
         schemas.UnitInstructorRead(
             id=emp.id,
             name=emp.user.name,
