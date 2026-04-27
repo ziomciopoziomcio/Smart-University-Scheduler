@@ -21,7 +21,6 @@ from ..database.neo4j import get_neo4j_session
 from ..users import models as user_models
 from ..courses.models import ClassType
 from ..courses import models as course_models
-from ..academics import models as ac_models
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
 
@@ -557,24 +556,24 @@ async def get_study_field_plan(
         return []
 
     sql_query = (
-        db.query(ac_models.Groups.id)
+        db.query(ac_mod.Groups.id)
         .join(
             course_models.Study_program,
-            ac_models.Groups.study_program == course_models.Study_program.id,
+            ac_mod.Groups.study_program == course_models.Study_program.id,
         )
         .filter(
-            ac_models.Groups.semester == semester,
+            ac_mod.Groups.semester == semester,
             course_models.Study_program.study_field == study_field,
             course_models.Study_program.id == study_program,
         )
     )
 
     if specialization_id:
-        sql_query = sql_query.filter(ac_models.Groups.major == specialization_id)
+        sql_query = sql_query.filter(ac_mod.Groups.major == specialization_id)
     if elective_block_id:
-        sql_query = sql_query.filter(ac_models.Groups.elective_block == elective_block_id)
+        sql_query = sql_query.filter(ac_mod.Groups.elective_block == elective_block_id)
     if group_ids:
-        sql_query = sql_query.filter(ac_models.Groups.id.in_(group_ids))
+        sql_query = sql_query.filter(ac_mod.Groups.id.in_(group_ids))
 
     final_group_ids = [row[0] for row in sql_query.all()]
 
