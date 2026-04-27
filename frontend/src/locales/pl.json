@@ -96,7 +96,8 @@
     "students": "Studenci",
     "structures": "Struktury",
     "users": "Użytkownicy",
-    "didactics": "Dydaktyka"
+    "didactics": "Dydaktyka",
+    "generateSchedule": "Generuj plan"
   },
   "navbar": {
     "guest": "Gość",
@@ -599,6 +600,32 @@
       "deleteTitle": "Usuń przypisanie",
       "deleteDesc": "Czy na pewno chcesz usunąć to przypisanie prowadzącego?",
       "manage": "Zarządzaj prowadzącymi"
+    }
+  },
+  "generateSchedule": {
+    "hero": {
+      "title": "Generuj plany",
+      "description": "Generowanie planu może potrwać dłuższą chwilę. Po zakończeniu zobaczysz najważniejsze informacje, ostrzeżenia oraz problemy wymagające sprawdzenia.",
+      "button": "Generuj",
+      "versionNameLabel": "Nazwa planu",
+      "versionNamePlaceholder": "Wpisz nazwę planu",
+      "defaultVersionName": "Plan {number}",
+      "generating": "Generowanie..."
+    },
+    "notifications": {
+      "title": "Powiadomienia",
+      "description": "Po wygenerowaniu planu zobaczysz tutaj najważniejsze informacje, ostrzeżenia oraz problemy wymagające sprawdzenia.",
+      "loading": "Generowanie planu i pobieranie powiadomień...",
+      "emptyTitle": "Brak powiadomień",
+      "emptyDescription": "Po wygenerowaniu planu nie zwrócono żadnych dodatkowych informacji.",
+      "warningTitle": "Ostrzeżenie",
+      "errorTitle": "Problem krytyczny",
+      "infoTitle": "Informacja",
+      "statusSuccess": "Brak problemów",
+      "statusWarnings": "Wymaga sprawdzenia",
+      "statusErrors": "Wykryto problemy",
+      "successTitle": "Plan wygenerowany poprawnie",
+      "successDescription": "Nie wykryto żadnych ostrzeżeń ani problemów krytycznych. Plan jest gotowy do sprawdzenia"
     }
   }
 }

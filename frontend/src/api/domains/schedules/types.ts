@@ -49,3 +49,21 @@ export interface ScheduleEntryDetails {
     lecturer: string;
     audience: ScheduleEntryAudience[];
 }
+
+export const ScheduleVersionIssue = {
+    Warning: 'WARNING',
+    Critical: 'CRITICAL',
+} as const;
+
+export type ScheduleVersionIssue =
+    typeof ScheduleVersionIssue[keyof typeof ScheduleVersionIssue];
+
+export interface ScheduleNotification {
+    issue: ScheduleVersionIssue;
+    message: string;
+}
+
+export interface ScheduleVersion {
+    id: number;
+    notifications: ScheduleNotification[];
+}
