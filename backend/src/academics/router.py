@@ -442,8 +442,8 @@ def get_unit(
             models.Units,
             func.coalesce(lecturers_subq, 0).label("lecturers_count"),
         )
-        .filter(models.Units.id == models.Units.id)
-        .first()
+        .filter(models.Units.id == unit_id)
+        .one_or_none()
     )
 
     if not row:
