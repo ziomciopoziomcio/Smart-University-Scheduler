@@ -1,17 +1,15 @@
-import {COURSES_URL, type PaginatedResponse, getHeaders} from "@api/core";
-import type {Major} from "./types";
+import {COURSES_URL, type PaginatedResponse, getHeaders} from '@api/core';
+import type {Major, MajorCreate, MajorUpdate} from './types';
 
 export const fetchMajors = async (
-    page = 1,
     limit = 100,
+    offset = 0,
     filters: {
         study_field?: number;
         major_name?: string;
         semester?: number;
     } = {},
 ): Promise<PaginatedResponse<Major>> => {
-    const offset = (page - 1) * limit;
-
     const query = new URLSearchParams({
         limit: limit.toString(),
         offset: offset.toString(),
@@ -37,24 +35,42 @@ export const fetchMajors = async (
     return response.json();
 };
 
-// export const fetchMajors = async (
-//     limit = 100,
-//     offset = 0,
-//     studyFieldId?: number
-// ): Promise<PaginatedResponse<MajorDetails>> => {
-//     const params = new URLSearchParams({limit: limit.toString(), offset: offset.toString()});
-//     if (studyFieldId) params.append('study_field', studyFieldId.toString());
-//
-//     const response = await fetch(`${COURSE_URL}/majors?${params.toString()}`, {headers: getHeaders()});
-//     if (!response.ok) throw new Error('Nie udało się pobrać specjalności');
-//     return response.json();
-// };
-
 export const getMajor = async (id: number): Promise<Major> => {
     const response = await fetch(`${COURSES_URL}/majors/${id}`, {
         headers: getHeaders(),
     });
 
-    if (!response.ok) throw new Error('Failed to fetch major');
+    if (!response.ok) throw new Error('Nie udało się pobrać szczegółów specjalności');
     return response.json();
+};
+
+export const createMajor = async (payload: MajorCreate): Promise<Major> => {
+    const response = await fetch(`${COURSES_URL}/majors`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error('Nie udało się utworzyć specjalności');
+    return response.json();
+};
+
+export const updateMajor = async (id: number, payload: MajorUpdate): Promise<Major> => {
+    const response = await fetch(`${COURSES_URL}/majors/${id}`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) throw new Error('Nie udało się zaktualizować specjalności');
+    return response.json();
+};
+
+export const deleteMajor = async (id: number): Promise<void> => {
+    const response = await fetch(`${COURSES_URL}/majors/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+    });
+
+    if (!response.ok) throw new Error('Nie udało się usunąć specjalności');
 };
