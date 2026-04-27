@@ -1,9 +1,16 @@
 import {getHeaders, ACADEMICS_URL, type PaginatedResponse} from '@api/core';
+import type {Unit} from "./types.ts";
 
 export const fetchUnits = async (facultyId: number): Promise<PaginatedResponse<unknown>> => {
     const res = await fetch(`${ACADEMICS_URL}/units?faculty_id=${facultyId}`, {headers: getHeaders()});
     if (!res.ok) throw new Error('Błąd pobierania jednostek');
     return res.json();
+};
+
+export const getUnit = async (id: number): Promise<Unit> => {
+    const response = await fetch(`${ACADEMICS_URL}/units/${id}`, {headers: getHeaders()});
+    if (!response.ok) throw new Error('Nie udało się pobrać szczegółów pracownika');
+    return response.json();
 };
 
 export const createUnit = async (data: { unit_name: string; unit_short: string; faculty_id: number }) => {

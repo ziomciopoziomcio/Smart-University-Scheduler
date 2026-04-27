@@ -44,6 +44,7 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
     useEffect(() => {
         if (!open) return;
 
+        //TODO: filter majors by study program
         const loadStaticData = async () => {
             setIsLoadingData(true);
             try {

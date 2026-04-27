@@ -60,7 +60,6 @@ export default function TileView<T extends { id: number | string }>({
                                 bgcolor: isFlat ? '#F3F5F8' : '#fbfbfb',
                                 transform: isFlat ? 'none' : 'translateY(-2px)'
                             },
-                            // Efekty hover dla wariantu flat
                             '&:hover .tile-icon': {
                                 color: isFlat ? '#686868' : 'inherit',
                                 transform: isFlat ? 'translateX(1px)' : 'none',
