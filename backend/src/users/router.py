@@ -495,13 +495,13 @@ def list_users(
 
     student_exists = (
         db.query(academics_models.Students.id)
-        .filter(academics_models.Students.user_id == user_models.User.id)
+        .filter(academics_models.Students.user_id == models.Users.id)
         .exists()
     )
 
     employee_exists = (
         db.query(academics_models.Employees.id)
-        .filter(academics_models.Employees.user_id == user_models.User.id)
+        .filter(academics_models.Employees.user_id == models.Users.id)
         .exists()
     )
     if profiles_list:
