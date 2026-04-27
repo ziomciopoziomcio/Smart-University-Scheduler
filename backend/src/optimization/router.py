@@ -8,7 +8,7 @@ from ..common.require_permission import require_permission
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/optimize", tags=["users"])
+router = APIRouter(prefix="/optimize", tags=["optimization"])
 
 
 @router.post(
