@@ -387,7 +387,7 @@ def list_units(
     query = db.query(
         models.Units, func.coalesce(lecturers_subq, 0).label("lecturers_count")
     )
-    count_query = db.query(func.count(models.Units.id))
+    count_query = db.query(models.Units.id)
 
     if faculty_id is not None:
         query = query.filter(models.Units.faculty_id == faculty_id)
