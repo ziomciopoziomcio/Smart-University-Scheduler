@@ -8,6 +8,7 @@ from src.common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
+    build_ilike_search_filter,
 )
 from . import models, schemas
 from ..academics import models as ac_models
@@ -48,6 +49,7 @@ def list_campuses(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("campuses:view")),
+    search: str | None = Query(None),
 ):
     query = db.query(models.Campus)
 
@@ -55,6 +57,12 @@ def list_campuses(
         query = query.filter(models.Campus.campus_name.ilike(f"%{campus_name}%"))
     if campus_short is not None:
         query = query.filter(models.Campus.campus_short.ilike(f"%{campus_short}%"))
+    if search:
+        f = build_ilike_search_filter(
+            search, columns=[models.Campus.campus_name, models.Campus.campus_short]
+        )
+        if f is not None:
+            query = query.filter(f)
 
     return paginate(query, limit, offset, models.Campus.id)
 
@@ -122,6 +130,7 @@ def list_buildings(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("buildings:view")),
+    search: str | None = Query(None),
 ):
     rooms_subq = (
         db.query(func.count(models.Room.id))
@@ -132,20 +141,31 @@ def list_buildings(
     query = db.query(
         models.Building, func.coalesce(rooms_subq, 0).label("rooms_number")
     )
-
     count_query = db.query(models.Building.id)
 
     if campus_id is not None:
-        query = query.filter(models.Building.campus_id == campus_id)
-        count_query = count_query.filter(models.Building.campus_id == campus_id)
+        filter_stmt = models.Building.campus_id == campus_id
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
+
     if building_name is not None:
         filter_stmt = models.Building.building_name.ilike(f"%{building_name}%")
         query = query.filter(filter_stmt)
         count_query = count_query.filter(filter_stmt)
+
     if building_number is not None:
         filter_stmt = models.Building.building_number.ilike(f"%{building_number}%")
         query = query.filter(filter_stmt)
         count_query = count_query.filter(filter_stmt)
+
+    if search:
+        f = build_ilike_search_filter(
+            search,
+            columns=[models.Building.building_name, models.Building.building_number],
+        )
+        if f is not None:
+            query = query.filter(f)
+            count_query = count_query.filter(f)
 
     pagination_result = paginate(
         query, limit, offset, order_by=models.Building.id, count_query=count_query
@@ -255,6 +275,7 @@ def list_rooms(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("rooms:view")),
+    search: str | None = Query(None),
 ):
     query = db.query(models.Room)
 
@@ -278,6 +299,10 @@ def list_rooms(
         query = query.filter(models.Room.room_capacity >= min_room_capacity)
     if max_room_capacity is not None:
         query = query.filter(models.Room.room_capacity <= max_room_capacity)
+    if search:
+        f = build_ilike_search_filter(search, columns=[models.Room.room_name])
+        if f is not None:
+            query = query.filter(f)
 
     return paginate(query, limit, offset, models.Room.id)
 
@@ -346,6 +371,7 @@ def list_faculties(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("faculties:view")),
+    search: str | None = Query(None),
 ):
     lecturers_subq = (
         db.query(func.count(ac_models.Employees.id))
@@ -371,7 +397,7 @@ def list_faculties(
         func.coalesce(students_subq, 0).label("students_count"),
     )
 
-    count_query = db.query(func.count(models.Faculty.id))
+    count_query = db.query(models.Faculty.id)
 
     if faculty_name is not None:
         filter_stmt = models.Faculty.faculty_name.ilike(f"%{faculty_name}%")
@@ -382,8 +408,21 @@ def list_faculties(
         query = query.filter(filter_stmt)
         count_query = count_query.filter(filter_stmt)
 
+    if search:
+        f = build_ilike_search_filter(
+            search,
+            columns=[models.Faculty.faculty_name, models.Faculty.faculty_short],
+        )
+        if f is not None:
+            query = query.filter(f)
+            count_query = count_query.filter(f)
+
     pagination_result = paginate(
-        query, limit, offset, order_by=models.Faculty.id, count_query=count_query
+        query,
+        limit,
+        offset,
+        order_by=models.Faculty.id,
+        count_query=count_query,
     )
 
     pagination_result.items = [

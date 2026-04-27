@@ -14,6 +14,7 @@ from src.common.router_utils import (
     _get_by_fields_or_404,
     serialize_student_nested,
     serialize_employee_nested,
+    build_ilike_search_filter,
 )
 from . import models, schemas
 from ..database.database import get_db
@@ -57,6 +58,7 @@ def list_students(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("students:view")),
+    search: str | None = Query(None),
 ):
     filters = []
     if user_id is not None:
@@ -89,6 +91,28 @@ def list_students(
         )
         .outerjoin(course_models.Major, models.Students.major == course_models.Major.id)
     )
+
+    trimmed_search = (search or "").strip()
+    if trimmed_search:
+        search_filter = build_ilike_search_filter(
+            trimmed_search,
+            columns=[
+                user_models.Users.name,
+                user_models.Users.surname,
+                user_models.Users.email,
+                user_models.Users.degree,
+            ],
+            extra_phrase_columns=[
+                func.concat(user_models.Users.name, " ", user_models.Users.surname),
+                func.concat(user_models.Users.surname, " ", user_models.Users.name),
+            ],
+        )
+        if search_filter is not None:
+            count_q = count_q.join(
+                user_models.Users, models.Students.user_id == user_models.Users.id
+            ).filter(search_filter)
+            joined_q = joined_q.filter(search_filter)
+
     if filters:
         joined_q = joined_q.filter(*filters)
 
@@ -196,6 +220,7 @@ def list_employees(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("employees:view")),
+    search: str | None = Query(None),
 ):
     filters = []
     if user_id is not None:
@@ -223,6 +248,33 @@ def list_employees(
             models.Employees.faculty_id == facilities_models.Faculty.id,
         )
     )
+
+    trimmed_search = (search or "").strip()
+    if trimmed_search:
+        search_filter = build_ilike_search_filter(
+            trimmed_search,
+            columns=[
+                user_models.Users.name,
+                user_models.Users.surname,
+                user_models.Users.email,
+                user_models.Users.degree,
+                models.Units.unit_short,
+            ],
+            extra_phrase_columns=[
+                func.concat(user_models.Users.name, " ", user_models.Users.surname),
+                func.concat(user_models.Users.surname, " ", user_models.Users.name),
+            ],
+        )
+        if search_filter is not None:
+            count_q = (
+                count_q.join(
+                    user_models.Users, models.Employees.user_id == user_models.Users.id
+                )
+                .outerjoin(models.Units, models.Employees.unit_id == models.Units.id)
+                .filter(search_filter)
+            )
+            joined_q = joined_q.filter(search_filter)
+
     if filters:
         joined_q = joined_q.filter(*filters)
 
@@ -323,6 +375,7 @@ def list_units(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("units:view")),
+    search: str | None = Query(None),
 ):
     query = db.query(models.Units)
 
@@ -332,6 +385,12 @@ def list_units(
         query = query.filter(models.Units.unit_name.ilike(f"%{unit_name}%"))
     if unit_short is not None:
         query = query.filter(models.Units.unit_short.ilike(f"%{unit_short}%"))
+    if search:
+        f = build_ilike_search_filter(
+            search, columns=[models.Units.unit_name, models.Units.unit_short]
+        )
+        if f is not None:
+            query = query.filter(f)
 
     return paginate(query, limit, offset, models.Units.id)
 
@@ -398,6 +457,7 @@ def list_groups(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("groups:view")),
+    search: str | None = Query(None),
 ):
     query = db.query(models.Groups)
 
@@ -409,6 +469,10 @@ def list_groups(
         query = query.filter(models.Groups.elective_block == elective_block)
     if group_name is not None:
         query = query.filter(models.Groups.group_name.ilike(f"%{group_name}%"))
+    if search:
+        f = build_ilike_search_filter(search, columns=[models.Groups.group_name])
+        if f is not None:
+            query = query.filter(f)
 
     return paginate(query, limit, offset, models.Groups.id)
 

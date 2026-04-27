@@ -2,6 +2,7 @@ from typing import Iterable, Any
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError, MultipleResultsFound
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, and_
 import logging
 
 logger = logging.getLogger(__name__)
@@ -165,3 +166,110 @@ def serialize_employee_nested(row: tuple[Any, Any, Any, Any]) -> dict:
         "user_id": emp.user_id,
         "unit_id": emp.unit_id,
     }
+
+
+def _build_phrase_condition(
+    phrase_pattern: str, columns: list, extra_phrase_columns: list | None = None
+) -> Any:
+    """
+    Return OR(...) over all columns and optional extra_phrase_columns using ilike(phrase_pattern).
+    """
+    targets: list = list(columns)
+    if extra_phrase_columns:
+        targets.extend(extra_phrase_columns)
+    return or_(*[c.ilike(phrase_pattern) for c in targets])
+
+
+def _build_tokens_condition(tokens: list[str], columns: list) -> Any | None:
+    """
+    Build AND( OR(col ilike %token%) for each token ). Returns None if tokens length <= 1.
+    """
+    if len(tokens) <= 1:
+        return None
+    per_token = [or_(*[c.ilike(f"%{tok}%") for c in columns]) for tok in tokens]
+    return and_(*per_token)
+
+
+def build_ilike_search_filter(
+    search: str,
+    columns: list,
+    *,
+    extra_phrase_columns: list | None = None,
+):
+    """
+    Build an SQLAlchemy boolean filter for case-insensitive substring search across multiple columns.
+
+    Behavior:
+    - Performs full-phrase ILIKE matching (ILIKE '%search%') against provided columns and
+      optional extra phrase expressions.
+    - If the search contains multiple whitespace-separated tokens, also requires each token
+      to appear somewhere among `columns` (AND of per-token ORs).
+    - Returns a single SQLAlchemy boolean expression usable in `Query.filter(...)`, or None
+      when the trimmed search string is empty.
+
+    :param search: str - raw user-provided search string (will be trimmed). If empty, function returns None.
+    :param columns: list - sequence of SQLAlchemy column/expression objects to search (e.g. User.name).
+    :param extra_phrase_columns: list | None - optional expressions used only for full-phrase matching
+        (e.g. func.concat(User.name, " ", User.surname)).
+    :returns: SQLAlchemy boolean expression or None - an expression suitable for `Query.filter(...)`,
+        or None when `search` is empty.
+    """
+    s = (search or "").strip()
+    if not s:
+        return None
+
+    tokens = [t for t in s.split() if t]
+    phrase_pattern = f"%{s}%"
+
+    phrase_cond = _build_phrase_condition(phrase_pattern, columns, extra_phrase_columns)
+    tokens_cond = _build_tokens_condition(tokens, columns)
+
+    return phrase_cond if tokens_cond is None else or_(phrase_cond, tokens_cond)
+
+
+def apply_filters_to_queries(query, count_query, filters: Iterable):
+    """
+    Apply provided SQLAlchemy filter expressions to both query and count_query.
+
+    :param query: the main SQLAlchemy query (selecting rows)
+    :param count_query: the SQLAlchemy count query used to compute total
+    :param filters: iterable of SQLAlchemy filter expressions (or None)
+    :returns: tuple (query, count_query) with filters applied
+    """
+    for f in filters:
+        if f is not None:
+            query = query.filter(f)
+            count_query = count_query.filter(f)
+    return query, count_query
+
+
+def apply_search_to_queries(
+    search: str | None,
+    query,
+    count_query,
+    columns: list,
+    *,
+    extra_phrase_columns: list | None = None,
+):
+    """
+    Build the ilike-based search condition (using build_ilike_search_filter)
+    and apply it to both query and count_query.
+
+    :param search: search string (can be None)
+    :param query: main SQLAlchemy query
+    :param count_query: count query to keep total consistent
+    :param columns: list of columns used for token matching
+    :param extra_phrase_columns: optional list of columns used only for phrase match
+    :returns: tuple (query, count_query) with search filter applied (if any)
+    """
+    normalized_search = (search or "").strip()
+    if not normalized_search:
+        return query, count_query
+
+    f = build_ilike_search_filter(
+        normalized_search, columns=columns, extra_phrase_columns=extra_phrase_columns
+    )
+    if f is not None:
+        query = query.filter(f)
+        count_query = count_query.filter(f)
+    return query, count_query
