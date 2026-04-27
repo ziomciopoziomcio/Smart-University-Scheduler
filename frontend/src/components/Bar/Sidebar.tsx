@@ -29,7 +29,7 @@ import {
     ArrowBack,
     ArrowForward,
     GroupsOutlined,
-    InboxOutlined
+    InboxOutlined, School
 } from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 import SidebarClock from './SidebarClock';
@@ -68,6 +68,12 @@ const menuConfig: SidebarMenuItem[] = [
         id: 'sidebar.structures', // structures (units, faculties)
         icon: <SvgIcon component={diagram_icon} inheritViewBox/>,
         path: '/structures', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.didactics', // structures (units, faculties)
+        icon: <School/>,
+        path: '/didactics', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {

@@ -95,7 +95,8 @@
     "facilities": "Facilities",
     "students": "Students",
     "structures": "Structures",
-    "users": "Users"
+    "users": "Users",
+    "didactics": "Didactics"
   },
   "navbar": {
     "guest": "Guest",
@@ -502,5 +503,103 @@
   "table": {
     "rowsPerPage": "Rows per page",
     "of": "of"
+  },
+  "didactics": {
+    "breadcrumbs": {
+      "main": "Didactics",
+      "fields": "Fields of Study",
+      "courses": "Courses",
+      "majors": "Majors",
+      "blocks": "Elective Blocks"
+    },
+    "dashboard": {
+      "fieldsTitle": "Fields of Study",
+      "fieldsDesc": "Manage the structure of study programs at the university. Add fields of study, assign them to faculties, and configure their majors and elective blocks.",
+      "coursesTitle": "Courses",
+      "coursesDesc": "Manage the course base. Add courses, assign them to fields of study, and configure their details such as credits, semester, and prerequisites."
+    },
+    "fieldDashboard": {
+      "majorsTitle": "Majors",
+      "majorsDesc": "Manage majors for this field of study.",
+      "blocksTitle": "Elective Blocks",
+      "blocksDesc": "Manage elective blocks for this field of study."
+    },
+    "common": {
+      "search": "Search...",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saveChanges": "Save changes",
+      "noData": "No data to display.",
+      "faculty": "Faculty",
+      "unit": "Unit",
+      "errorRequired": "This field is required.",
+      "errorSave": "Error while saving."
+    },
+    "fields": {
+      "add": "Add Field of Study",
+      "edit": "Edit Field of Study",
+      "deleteTitle": "Delete field of study",
+      "deleteDesc": "Are you sure you want to delete the field of study \"{name}\"? This action cannot be undone.",
+      "empty": "No fields of study in the system.",
+      "nameLabel": "Field of study name",
+      "namePlaceholder": "e.g. Computer Science",
+      "majorsCount": "{count, plural, one {# major} other {# majors}}"
+    },
+    "majors": {
+      "add": "Add Major",
+      "edit": "Edit Major",
+      "deleteTitle": "Delete major",
+      "deleteDesc": "Are you sure you want to delete the major \"{name}\"? This action cannot be undone.",
+      "empty": "No majors assigned to this field of study.",
+      "nameLabel": "Major name",
+      "namePlaceholder": "e.g. Artificial Intelligence",
+      "groupsCount": "{count, plural, one {# group} other {# groups}}"
+    },
+    "blocks": {
+      "add": "Add Elective Block",
+      "edit": "Edit Elective Block",
+      "deleteTitle": "Delete elective block",
+      "deleteDesc": "Are you sure you want to delete the elective block \"{name}\"? This action cannot be undone.",
+      "empty": "No elective blocks assigned to this field of study.",
+      "nameLabel": "Elective block name",
+      "namePlaceholder": "e.g. AI specialization courses"
+    },
+    "units": {
+      "empty": "No units to display."
+    },
+    "courses": {
+      "add": "Add Course",
+      "edit": "Edit Course",
+      "deleteTitle": "Delete course",
+      "deleteDesc": "Are you sure you want to delete the course \"{name}\"? This action cannot be undone.",
+      "empty": "No courses assigned to this unit.",
+      "nameLabel": "Course name",
+      "namePlaceholder": "e.g. Introduction to Programming",
+      "codeLabel": "Course code",
+      "codePlaceholder": "e.g. CS101",
+      "ectsLabel": "ECTS credits",
+      "languageLabel": "Language of instruction",
+      "coordinatorLabel": "Course coordinator",
+      "coordinatorPlaceholder": "Choose course coordinator",
+      "coordinatorLoading": "Loading employees...",
+      "noEmployees": "No employees available",
+      "languagePolish": "Polish",
+      "languageEnglish": "English",
+      "languageFrench": "French"
+
+    },
+    "instructors": {
+      "title": "Course instructors",
+      "add": "Add instructor assignment",
+      "employeeLabel": "Instructor",
+      "classTypeLabel": "Class type",
+      "hoursLabel": "Hours per semester",
+      "empty": "No instructors assigned to this course.",
+      "deleteTitle": "Delete instructor assignment",
+      "deleteDesc": "Are you sure you want to delete the assignment of {employee} as an instructor for {course}? This action cannot be undone.",
+      "manage": "Manage instructors"
+    }
   }
 }
