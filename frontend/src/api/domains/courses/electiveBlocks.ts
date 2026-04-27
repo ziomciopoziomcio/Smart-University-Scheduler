@@ -22,7 +22,10 @@ export const fetchElectiveBlocks = async (
         headers: getHeaders(),
     });
 
-    if (!response.ok) throw new Error('Nie udało się pobrać listy bloków obieralnych');
+    if (!response.ok) {
+        throw new Error('Failed to fetch elective blocks');
+    }
+
     return response.json();
 };
 

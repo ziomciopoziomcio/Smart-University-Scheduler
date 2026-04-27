@@ -99,7 +99,8 @@
     "didactics": "Didactics"
   },
   "navbar": {
-    "guest": "Guest"
+    "guest": "Guest",
+    "logout": "Logout"
   },
   "calendar": {
     "month": "Month",
@@ -414,6 +415,7 @@
       "title": "Lecturers plans",
       "description": "Check the schedule of lecturers at the university.",
       "departmentSelect": {
+        "lecturersCountValue": "{count, plural, one {# lecturer} other {# lecturers}}",
         "searchPlaceholder": "Search for a unit or faculty...",
         "show": "Show:",
         "units": "Units",
