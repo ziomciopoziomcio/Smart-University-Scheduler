@@ -4,15 +4,17 @@ import {
     type ScheduleVersion,
     ScheduleVersionIssue,
     type ScheduleNotification,
-    generateSchedule
+    generateSchedule,
 } from '@api/domains/schedules';
 import {
     GenerateHero,
     NotificationsPanel,
 } from '@components/Generate';
 
-//TODO: WHEN BACKEND WILL BE CREATED, PUT IT IN API AND DELETE MOCKS
-//https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/188
+// TODO: WHEN BACKEND WILL BE CREATED, PUT IT IN API AND DELETE MOCKS
+//https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/195
+//// https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/188
+
 const mockedGeneratedScheduleResult: ScheduleVersion = {
     id: 1,
     notifications: [
@@ -31,10 +33,13 @@ const mockedGeneratedScheduleResult: ScheduleVersion = {
     ],
 };
 
+const fetchGeneratedScheduleDetails = async (scheduleId: number): Promise<ScheduleVersion> => {
+    console.log('Fetching generated schedule details for id:', scheduleId);
 
-const fetchGeneratedSchedule = async (): Promise<ScheduleVersion> => {
     return Promise.resolve(mockedGeneratedScheduleResult);
 };
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms)); //todo usun
 
 export default function GenerateSchedulePage() {
     const [notifications, setNotifications] = useState<ScheduleNotification[]>([]);
@@ -43,10 +48,17 @@ export default function GenerateSchedulePage() {
 
     const handleGenerate = async () => {
         setIsGenerating(true);
+        setHasGeneratedSchedule(false);
+        setNotifications([]);
 
         try {
-            // const result = await generateSchedule(); //TODO WHEN READY
-            const result = await fetchGeneratedSchedule();
+            // TODO WHEN READY:
+            // const generatedSchedule = await generateSchedule();
+            const generatedSchedule = await Promise.resolve({id: mockedGeneratedScheduleResult.id});
+
+            await sleep(3000);
+
+            const result = await fetchGeneratedScheduleDetails(generatedSchedule.id);
 
             setNotifications(result.notifications);
             setHasGeneratedSchedule(true);
