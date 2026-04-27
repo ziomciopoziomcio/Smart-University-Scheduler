@@ -1037,15 +1037,13 @@ def get_faculty_instructors(
     _get_or_404(db, facilities_models.Faculty, faculty_id, "Faculty")
 
     if unit_id is not None:
-        unit = _get_or_404(db, models.Units, unit_id, "Unit")
-        if (
-            getattr(unit, "faculty_id", None) is not None
-            and unit.faculty_id != faculty_id
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Unit does not belong to the specified faculty",
-            )
+        _get_by_fields_or_404(
+            db,
+            models.Units,
+            "Unit",
+            id=unit_id,
+            faculty_id=faculty_id,
+        )
 
     q = (
         db.query(
