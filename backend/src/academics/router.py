@@ -3,7 +3,7 @@ from typing import List, Any
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy import func, case
-from sqlalchemy.orm import Session, contains_eager
+from sqlalchemy.orm import Session
 
 from src.common.pagination.pagination import paginate
 from src.common.pagination.pagination_model import PaginatedResponse
@@ -444,10 +444,14 @@ def list_unit_instructors(
 ):
     _get_or_404(db, models.Units, unit_id, "Unit")
     query = (
-        db.query(models.Employees)
+        db.query(
+            models.Employees.id,
+            user_models.Users.name,
+            user_models.Users.surname,
+            user_models.Users.degree,
+        )
         .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
         .filter(models.Employees.unit_id == unit_id)
-        .options(contains_eager(models.Employees.user_id))
     )
 
     count_query = db.query(models.Employees.id).filter(
