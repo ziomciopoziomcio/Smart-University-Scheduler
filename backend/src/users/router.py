@@ -438,7 +438,7 @@ def list_users(
     exclude_profiles_list = parse_csv_param(exclude_profiles)
 
     query = db.query(models.Users).options(selectinload(models.Users.roles))
-    count_query = db.query(func.count(models.Users.id))
+    count_query = db.query(models.Users.id)
 
     if email is not None:
         f = models.Users.email.ilike(f"%{email}%")
