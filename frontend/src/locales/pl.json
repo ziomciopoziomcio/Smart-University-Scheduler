@@ -95,7 +95,8 @@
     "facilities": "Obiekty",
     "students": "Studenci",
     "structures": "Struktury",
-    "users": "Użytkownicy"
+    "users": "Użytkownicy",
+    "didactics": "Dydaktyka"
   },
   "navbar": {
     "guest": "Gość",
@@ -301,8 +302,8 @@
       "chooseUser": "Wybierz użytkownika",
       "programLabel": "Kierunek Studiów",
       "chooseProgram": "Wybierz kierunek",
-      "majorLabel": "Specjalność (opcjonalnie)",
-      "majorNone": "Brak specjalności",
+      "majorLabel": "Specjalizacja",
+      "majorNone": "Brak specjalizacji",
       "errors": {
         "delete": "Błąd podczas usuwania przypisania studenta."
       },
@@ -502,5 +503,102 @@
   "table": {
     "rowsPerPage": "Wierszy na stronę",
     "of": "z"
+  },
+  "didactics": {
+    "breadcrumbs": {
+      "main": "Dydaktyka",
+      "fields": "Kierunki",
+      "courses": "Przedmioty",
+      "majors": "Specjalizacje",
+      "blocks": "Bloki Obieralne"
+    },
+    "dashboard": {
+      "fieldsTitle": "Kierunki i Specjalizacje",
+      "fieldsDesc": "Zarządzaj ofertą edukacyjną, kierunkami studiów i podziałem na specjalizacje oraz bloki obieralne.",
+      "coursesTitle": "Katalog Przedmiotów",
+      "coursesDesc": "Globalna baza wszystkich przedmiotów uczelnianych. Dodawaj, edytuj nazwy, punkty ECTS i języki."
+    },
+    "fieldDashboard": {
+      "majorsTitle": "Specjalizacje",
+      "majorsDesc": "Zarządzaj specjalizacjami.",
+      "blocksTitle": "Bloki Obieralne",
+      "blocksDesc": "Konfiguruj bloki obieralne."
+    },
+    "common": {
+      "search": "Szukaj...",
+      "edit": "Edytuj",
+      "delete": "Usuń",
+      "cancel": "Anuluj",
+      "save": "Zapisz",
+      "saveChanges": "Zapisz zmiany",
+      "noData": "Brak danych.",
+      "faculty": "Wydział",
+      "unit": "Jednostka",
+      "errorRequired": "To pole jest wymagane.",
+      "errorSave": "Wystąpił błąd podczas zapisywania."
+    },
+    "fields": {
+      "add": "Dodaj Kierunek",
+      "edit": "Edytuj Kierunek",
+      "deleteTitle": "Usuń kierunek",
+      "deleteDesc": "Czy na pewno chcesz usunąć kierunek \"{name}\"? Tej operacji nie można cofnąć.",
+      "empty": "Brak kierunków studiów na tym wydziale.",
+      "nameLabel": "Nazwa Kierunku",
+      "namePlaceholder": "np. Informatyka Stosowana",
+      "majorsCount": "Specjalizacji"
+    },
+    "majors": {
+      "add": "Dodaj Specjalizację",
+      "edit": "Edytuj Specjalizację",
+      "deleteTitle": "Usuń Specjalizację",
+      "deleteDesc": "Czy na pewno chcesz usunąć specjalizację \"{name}\"? Operacji nie można cofnąć.",
+      "empty": "Brak przypisanych specjalizacji.",
+      "nameLabel": "Nazwa specjalizacji",
+      "namePlaceholder": "np. Inżynieria Oprogramowania",
+      "groupsCount": "Grupy"
+    },
+    "blocks": {
+      "add": "Dodaj Blok Obieralny",
+      "edit": "Edytuj Blok Obieralny",
+      "deleteTitle": "Usuń blok obieralny",
+      "deleteDesc": "Czy na pewno chcesz usunąć blok \"{name}\"? Operacji nie można cofnąć.",
+      "empty": "Brak przypisanych bloków obieralnych.",
+      "nameLabel": "Nazwa Bloku",
+      "namePlaceholder": "np. Testowanie Oprogramowania"
+    },
+    "units": {
+      "empty": "Brak jednostek dla tego wydziału."
+    },
+    "courses": {
+      "add": "Dodaj Przedmiot",
+      "edit": "Edytuj Przedmiot",
+      "deleteTitle": "Usuń przedmiot",
+      "deleteDesc": "Czy na pewno chcesz usunąć przedmiot \"{name}\"? Tej operacji nie można cofnąć.",
+      "empty": "Brak przypisanych przedmiotów do tej jednostki.",
+      "nameLabel": "Nazwa Przedmiotu",
+      "namePlaceholder": "np. Analiza Matematyczna 1",
+      "codeLabel": "Kod Przedmiotu",
+      "codePlaceholder": "np. 1024",
+      "ectsLabel": "Punkty ECTS",
+      "languageLabel": "Język Wykładowy",
+      "coordinatorLabel": "Koordynator przedmiotu",
+      "coordinatorPlaceholder": "Wybierz koordynatora",
+      "coordinatorLoading": "Ładowanie pracowników...",
+      "noEmployees": "Brak dostępnych pracowników",
+      "languagePolish": "Polski",
+      "languageEnglish": "Angielski",
+      "languageFrench": "Francuski"
+    },
+    "instructors": {
+      "title": "Prowadzący przedmiot: {course}",
+      "add": "Przypisz",
+      "employeeLabel": "Prowadzący",
+      "classTypeLabel": "Typ zajęć",
+      "hoursLabel": "Liczba godzin",
+      "empty": "Brak przypisanych prowadzących.",
+      "deleteTitle": "Usuń przypisanie",
+      "deleteDesc": "Czy na pewno chcesz usunąć to przypisanie prowadzącego?",
+      "manage": "Zarządzaj prowadzącymi"
+    }
   }
 }
