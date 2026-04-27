@@ -556,30 +556,27 @@ async def get_study_field_plan(
     if not day_configs:
         return []
 
-    final_group_ids = group_ids or []
-
-    if not final_group_ids:
-        sql_query = (
-            db.query(ac_models.Groups.id)
-            .join(
-                course_models.Study_program,
-                ac_models.Groups.study_program == course_models.Study_program.id,
-            )
-            .filter(
-                ac_models.Groups.semester == semester,
-                course_models.Study_program.study_field == study_field,
-                course_models.Study_program.id == study_program,
-            )
+    sql_query = (
+        db.query(ac_models.Groups.id)
+        .join(
+            course_models.Study_program,
+            ac_models.Groups.study_program == course_models.Study_program.id,
         )
+        .filter(
+            ac_models.Groups.semester == semester,
+            course_models.Study_program.study_field == study_field,
+            course_models.Study_program.id == study_program,
+        )
+    )
 
-        if specialization_id:
-            sql_query = sql_query.filter(ac_models.Groups.major == specialization_id)
-        if elective_block_id:
-            sql_query = sql_query.filter(
-                ac_models.Groups.elective_block == elective_block_id
-            )
+    if specialization_id:
+        sql_query = sql_query.filter(ac_models.Groups.major == specialization_id)
+    if elective_block_id:
+        sql_query = sql_query.filter(ac_models.Groups.elective_block == elective_block_id)
+    if group_ids:
+        sql_query = sql_query.filter(ac_models.Groups.id.in_(group_ids))
 
-        final_group_ids = [row[0] for row in sql_query.all()]
+    final_group_ids = [row[0] for row in sql_query.all()]
 
     if not final_group_ids:
         return []
