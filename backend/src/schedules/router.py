@@ -512,6 +512,55 @@ async def get_lecturer_plan(
     ]
 
 
+def _validate_study_field_plan_params(
+    start_date: date, specialization_id: int | None, elective_block_id: int | None
+) -> None:
+    """Validates input parameters for the study field plan endpoint."""
+    if start_date.weekday() != 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="start_date must be a Monday.",
+        )
+    if specialization_id is not None and elective_block_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot filter by both specialization and elective block simultaneously.",
+        )
+
+
+def _get_filtered_group_ids(
+    db: Session,
+    study_program: int,
+    study_field: int,
+    semester: int,
+    specialization_id: int | None,
+    elective_block_id: int | None,
+    group_ids: list[int] | None,
+) -> list[int]:
+    """Builds and executes the SQL query to fetch relevant group IDs."""
+    sql_query = (
+        db.query(ac_mod.Groups.id)
+        .join(
+            course_models.Study_program,
+            ac_mod.Groups.study_program == course_models.Study_program.id,
+        )
+        .filter(
+            ac_mod.Groups.semester == semester,
+            course_models.Study_program.study_field == study_field,
+            course_models.Study_program.id == study_program,
+        )
+    )
+
+    if specialization_id:
+        sql_query = sql_query.filter(ac_mod.Groups.major == specialization_id)
+    if elective_block_id:
+        sql_query = sql_query.filter(ac_mod.Groups.elective_block == elective_block_id)
+    if group_ids:
+        sql_query = sql_query.filter(ac_mod.Groups.id.in_(group_ids))
+
+    return [row[0] for row in sql_query.all()]
+
+
 @router.get("/study-field-plan", response_model=list[schemas.ScheduleEntry])
 async def get_study_field_plan(
     start_date: date = Query(...),
@@ -540,43 +589,21 @@ async def get_study_field_plan(
     :param _current_user: Current user (for permissions)
     :return: List of ScheduleEntry objects representing the study field's plan for the week
     """
-    if start_date.weekday() != 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="start_date must be a Monday.",
-        )
-    if specialization_id is not None and elective_block_id is not None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot filter by both specialization and elective block simultaneously.",
-        )
+    _validate_study_field_plan_params(start_date, specialization_id, elective_block_id)
 
     day_configs = _get_academic_day_configs(db, start_date)
     if not day_configs:
         return []
 
-    sql_query = (
-        db.query(ac_mod.Groups.id)
-        .join(
-            course_models.Study_program,
-            ac_mod.Groups.study_program == course_models.Study_program.id,
-        )
-        .filter(
-            ac_mod.Groups.semester == semester,
-            course_models.Study_program.study_field == study_field,
-            course_models.Study_program.id == study_program,
-        )
+    final_group_ids = _get_filtered_group_ids(
+        db,
+        study_program,
+        study_field,
+        semester,
+        specialization_id,
+        elective_block_id,
+        group_ids,
     )
-
-    if specialization_id:
-        sql_query = sql_query.filter(ac_mod.Groups.major == specialization_id)
-    if elective_block_id:
-        sql_query = sql_query.filter(ac_mod.Groups.elective_block == elective_block_id)
-    if group_ids:
-        sql_query = sql_query.filter(ac_mod.Groups.id.in_(group_ids))
-
-    final_group_ids = [row[0] for row in sql_query.all()]
-
     if not final_group_ids:
         return []
 
