@@ -561,6 +561,21 @@ def _get_filtered_group_ids(
     return [row[0] for row in sql_query.all()]
 
 
+def _map_schedule_entries(records: list[dict]) -> list[schemas.ScheduleEntry]:
+    """Maps Neo4j records to ScheduleEntry Pydantic schemas."""
+    return [
+        schemas.ScheduleEntry(
+            id=rec["session_id"],
+            title=rec["title"],
+            date=date.fromisoformat(rec["physical_date"]),
+            startTime=rec["start_time"],
+            endTime=rec["end_time"],
+            variant=_parse_variant(rec["class_type"]),
+        )
+        for rec in records
+    ]
+
+
 @router.get("/study-field-plan", response_model=list[schemas.ScheduleEntry])
 async def get_study_field_plan(
     start_date: date = Query(...),
@@ -592,9 +607,6 @@ async def get_study_field_plan(
     _validate_study_field_plan_params(start_date, specialization_id, elective_block_id)
 
     day_configs = _get_academic_day_configs(db, start_date)
-    if not day_configs:
-        return []
-
     final_group_ids = _get_filtered_group_ids(
         db,
         study_program,
@@ -604,7 +616,8 @@ async def get_study_field_plan(
         elective_block_id,
         group_ids,
     )
-    if not final_group_ids:
+
+    if not day_configs or not final_group_ids:
         return []
 
     result = await neo4j_session.run(
@@ -612,16 +625,5 @@ async def get_study_field_plan(
         group_ids=final_group_ids,
         day_configs=day_configs,
     )
-    records = await result.data()
 
-    return [
-        schemas.ScheduleEntry(
-            id=rec["session_id"],
-            title=rec["title"],
-            date=date.fromisoformat(rec["physical_date"]),
-            startTime=rec["start_time"],
-            endTime=rec["end_time"],
-            variant=_parse_variant(rec["class_type"]),
-        )
-        for rec in records
-    ]
+    return _map_schedule_entries(await result.data())
