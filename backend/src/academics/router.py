@@ -1053,6 +1053,10 @@ def get_faculty_instructors(
     "/instructors/{employee_id}",
     response_model=schemas.CourseInstructor,
 )
+@router.get(
+    "/instructors/{employee_id}",
+    response_model=schemas.CourseInstructor,
+)
 def get_instructor_by_id(
     employee_id: int,
     db: Session = Depends(get_db),
@@ -1061,30 +1065,26 @@ def get_instructor_by_id(
     """
     Get single instructor by employee id and return CourseInstructor { id, name, surname, degree }.
     """
-    emp = (
-        db.query(models.Employees)
+    instructor = (
+        db.query(
+            models.Employees.id,
+            user_models.Users.name,
+            user_models.Users.surname,
+            user_models.Users.degree,
+        )
+        .join(user_models.Users, user_models.Users.id == models.Employees.user_id)
         .filter(models.Employees.id == employee_id)
         .one_or_none()
     )
-    if not emp:
+
+    if not instructor:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Instructor not found"
         )
 
-    user = (
-        db.query(user_models.Users)
-        .filter(user_models.Users.id == emp.user_id)
-        .one_or_none()
-    )
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User for instructor not found",
-        )
-
     return schemas.CourseInstructor(
-        id=emp.id,
-        name=user.name,
-        surname=user.surname,
-        degree=user.degree,
+        id=instructor.id,
+        name=instructor.name,
+        surname=instructor.surname,
+        degree=instructor.degree,
     )
