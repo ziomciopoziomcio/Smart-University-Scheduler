@@ -589,7 +589,6 @@
       "languagePolish": "Polish",
       "languageEnglish": "English",
       "languageFrench": "French"
-
     },
     "instructors": {
       "title": "Course instructors",
@@ -601,6 +600,16 @@
       "deleteTitle": "Delete instructor assignment",
       "deleteDesc": "Are you sure you want to delete the assignment of {employee} as an instructor for {course}? This action cannot be undone.",
       "manage": "Manage instructors"
+    }
+  },
+  "generateSchedule": {
+    "hero": {
+      "title": "Generate plans",
+      "description": "Schedule generation may take a while. You can review the created versions and check detected issues before saving the final plan.",
+      "button": "Generate schedule",
+      "versionNameLabel": "New version name",
+      "versionNamePlaceholder": "Enter version name",
+      "defaultVersionName": "Version {number}"
     }
   }
 }

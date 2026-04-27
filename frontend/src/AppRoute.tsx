@@ -25,10 +25,7 @@ import RoomSchedulePage from "./pages/Schedules/RoomSchedulePage.tsx";
 import StudentSchedulePage from "./pages/Schedules/StudentSchedulePage.tsx";
 import StudentsSchedulesPage from "./pages/Schedules/StudentsSchedulesPage.tsx";
 import DidacticsPage from "./pages/Didactics/DidacticsPage.tsx";
-
-function GenerateSchedulePage() {
-    return null;
-}
+import GenerateSchedulePage from "./pages/GenerateSchedule/GenerateSchedulePage.tsx";
 
 function AppRoute() {
     const isAuthenticated = useAuthStore((state) => state.token !== null);

@@ -601,5 +601,15 @@
       "deleteDesc": "Czy na pewno chcesz usunąć to przypisanie prowadzącego?",
       "manage": "Zarządzaj prowadzącymi"
     }
+  },
+  "generateSchedule": {
+    "hero": {
+      "title": "Generuj plany",
+      "description": "Generowanie planu może potrwać dłuższą chwilę. Po zakończeniu sprawdzisz utworzone wersje i wykryte problemy przed zapisaniem finalnego planu.",
+      "button": "Generuj plan",
+      "versionNameLabel": "Nazwa nowej wersji",
+      "versionNamePlaceholder": "Wpisz nazwę wersji",
+      "defaultVersionName": "Wersja {number}"
+    }
   }
 }
