@@ -558,7 +558,7 @@ def _get_filtered_group_ids(
     if group_ids:
         sql_query = sql_query.filter(ac_mod.Groups.id.in_(group_ids))
 
-    return [row[0] for row in sql_query.all()]
+    return [int(row[0]) for row in sql_query.all()]
 
 
 def _map_schedule_entries(records: list[dict]) -> list[schemas.ScheduleEntry]:
