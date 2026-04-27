@@ -450,7 +450,7 @@ def list_unit_instructors(
         .options(contains_eager(models.Employees.user_id))
     )
 
-    count_query = db.query(func.count(models.Employees.id)).filter(
+    count_query = db.query(models.Employees.id).filter(
         models.Employees.unit_id == unit_id
     )
 
