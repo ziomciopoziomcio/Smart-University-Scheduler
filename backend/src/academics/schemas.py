@@ -194,3 +194,10 @@ class CourseInstructor(BaseSchema):
     name: str
     surname: str
     degree: str | None
+
+
+class UnitInstructorRead(BaseSchema):
+    id: int
+    name: str
+    surname: str
+    degree: str | None = None

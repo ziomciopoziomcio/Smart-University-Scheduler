@@ -3,7 +3,7 @@ from typing import List, Any
 
 from fastapi import APIRouter, Depends, status, Query, HTTPException
 from sqlalchemy import func, case
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, contains_eager
 
 from src.common.pagination.pagination import paginate
 from src.common.pagination.pagination_model import PaginatedResponse
@@ -429,6 +429,49 @@ def delete_unit(
     db.delete(obj)
     _commit_or_rollback(db)
     return None
+
+
+@router.get(
+    "/units/{unit_id}/instructors",
+    response_model=PaginatedResponse[schemas.UnitInstructorRead],
+)
+def list_unit_instructors(
+    unit_id: int,
+    limit: int = Query(100, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("units:view")),
+):
+    query = (
+        db.query(models.Employees)
+        .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
+        .filter(models.Employees.unit_id == unit_id)
+        .options(contains_eager(models.Employees.user_id))
+    )
+
+    count_query = db.query(func.count(models.Employees.id)).filter(
+        models.Employees.unit_id == unit_id
+    )
+
+    pagination_result = paginate(
+        query,
+        limit,
+        offset,
+        order_by=user_models.Users.surname,
+        count_query=count_query,
+    )
+
+    pagination_result.item = [
+        schemas.UnitInstructorRead(
+            id=emp.id,
+            name=emp.user.name,
+            surname=emp.user.surname,
+            degree=emp.user.degree,
+        )
+        for emp in pagination_result.items
+    ]
+
+    return pagination_result
 
 
 # Groups
