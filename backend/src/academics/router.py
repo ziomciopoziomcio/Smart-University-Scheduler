@@ -442,6 +442,7 @@ def list_unit_instructors(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("units:view")),
 ):
+    _get_or_404(db, models.Units, unit_id, "Unit")
     query = (
         db.query(models.Employees)
         .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
