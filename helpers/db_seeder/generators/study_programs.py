@@ -46,7 +46,7 @@ def generate_study_programs(
     :param db_study_fields: dictionary mapping study field names to Study_fields
     :return: dictionary mapping (study_field_name, start_year, degree) to Study_program
     """
-    start_years = ["2023/24"]
+    start_years = ["2023/24", "2024/25", "2025/26"]
 
     db_study_programs: dict[tuple[str, str, int], Study_program] = {}
     # study_field_name, start_year, degree
