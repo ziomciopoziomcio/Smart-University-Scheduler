@@ -1,4 +1,3 @@
-import json
 import logging
 from aiokafka import AIOKafkaProducer
 
@@ -24,9 +23,7 @@ async def send_event(topic: str, msg: dict) -> bool:
         return False
 
     try:
-        value = json.dumps(msg).encode("utf-8")
-
-        await kafka_manager.producer.send_and_wait(topic, value=value)
+        await kafka_manager.producer.send_and_wait(topic, value=msg)
         logger.info("Event sent to kafka")
         return True
 
