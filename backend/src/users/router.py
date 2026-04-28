@@ -607,8 +607,32 @@ def update_user(
             )
         obj.password_hash = hash_password(payload.password)
 
+    if "roles" in payload.model_fields_set:
+        if payload.roles is None:
+            obj.roles.clear()
+        else:
+            db_roles = (
+                db.query(models.Roles)
+                .filter(models.Roles.role_name.in_(payload.roles))
+                .all()
+            )
+
+            if len(db_roles) != len(payload.roles):
+                found_roles = {r.role_name for r in db_roles}
+                missing_roles = set(payload.roles) - found_roles
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Cannot assign non-existent roles: {', '.join(missing_roles)}",
+                )
+
+            obj.roles.clear()
+            obj.roles.extend(db_roles)
+
     _apply_patch_or_reject_nulls(
-        obj, payload, nullable_fields={"phone_number", "degree"}, exclude={"password"}
+        obj,
+        payload,
+        nullable_fields={"phone_number", "degree"},
+        exclude={"password", "roles"},
     )
     db.add(obj)
     _commit_or_rollback(db)
