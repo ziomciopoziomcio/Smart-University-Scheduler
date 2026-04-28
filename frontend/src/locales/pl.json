@@ -312,7 +312,10 @@
         "noResults": "Brak wyników",
         "searchPrompt": "Zacznij pisać, aby szukać...",
         "userSearchLabel": "Wyszukaj użytkownika (imię, nazwisko lub email)",
-        "loading": "Pobieranie danych..."
+        "loading": "Pobieranie danych...",
+        "user": "Użytkownik",
+        "studyProgram": "Program studiów",
+        "major": "Specjalizacja (opcjonalnie)"
       }
     },
     "employees": {

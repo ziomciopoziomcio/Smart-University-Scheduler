@@ -312,7 +312,10 @@
         "noResults": "No results found",
         "searchPrompt": "Start typing to search...",
         "userSearchLabel": "Search user (name, surname or email)",
-        "loading": "Loading data..."
+        "loading": "Loading data...",
+        "user": "User",
+        "studyProgram": "Study Program",
+        "major": "Major (optional)"
       }
     },
     "employees": {
