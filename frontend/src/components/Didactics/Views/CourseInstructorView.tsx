@@ -70,14 +70,18 @@ export function CourseInstructorsView({courseCode, facultyId, data, onRefresh}: 
                 emptyMessage={intl.formatMessage({id: 'didactics.instructors.empty'})}
             />
 
-            <ActionMenu anchorEl={anchorEl} onClose={() => setAnchorEl(null)} onEdit={() => {
+            <ActionMenu
+                anchorEl={anchorEl}
+                onClose={() => {
+                    setAnchorEl(null);
+                }} onEdit={() => {
                 setIsModalOpen(true);
                 setAnchorEl(null);
             }} onDelete={() => {
                 setIsDeleteOpen(true);
                 setAnchorEl(null);
             }} editLabel={intl.formatMessage({id: 'didactics.common.edit'})}
-                        deleteLabel={intl.formatMessage({id: 'didactics.common.delete'})}/>
+                deleteLabel={intl.formatMessage({id: 'didactics.common.delete'})}/>
 
             <DeleteConfirmDialog open={isDeleteOpen}
                                  title={intl.formatMessage({id: 'didactics.instructors.deleteTitle'})}

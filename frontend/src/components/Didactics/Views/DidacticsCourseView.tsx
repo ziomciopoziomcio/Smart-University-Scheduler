@@ -70,7 +70,9 @@ export function DidacticsCourseView({unitId, facultyId, data, onRefresh}: Didact
                 emptyMessage={intl.formatMessage({id: 'didactics.courses.empty'})}
             />
 
-            <ActionMenu anchorEl={anchorEl} onClose={() => setAnchorEl(null)} onEdit={() => {
+            <ActionMenu anchorEl={anchorEl} onClose={() => {
+                setAnchorEl(null);
+            }} onEdit={() => {
                 setIsModalOpen(true);
                 setAnchorEl(null);
             }} onDelete={() => {
@@ -82,8 +84,12 @@ export function DidacticsCourseView({unitId, facultyId, data, onRefresh}: Didact
                                  description={intl.formatMessage({id: 'didactics.courses.deleteDesc'}, {name: selected?.course_name})}
                                  cancelButtonLabel={intl.formatMessage({id: 'didactics.common.cancel'})}
                                  confirmButtonLabel={intl.formatMessage({id: 'didactics.common.delete'})}
-                                 onConfirm={handleConfirmDelete} onClose={() => setIsDeleteOpen(false)}/>
-            <CourseModal open={isModalOpen} course={selected} unitId={unitId} onClose={() => setIsModalOpen(false)}
+                                 onConfirm={handleConfirmDelete} onClose={() => {
+                setIsDeleteOpen(false);
+            }}/>
+            <CourseModal open={isModalOpen} course={selected} unitId={unitId} onClose={() => {
+                setIsModalOpen(false);
+            }}
                          onSuccess={onRefresh}/>
         </Box>
     );

@@ -47,7 +47,9 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
                     setMajors(majorsRes.items || []);
                 })
                 .catch(console.error)
-                .finally(() => setIsLoadingData(false));
+                .finally(() => {
+                    setIsLoadingData(false);
+                });
         }
     }, [open]);
 
@@ -85,7 +87,9 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
             }
         }, 400);
 
-        return () => clearTimeout(handler);
+        return () => {
+            clearTimeout(handler);
+        };
     }, [userSearchInputValue, selectedUser]);
 
     const handleSubmit = async () => {
@@ -163,7 +167,9 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
                     <InputLabel>{intl.formatMessage({id: 'academics.students.modal.studyProgram'})}</InputLabel>
                     <Select value={studyProgramId}
                             label={intl.formatMessage({id: 'academics.students.modal.studyProgram'})}
-                            onChange={(e) => setStudyProgramId(e.target.value as number)}>
+                            onChange={(e) => {
+                                setStudyProgramId(e.target.value as number);
+                            }}>
                         {programs.map(p => <MenuItem key={p.id} value={p.id}>{p.program_name || p.id}</MenuItem>)}
                     </Select>
                 </FormControl>
@@ -171,7 +177,9 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
                 <FormControl fullWidth disabled={!studyProgramId || isLoadingData}>
                     <InputLabel>{intl.formatMessage({id: 'academics.students.modal.major'})}</InputLabel>
                     <Select value={majorId} label={intl.formatMessage({id: 'academics.students.modal.major'})}
-                            onChange={(e) => setMajorId(e.target.value as number)}>
+                            onChange={(e) => {
+                                setMajorId(e.target.value as number);
+                            }}>
                         <MenuItem value=""><em>{intl.formatMessage({id: 'academics.student.majorNone'})}</em></MenuItem>
                         {majors.map(m => <MenuItem key={m.id} value={m.id}>{m.major_name}</MenuItem>)}
                     </Select>

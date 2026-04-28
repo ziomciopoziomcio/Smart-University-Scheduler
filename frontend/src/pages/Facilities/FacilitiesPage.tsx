@@ -51,7 +51,9 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
             setPage(1);
         }, 300);
 
-        return () => clearTimeout(handler);
+        return () => {
+            clearTimeout(handler);
+        };
     }, [search]);
 
     const getSearchPlaceholder = () => {

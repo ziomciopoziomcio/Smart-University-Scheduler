@@ -45,7 +45,9 @@ export default function DidacticsPage({view}: { view: string }) {
             setDebouncedSearch(search);
             setPage(1);
         }, 300);
-        return () => clearTimeout(handler);
+        return () => {
+            clearTimeout(handler);
+        };
     }, [search]);
 
     const loadData = useCallback(async () => {

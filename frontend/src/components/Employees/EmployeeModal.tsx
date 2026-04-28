@@ -40,9 +40,13 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
         if (open) {
             setIsLoadingData(true);
             fetchFaculties(1, 100)
-                .then(res => setFaculties(res.items || res))
+                .then(res => {
+                    setFaculties(res.items || res);
+                })
                 .catch(console.error)
-                .finally(() => setIsLoadingData(false));
+                .finally(() => {
+                    setIsLoadingData(false);
+                });
         }
     }, [open]);
 
@@ -90,7 +94,9 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
             }
         }, 400);
 
-        return () => clearTimeout(handler);
+        return () => {
+            clearTimeout(handler);
+        };
     }, [userSearchInputValue, selectedUser]);
 
     const handleSubmit = async () => {

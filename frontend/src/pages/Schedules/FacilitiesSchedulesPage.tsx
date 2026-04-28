@@ -36,7 +36,9 @@ export default function SchedulesFacilitiesPage({view}: SchedulesFacilitiesPageP
             setDebouncedSearch(search);
             setPage(1);
         }, 300);
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+        };
     }, [search]);
 
     useEffect(() => {
@@ -66,8 +68,8 @@ export default function SchedulesFacilitiesPage({view}: SchedulesFacilitiesPageP
                 setData(res.items);
                 setTotalItems(res.total);
             }
-        } catch (err: any) {
-            setError(err.message || 'Wystąpił błąd');
+        } catch {
+            setError('Wystąpił błąd');
         } finally {
             setLoading(false);
         }

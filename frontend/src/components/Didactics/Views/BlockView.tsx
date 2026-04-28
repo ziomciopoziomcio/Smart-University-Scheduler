@@ -34,7 +34,9 @@ export function BlockView({fieldId, data, onRefresh}: {
                 addLabel={intl.formatMessage({id: 'didactics.blocks.add'})}
             />
 
-            <ActionMenu anchorEl={anchorEl} onClose={() => setAnchorEl(null)} onEdit={() => setIsModalOpen(true)}
+            <ActionMenu anchorEl={anchorEl} onClose={() => {
+                setAnchorEl(null);
+            }} onEdit={() => setIsModalOpen(true)}
                         onDelete={() => setIsDeleteOpen(true)}
                         editLabel={intl.formatMessage({id: 'didactics.common.edit'})}
                         deleteLabel={intl.formatMessage({id: 'didactics.common.delete'})}/>

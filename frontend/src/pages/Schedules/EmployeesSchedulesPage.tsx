@@ -55,7 +55,6 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
     }, [view, facultyId, unitId]);
 
     const loadData = useCallback(async () => {
-        // Blokady nawigacyjne - nie ładuj, gdy brakuje ID w URL
         if (view === 'units' && !facultyId) return;
         if (view === 'lecturers' && (!facultyId || !unitId)) return;
 
@@ -85,8 +84,8 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
                 setData(res.items || []);
                 setTotalItems(res.total || 0);
             }
-        } catch (err: any) {
-            setError(err.message || 'Błąd ładowania danych');
+        } catch {
+            setError('Błąd ładowania danych');
         } finally {
             setLoading(false);
         }

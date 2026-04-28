@@ -29,7 +29,9 @@ export default function StudentsPage() {
             setDebouncedSearch(search);
             setPage(1);
         }, 300);
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+        };
     }, [search]);
 
     const loadData = useCallback(async () => {

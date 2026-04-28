@@ -60,7 +60,7 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
         }
         setPassword(retVal);
         setShowPassword(true);
-        navigator.clipboard.writeText(retVal);
+        void navigator.clipboard.writeText(retVal);
         setSnackbarOpen(true);
     };
 
@@ -115,17 +115,45 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                         {isEditMode ? intl.formatMessage({id: 'users.view.edit'}) : intl.formatMessage({id: 'users.view.add'})}
                     </Typography>
 
-                    <TextField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} fullWidth
-                               disabled={isSubmitting}/>
-                    <TextField label="Imię" value={name} onChange={(e) => setName(e.target.value)} fullWidth
-                               disabled={isSubmitting}/>
-                    <TextField label="Nazwisko" value={surname} onChange={(e) => setSurname(e.target.value)} fullWidth
-                               disabled={isSubmitting}/>
+                    <TextField label="Email"
+                               value={email}
+                               onChange={(e) => {
+                                   setEmail(e.target.value);
+                               }}
+                               fullWidth
+                               disabled={isSubmitting}
+                    />
+                    <TextField label="Imię"
+                               value={name}
+                               onChange={(e) => {
+                                   setName(e.target.value);
+                               }}
+                               fullWidth
+                               disabled={isSubmitting}
+                    />
+                    <TextField label="Nazwisko"
+                               value={surname}
+                               onChange={(e) => {
+                                   setSurname(e.target.value);
+                               }}
+                               fullWidth
+                               disabled={isSubmitting}
+                    />
 
                     <Box sx={{display: 'flex', gap: 2}}>
-                        <TextField label="Tytuł / Stopień" value={degree} onChange={(e) => setDegree(e.target.value)}
-                                   fullWidth disabled={isSubmitting}/>
-                        <TextField label="Numer telefonu" value={phone} onChange={(e) => setPhone(e.target.value)}
+                        {/*TODO change to select*/}
+                        <TextField label="Tytuł / Stopień"
+                                   value={degree}
+                                   onChange={(e) => {
+                                       setDegree(e.target.value);
+                                   }}
+                                   fullWidth disabled={isSubmitting}
+                        />
+                        <TextField label="Numer telefonu"
+                                   value={phone}
+                                   onChange={(e) => {
+                                       setPhone(e.target.value);
+                                   }}
                                    fullWidth disabled={isSubmitting}/>
                     </Box>
 
@@ -140,7 +168,9 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                                         onChange={(e) => setPassword(e.target.value)}
                                         disabled={isSubmitting}
                                         showPassword={showPassword}
-                                        onTogglePassword={() => setShowPassword(!showPassword)}
+                                        onTogglePassword={() => {
+                                            setShowPassword(!showPassword);
+                                        }}
                                     />
                                 </Box>
                                 <Tooltip title={intl.formatMessage({id: 'users.modal.copyTooltip'})}>
@@ -229,7 +259,9 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                 </DialogContent>
             </Dialog>
 
-            <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={() => setSnackbarOpen(false)}>
+            <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={() => {
+                setSnackbarOpen(false);
+            }}>
                 <Alert severity="success" sx={{width: '100%'}}>
                     {intl.formatMessage({id: 'users.modal.passwordCopied'})}
                 </Alert>

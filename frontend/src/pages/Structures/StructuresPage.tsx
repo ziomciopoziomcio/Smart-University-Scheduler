@@ -37,7 +37,9 @@ export default function StructuresPage({view}: StructuresPageProps) {
             setDebouncedSearch(search);
             setPage(1);
         }, 300);
-        return () => clearTimeout(handler);
+        return () => {
+            clearTimeout(handler);
+        };
     }, [search]);
 
     const getSearchPlaceholder = () => {
