@@ -611,15 +611,22 @@ def update_user(
         if payload.roles is None:
             obj.roles.clear()
         else:
+            unique_roles = set(payload.roles)
+            if len(unique_roles) != len(payload.roles):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Duplicate roles provided in the request payload.",
+                )
+
             db_roles = (
                 db.query(models.Roles)
-                .filter(models.Roles.role_name.in_(payload.roles))
+                .filter(models.Roles.role_name.in_(unique_roles))
                 .all()
             )
 
-            if len(db_roles) != len(payload.roles):
+            if len(db_roles) != len(unique_roles):
                 found_roles = {r.role_name for r in db_roles}
-                missing_roles = set(payload.roles) - found_roles
+                missing_roles = sorted(list(unique_roles - found_roles))
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Cannot assign non-existent roles: {', '.join(missing_roles)}",
