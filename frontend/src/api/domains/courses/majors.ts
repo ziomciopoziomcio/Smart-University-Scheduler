@@ -2,36 +2,31 @@ import {COURSES_URL, type PaginatedResponse, getHeaders} from '@api/core';
 import type {Major, MajorCreate, MajorUpdate} from './types';
 
 export const fetchMajors = async (
-    limit = 100,
-    offset = 0,
+    page = 1,
+    limit = 10,
+    search?: string,
     filters: {
         study_field?: number;
         major_name?: string;
         semester?: number;
     } = {},
 ): Promise<PaginatedResponse<Major>> => {
+    const offset = (page - 1) * limit;
     const query = new URLSearchParams({
         limit: limit.toString(),
         offset: offset.toString(),
-        ...(filters.study_field !== undefined && {
-            study_field: filters.study_field.toString(),
-        }),
-        ...(filters.major_name && {
-            major_name: filters.major_name,
-        }),
-        ...(filters.semester !== undefined && {
-            semester: filters.semester.toString(),
-        }),
+        ...(filters.study_field !== undefined && {study_field: filters.study_field.toString()}),
+        ...(filters.major_name && {major_name: filters.major_name}),
+        ...(filters.semester !== undefined && {semester: filters.semester.toString()}),
     });
+
+    if (search) query.append('search', search);
 
     const response = await fetch(`${COURSES_URL}/majors?${query.toString()}`, {
         headers: getHeaders(),
     });
 
-    if (!response.ok) {
-        throw new Error('Failed to fetch majors');
-    }
-
+    if (!response.ok) throw new Error('Failed to fetch majors');
     return response.json();
 };
 

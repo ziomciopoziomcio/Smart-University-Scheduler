@@ -1,60 +1,26 @@
 import {type ClassType, type CourseLanguage} from "@api/core";
 
-export interface MajorBase {
-    study_field: number | null;
-    major_name: string;
-}
-
-export type MajorCreate = MajorBase;
-
-export interface MajorUpdate {
-    study_field?: number | null;
-    major_name?: string;
-}
-
-export interface Major extends MajorBase {
+export interface Major {
     id: number;
     study_field: number | null;
     major_name: string;
     group_count?: number;
 }
 
-export interface MajorDetails {
-    id: number;
-    major_name: string;
-}
+export type MajorCreate = Omit<Major, 'id' | 'group_count'>;
+export type MajorUpdate = Partial<MajorCreate>;
+export type MajorDetails = Pick<Major, 'id' | 'major_name'>;
 
-export interface ElectiveBlockBase {
+export interface ElectiveBlock {
+    id: number;
     study_field: number;
     elective_block_name: string;
 }
 
-export interface ElectiveBlock extends ElectiveBlockBase {
-    id: number;
-}
+export type ElectiveBlockCreate = Omit<ElectiveBlock, 'id'>;
+export type ElectiveBlockUpdate = Partial<ElectiveBlockCreate>;
 
-export type ElectiveBlockCreate = ElectiveBlockBase;
-
-export interface ElectiveBlockUpdate {
-    study_field?: number;
-    elective_block_name?: string;
-}
-
-
-
-export interface StudyFieldBase {
-    faculty: number;
-    field_name: string;
-}
-
-export type StudyFieldCreate = StudyFieldBase;
-
-export interface StudyFieldUpdate {
-    faculty?: number;
-    field_name?: string;
-}
-
-export interface StudyField extends StudyFieldBase {
+export interface StudyField {
     id: number;
     faculty: number;
     field_name: string;
@@ -64,7 +30,8 @@ export interface StudyField extends StudyFieldBase {
     specializations_count?: number;
 }
 
-
+export type StudyFieldCreate = Omit<StudyField, 'id' | 'semesters_count' | 'specializations_count'>;
+export type StudyFieldUpdate = Partial<StudyFieldCreate>;
 
 export interface StudyPlanGroupSummary {
     id: number;
@@ -72,7 +39,8 @@ export interface StudyPlanGroupSummary {
     group_code: string;
 }
 
-export interface CourseBase {
+export interface Course {
+    course_code: number;
     course_name: string;
     ects_points: number;
     leading_unit: number;
@@ -82,22 +50,8 @@ export interface CourseBase {
     elective_block?: number | null;
 }
 
-export interface Course extends CourseBase {
-    course_code: number;
-}
-
-export interface CourseCreate extends CourseBase {
-    course_code: number;
-}
-
-export type CourseUpdate = Partial<CourseBase>;
-
-export interface CourseInstructor {
-    employee: number;
-    course: number;
-    class_type: ClassType;
-    hours: number;
-}
+export type CourseCreate = Course;
+export type CourseUpdate = Partial<Omit<Course, 'course_code'>>;
 
 export interface CourseFilters {
     leading_unit?: number;
@@ -108,23 +62,25 @@ export interface CourseFilters {
     language?: CourseLanguage;
 }
 
-export interface StudyProgramBase {
+export interface CourseInstructor {
+    employee: number;
+    course: number;
+    class_type: ClassType;
+    hours: number;
+}
+
+export interface StudyProgram {
+    id: number;
     study_field: number;
     start_year: string;
     program_name?: string | null;
 }
 
-export interface StudyProgram extends StudyProgramBase {
-    id: number;
-}
-
-export type StudyProgramCreate = StudyProgramBase;
-export type StudyProgramUpdate = Partial<StudyProgramBase>;
-
+export type StudyProgramCreate = Omit<StudyProgram, 'id'>;
+export type StudyProgramUpdate = Partial<StudyProgramCreate>;
 export type StudyProgramDetails = StudyProgram;
 
-
-export interface CurriculumCourseBase {
+export interface CurriculumCourse {
     study_program: number;
     course: number;
     semester: number;
@@ -132,14 +88,8 @@ export interface CurriculumCourseBase {
     elective_block?: number | null;
 }
 
-export interface CurriculumCourse extends CurriculumCourseBase {}
-
-export type CurriculumCourseCreate = CurriculumCourseBase;
-
-export interface CurriculumCourseUpdate {
-    major?: number | null;
-    elective_block?: number | null;
-}
+export type CurriculumCourseCreate = CurriculumCourse;
+export type CurriculumCourseUpdate = Pick<CurriculumCourse, 'major' | 'elective_block'>;
 
 export interface CurriculumFilters {
     study_program?: number;
