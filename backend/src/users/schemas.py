@@ -91,6 +91,9 @@ class UserUpdate(BaseModel):
     surname: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     degree: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     password: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    roles: list[Annotated[str, StringConstraints(max_length=255)]] | None = Field(
+        default=None
+    )
 
 
 class RoleBase(BaseSchema):
