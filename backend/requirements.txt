@@ -12,7 +12,7 @@ python-multipart
 pyotp
 aiokafka
 bcrypt>=4.0.1
-cffi>=1.16.0
+cffi>=2.0.0
 wheel
 groq
 neo4j>=5,<6
