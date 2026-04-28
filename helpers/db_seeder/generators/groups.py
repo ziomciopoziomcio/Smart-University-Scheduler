@@ -105,6 +105,16 @@ def generate_common_groups(
 
         sp_id = sp_obj.id
         sp_name = sp_obj.program_name
+
+        if "2025/26" in sp_name:
+            semester = 2
+        elif "2024/25" in sp_name:
+            semester = 4
+        elif "2023/24" in sp_name:
+            semester = 6
+        else:
+            semester = 1
+
         for group_id in range(1, common + 1):
             group_name = _generate_common_group_name(sp_name, group_id)
 
@@ -113,6 +123,7 @@ def generate_common_groups(
                 study_program=sp_id,
                 major=None,
                 elective_block=None,
+                semester=semester,
             )
             session.add(group_obj)
             db_common_groups[group_name] = group_obj
@@ -264,6 +275,16 @@ def generate_major_groups(
 
         sp_id = sp_obj.id
         sp_name = sp_obj.program_name
+
+        if "2025/26" in sp_name:
+            semester = 2
+        elif "2024/25" in sp_name:
+            semester = 4
+        elif "2023/24" in sp_name:
+            semester = 6
+        else:
+            semester = 1
+
         for group_id in range(1, major_groups + 1):
 
             for major_id in majors_for_this_sp:
@@ -277,6 +298,7 @@ def generate_major_groups(
                     study_program=sp_id,
                     major=major_id,
                     elective_block=None,
+                    semester=semester,
                 )
                 session.add(group_obj)
                 db_major_groups[group_name] = group_obj
@@ -446,6 +468,16 @@ def generate_elective_groups(
 
         sp_id = sp_obj.id
         sp_name = sp_obj.program_name
+
+        if "2025/26" in sp_name:
+            semester = 2
+        elif "2024/25" in sp_name:
+            semester = 4
+        elif "2023/24" in sp_name:
+            semester = 6
+        else:
+            semester = 1
+
         for group_id in range(1, elective_groups + 1):
 
             for eb_id in elective_blocks_for_this_sp:
@@ -459,6 +491,7 @@ def generate_elective_groups(
                     study_program=sp_id,
                     major=None,
                     elective_block=eb_id,
+                    semester=semester,
                 )
                 session.add(group_obj)
                 db_elective_groups[group_name] = group_obj

@@ -4,6 +4,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
+# import src.academics.models
+# import src.users.models
+# import src.facilities.models
+
 from helpers.db_seeder.generators.groups import (
     generate_common_groups,
     assign_students_to_common_groups,
@@ -13,8 +17,8 @@ from helpers.db_seeder.generators.groups import (
     assign_students_to_elective_groups,
 )
 from helpers.db_seeder.generators.students import generate_students
-from src.database.database import get_db
-
+from src.database.base import Base
+from src.database.database import get_db, engine
 
 from helpers.db_seeder.generators.academics import generate_units
 from helpers.db_seeder.generators.course_instructors import (
@@ -46,7 +50,8 @@ from helpers.db_seeder.generators.roles_perms import (
 from helpers.db_seeder.generators.study_programs import generate_study_programs
 from helpers.db_seeder.generators.users import generate_users
 
-# Base.metadata.create_all(bind=engine)
+# Base.metadata.drop_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 BASE_DIR = Path(__file__).resolve().parent
 
