@@ -12,9 +12,10 @@ from backend.src.courses.models import (
     ClassType,
     CourseLanguage,
     Course_type_detail,
+    StudyMode,
 )
 from helpers.db_seeder.generators import employees
-from src.courses.models import Major, Elective_block
+from src.courses.models import Major, Elective_block, FrequencyType
 
 
 def generate_study_fields(
@@ -61,6 +62,7 @@ def generate_study_fields(
         sf = Study_fields(
             faculty=parent_faculty.id,
             field_name=study_field_name,
+            mode=StudyMode.FULL_TIME,
         )
         session.add(sf)
         db_study_fields[study_field_name] = sf
@@ -109,6 +111,44 @@ def _draw_projector_needed(class_type: ClassType, threshold=0.8) -> bool:
     return random.random() < threshold
 
 
+def _get_info_about_freq(class_hours: int):
+    if class_hours <= 5:
+        freq = FrequencyType.MANUAL
+        weeks = [1, 2, 3]
+        slots = 2
+        return slots, freq, weeks
+
+    elif class_hours <= 15:
+        freq = random.choice(
+            [
+                FrequencyType.BIWEEKLY,
+                FrequencyType.FIRST_HALF,
+                FrequencyType.SECOND_HALF,
+            ]
+        )
+
+        weeks = None
+        slots = 2
+        return slots, freq, weeks
+
+    elif class_hours <= 30:
+        freq = FrequencyType.EVERY_WEEK
+        weeks = None
+        slots = 2
+        return slots, freq, weeks
+
+    elif class_hours <= 60:
+        freq = FrequencyType.EVERY_WEEK
+        weeks = None
+        slots = 4
+        return slots, freq, weeks
+    else:
+        freq = FrequencyType.EVERY_WEEK
+        weeks = None
+        slots = 6
+        return slots, freq, weeks
+
+
 def add_course_detail(
     session: Session, course_code: int, class_type: ClassType, class_hours: int
 ) -> tuple[tuple[int, ClassType], Course_type_detail]:
@@ -128,11 +168,15 @@ def add_course_detail(
     pc_needed = _draw_pc_needed(class_type)
     projector_needed = _draw_projector_needed(class_type)
     max_group_participants_number = 220 if class_type == ClassType.LECTURE else 15
+    slots, freq, weeks = _get_info_about_freq(class_hours)
 
     ctd = Course_type_detail(
         course=course_code,
         class_type=class_type,
         class_hours=class_hours,
+        slots_per_class=slots,
+        frequency=freq,
+        manual_weeks=weeks,
         pc_needed=pc_needed,
         projector_needed=projector_needed,
         max_group_participants_number=max_group_participants_number,
