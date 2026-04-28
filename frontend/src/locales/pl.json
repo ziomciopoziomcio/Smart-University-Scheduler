@@ -308,7 +308,12 @@
       "errors": {
         "delete": "Błąd podczas usuwania przypisania studenta."
       },
-      "noOptionsText": "Wpisz min. 3 znaki lub brak wyników"
+      "modal": {
+        "noResults": "Brak wyników",
+        "searchPrompt": "Zacznij pisać, aby szukać...",
+        "userSearchLabel": "Wyszukaj użytkownika (imię, nazwisko lub email)",
+        "loading": "Pobieranie danych..."
+      }
     },
     "employees": {
       "employees": "Pracownicy",
@@ -328,7 +333,12 @@
       "errors": {
         "delete": "Błąd podczas usuwania przypisania pracownika."
       },
-      "noOptionsText": "Wpisz min. 3 znaki lub brak wyników"
+      "modal": {
+        "noResults": "Brak wyników",
+        "searchPrompt": "Zacznij pisać, aby szukać...",
+        "userSearchLabel": "Wyszukaj użytkownika (imię, nazwisko lub email)",
+        "loading": "Pobieranie danych..."
+      }
     }
   },
   "users": {

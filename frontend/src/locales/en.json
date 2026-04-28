@@ -308,7 +308,12 @@
       "errors": {
         "delete": "Error while removing student assignment."
       },
-      "noOptionsText": "Type at least 3 characters or no results"
+      "modal": {
+        "noResults": "No results found",
+        "searchPrompt": "Start typing to search...",
+        "userSearchLabel": "Search user (name, surname or email)",
+        "loading": "Loading data..."
+      }
     },
     "employees": {
       "employees": "Employees",
@@ -328,7 +333,12 @@
       "errors": {
         "delete": "Error while removing employee assignment."
       },
-      "noOptionsText": "Type at least 3 characters or no results"
+      "modal": {
+        "noResults": "No results found",
+        "searchPrompt": "Start typing to search...",
+        "userSearchLabel": "Search user (name, surname or email)",
+        "loading": "Loading data..."
+      }
     }
   },
   "users": {
