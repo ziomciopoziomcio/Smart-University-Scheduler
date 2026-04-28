@@ -1061,22 +1061,22 @@ def get_instructor_by_id(
     """
     Get single instructor by employee id and return CourseInstructor { id, name, surname, degree }.
     """
-    employee = _get_or_404(db, models.Employees, employee_id, "Instructor")
-
-    instructor = (
-        db.query(user_models.Users)
-        .filter(user_models.Users.id == employee.user_id)
+    row = (
+        db.query(models.Employees, user_models.Users)
+        .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
+        .filter(models.Employees.id == employee_id)
         .one_or_none()
     )
 
-    if not instructor:
+    if not row:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Instructor not found"
         )
 
+    employee, user = row
     return schemas.CourseInstructor(
         id=employee.id,
-        name=instructor.name,
-        surname=instructor.surname,
-        degree=instructor.degree,
+        name=user.name,
+        surname=user.surname,
+        degree=user.degree,
     )
