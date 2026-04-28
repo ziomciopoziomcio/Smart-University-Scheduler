@@ -63,6 +63,12 @@ def list_study_fields(
     _current_user: user_models.Users = Depends(require_permission("study-fields:view")),
     search: str | None = Query(None, min_length=1),
 ):
+    elective_blocks_sq = (
+        db.query(func.count(models.Elective_block.id))
+        .filter(models.Elective_block.study_field == models.Study_fields.id)
+        .scalar_subquery()
+    )
+
     query = (
         db.query(
             models.Study_fields.id,
@@ -72,6 +78,7 @@ def list_study_fields(
             models.Study_fields.mode,
             func.count(func.distinct(models.Major.id)).label("specializations_count"),
             func.max(models.Curriculum_course.semester).label("semesters_count"),
+            elective_blocks_sq.label("elective_blocks_count"),
         )
         .outerjoin(models.Major, models.Study_fields.id == models.Major.study_field)
         .outerjoin(
@@ -130,6 +137,7 @@ def list_study_fields(
             mode=row.mode.value if hasattr(row.mode, "value") else row.mode,
             semesters_count=row.semesters_count or 0,
             specializations_count=row.specializations_count or 0,
+            elective_block_count=row.elective_blocks_count or 0,
         )
         for row in pagination_result.items
     ]

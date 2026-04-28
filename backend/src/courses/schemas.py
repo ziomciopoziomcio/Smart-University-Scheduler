@@ -39,6 +39,7 @@ class StudyFieldUpdate(BaseModel):
 class StudyFieldListSummary(StudyFieldRead):
     semesters_count: int
     specializations_count: int
+    elective_block_count: int
 
 
 # Major
