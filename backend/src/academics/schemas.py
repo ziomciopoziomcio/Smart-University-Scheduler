@@ -71,6 +71,7 @@ class UnitsRead(UnitsBase):
 
 class UnitsReadWithCount(UnitsRead):
     lecturers_count: int = 0
+    courses_count: int = 0
 
 
 class UnitsUpdate(BaseModel):

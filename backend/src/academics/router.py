@@ -384,8 +384,16 @@ def list_units(
         .scalar_subquery()
     )
 
+    courses_subq = (
+        db.query(func.count(course_models.Courses.id))
+        .filter(course_models.Courses.leading_unit == models.Units.id)
+        .scalar_subquery()
+    )
+
     query = db.query(
-        models.Units, func.coalesce(lecturers_subq, 0).label("lecturers_count")
+        models.Units,
+        func.coalesce(lecturers_subq, 0).label("lecturers_count"),
+        func.coalesce(courses_subq, 0).label("courses_count"),
     )
     count_query = db.query(models.Units.id)
 
@@ -418,6 +426,7 @@ def list_units(
             unit_short=row.Units.unit_short,
             faculty_id=row.Units.faculty_id,
             lecturers_count=row.lecturers_count,
+            courses_count=row.courses_count,
         )
         for row in pagination_result.items
     ]
