@@ -137,7 +137,7 @@ def list_study_fields(
             mode=row.mode.value if hasattr(row.mode, "value") else row.mode,
             semesters_count=row.semesters_count or 0,
             specializations_count=row.specializations_count or 0,
-            elective_block_count=row.elective_blocks_count or 0,
+            elective_blocks_count=row.elective_blocks_count or 0,
         )
         for row in pagination_result.items
     ]
