@@ -275,3 +275,15 @@ def apply_search_to_queries(
         query = query.filter(f)
         count_query = count_query.filter(f)
     return query, count_query
+
+
+def parse_csv_param(param: str | None) -> list[str] | None:
+    """
+    Parse a CSV parameter string and return a list of the parsed values.
+    :param param: the raw CSV parameter string (e.g. "1,2,3" or "a,b,c"). Can be None or empty, in which case None is returned.
+    :return: a list of parsed values (e.g. ["1", "2", "3"] or ["a", "b", "c"]), or None if the input is None or empty.
+    """
+    if not param:
+        return None
+    parsed = [p.strip() for p in param.split(",") if p.strip()]
+    return parsed or None
