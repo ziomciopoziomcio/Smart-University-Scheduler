@@ -431,6 +431,54 @@ def delete_unit(
     return None
 
 
+@router.get(
+    "/units/{unit_id}/instructors",
+    response_model=PaginatedResponse[schemas.UnitInstructorRead],
+)
+def list_unit_instructors(
+    unit_id: int,
+    limit: int = Query(100, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("units:view")),
+):
+    _get_or_404(db, models.Units, unit_id, "Unit")
+    query = (
+        db.query(
+            models.Employees.id,
+            user_models.Users.name,
+            user_models.Users.surname,
+            user_models.Users.degree,
+        )
+        .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
+        .filter(models.Employees.unit_id == unit_id)
+    )
+
+    count_query = db.query(models.Employees.id).filter(
+        models.Employees.unit_id == unit_id
+    )
+
+    pagination_result = paginate(
+        query,
+        limit,
+        offset,
+        order_by=user_models.Users.surname,
+        count_query=count_query,
+    )
+
+    pagination_result.items = [
+        schemas.UnitInstructorRead(
+            id=emp.id,
+            name=emp.user.name,
+            surname=emp.user.surname,
+            degree=emp.user.degree,
+        )
+        for emp in pagination_result.items
+    ]
+
+    return pagination_result
+
+
 # Groups
 @router.post(
     "/groups", response_model=schemas.GroupsRead, status_code=status.HTTP_201_CREATED
