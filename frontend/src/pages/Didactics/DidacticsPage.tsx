@@ -185,7 +185,7 @@ export default function DidacticsPage({view}: { view: string }) {
                             <DidacticsFacultyView data={data} basePath="/didactics/courses/faculty"/>}
                         {view === 'units_for_courses' && <DidacticsUnitView data={data} facultyId={Number(facultyId)}/>}
 
-                        {totalItems > 0 && (
+                        {!['dashboard', 'field_dashboard'].includes(view) && totalItems > 0 && (
                             <ListPagination
                                 page={page}
                                 totalItems={totalItems}
