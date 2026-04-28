@@ -1070,7 +1070,7 @@ def get_instructor_by_id(
 
     if not row:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Instructor not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found"
         )
 
     employee, user = row
