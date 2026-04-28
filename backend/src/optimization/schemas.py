@@ -1,6 +1,8 @@
 import uuid
 
 from pydantic import BaseModel
+
+
 class OptimizationRequest(BaseModel):
     faculty_id: int
 
