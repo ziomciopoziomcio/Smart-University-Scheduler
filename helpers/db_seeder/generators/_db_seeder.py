@@ -4,6 +4,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
+from helpers.db_seeder.generators.create_admin import create_user_admin
 from helpers.db_seeder.generators.groups import (
     generate_common_groups,
     assign_students_to_common_groups,
@@ -247,6 +248,9 @@ db_course_instructors = generate_course_instructors(
     db_employees=db_employees,
     debug=False,
 )
+session.commit()
+
+admin_obj = create_user_admin(session=session, password_hash_func=None, roles=db_roles)
 session.commit()
 
 session.close()
