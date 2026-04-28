@@ -1053,10 +1053,6 @@ def get_faculty_instructors(
     "/instructors/{employee_id}",
     response_model=schemas.CourseInstructor,
 )
-@router.get(
-    "/instructors/{employee_id}",
-    response_model=schemas.CourseInstructor,
-)
 def get_instructor_by_id(
     employee_id: int,
     db: Session = Depends(get_db),
