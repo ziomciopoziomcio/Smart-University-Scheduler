@@ -23,11 +23,6 @@ export function ScheduleBuildingView({
     const navigate = useNavigate();
     const intl = useIntl();
 
-    const formatRoomsCount = (count?: number | null) => {
-        if (count === undefined || count === null) return `? ${intl.formatMessage({id: 'facilities.room.rooms'})}`;
-        return intl.formatMessage({id: 'facilities.building.roomsCount'}, {count});
-    };
-
     const columns: ListColumn<Building>[] = [
         {
             render: (item: Building) => item.building_name || intl.formatMessage({id: 'facilities.common.noName'}),
@@ -35,9 +30,12 @@ export function ScheduleBuildingView({
             width: '250px'
         },
         {
-            render: (item: any) => formatRoomsCount(item.rooms_count ?? item.roomsCount),
+            render: (item: Building) => intl.formatMessage(
+                {id: 'facilities.building.roomsCount'},
+                {count: item.rooms_number}
+            ),
             variant: 'secondary',
-            width: '100px'
+            width: '120px'
         }
     ];
 

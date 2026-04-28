@@ -8,18 +8,23 @@ export const fetchUnits = async (
     search?: string
 ): Promise<PaginatedResponse<Unit>> => {
     const offset = (page - 1) * limit;
-
-    const query = new URLSearchParams({
+    const params = new URLSearchParams({
         faculty_id: facultyId.toString(),
         limit: limit.toString(),
         offset: offset.toString()
     });
 
-    if (search) query.append('search', search);
+    if (search) params.append('search', search);
 
-    const res = await fetch(`${ACADEMICS_URL}/units?${query.toString()}`, {headers: getHeaders()});
-    if (!res.ok) throw new Error('Błąd pobierania jednostek');
-    return res.json();
+    const response = await fetch(`${ACADEMICS_URL}/units?${params.toString()}`, {
+        headers: getHeaders()
+    });
+
+    if (!response.ok) {
+        throw new Error('Nie udało się pobrać listy jednostek');
+    }
+
+    return response.json();
 };
 
 export const getUnit = async (id: number): Promise<Unit> => {

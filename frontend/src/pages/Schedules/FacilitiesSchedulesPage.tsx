@@ -1,21 +1,14 @@
-import {useState, useEffect, useCallback, useMemo} from 'react';
+import {useState, useEffect, useCallback} from 'react';
 import {useParams} from 'react-router-dom';
-import {Box, CircularProgress, Alert} from '@mui/material';
+import {Box, CircularProgress, Alert, Paper} from '@mui/material';
 import {useIntl} from 'react-intl';
 
 import {ScheduleCampusView, ScheduleBuildingView, ScheduleRoomView} from '@components/Schedule';
-import {PageBreadcrumbs, type BreadcrumbItem, SearchBar} from '@components/Common';
+import {PageBreadcrumbs, type BreadcrumbItem, SearchBar, ListPagination} from '@components/Common';
 import {
-    fetchCampuses,
-    fetchBuildings,
-    fetchRooms,
-    getBuilding,
-    getCampus,
-    type Campus,
-    type Building,
-    type Room
+    fetchCampuses, fetchBuildings, fetchRooms,
+    getBuilding, getCampus, type Campus, type Building, type Room
 } from '@api';
-
 
 interface SchedulesFacilitiesPageProps {
     view: 'campuses' | 'buildings' | 'rooms';
@@ -28,164 +21,114 @@ export default function SchedulesFacilitiesPage({view}: SchedulesFacilitiesPageP
     const [data, setData] = useState<(Campus | Building | Room)[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
     const [search, setSearch] = useState('');
-
-    const [currentCampus, setCurrentCampus] = useState<Campus | null>(null);
-    const [currentBuilding, setCurrentBuilding] = useState<Building | null>(null);
-
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
 
+    const [currentCampus, setCurrentCampus] = useState<Campus | null>(null);
+    const [currentBuilding, setCurrentBuilding] = useState<Building | null>(null);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [search]);
+
     useEffect(() => {
         setPage(1);
-    }, [search, view]);
-
-    const getBreadcrumbs = () => {
-        const items: BreadcrumbItem[] = [
-            {
-                label: intl.formatMessage({id: 'plans.plans'}),
-                path: '/schedules'
-            },
-            {
-                label: intl.formatMessage({id: 'plans.roomsPlan.title'}),
-                path: '/schedules/rooms/campus'
-            }
-        ];
-
-        if (campusId) {
-            items.push({
-                label: currentCampus ?
-                    `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${currentCampus.campus_short}` :
-                    `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${campusId}`,
-                path: `/schedules/rooms/campus/${campusId}/building`
-            });
-        }
-
-        if (buildingId) {
-            items.push({
-                label: currentBuilding ?
-                    `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${currentBuilding.building_number}` :
-                    `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${buildingId}`,
-                path: `/schedules/rooms/campus/${campusId}/building/${buildingId}/room`
-            });
-        }
-        return items;
-    };
+        setSearch('');
+    }, [view, campusId, buildingId]);
 
     const loadData = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const offset = (page - 1) * pageSize;
+            if (campusId && (!currentCampus || currentCampus.id !== Number(campusId)))
+                setCurrentCampus(await getCampus(Number(campusId)));
+            if (buildingId && (!currentBuilding || currentBuilding.id !== Number(buildingId)))
+                setCurrentBuilding(await getBuilding(Number(buildingId)));
 
             if (view === 'campuses') {
-                const res = await fetchCampuses();
+                const res = await fetchCampuses(page, pageSize, debouncedSearch);
                 setData(res.items);
-                setTotalItems(res.items.length);
-                setCurrentCampus(null);
-                setCurrentBuilding(null);
-
+                setTotalItems(res.total);
             } else if (view === 'buildings' && campusId) {
-                const [buildingsRes, campusData] = await Promise.all([
-                    fetchBuildings(Number(campusId), pageSize, offset),
-                    getCampus(Number(campusId))
-                ]);
-                setData(buildingsRes.items);
-                setTotalItems(buildingsRes.total);
-                setCurrentCampus(campusData);
-                setCurrentBuilding(null);
-
-            } else if (view === 'rooms' && buildingId && campusId) {
-                const [roomsRes, campusData, buildingData] = await Promise.all([
-                    fetchRooms(Number(buildingId), page, pageSize, {room_name: search.trim() || undefined}),
-                    getCampus(Number(campusId)),
-                    getBuilding(Number(buildingId))
-                ]);
-                setData(roomsRes.items);
-                setTotalItems(roomsRes.total);
-                setCurrentCampus(campusData);
-                setCurrentBuilding(buildingData);
+                const res = await fetchBuildings(Number(campusId), page, pageSize, debouncedSearch);
+                setData(res.items);
+                setTotalItems(res.total);
+            } else if (view === 'rooms' && buildingId) {
+                const res = await fetchRooms(Number(buildingId), page, pageSize, debouncedSearch);
+                setData(res.items);
+                setTotalItems(res.total);
             }
-        } catch (err: unknown) {
-            setError((err as Error).message);
+        } catch (err: any) {
+            setError(err.message || 'Wystąpił błąd');
         } finally {
             setLoading(false);
         }
-    }, [view, campusId, buildingId, page, pageSize, search]);
+    }, [view, campusId, buildingId, page, pageSize, debouncedSearch]);
 
     useEffect(() => {
         void loadData();
     }, [loadData]);
 
-    const filteredData = useMemo(() => {
-        if (view === 'campuses' && search) {
-            return (data as Campus[]).filter(c =>
-                c.campus_short.toLowerCase().includes(search.toLowerCase()) ||
-                (c.campus_name || '').toLowerCase().includes(search.toLowerCase())
-            );
+    const getBreadcrumbs = (): BreadcrumbItem[] => {
+        const items: BreadcrumbItem[] = [{label: intl.formatMessage({id: 'plans.plans'}), path: '/schedules'}];
+        if (['campuses', 'buildings', 'rooms'].includes(view)) {
+            items.push({
+                label: intl.formatMessage({id: 'plans.roomsPlan.title'}),
+                path: view !== 'campuses' ? '/schedules/rooms/campus' : undefined
+            });
+            if (campusId && currentCampus) items.push({
+                label: currentCampus.campus_short,
+                path: view !== 'buildings' ? `/schedules/rooms/campus/${campusId}/building` : undefined
+            });
+            if (buildingId && currentBuilding) items.push({label: currentBuilding.building_number});
         }
-        return data;
-    }, [data, view, search]);
+        return items;
+    };
 
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, width: '100%'}}>
-            <SearchBar
-                placeholder={intl.formatMessage({id: 'facilities.common.searchPlaceholder'})}
-                value={search}
-                onChange={setSearch}
-            />
-
+            <SearchBar placeholder={intl.formatMessage({id: 'facilities.common.searchPlaceholder'})} value={search}
+                       onChange={setSearch}/>
             <PageBreadcrumbs items={getBreadcrumbs()}/>
 
-            <Box
-                sx={{
-                    px: {xs: 2, md: 3},
-                    py: {xs: 2.5, md: 3},
-                    borderRadius: 2,
-                    bgcolor: '#FBFCFF',
-                    minHeight: 420,
-                }}
-            >
+            <Paper elevation={0} sx={{p: 3, border: '1px solid rgba(0,0,0,0.05)', flexGrow: 1, mb: 3}}>
                 {loading && <Box sx={{display: 'flex', justifyContent: 'center', py: 4}}><CircularProgress/></Box>}
                 {error && <Alert severity="error">{error}</Alert>}
                 {!loading && !error && (
                     <>
-                        {view === 'campuses' && (
-                            <ScheduleCampusView data={filteredData as Campus[]}/>
-                        )}
-                        {view === 'buildings' && (
-                            <ScheduleBuildingView
-                                data={filteredData as Building[]}
-                                campusId={Number(campusId)}
-                                page={page}
-                                pageSize={pageSize}
-                                totalItems={totalItems}
-                                onPageChange={setPage}
-                                onPageSizeChange={(val) => {
-                                    setPageSize(val);
-                                    setPage(1);
-                                }}
-                            />
-                        )}
-                        {view === 'rooms' && (
-                            <ScheduleRoomView
-                                data={filteredData as Room[]}
-                                campusId={Number(campusId)}
-                                buildingId={Number(buildingId)}
-                                page={page}
-                                pageSize={pageSize}
-                                totalItems={totalItems}
-                                onPageChange={setPage}
-                                onPageSizeChange={(val) => {
-                                    setPageSize(val);
-                                    setPage(1);
-                                }}
-                            />
+                        {view === 'campuses' && <ScheduleCampusView data={data as Campus[]}/>}
+                        {view === 'buildings' &&
+                            <ScheduleBuildingView data={data as Building[]} campusId={Number(campusId)} page={page}
+                                                  pageSize={pageSize} totalItems={totalItems} onPageChange={setPage}
+                                                  onPageSizeChange={(val) => {
+                                                      setPageSize(val);
+                                                      setPage(1);
+                                                  }}/>}
+                        {view === 'rooms' && <ScheduleRoomView data={data as Room[]} campusId={Number(campusId)}
+                                                               buildingId={Number(buildingId)} page={page}
+                                                               pageSize={pageSize} totalItems={totalItems}
+                                                               onPageChange={setPage} onPageSizeChange={(val) => {
+                            setPageSize(val);
+                            setPage(1);
+                        }}/>}
+                        {view === 'campuses' && totalItems > 0 && (
+                            <ListPagination page={page} totalItems={totalItems} pageSize={pageSize}
+                                            onPageChange={setPage} onPageSizeChange={(size) => {
+                                setPageSize(size);
+                                setPage(1);
+                            }}/>
                         )}
                     </>
                 )}
-            </Box>
+            </Paper>
         </Box>
     );
 }
