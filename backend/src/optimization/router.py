@@ -2,7 +2,7 @@ import uuid
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from src.common.kafka_client import kafka_manager
+from src.common.kafka_client import send_event
 from . import schemas
 from ..common.require_permission import require_permission
 
@@ -23,25 +23,18 @@ async def trigger_optimization(
     """
     Triggers the AI schedule optimization worker via Kafka.
     """
-    if not kafka_manager.producer:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Kafka producer is not available.",
-        )
-
     task_id = uuid.uuid4()
 
     kafka_message = {"task_id": str(task_id), "faculty_id": payload.faculty_id}
 
-    try:
-        await kafka_manager.producer.send_and_wait(
-            topic="schedule.optimization.requests", value=kafka_message
-        )
-    except Exception as e:
-        logger.exception(f"Failed to publish optimization task: {e}")
+    success = await send_event(
+        topic="schedule.optimization.requests", msg=kafka_message
+    )
+
+    if not success:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to queue optimization task.",
+            detail="Failed to queue optimization task. Please try again later.",
         )
 
     return schemas.OptimizationResponse(
