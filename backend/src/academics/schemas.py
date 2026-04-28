@@ -69,6 +69,10 @@ class UnitsRead(UnitsBase):
     id: int
 
 
+class UnitsReadWithCount(UnitsRead):
+    lecturers_count: int = 0
+
+
 class UnitsUpdate(BaseModel):
     unit_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     faculty_id: Optional[int] = None
