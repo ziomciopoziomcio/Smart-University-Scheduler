@@ -138,6 +138,7 @@ def serialize_employee_nested(row: tuple[Any, Any, Any, Any]) -> dict:
         "email": user.email,
         "degree": user.degree,
         "created_at": user.created_at,
+        "two_factor_enabled": user.two_factor_enabled,
     }
 
     unit_obj = None
