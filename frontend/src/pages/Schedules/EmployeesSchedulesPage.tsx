@@ -46,11 +46,10 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
         return () => clearTimeout(timer);
     }, [search]);
 
-    // BRAKOWAŁO TEGO BLOKU: Czyścimy dane natychmiast po zmianie strony!
     useEffect(() => {
         setPage(1);
         setSearch('');
-        setData([]); // To zapobiega wyciekowi starych danych do nowego widoku
+        setData([]);
         setLoading(true);
         setError(null);
     }, [view, facultyId, unitId]);
