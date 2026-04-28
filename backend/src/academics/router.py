@@ -1065,15 +1065,11 @@ def get_instructor_by_id(
     """
     Get single instructor by employee id and return CourseInstructor { id, name, surname, degree }.
     """
+    employee = _get_or_404(db, models.Employees, employee_id, "Instructor")
+
     instructor = (
-        db.query(
-            models.Employees.id,
-            user_models.Users.name,
-            user_models.Users.surname,
-            user_models.Users.degree,
-        )
-        .join(user_models.Users, user_models.Users.id == models.Employees.user_id)
-        .filter(models.Employees.id == employee_id)
+        db.query(user_models.Users)
+        .filter(user_models.Users.id == employee.user_id)
         .one_or_none()
     )
 
@@ -1083,7 +1079,7 @@ def get_instructor_by_id(
         )
 
     return schemas.CourseInstructor(
-        id=instructor.id,
+        id=employee.id,
         name=instructor.name,
         surname=instructor.surname,
         degree=instructor.degree,
