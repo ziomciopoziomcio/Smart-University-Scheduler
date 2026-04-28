@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 import logging
 
@@ -26,6 +27,7 @@ async def lifespan(app: FastAPI):
         try:
             kafka_manager.producer = AIOKafkaProducer(
                 bootstrap_servers=os.getenv("KAFKA_URL", "localhost:9092"),
+                value_serializer=lambda m: json.dumps(m).encode("utf-8"),
             )
             await kafka_manager.producer.start()
             producer_started = True
