@@ -1169,3 +1169,36 @@ def get_faculty_instructors(
     )
 
     return instructors
+
+
+@router.get(
+    "/instructors/{employee_id}",
+    response_model=schemas.CourseInstructor,
+)
+def get_instructor_by_id(
+    employee_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("employees:view")),
+):
+    """
+    Get single instructor by employee id and return CourseInstructor { id, name, surname, degree }.
+    """
+    row = (
+        db.query(models.Employees, user_models.Users)
+        .join(user_models.Users, models.Employees.user_id == user_models.Users.id)
+        .filter(models.Employees.id == employee_id)
+        .one_or_none()
+    )
+
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found"
+        )
+
+    employee, user = row
+    return schemas.CourseInstructor(
+        id=employee.id,
+        name=user.name,
+        surname=user.surname,
+        degree=user.degree,
+    )
