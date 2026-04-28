@@ -385,8 +385,8 @@ def list_units(
     )
 
     courses_subq = (
-        db.query(func.count(course_models.Courses.id))
-        .filter(course_models.Courses.leading_unit == models.Units.id)
+        db.query(func.count(course_models.Course.course_code))
+        .filter(course_models.Course.leading_unit == models.Units.id)
         .scalar_subquery()
     )
 
