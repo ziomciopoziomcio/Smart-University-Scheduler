@@ -4,7 +4,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
+from helpers.db_seeder.generators._save_users_to_excel import save_teachers_to_excel
 from helpers.db_seeder.generators.create_admin import create_user_admin
+
 # import src.academics.models
 # import src.users.models
 # import src.facilities.models
@@ -259,3 +261,12 @@ admin_obj = create_user_admin(session=session, password_hash_func=None, roles=db
 session.commit()
 
 session.close()
+
+# EXCEL
+save_teachers_to_excel(
+    filename="teachers.xlsx",
+    db_teachers=db_teachers,
+    db_faculties=db_faculties,
+    db_units=db_units,
+    db_employees=db_employees,
+)
