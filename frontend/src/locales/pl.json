@@ -349,7 +349,7 @@
       "deleteConfirm": "Usuń"
     },
     "page": {
-      "searchPlaceholder": "Szukaj użytkownika (imię, nazwisko, email...)"
+      "searchPlaceholder": "Szukaj użytkownika po imieniu, nazwisku lub emailu...)"
     },
     "view": {
       "add": "Dodaj użytkownika",
@@ -372,7 +372,17 @@
       "degreeLabel": "Stopień / Tytuł naukowy",
       "passwordLabel": "Hasło",
       "passwordEditLabel": "Nowe hasło (zostaw puste, aby nie zmieniać)",
-      "password2Label": "Powtórz hasło"
+      "password2Label": "Powtórz hasło",
+      "resetPasswordTitle": "Bezpieczeństwo konta",
+      "resetPasswordDesc": "Ze względów bezpieczeństwa hasło może zostać zmienione tylko przez właściciela konta.",
+      "sendResetLink": "Wyślij link do resetu hasła",
+      "initialPassword": "Hasło początkowe",
+      "generate": "Generuj",
+      "copySuccess": "Hasło skopiowane do schowka!",
+      "forceChangeLabel": "Wymuś zmianę hasła przy pierwszym logowaniu",
+      "sendEmailLabel": "Wyślij dane logowania na e-mail użytkownika",
+      "copyTooltip": "Kopiuj hasło",
+      "passwordCopied": "Hasło zostało skopiowane"
     },
     "errors": {
       "save": "Błąd podczas zapisywania użytkownika.",

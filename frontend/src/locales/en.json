@@ -349,7 +349,7 @@
       "deleteConfirm": "Delete"
     },
     "page": {
-      "searchPlaceholder": "Search user (name, surname, email...)"
+      "searchPlaceholder": "Search user by name, surname or email..."
     },
     "view": {
       "add": "Add user",
@@ -372,7 +372,17 @@
       "degreeLabel": "Degree / Title",
       "passwordLabel": "Password",
       "passwordEditLabel": "New password (leave blank to keep current)",
-      "password2Label": "Repeat password"
+      "password2Label": "Repeat password",
+      "resetPasswordTitle": "Account Security",
+      "resetPasswordDesc": "For security reasons, the password can only be changed by the account owner.",
+      "sendResetLink": "Send password reset link",
+      "initialPassword": "Initial password",
+      "generate": "Generate",
+      "copySuccess": "Password copied to clipboard!",
+      "forceChangeLabel": "Force password change on first login",
+      "sendEmailLabel": "Send login credentials to user's email",
+      "copyTooltip": "Copy password",
+      "passwordCopied": "Password copied to clipboard"
     },
     "errors": {
       "save": "Error while saving user.",
