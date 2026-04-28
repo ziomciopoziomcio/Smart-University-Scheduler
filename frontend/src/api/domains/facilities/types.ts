@@ -9,6 +9,7 @@ export interface Building {
     building_name: string | null;
     building_number: string;
     campus_id: number;
+    rooms_number?: number;
 }
 
 export interface Room {
