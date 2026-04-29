@@ -1,0 +1,254 @@
+[
+  {
+    "kierunek": "automatyka i sterowanie robotów",
+    "stopień": 1,
+    "rok studiów": 1,
+    "grupy": [
+      {
+        "ogólne": 6,
+        "specjalizacja": 0,
+        "blok obieralny": 0
+      }
+    ]
+  },
+  {
+    "kierunek": "automatyka i sterowanie robotów",
+    "stopień": 1,
+    "rok studiów": 2,
+    "grupy": [
+      {
+        "ogólne": 5,
+        "specjalizacja": 0,
+        "blok obieralny": 0
+      }
+    ]
+  },
+  {
+    "kierunek": "automatyka i sterowanie robotów",
+    "stopień": 1,
+    "rok studiów": 3,
+    "grupy": [
+      {
+        "ogólne": 3,
+        "specjalizacja": 0,
+        "blok obieralny": 1
+      }
+    ]
+  },
+  {
+    "kierunek": "elektronika i telekomunikacja",
+    "stopień": 1,
+    "rok studiów": 1,
+    "grupy": [
+      {
+        "ogólne": 4,
+        "specjalizacja": 0,
+        "blok obieralny": 0
+      }
+    ]
+  },
+  {
+    "kierunek": "elektronika i telekomunikacja",
+    "stopień": 1,
+    "rok studiów": 2,
+    "grupy": [
+      {
+        "ogólne": 3,
+        "specjalizacja": 0,
+        "blok obieralny": 0
+      }
+    ]
+  },
+  {
+    "kierunek": "elektronika i telekomunikacja",
+    "stopień": 1,
+    "rok studiów": 3,
+    "grupy": [
+      {
+        "ogólne": 2,
+        "specjalizacja": 0,
+        "blok obieralny": 1
+      }
+    ]
+  },
+  {
+    "kierunek": "elektrotechnika",
+    "stopień": 2,
+    "rok studiów": 1,
+    "grupy": [
+      {
+        "ogólne": 4,
+        "specjalizacja": 2,
+        "blok obieralny": 1
+      }
+    ]
+  },
+  {
+    "kierunek": "elektrotechnika",
+    "stopień": 2,
+    "rok studiów": 2,
+    "grupy": [
+      {
+        "ogólne": 2,
+        "specjalizacja": 2,
+        "blok obieralny": 1
+      }
+    ]
+  },
+  {
+    "kierunek": "biomedical engineering and technologies",
+    "stopień": 1,
+    "rok studiów": 1,
+    "grupy": [
+      {
+        "ogólne": 4,
+        "specjalizacja": 0,
+        "blok obieralny": 0
+      }
+    ]
+  },
+  {
+    "kierunek": "biomedical engineering and technologies",
+    "stopień": 1,
+    "rok studiów": 2,
+    "grupy": [
+      {
+        "ogólne": 2,
+        "specjalizacja": 0,
+        "blok obieralny": 0
+      }
+    ]
+  },
+  {
+    "kierunek": "biomedical engineering and technologies",
+    "stopień": 1,
+    "rok studiów": 3,
+    "grupy": [
+      {
+        "ogólne": 2,
+        "specjalizacja": 0,
+        "blok obieralny": 0
+      }
+    ]
+  },
+  {
+    "kierunek": "informatyka.",
+    "stopień": 1,
+    "rok studiów": 1,
+    "grupy": [
+      {
+        "ogólne": 15,
+        "specjalizacja": 0,
+        "blok obieralny": 0
+      }
+    ]
+  },
+  {
+    "kierunek": "informatyka.",
+    "stopień": 1,
+    "rok studiów": 2,
+    "grupy": [
+      {
+        "ogólne": 11,
+        "specjalizacja": 0,
+        "blok obieralny": 0
+      }
+    ]
+  },
+  {
+    "kierunek": "informatyka.",
+    "stopień": 1,
+    "rok studiów": 3,
+    "grupy": [
+      {
+        "ogólne": 0,
+        "specjalizacja": 3,
+        "blok obieralny": 3
+      }
+    ]
+  },
+  {
+    "kierunek": "informatyka.",
+    "stopień": 2,
+    "rok studiów": 1,
+    "grupy": [
+      {
+        "ogólne": 5,
+        "specjalizacja": 3,
+        "blok obieralny": 2
+      }
+    ]
+  },
+  {
+    "kierunek": "informatyka.",
+    "stopień": 2,
+    "rok studiów": 2,
+    "grupy": [
+      {
+        "ogólne": 2,
+        "specjalizacja": 2,
+        "blok obieralny": 2
+      }
+    ]
+  },
+  {
+    "kierunek": "computer science",
+    "stopień": 1,
+    "rok studiów": 1,
+    "grupy": [
+      {
+        "ogólne": 5,
+        "specjalizacja": 0,
+        "blok obieralny": 0
+      }
+    ]
+  },
+  {
+    "kierunek": "computer science",
+    "stopień": 1,
+    "rok studiów": 2,
+    "grupy": [
+      {
+        "ogólne": 4,
+        "specjalizacja": 0,
+        "blok obieralny": 0
+      }
+    ]
+  },
+  {
+    "kierunek": "computer science",
+    "stopień": 1,
+    "rok studiów": 3,
+    "grupy": [
+      {
+        "ogólne": 3,
+        "specjalizacja": 0,
+        "blok obieralny": 1
+      }
+    ]
+  },
+  {
+    "kierunek": "computer science and information technology",
+    "stopień": 2,
+    "rok studiów": 1,
+    "grupy": [
+      {
+        "ogólne": 5,
+        "specjalizacja": 3,
+        "blok obieralny": 1
+      }
+    ]
+  },
+  {
+    "kierunek": "computer science and information technology",
+    "stopień": 2,
+    "rok studiów": 2,
+    "grupy": [
+      {
+        "ogólne": 2,
+        "specjalizacja": 2,
+        "blok obieralny": 1
+      }
+    ]
+  }
+]
