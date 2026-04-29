@@ -51,6 +51,7 @@ from helpers.db_seeder.generators.roles_perms import (
 )
 from helpers.db_seeder.generators.study_programs import generate_study_programs
 from helpers.db_seeder.generators.users import generate_users
+from backend.src.users.auth import hash_password
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -74,6 +75,8 @@ SEED = 1234
 
 EXCEL_WITH_TEACHERS = "../excel_users/teachers.xlsx"
 EXCEL_WITH_OTHER_USERS = "../excel_users/other_users.xlsx"
+
+PASSWORD_HASH_FUNC = hash_password
 
 if __name__ == "__main__":
     # Base.metadata.drop_all(bind=engine)
@@ -155,7 +158,7 @@ if __name__ == "__main__":
         seed=SEED,
         not_teacher_email_domain="edu.p.lodz.pl",
         teacher_email_domain="p.lodz.pl",
-        password_hash_func=None,
+        password_hash_func=PASSWORD_HASH_FUNC,
     )
     session.commit()
 
@@ -273,7 +276,7 @@ if __name__ == "__main__":
 
     # ADMIN
     admin_obj = create_user_admin(
-        session=session, password_hash_func=None, roles=db_roles
+        session=session, password_hash_func=PASSWORD_HASH_FUNC, roles=db_roles
     )
     session.commit()
 
