@@ -442,6 +442,55 @@ def _update_unique_entries(
     return unique_entries
 
 
+def _handle_lecture(
+    num_of_teachers,
+    hours_needed,
+    form,
+    debug,
+    all_teachers,
+    course_code,
+    unique_entries,
+):
+    if num_of_teachers > 0:
+        curr_hours = hours_needed[form]
+        _debug_print(debug, f"{all_teachers[0]} : {curr_hours}")
+
+        key: tuple[str, str, str, int, str] = _get_course_instructor_key(
+            all_teachers[0], course_code, form
+        )
+        _update_unique_entries(key, unique_entries, curr_hours)
+
+
+def _handle_other_form(
+    num_of_teachers,
+    all_teachers,
+    hours_needed,
+    form,
+    hours_dict,
+    debug,
+    course_code,
+    unique_entries,
+    subject_name,
+):
+    if num_of_teachers > 0:
+        for t in all_teachers:
+            curr_hours = _round_up_to_multiple(
+                hours_needed[form] / num_of_teachers,
+                int(hours_dict[form]),
+            )
+            _debug_print(debug, f"{t} : {curr_hours}")
+
+            key: tuple[str, str, str, int, str] = _get_course_instructor_key(
+                t, course_code, form
+            )
+            _update_unique_entries(key, unique_entries, curr_hours)
+    else:
+        _debug_print(
+            debug,
+            f"Skipping form {form} for {subject_name} - {course_code}: no teachers assigned",
+        )
+
+
 def generate_course_instructors(
     session: Session,
     sourcefile: str,
@@ -490,36 +539,28 @@ def generate_course_instructors(
                 for form in hours_needed.keys():
                     _debug_print(debug, form)
                     if form == "W":
-                        if num_of_teachers > 0:
-                            curr_hours = hours_needed[form]
-                            _debug_print(debug, f"{all_teachers[0]} : {curr_hours}")
-
-                            key: tuple[str, str, str, int, str] = (
-                                _get_course_instructor_key(
-                                    all_teachers[0], course_code, form
-                                )
-                            )
-                            _update_unique_entries(key, unique_entries, curr_hours)
+                        _handle_lecture(
+                            num_of_teachers,
+                            hours_needed,
+                            form,
+                            debug,
+                            all_teachers,
+                            course_code,
+                            unique_entries,
+                        )
 
                     else:
-                        if num_of_teachers > 0:
-                            for t in all_teachers:
-                                curr_hours = _round_up_to_multiple(
-                                    hours_needed[form] / num_of_teachers,
-                                    int(hours_dict[form]),
-                                )
-                                _debug_print(debug, f"{t} : {curr_hours}")
-
-                                key: tuple[str, str, str, int, str] = (
-                                    _get_course_instructor_key(t, course_code, form)
-                                )
-                                _update_unique_entries(key, unique_entries, curr_hours)
-                        else:
-                            _debug_print(
-                                debug,
-                                f"Skipping form {form} for {subject_name} - {course_code}: no teachers assigned",
-                            )
-
+                        _handle_other_form(
+                            num_of_teachers,
+                            all_teachers,
+                            hours_needed,
+                            form,
+                            hours_dict,
+                            debug,
+                            course_code,
+                            unique_entries,
+                            subject_name,
+                        )
                 _debug_print(debug, "")
                 _debug_print(debug, "")
 
