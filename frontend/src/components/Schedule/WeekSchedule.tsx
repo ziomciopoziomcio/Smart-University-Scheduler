@@ -3,7 +3,7 @@ import type {WeekScheduleProps} from '@api';
 import {formatWeekRange} from './utils/dateUtils';
 import {WeekScheduleGrid} from './WeekScheduleGrid';
 import {WeekScheduleHeader} from './WeekScheduleHeader';
-import {useIntl} from "react-intl";
+import {useIntl} from 'react-intl';
 
 const monthMessageIds = [
     'calendar.january',
@@ -26,6 +26,7 @@ export function WeekSchedule({
                                  isLoading,
                                  onPrevWeek,
                                  onNextWeek,
+                                 onSessionUpdated,
                              }: WeekScheduleProps) {
     const {formatMessage} = useIntl();
     const monthId = monthMessageIds[currentWeekStart.getMonth()];
@@ -53,7 +54,10 @@ export function WeekSchedule({
             />
 
             <Box sx={{position: 'relative'}}>
-                <WeekScheduleGrid entries={entries}/>
+                <WeekScheduleGrid
+                    entries={entries}
+                    onSessionUpdated={onSessionUpdated}
+                />
 
                 {isLoading && (
                     <Box
