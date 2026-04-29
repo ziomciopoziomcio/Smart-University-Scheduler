@@ -3,12 +3,23 @@ import {type Employee} from './types.ts';
 
 
 export const fetchEmployees = async (
-    limit = 100,
-    offset = 0,
-    search?: string
+    page = 1,
+    limit = 10,
+    search?: string,
+    filters: {
+        faculty_id?: number;
+        unit_id?: number;
+    } = {}
 ): Promise<PaginatedResponse<Employee>> => {
-    const params = new URLSearchParams({limit: limit.toString(), offset: offset.toString()});
+    const offset = (page - 1) * limit;
+    const params = new URLSearchParams({
+        limit: limit.toString(),
+        offset: offset.toString()
+    });
+
     if (search) params.append('search', search);
+    if (filters.faculty_id) params.append('faculty_id', filters.faculty_id.toString());
+    if (filters.unit_id) params.append('unit_id', filters.unit_id.toString());
 
     const response = await fetch(`${ACADEMICS_URL}/employees?${params.toString()}`, {
         headers: getHeaders()

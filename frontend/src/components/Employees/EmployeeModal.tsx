@@ -1,19 +1,14 @@
 import {useState, useEffect} from 'react';
 import {
     Dialog, DialogContent, Typography, Box, Button, CircularProgress,
-    FormControl, InputLabel, Select, MenuItem, Autocomplete, TextField
+    FormControl, InputLabel, Select, MenuItem, Autocomplete, TextField,
+    InputAdornment
 } from '@mui/material';
+import {Search} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 import {
-    type Employee,
-    type User,
-    type Faculty,
-    type Unit,
-    createEmployee,
-    updateEmployee,
-    fetchFaculties,
-    fetchUnits,
-    fetchUsers
+    type Employee, type User, type Faculty, type Unit,
+    createEmployee, updateEmployee, fetchFaculties, fetchUnits, fetchUsers
 } from '@api';
 
 interface EmployeeModalProps {
@@ -38,75 +33,71 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
     const [userOptions, setUserOptions] = useState<User[]>([]);
     const [isSearchingUsers, setIsSearchingUsers] = useState(false);
 
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoadingData, setIsLoadingData] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        if (!open) return;
-        const loadInitialData = async () => {
+        if (open) {
             setIsLoadingData(true);
-            try {
-                const facultiesRes = await fetchFaculties();
-                setFaculties(facultiesRes.items as Faculty[]);
-
-                if (employee) {
-                    setSelectedUser(employee.user);
-                    setFacultyId(employee.faculty_id);
-                    setUnitId(employee.unit_id || '');
-                } else {
-                    setSelectedUser(null);
-                    setFacultyId('');
-                    setUnitId('');
-                }
-            } catch {
-                console.error(intl.formatMessage({id: 'academics.errors.loadDictionaries'}));
-            } finally {
-                setIsLoadingData(false);
-            }
-        };
-        void loadInitialData();
-    }, [open, employee, intl]);
+            fetchFaculties(1, 100)
+                .then(res => {
+                    setFaculties(res.items || res);
+                })
+                .catch(console.error)
+                .finally(() => {
+                    setIsLoadingData(false);
+                });
+        }
+    }, [open]);
 
     useEffect(() => {
-        if (!facultyId) {
+        if (facultyId) {
+            fetchUnits(Number(facultyId), 1, 100)
+                .then(res => {
+                    setUnits(res.items || res);
+                })
+                .catch(console.error);
+        } else {
             setUnits([]);
-            return;
         }
-        const loadUnits = async () => {
-            try {
-                const res = await fetchUnits(Number(facultyId));
-                setUnits(res.items as Unit[]);
-            } catch (err) {
-                console.error("Failed to load units", err);
-            }
-        };
-        void loadUnits();
     }, [facultyId]);
 
     useEffect(() => {
-        if (userSearchInputValue.length < 3) {
-            setUserOptions(selectedUser ? [selectedUser] : []);
-            setIsSearchingUsers(false);
+        if (open && employee) {
+            setSelectedUser(employee.user);
+            setUserOptions([employee.user]);
+            setFacultyId(employee.faculty_id);
+            setUnitId(employee.unit_id);
+            setUserSearchInputValue(`${employee.user.name} ${employee.user.surname}`);
+        } else if (open && !employee) {
+            setSelectedUser(null);
+            setUserOptions([]);
+            setFacultyId('');
+            setUnitId('');
+            setUserSearchInputValue('');
+        }
+    }, [open, employee]);
+
+    useEffect(() => {
+        if (userSearchInputValue.trim().length < 1) {
+            if (!selectedUser) setUserOptions([]);
             return;
         }
 
-        setIsSearchingUsers(true);
-
-        const delayDebounceFn = setTimeout(() => {
-            void (async () => {
-                try {
-                    const res = await fetchUsers(20, 0, userSearchInputValue);
-                    setUserOptions(res.items);
-                } catch (err) {
-                    console.error(err);
-                } finally {
-                    setIsSearchingUsers(false);
-                }
-            })();
-        }, 500);
+        const handler = setTimeout(async () => {
+            setIsSearchingUsers(true);
+            try {
+                const res = await fetchUsers(20, 0, userSearchInputValue);
+                setUserOptions(res.items || []);
+            } catch (error) {
+                console.error('Błąd szukania userów:', error);
+            } finally {
+                setIsSearchingUsers(false);
+            }
+        }, 400);
 
         return () => {
-            clearTimeout(delayDebounceFn);
+            clearTimeout(handler);
         };
     }, [userSearchInputValue, selectedUser]);
 
@@ -114,51 +105,64 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
         if (!selectedUser || !facultyId || !unitId) return;
         setIsSubmitting(true);
         try {
-            const payload = {
-                user_id: selectedUser.id,
-                faculty_id: Number(facultyId),
-                unit_id: Number(unitId)
-            };
-
             if (isEditMode && employee) {
-                await updateEmployee(employee.id, {faculty_id: payload.faculty_id, unit_id: payload.unit_id});
+                await updateEmployee(employee.id, {faculty_id: Number(facultyId), unit_id: Number(unitId)});
             } else {
-                await createEmployee(payload);
+                await createEmployee({
+                    user_id: selectedUser.id,
+                    faculty_id: Number(facultyId),
+                    unit_id: Number(unitId)
+                });
             }
             onSuccess();
             onClose();
-        } catch {
-            alert(intl.formatMessage({id: 'academics.errors.save'}));
+        } catch (err) {
+            console.error(err);
         } finally {
             setIsSubmitting(false);
         }
     };
 
     return (
-        <Dialog open={open} onClose={onClose} PaperProps={{sx: {borderRadius: '24px', p: 1, minWidth: 420}}}>
-            <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 3}}>
-                <Typography variant="h5" fontWeight="bold" textAlign="center">
-                    {intl.formatMessage({id: isEditMode ? 'academics.employees.titleEdit' : 'academics.employees.titleAdd'})}
+        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{sx: {borderRadius: '20px', p: 1}}}>
+            <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 3, pt: 4}}>
+                <Typography variant="h5" fontWeight={700} color="#2b5073" sx={{mb: 1}}>
+                    {isEditMode
+                        ? intl.formatMessage({id: 'academics.employees.edit'})
+                        : intl.formatMessage({id: 'academics.employees.add'})}
                 </Typography>
 
                 <Autocomplete
-                    disabled={isEditMode || isLoadingData}
                     options={userOptions}
+                    isOptionEqualToValue={(option, value) => option.id === value?.id}
                     getOptionLabel={(option) => `${option.name} ${option.surname} (${option.email})`}
-                    isOptionEqualToValue={(option, value) => option.id === value.id}
                     value={selectedUser}
                     onChange={(_, newValue) => {
                         setSelectedUser(newValue);
                     }}
+                    inputValue={userSearchInputValue}
                     onInputChange={(_, newInputValue) => {
                         setUserSearchInputValue(newInputValue);
-                    }} noOptionsText={intl.formatMessage({id: 'academics.employees.noOptionsText'})}
+                    }}
+                    filterOptions={(x) => x}
+                    loading={isSearchingUsers}
+                    disabled={isEditMode || isLoadingData}
+                    noOptionsText={userSearchInputValue.length > 0
+                        ? intl.formatMessage({id: 'academics.employees.modal.noResults'})
+                        : intl.formatMessage({id: 'academics.employees.modal.searchPrompt'})}
                     renderInput={(params) => (
                         <TextField
                             {...params}
                             label={intl.formatMessage({id: 'academics.employees.userLabel'})}
+                            placeholder={intl.formatMessage({id: 'academics.employees.modal.userSearchLabel'})}
+                            variant="outlined"
                             InputProps={{
                                 ...params.InputProps,
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Search color="action" fontSize="small"/>
+                                    </InputAdornment>
+                                ),
                                 endAdornment: (
                                     <>
                                         {isSearchingUsers ? <CircularProgress color="inherit" size={20}/> : null}
@@ -172,41 +176,49 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
 
                 <FormControl fullWidth disabled={isLoadingData}>
                     <InputLabel>{intl.formatMessage({id: 'academics.employees.facultyLabel'})}</InputLabel>
-                    <Select value={facultyId} label={intl.formatMessage({id: 'academics.employees.facultyLabel'})}
-                            onChange={(e) => {
-                                setFacultyId(e.target.value as number);
-                                setUnitId('');
-                            }}>
+                    <Select
+                        value={facultyId}
+                        label={intl.formatMessage({id: 'academics.employees.facultyLabel'})}
+                        onChange={(e) => {
+                            setFacultyId(e.target.value as number);
+                            setUnitId('');
+                        }}
+                    >
                         {faculties.map(f => <MenuItem key={f.id} value={f.id}>{f.faculty_short}</MenuItem>)}
                     </Select>
                 </FormControl>
 
                 <FormControl fullWidth disabled={!facultyId || isLoadingData}>
+                    {/*TODO: fix label width bug*/}
                     <InputLabel>{intl.formatMessage({id: 'academics.employees.unitLabel'})}</InputLabel>
-                    <Select value={unitId} label={intl.formatMessage({id: 'academics.employees.unitLabel'})}
-                            onChange={(e) => {
-                                setUnitId(e.target.value as number);
-                            }}>
+                    <Select
+                        value={unitId}
+                        label={intl.formatMessage({id: 'academics.employees.unitLabel'})}
+                        onChange={(e) => {
+                            setUnitId(e.target.value as number);
+                        }}
+                    >
                         {units.map(u => <MenuItem key={u.id} value={u.id}>{u.unit_name}</MenuItem>)}
                     </Select>
                 </FormControl>
 
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
                     <Button
-                        variant="contained" fullWidth onClick={() => {
-                        void handleSubmit();
-                    }}
+                        variant="contained"
+                        fullWidth
+                        onClick={handleSubmit}
                         disabled={isSubmitting || !selectedUser || !facultyId || !unitId || isLoadingData}
                         sx={{
                             py: 1.5,
                             borderRadius: '12px',
-                            bgcolor: '#2b5073',
+                            background: '#2b5073',
                             textTransform: 'none',
                             fontSize: '1rem'
                         }}
                     >
-                        {isSubmitting ? <CircularProgress size={24}
-                                                          color="inherit"/> : intl.formatMessage({id: 'academics.common.save'})}
+                        {isSubmitting
+                            ? <CircularProgress size={24} color="inherit"/>
+                            : intl.formatMessage({id: 'academics.common.save'})}
                     </Button>
                     <Button variant="text" fullWidth onClick={onClose} disabled={isSubmitting}
                             sx={{color: '#2b5073', textTransform: 'none', fontWeight: 600}}>
