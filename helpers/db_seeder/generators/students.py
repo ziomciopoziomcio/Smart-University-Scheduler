@@ -24,8 +24,8 @@ def _get_all_study_programs_with(
     res = []
     for obj in db_study_programs.values():
         if (
-            study_field_name in obj.program_name
-            and f"{degree}. stopień" in obj.program_name
+            study_field_name.lower() in obj.program_name.lower()
+            and f"{degree}. stopień".lower() in obj.program_name.lower()
         ):
             res.append(obj)
     return res
