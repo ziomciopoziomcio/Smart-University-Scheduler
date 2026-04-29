@@ -19,8 +19,8 @@ from helpers.db_seeder.generators.groups import (
     assign_students_to_elective_groups,
 )
 from helpers.db_seeder.generators.students import generate_students
-from src.database.base import Base
-from src.database.database import get_db, engine
+from backend.src.database.base import Base
+from backend.src.database.database import get_db, engine
 
 from helpers.db_seeder.generators.academics import generate_units
 from helpers.db_seeder.generators.course_instructors import (
