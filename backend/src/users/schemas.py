@@ -37,7 +37,9 @@ class UserBase(BaseSchema):
 
 
 class UserCreate(UserBase):
-    password: Annotated[str, StringConstraints(min_length=8, max_length=255)] | None = None
+    password: Annotated[str, StringConstraints(min_length=8, max_length=255)] | None = (
+        None
+    )
     send_login_credentials_email: bool = False
 
     @model_validator(mode="after")
@@ -47,6 +49,8 @@ class UserCreate(UserBase):
                 "Either provide a password or set send_login_credentials_email to true."
             )
         return self
+
+
 class UserRead(UserBase):
     id: int
     created_at: datetime
