@@ -33,7 +33,7 @@ def create_user_admin(
 
         password_hash_func = not_a_hash
 
-    mail = "admin@nimda@pl"
+    mail = "admin@nimda.pl"
     password = "qwerty"
     password_hash = password_hash_func(password)
     name = "Admin"
