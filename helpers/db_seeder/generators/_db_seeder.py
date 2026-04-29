@@ -67,8 +67,8 @@ PATH = str(
     ).resolve()
 )
 
-PERMS_EXCEL_PATH = r"..\data\role_uprawnienia.xlsx"
-GROUPS_PATH = r"..\data\groups.json"
+PERMS_EXCEL_PATH = str((BASE_DIR / ".." / "data" / "role_uprawnienia.xlsx").resolve())
+GROUPS_PATH = str((BASE_DIR / ".." / "data" / "groups.json").resolve())
 PERMS_EXCEL_SHEET = "Arkusz1"
 SEED = 1234
 
