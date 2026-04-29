@@ -1,28 +1,19 @@
 import {FACILITIES_URL, getHeaders, type PaginatedResponse} from "@api/core";
 import {type Faculty} from "./types";
 
-// export const fetchFaculties = async (): Promise<PaginatedResponse<unknown>> => {
-//     const res = await fetch(`${FACILITIES_URL}/faculties`, {headers: getHeaders()});
-//     if (!res.ok) throw new Error('Błąd pobierania wydziałów');
-//     return res.json();
-// };
-
 export const fetchFaculties = async (
     page = 1,
     limit = 10,
-    filters: {
-        faculty_name?: string;
-        faculty_short?: string;
-    } = {}
+    search?: string
 ): Promise<PaginatedResponse<Faculty>> => {
     const offset = (page - 1) * limit;
 
     const query = new URLSearchParams({
         limit: limit.toString(),
-        offset: offset.toString(),
-        ...(filters.faculty_name?.trim() && {faculty_name: filters.faculty_name.trim()}),
-        ...(filters.faculty_short?.trim() && {faculty_short: filters.faculty_short.trim()}),
+        offset: offset.toString()
     });
+
+    if (search) query.append('search', search);
 
     const response = await fetch(`${FACILITIES_URL}/faculties?${query.toString()}`, {
         headers: getHeaders(),

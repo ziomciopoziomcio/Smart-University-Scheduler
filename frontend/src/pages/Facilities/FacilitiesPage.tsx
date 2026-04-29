@@ -4,7 +4,8 @@ import {Box, Paper, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
 
 import {CampusView, BuildingView, RoomView} from '@components/Facilities';
-import {type BreadcrumbItem, PageBreadcrumbs, SearchBar} from '@components/Common';
+
+import {type BreadcrumbItem, PageBreadcrumbs, SearchBar, ListPagination} from '@components/Common';
 import {
     fetchCampuses,
     fetchBuildings,
@@ -21,10 +22,6 @@ interface FacilitiesPageProps {
     view: 'campuses' | 'buildings' | 'rooms';
 }
 
-// TODO: add real search functionality, currently it's just a dummy input to show the UI
-// TODO: errors (as snackbar?) and empty states in views
-// TODO: add loading statuses, so tile gets a bit transparent when waiting for response, and add circular progress in the middle of tile when loading first time?
-
 export default function FacilitiesPage({view}: FacilitiesPageProps) {
     const {campusId, buildingId} = useParams();
     const intl = useIntl();
@@ -32,9 +29,32 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
     const [data, setData] = useState<(Campus | Building | Room)[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [dummySearch, setDummySearch] = useState('');
+
+    const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
+
     const [currentCampus, setCurrentCampus] = useState<Campus | null>(null);
     const [currentBuilding, setCurrentBuilding] = useState<Building | null>(null);
+
+    useEffect(() => {
+        setPage(1);
+        setSearch('');
+        setDebouncedSearch('');
+    }, [view, campusId, buildingId]);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1);
+        }, 300);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [search]);
 
     const getSearchPlaceholder = () => {
         switch (view) {
@@ -79,27 +99,30 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
         setError(null);
         try {
             if (view === 'campuses') {
-                const res = await fetchCampuses();
+                const res = await fetchCampuses(page, pageSize, debouncedSearch);
                 setData(res.items);
+                setTotalItems(res.total);
                 setCurrentCampus(null);
                 setCurrentBuilding(null);
 
             } else if (view === 'buildings' && campusId) {
                 const [buildingsRes, campusData] = await Promise.all([
-                    fetchBuildings(Number(campusId)),
+                    fetchBuildings(Number(campusId), page, pageSize, debouncedSearch),
                     getCampus(Number(campusId))
                 ]);
                 setData(buildingsRes.items);
+                setTotalItems(buildingsRes.total);
                 setCurrentCampus(campusData);
                 setCurrentBuilding(null);
 
             } else if (view === 'rooms' && buildingId && campusId) {
                 const [roomsRes, campusData, buildingData] = await Promise.all([
-                    fetchRooms(Number(buildingId)),
+                    fetchRooms(Number(buildingId), page, pageSize, debouncedSearch),
                     getCampus(Number(campusId)),
                     getBuilding(Number(buildingId))
                 ]);
                 setData(roomsRes.items);
+                setTotalItems(roomsRes.total);
                 setCurrentCampus(campusData);
                 setCurrentBuilding(buildingData);
             }
@@ -109,7 +132,7 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
         } finally {
             setLoading(false);
         }
-    }, [view, campusId, buildingId]);
+    }, [view, campusId, buildingId, page, pageSize, debouncedSearch]);
 
     useEffect(() => {
         loadData();
@@ -119,8 +142,8 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
         <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, width: '100%'}}>
             <SearchBar
                 placeholder={getSearchPlaceholder()}
-                value={dummySearch}
-                onChange={setDummySearch}
+                value={search}
+                onChange={setSearch}
             />
 
             <PageBreadcrumbs items={getBreadcrumbs()}/>
@@ -148,6 +171,19 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
                                 data={data as Room[]}
                                 buildingId={Number(buildingId)}
                                 onRefresh={() => loadData()}
+                            />
+                        )}
+
+                        {totalItems > 0 && (
+                            <ListPagination
+                                page={page}
+                                totalItems={totalItems}
+                                pageSize={pageSize}
+                                onPageChange={setPage}
+                                onPageSizeChange={(size) => {
+                                    setPageSize(size);
+                                    setPage(1);
+                                }}
                             />
                         )}
                     </>

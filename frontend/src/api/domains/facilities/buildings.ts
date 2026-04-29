@@ -3,13 +3,24 @@ import type {Building} from "./types";
 
 export const fetchBuildings = async (
     campusId: number,
-    limit = 20,
-    offset = 0
+    page = 1,
+    limit = 10,
+    search?: string
 ): Promise<PaginatedResponse<Building>> => {
-    const response = await fetch(
-        `${FACILITIES_URL}/buildings?campus_id=${campusId}&limit=${limit}&offset=${offset}`,
-        {headers: getHeaders()}
-    );
+    const offset = (page - 1) * limit;
+
+    const query = new URLSearchParams({
+        campus_id: campusId.toString(),
+        limit: limit.toString(),
+        offset: offset.toString()
+    });
+
+    if (search) query.append('search', search);
+
+    const response = await fetch(`${FACILITIES_URL}/buildings?${query.toString()}`, {
+        headers: getHeaders()
+    });
+
     if (!response.ok) throw new Error('Failed to fetch buildings');
     return response.json();
 };

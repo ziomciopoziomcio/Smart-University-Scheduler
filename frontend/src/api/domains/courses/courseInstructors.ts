@@ -1,5 +1,5 @@
-import { COURSES_URL, ACADEMICS_URL, getHeaders, type PaginatedResponse, type ClassType } from '@api/core';
-import type { CourseInstructor } from './types';
+import {COURSES_URL, ACADEMICS_URL, getHeaders, type PaginatedResponse, type ClassType} from '@api/core';
+import type {CourseInstructor} from './types';
 
 export interface FacultyInstructor {
     id: number;
@@ -9,13 +9,18 @@ export interface FacultyInstructor {
 }
 
 export const fetchFacultyInstructors = async (facultyId: number): Promise<FacultyInstructor[]> => {
-    const response = await fetch(`${ACADEMICS_URL}/instructors/by-faculty/${facultyId}`, { headers: getHeaders() });
+    const response = await fetch(`${ACADEMICS_URL}/instructors/by-faculty/${facultyId}`, {headers: getHeaders()});
     if (!response.ok) throw new Error('Błąd pobierania prowadzących z wydziału');
     return response.json();
 };
 
-export const fetchCourseInstructors = async (courseCode: number): Promise<PaginatedResponse<CourseInstructor>> => {
-    const response = await fetch(`${COURSES_URL}/instructors?course=${courseCode}`, { headers: getHeaders() });
+export const fetchCourseInstructors = async (
+    courseCode: number,
+    page = 1,
+    limit = 10
+): Promise<PaginatedResponse<CourseInstructor>> => {
+    const offset = (page - 1) * limit;
+    const response = await fetch(`${COURSES_URL}/instructors?course=${courseCode}&limit=${limit}&offset=${offset}`, {headers: getHeaders()});
     if (!response.ok) throw new Error('Błąd pobierania przypisań');
     return response.json();
 };

@@ -1,11 +1,28 @@
 import {FACILITIES_URL, getHeaders, type PaginatedResponse} from '@api/core';
 import type {Campus} from './types';
 
-export const fetchCampuses = async (): Promise<PaginatedResponse<Campus>> => {
-    const response = await fetch(`${FACILITIES_URL}/campuses`, {headers: getHeaders()});
+export const fetchCampuses = async (
+    page = 1,
+    limit = 10,
+    search?: string
+): Promise<PaginatedResponse<Campus>> => {
+    const offset = (page - 1) * limit;
+
+    const query = new URLSearchParams({
+        limit: limit.toString(),
+        offset: offset.toString()
+    });
+
+    if (search) query.append('search', search);
+
+    const response = await fetch(`${FACILITIES_URL}/campuses?${query.toString()}`, {
+        headers: getHeaders()
+    });
+
     if (!response.ok) throw new Error('Nie udało się pobrać kampusów');
     return response.json();
 };
+
 export const createCampus = async (data: { campus_short: string; campus_name?: string }): Promise<Campus> => {
     const response = await fetch(`${FACILITIES_URL}/campuses`, {
         method: 'POST',
