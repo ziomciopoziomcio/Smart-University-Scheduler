@@ -95,7 +95,7 @@ def _generate_unique_phone_numbers(n: int, phone_len: int = 9) -> list[str]:
         formatted = f"{num:0{phone_len}d}"
         numbers.add(formatted)
 
-    return list(numbers)
+    return sorted(numbers)
 
 
 def _generate_password(name: str, surname: str) -> str:
@@ -167,6 +167,9 @@ def generate_users(
         First dictionary contains teachers.
         Second dictionary contains non-teachers.
     """
+
+    if seed is not None:
+        random.seed(seed)
 
     # list[dict[tuple[degree, name, surname, email, password], Users]]
     db_teachers: dict[tuple[str | None, str, str, str, str], Users] = {}
