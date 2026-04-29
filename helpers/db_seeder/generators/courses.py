@@ -306,7 +306,7 @@ def generate_courses(
                     course_coordinator_id = -1
                     emp_keys = list(db_employees.keys())
                     for k in emp_keys:
-                        degree = k[0]
+                        # degree = k[0]
                         name = k[1]
                         surname = k[2]
                         # if degree is not None:
