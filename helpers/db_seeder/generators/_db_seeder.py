@@ -83,33 +83,43 @@ if __name__ == "__main__":
 
     session = next(get_db())
 
+    # CAMPUSES
     db_campuses = generate_campuses(session)
     session.commit()
 
+    # FACULTIES
     db_faculties = generate_faculties(session)
     session.commit()
 
+    # BUILDINGS
     db_buildings = generate_buildings(session, db_campuses)
     session.commit()
 
+    # UNITS
     db_units = generate_units(session, db_faculties)
     session.commit()
 
+    # ROOMS
     db_rooms = generate_rooms(session, ROOMS_PATH, db_faculties, db_units, db_buildings)
     session.commit()
 
+    # STUDY FIELDS
     db_study_fields = generate_study_fields(session, db_faculties, PATH)
     session.commit()
 
+    # STUDY PROGRAMS
     db_study_programs = generate_study_programs(session, PATH, db_study_fields)
     session.commit()
 
+    # MAJORS
     db_majors = generate_majors(session, db_study_fields, PATH)
     session.commit()
 
+    # ELECTIVE BLOCKS
     db_elective_blocks = generate_elective_blocks(session, db_study_fields)
     session.commit()
 
+    # PERMISSIONS
     db_permissions = generate_permissions_from_excel_file(
         session,
         PERMS_EXCEL_PATH,
@@ -117,6 +127,7 @@ if __name__ == "__main__":
     )
     session.commit()
 
+    # ROLES
     db_roles = generate_roles_from_excel_file(
         session,
         PERMS_EXCEL_PATH,
@@ -125,6 +136,7 @@ if __name__ == "__main__":
     )
     session.commit()
 
+    # USERS
     num_of_roles_not_teachers = {
         "Administrator": 0,
         "Schedule Manager": 0,
@@ -149,6 +161,7 @@ if __name__ == "__main__":
     )
     session.commit()
 
+    # EMPLOYEES
     db_employees = generate_employees(
         session=session,
         db_teachers=db_teachers,
@@ -157,12 +170,15 @@ if __name__ == "__main__":
     )
     session.commit()
 
+    # COURSES
     db_courses = generate_courses(session, db_units, db_employees, PATH)
     session.commit()
 
+    # COURSES TYPE DETAILS
     db_course_details = generate_course_type_details(session, db_courses, PATH)
     session.commit()
 
+    # CURRICULUM COURSES
     db_curr_courses = generate_curriculum_courses(
         sourcefile=PATH,
         session=session,
@@ -172,6 +188,7 @@ if __name__ == "__main__":
     )
     session.commit()
 
+    # CURRICULUM COURSES FOR ELECTIVE BLOCKS
     db_elective_curr_courses = generate_curriculum_courses_elective_blocks(
         sourcefile=PATH,
         session=session,
@@ -244,6 +261,7 @@ if __name__ == "__main__":
     )
     session.commit()
 
+    # COURSE INSTRUCTORS
     db_course_instructors = generate_course_instructors(
         session=session,
         sourcefile=PATH,
@@ -255,12 +273,13 @@ if __name__ == "__main__":
     )
     session.commit()
 
+    # ADMIN
     admin_obj = create_user_admin(
         session=session, password_hash_func=None, roles=db_roles
     )
     session.commit()
 
-    # EXCEL
+    # SAVE USERS TO EXCEL
     save_teachers_to_excel(
         filename="teachers.xlsx",
         db_teachers=db_teachers,
