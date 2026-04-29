@@ -60,7 +60,7 @@ def generate_faculties(session: Session) -> dict[str, Faculty]:
         },
         {
             "faculty_name": "Wydział Chemiczny",
-            "faculty_short": "Wch",
+            "faculty_short": "WCh",
         },
     ]
     db_faculties: dict[str, Faculty] = {}
