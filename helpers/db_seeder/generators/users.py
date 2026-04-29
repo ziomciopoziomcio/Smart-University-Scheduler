@@ -91,8 +91,8 @@ def _generate_unique_phone_numbers(n: int, phone_len: int = 9) -> list[str]:
 
     numbers = set()
     while len(numbers) < n:
-        num = random.randint(0, 999_999_999)
-        formatted = f"{num:09d}"
+        num = random.randint(0, 10**phone_len - 1)
+        formatted = f"{num:0{phone_len}d}"
         numbers.add(formatted)
 
     return list(numbers)
