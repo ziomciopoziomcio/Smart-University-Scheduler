@@ -66,6 +66,9 @@ class Users(Base):
     email_verification_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    force_password_change: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
 
     roles: Mapped[list["Roles"]] = relationship(
         secondary=user_roles, back_populates="users"
