@@ -14,7 +14,7 @@ from backend.src.courses.models import (
     Course_type_detail,
     StudyMode,
 )
-from src.courses.models import Major, Elective_block, FrequencyType
+from backend.src.courses.models import Major, Elective_block, FrequencyType
 
 
 def generate_study_fields(
