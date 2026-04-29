@@ -579,6 +579,47 @@ def generate_curriculum_courses(
     return db_curr_courses
 
 
+def _get_study_program_keys(
+    db_study_programs: dict[tuple[str, str, int], Study_program],
+    study_field_name: str,
+    degree: int,
+) -> set[tuple[str, str, int]]:
+    return {
+        k
+        for k in db_study_programs.keys()
+        if k[0] == study_field_name and k[2] == degree
+    }
+
+
+def _choose_elective_block(
+    db_elective_blocks: dict[tuple[str, str], Elective_block],
+    study_field_name: str,
+) -> Elective_block:
+    candidates = [v for k, v in db_elective_blocks.items() if k[1] == study_field_name]
+    return random.choice(candidates)
+
+
+def _get_semester(degree: int) -> int:
+    return 6 if degree == 1 else random.choice([1, 2, 3])
+
+
+def _can_add_elective(
+    limit_control: dict[tuple[int, int], int],
+    sp_id: int,
+    eb_id: int,
+    limit: int,
+) -> bool:
+    return limit_control.get((sp_id, eb_id), 0) < limit
+
+
+def _increment_limit(
+    limit_control: dict[tuple[int, int], int],
+    sp_id: int,
+    eb_id: int,
+):
+    limit_control[(sp_id, eb_id)] = limit_control.get((sp_id, eb_id), 0) + 1
+
+
 def generate_curriculum_courses_elective_blocks(
     sourcefile: str,
     session: Session,
@@ -615,95 +656,72 @@ def generate_curriculum_courses_elective_blocks(
     with open(sourcefile, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    unique_programs = []
-    added_check = []
-    limit_control = {}
+    added_check: set[tuple[int, int, int]] = set()
+    limit_control: dict[tuple[int, int], int] = {}
+
+    unique_programs: set[tuple[str, int]] = set()
 
     for study_field in data:
-        study_field_name = study_field.get("nazwa", None)
-        degree = study_field.get("stopien", None)
+        study_field_name = study_field.get("nazwa")
+        degree = study_field.get("stopien")
+
         if (study_field_name, degree) in unique_programs:
             continue
-        unique_programs.append((study_field_name, degree))
-        print(
-            f"{study_field_name}, degree {degree} ======================================="
+        unique_programs.add((study_field_name, degree))
+
+        print(f"{study_field_name}, degree {degree}")
+
+        study_program_keys = _get_study_program_keys(
+            db_study_programs, study_field_name, degree
         )
 
-        # find study programs
-        study_programs = set()
-        sp_keys = db_study_programs.keys()
-        for k in sp_keys:
-            if k[0] == study_field_name and k[2] == degree:
-                study_programs.add(k)
+        for semester_data in study_field.get("semestry", []):
+            if "obieralne" not in semester_data["nazwa"]:
+                continue
 
-        for semester in study_field.get("semestry", []):
-            if "obieralne" in semester["nazwa"]:
-                for przedmiot in semester.get("przedmioty", []):
-                    print(
-                        przedmiot["Nazwa przedmiotu w języku polskim"],
-                        przedmiot["Kod przedmiotu"],
-                    )
+            for przedmiot in semester_data.get("przedmioty", []):
+                course_code = _parse_course_code(przedmiot["Kod przedmiotu"])
+                course_obj = db_courses.get(course_code)
 
-                    # get course
-                    course_code = _parse_course_code(przedmiot["Kod przedmiotu"])
-                    course_obj = db_courses.get(course_code, None)
-                    if course_obj is None:
-                        print(f"Cannot find course with code {course_code}")
+                if course_obj is None:
+                    print(f"Cannot find course with code {course_code}")
+                    continue
+
+                chosen_eb = _choose_elective_block(db_elective_blocks, study_field_name)
+
+                semester = _get_semester(degree)
+
+                for sp_key in study_program_keys:
+                    sp = db_study_programs[sp_key]
+                    sp_id = sp.id
+
+                    if (sp_id, course_code, semester) in added_check:
                         continue
 
-                    # random elective block for study field
-                    to_choose = set()
-                    eb_keys = db_elective_blocks.keys()
-                    for k in eb_keys:
-                        if k[1] == study_field_name:
-                            to_choose.add(k)
-                    chosen_eb = db_elective_blocks[random.choice(list(to_choose))]
+                    if not _can_add_elective(limit_control, sp_id, chosen_eb.id, limit):
+                        continue
 
-                    if degree == 1:
-                        semester = 6
-                    else:
-                        semester = random.choice([1, 2, 3])
+                    cc_obj = Curriculum_course(
+                        study_program=sp_id,
+                        course=course_code,
+                        semester=semester,
+                        elective_block=chosen_eb.id,
+                    )
 
-                    for sp in study_programs:
-                        sp_id = db_study_programs[sp].id
-                        sp_name = db_study_programs[sp].program_name
+                    session.add(cc_obj)
 
-                        # added check
-                        to_add = (sp_id, course_code, semester)
-                        if to_add in added_check:
-                            continue
-                        added_check.append(to_add)
-
-                        # limit control
-                        if (sp_id, chosen_eb.id) in limit_control.keys():
-                            if limit_control[(sp_id, chosen_eb.id)] >= limit:
-                                continue
-
-                        # everything is ok - add to db
-                        cc_obj = Curriculum_course(
-                            study_program=sp_id,
-                            course=course_code,
-                            semester=semester,
-                            elective_block=chosen_eb.id,
+                    db_curr_courses[
+                        (
+                            sp.program_name,
+                            course_code,
+                            semester,
+                            None,
+                            chosen_eb.elective_block_name,
                         )
-                        session.add(cc_obj)
-                        db_curr_courses[
-                            (
-                                sp_name,
-                                course_code,
-                                semester,
-                                None,
-                                chosen_eb.elective_block_name,
-                            )
-                        ] = cc_obj
+                    ] = cc_obj
 
-                        # update checks
-                        if (sp_id, chosen_eb.id) not in limit_control.keys():
-                            limit_control[(sp_id, chosen_eb.id)] = 1
-                        else:
-                            limit_control[(sp_id, chosen_eb.id)] = (
-                                1 + limit_control[(sp_id, chosen_eb.id)]
-                            )
+                    added_check.add((sp_id, course_code, semester))
+                    _increment_limit(limit_control, sp_id, chosen_eb.id)
 
     session.flush()
     return db_curr_courses
