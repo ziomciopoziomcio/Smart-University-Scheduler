@@ -2,7 +2,6 @@ import {Box, Typography} from '@mui/material';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 import DateRangeIcon from '@mui/icons-material/DateRange';
-import StarIcon from '@mui/icons-material/Star';
 import {ListView} from '@components/Common';
 
 interface SemesterItem {
@@ -42,7 +41,6 @@ export function ProgramSemesterView({data, facultyId, fieldId, programId}: Progr
                     {
                         render: (item) => (
                             <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
-                                <StarIcon sx={{fontSize: 16, color: '#f59e0b'}}/>
                                 <Typography variant="body2" fontWeight={600}>
                                     {item.ects_sum ?? 0} ECTS
                                 </Typography>
