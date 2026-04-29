@@ -2,14 +2,16 @@ import {getHeaders, COURSES_URL, type PaginatedResponse} from "@api/core";
 import type {ElectiveBlock, ElectiveBlockCreate, ElectiveBlockUpdate} from "./types";
 
 export const fetchElectiveBlocks = async (
-    limit = 100,
-    offset = 0,
+    page = 1,
+    limit = 10,
+    search?: string,
     filters: {
         study_field?: number;
         semester?: number;
         elective_block_name?: string;
     } = {}
 ): Promise<PaginatedResponse<ElectiveBlock>> => {
+    const offset = (page - 1) * limit;
     const query = new URLSearchParams({
         limit: limit.toString(),
         offset: offset.toString(),
@@ -18,14 +20,13 @@ export const fetchElectiveBlocks = async (
         ...(filters.elective_block_name && {elective_block_name: filters.elective_block_name}),
     });
 
+    if (search) query.append('search', search);
+
     const response = await fetch(`${COURSES_URL}/elective-blocks?${query.toString()}`, {
         headers: getHeaders(),
     });
 
-    if (!response.ok) {
-        throw new Error('Failed to fetch elective blocks');
-    }
-
+    if (!response.ok) throw new Error('Failed to fetch elective blocks');
     return response.json();
 };
 

@@ -5,6 +5,7 @@ export const fetchRooms = async (
     buildingId: number,
     page = 1,
     limit = 10,
+    search?: string,
     filters: {
         room_name?: string;
         projector_availability?: boolean;
@@ -21,6 +22,8 @@ export const fetchRooms = async (
         ...(filters.projector_availability !== undefined && {projector_availability: String(filters.projector_availability)}),
         ...(filters.min_capacity && {min_room_capacity: filters.min_capacity.toString()}),
     });
+
+    if (search) query.append('search', search);
 
     const response = await fetch(`${FACILITIES_URL}/rooms?${query.toString()}`, {
         headers: getHeaders(),
