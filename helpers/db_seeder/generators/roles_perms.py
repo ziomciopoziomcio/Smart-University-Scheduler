@@ -101,6 +101,14 @@ def generate_permissions_from_excel_file(
             continue
         if not pd.isna(group):
             curr_group = group
+        # If permission with this code already exists in the database, reuse it and skip insertion
+        existing = (
+            session.query(Permissions).filter(Permissions.code == code).one_or_none()
+        )
+        if existing is not None:
+            print(f"Permission {code} already exists in DB, skipping insertion.")
+            db_permissions[code] = existing
+            continue
         name = _generate_perm_name(code)
         description = _generate_perm_description(code)
         print(f"Processing: {code}\t-\t{name}\t-\t{description}\t-\t{curr_group}")
