@@ -13,8 +13,10 @@ from backend.src.courses.models import (
     CourseLanguage,
     Course_type_detail,
     StudyMode,
+    Major,
+    Elective_block,
+    FrequencyType,
 )
-from backend.src.courses.models import Major, Elective_block, FrequencyType
 
 
 def generate_study_fields(
