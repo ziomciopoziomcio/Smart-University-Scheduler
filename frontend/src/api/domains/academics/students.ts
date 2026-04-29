@@ -1,13 +1,17 @@
 import {getHeaders, type PaginatedResponse, ACADEMICS_URL} from '@api/core';
 import {type Student} from './types.ts';
 
-
 export const fetchStudents = async (
-    limit = 100,
-    offset = 0,
+    page = 1,
+    limit = 10,
     search?: string
 ): Promise<PaginatedResponse<Student>> => {
-    const params = new URLSearchParams({limit: limit.toString(), offset: offset.toString()});
+    const offset = (page - 1) * limit;
+    const params = new URLSearchParams({
+        limit: limit.toString(),
+        offset: offset.toString()
+    });
+
     if (search) params.append('search', search);
 
     const response = await fetch(`${ACADEMICS_URL}/students?${params.toString()}`, {
@@ -59,5 +63,5 @@ export const deleteStudent = async (id: number): Promise<void> => {
         method: 'DELETE',
         headers: getHeaders(),
     });
-    if (!response.ok) throw new Error('Nie udało się usunąć profilu studenta');
+    if (!response.ok) throw new Error('Nie udało się usunąć studenta');
 };

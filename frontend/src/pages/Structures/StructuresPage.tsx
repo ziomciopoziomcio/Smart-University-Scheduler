@@ -3,7 +3,7 @@ import {useParams} from 'react-router-dom';
 import {Box, Paper, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
 
-import {PageBreadcrumbs, type BreadcrumbItem, SearchBar} from '@components/Common';
+import {PageBreadcrumbs, type BreadcrumbItem, SearchBar, ListPagination} from '@components/Common';
 import {FacultyView, UnitView} from '@components/Structures';
 import {type Faculty, type Unit, fetchFaculties, fetchUnits, getFaculty} from '@api';
 
@@ -15,12 +15,32 @@ export default function StructuresPage({view}: StructuresPageProps) {
     const {facultyId} = useParams();
     const intl = useIntl();
 
-    const [dummySearch, setDummySearch] = useState('');
-
     const [data, setData] = useState<(Faculty | Unit)[]>([]);
     const [currentFaculty, setCurrentFaculty] = useState<Faculty | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
+
+    useEffect(() => {
+        setPage(1);
+        setSearch('');
+        setDebouncedSearch('');
+    }, [view, facultyId]);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1);
+        }, 300);
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [search]);
 
     const getSearchPlaceholder = () => {
         switch (view) {
@@ -54,15 +74,17 @@ export default function StructuresPage({view}: StructuresPageProps) {
         setError(null);
         try {
             if (view === 'faculties') {
-                const res = await fetchFaculties();
+                const res = await fetchFaculties(page, pageSize, debouncedSearch);
                 setData(res.items as Faculty[]);
+                setTotalItems(res.total);
                 setCurrentFaculty(null);
             } else if (facultyId) {
                 const [unitsRes, facultyRes] = await Promise.all([
-                    fetchUnits(Number(facultyId)),
+                    fetchUnits(Number(facultyId), page, pageSize, debouncedSearch),
                     getFaculty(Number(facultyId))
                 ]);
                 setData(unitsRes.items as Unit[]);
+                setTotalItems(unitsRes.total);
                 setCurrentFaculty(facultyRes as Faculty);
             }
         } catch {
@@ -70,7 +92,7 @@ export default function StructuresPage({view}: StructuresPageProps) {
         } finally {
             setLoading(false);
         }
-    }, [view, facultyId]);
+    }, [view, facultyId, page, pageSize, debouncedSearch]);
 
     useEffect(() => {
         void loadData();
@@ -80,12 +102,12 @@ export default function StructuresPage({view}: StructuresPageProps) {
         <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, width: '100%'}}>
             <SearchBar
                 placeholder={getSearchPlaceholder()}
-                value={dummySearch}
-                onChange={setDummySearch}
+                value={search}
+                onChange={setSearch}
             />
             <PageBreadcrumbs items={getBreadcrumbs()}/>
 
-            <Paper elevation={0} sx={{p: 3, border: '1px solid rgba(0,0,0,0.05)', flexGrow: 1}}>
+            <Paper elevation={0} sx={{p: 3, border: '1px solid rgba(0,0,0,0.05)', flexGrow: 1, mb: 3}}>
                 {loading && <Box sx={{display: 'flex', justifyContent: 'center', py: 4}}><CircularProgress/></Box>}
                 {error && <Alert severity="error">{error}</Alert>}
                 {!loading && !error && (
@@ -101,6 +123,19 @@ export default function StructuresPage({view}: StructuresPageProps) {
                                 data={data as Unit[]}
                                 facultyId={Number(facultyId)}
                                 onRefresh={loadData}
+                            />
+                        )}
+
+                        {totalItems > 0 && (
+                            <ListPagination
+                                page={page}
+                                totalItems={totalItems}
+                                pageSize={pageSize}
+                                onPageChange={setPage}
+                                onPageSizeChange={(size) => {
+                                    setPageSize(size);
+                                    setPage(1);
+                                }}
                             />
                         )}
                     </>

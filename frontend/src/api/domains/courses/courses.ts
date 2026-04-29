@@ -3,10 +3,12 @@ import type {Course, CourseFilters} from './types';
 
 
 export const fetchCourses = async (
-    limit = 100,
-    offset = 0,
+    page = 1,
+    limit = 10,
+    search?: string,
     filters: CourseFilters = {}
 ): Promise<PaginatedResponse<Course>> => {
+    const offset = (page - 1) * limit;
     const query = new URLSearchParams({
         limit: limit.toString(),
         offset: offset.toString(),
@@ -15,6 +17,8 @@ export const fetchCourses = async (
         ...(filters.max_ects_points !== undefined && {max_ects_points: filters.max_ects_points.toString()}),
         ...(filters.language && {course_language: filters.language}),
     });
+
+    if (search) query.append('search', search);
 
     const response = await fetch(`${COURSES_URL}?${query.toString()}`, {
         headers: getHeaders(),

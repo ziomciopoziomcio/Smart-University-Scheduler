@@ -31,6 +31,7 @@ export function RoleDashboardView({role}: RoleDashboardViewProps) {
         <Box sx={{display: 'flex', flexDirection: 'column', gap: 3, width: '100%'}}>
             <TileView
                 items={menuOptions}
+                variant={"flat"}
                 getIcon={(item) => item.id === 'users' ? Group : ToggleOn}
                 getTitle={(item) => item.title}
                 getSubtitle={(item) => item.subtitle}
