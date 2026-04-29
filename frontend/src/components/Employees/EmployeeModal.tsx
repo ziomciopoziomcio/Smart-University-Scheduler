@@ -53,7 +53,9 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
     useEffect(() => {
         if (facultyId) {
             fetchUnits(Number(facultyId), 1, 100)
-                .then(res => setUnits(res.items || res))
+                .then(res => {
+                    setUnits(res.items || res);
+                })
                 .catch(console.error);
         } else {
             setUnits([]);
@@ -135,9 +137,13 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
                     isOptionEqualToValue={(option, value) => option.id === value?.id}
                     getOptionLabel={(option) => `${option.name} ${option.surname} (${option.email})`}
                     value={selectedUser}
-                    onChange={(_, newValue) => setSelectedUser(newValue)}
+                    onChange={(_, newValue) => {
+                        setSelectedUser(newValue);
+                    }}
                     inputValue={userSearchInputValue}
-                    onInputChange={(_, newInputValue) => setUserSearchInputValue(newInputValue)}
+                    onInputChange={(_, newInputValue) => {
+                        setUserSearchInputValue(newInputValue);
+                    }}
                     filterOptions={(x) => x}
                     loading={isSearchingUsers}
                     disabled={isEditMode || isLoadingData}
@@ -188,7 +194,9 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
                     <Select
                         value={unitId}
                         label={intl.formatMessage({id: 'academics.employees.unitLabel'})}
-                        onChange={(e) => setUnitId(e.target.value as number)}
+                        onChange={(e) => {
+                            setUnitId(e.target.value as number);
+                        }}
                     >
                         {units.map(u => <MenuItem key={u.id} value={u.id}>{u.unit_name}</MenuItem>)}
                     </Select>

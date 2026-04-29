@@ -66,13 +66,15 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
         setPassword(retVal);
         setShowPassword(true);
         navigator.clipboard.writeText(retVal)
-            .then(() => setSnackbarOpen(true))
-            .catch((err) => console.error("Nie udało się skopiować hasła", err));
+            .then(() => {
+                setSnackbarOpen(true);
+            })
+            .catch((err: unknown) => console.error("Nie udało się skopiować hasła", err));
     };
 
     const handleCopyPassword = () => {
         if (password) {
-            navigator.clipboard.writeText(password);
+            void navigator.clipboard.writeText(password);
             setSnackbarOpen(true);
         }
     };
@@ -155,7 +157,9 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                                 labelId="degree-select-label"
                                 value={degree}
                                 label={intl.formatMessage({id: 'users.modal.degreeLabel'})}
-                                onChange={(e) => setDegree(e.target.value as string)}
+                                onChange={(e) => {
+                                    setDegree(e.target.value as string);
+                                }}
                             >
                                 <MenuItem value="">
                                     <em>{intl.formatMessage({
@@ -187,7 +191,9 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                                         label={intl.formatMessage({id: 'users.modal.initialPassword'})}
                                         placeholder="#####"
                                         value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
+                                        onChange={(e) => {
+                                            setPassword(e.target.value);
+                                        }}
                                         disabled={isSubmitting}
                                         showPassword={showPassword}
                                         onTogglePassword={() => {
@@ -219,8 +225,12 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
 
                             <Box sx={{display: 'flex', flexDirection: 'column'}}>
                                 <FormControlLabel
-                                    control={<Checkbox checked={forceChange}
-                                                       onChange={(e) => setForceChange(e.target.checked)}/>}
+                                    control={
+                                        <Checkbox
+                                            checked={forceChange}
+                                            onChange={(e) => {
+                                                setForceChange(e.target.checked);
+                                            }}/>}
                                     label={<Typography
                                         variant="body2">{intl.formatMessage({id: 'users.modal.forceChangeLabel'})}</Typography>}
                                 />

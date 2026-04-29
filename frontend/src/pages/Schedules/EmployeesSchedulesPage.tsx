@@ -43,7 +43,9 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
             setDebouncedSearch(search);
             setPage(1);
         }, 300);
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+        };
     }, [search]);
 
     useEffect(() => {
@@ -91,8 +93,8 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
                 setData(res.items || []);
                 setTotalItems(res.total || 0);
             }
-        } catch (err: any) {
-            setError(err.message);
+        } catch {
+            setError("Unknown error while loading data");
         } finally {
             setLoading(false);
         }
