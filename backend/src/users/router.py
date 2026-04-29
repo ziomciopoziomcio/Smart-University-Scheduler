@@ -1,5 +1,6 @@
 import json
 import logging
+import secrets
 from datetime import datetime, timezone, timedelta
 
 import pyotp
@@ -8,7 +9,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import func, or_, and_
 from sqlalchemy.orm import Session, selectinload
 
-from src.common.notifications import send_password_reset_email
+from src.common.notifications import (
+    send_password_reset_email,
+    send_login_credentials_email,
+)
 from src.common.pagination.pagination import paginate
 from src.common.pagination.pagination_model import PaginatedResponse
 from src.common.router_utils import (
@@ -65,7 +69,12 @@ def login_for_access_token(
         return {"access_token": pre_token, "token_type": "bearer", "requires_2fa": True}
 
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer", "requires_2fa": False}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "requires_2fa": False,
+        "force_password_change": bool(getattr(user, "force_password_change", False)),
+    }
 
 
 @router.get("/me", response_model=schemas.UserRead)
@@ -155,7 +164,12 @@ def twofa_verify(
         raise HTTPException(status_code=400, detail="Invalid 2FA code")
 
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "requires_2fa": False,
+        "force_password_change": bool(getattr(user, "force_password_change", False)),
+    }
 
 
 # Permissions
@@ -401,15 +415,43 @@ def delete_role(
 @router.post("/", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED)
 def create_user(
     payload: schemas.UserCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("user:create")),
 ):
     data = payload.model_dump()
-    data["password_hash"] = hash_password(data.pop("password"))
+
+    temp_password: str | None = None
+    send_email_flag = bool(data.pop("send_login_credentials_email", False))
+
+    if send_email_flag:
+        generated_password = secrets.token_urlsafe(12)
+        data["password_hash"] = hash_password(generated_password)
+        data["force_password_change"] = True
+        temp_password = generated_password
+    else:
+        password = data.pop("password", None)
+        if not password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password is required when send_login_credentials_email is false",
+            )
+        data["password_hash"] = hash_password(password)
+        data["force_password_change"] = False
+
+    data.pop("password", None)
+
     obj = models.Users(**data)
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
+
+    if send_email_flag:
+        assert temp_password is not None
+        background_tasks.add_task(
+            send_login_credentials_email, obj.email, temp_password
+        )
+
     return obj
 
 
@@ -628,6 +670,7 @@ def password_change(
         raise HTTPException(status_code=400, detail="Old password is incorrect")
 
     current_user.password_hash = hash_password(payload.password)
+    current_user.force_password_change = False
     db.add(current_user)
     _commit_or_rollback(db)
     return {"detail": "Password changed"}
