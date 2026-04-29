@@ -654,6 +654,7 @@ def password_reset(
         )
 
     user.password_hash = hash_password(payload.password)
+    user.force_password_change = False
     user.password_reset_token_hash = None
     user.password_reset_expires_at = None
 
