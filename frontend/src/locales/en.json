@@ -97,7 +97,8 @@
     "structures": "Structures",
     "users": "Users",
     "didactics": "Didactics",
-    "generateSchedule": "Generate schedule"
+    "generateSchedule": "Generate schedule",
+    "programs": "Study programs"
   },
   "navbar": {
     "guest": "Guest",
@@ -649,6 +650,56 @@
       "statusErrors": "Issues detected",
       "successTitle": "Schedule generated successfully",
       "successDescription": "No warnings or critical issues were detected. The schedule is ready to review."
+    }
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit"
+  },
+  "programs": {
+    "title": "Study Programs & Curriculums",
+    "semester": "Semester",
+    "searchPlaceholder": "Search...",
+    "noData": "No data available.",
+    "addProgram": "Add study program",
+    "addCourse": "Add course",
+    "faculties": {
+      "title": "Faculty"
+    },
+    "fields": {
+      "title": "Field of Study",
+      "programsCount": "{count, plural, =0 {No programs} one {1 program} other {# programs}}"
+    },
+    "list": {
+      "title": "Study Program",
+      "semestersCount": "{count, plural, =0 {No semesters} one {1 semester} other {# semesters}}"
+    },
+    "semesters": {
+      "title": "Semesters",
+      "coursesCount": "{count, plural, =0 {No courses} one {1 course} other {# courses}}"
+    },
+    "modal": {
+      "editProgram": "Edit study program",
+      "addProgram": "Add new study program",
+      "startYear": "Academic year (e.g., 2024/2025)",
+      "programName": "Custom program name (optional)",
+      "yearFrom": "Year from",
+      "yearTo": "Year to",
+      "yearErrorFormat": "Years must be 4-digit numbers",
+      "yearErrorDiff": "The difference must be exactly 1 year",
+      "yearErrorOrder": "The first year must be earlier than the second"
+    },
+    "curriculumModal": {
+      "title": "Add course to curriculum",
+      "course": "Select course",
+      "coursePlaceholder": "Type course code or name...",
+      "courseNoOptions": "Course not found",
+      "major": "Major (optional)",
+      "electiveBlock": "Elective block (optional)",
+      "none": "None",
+      "exclusivityHint": "A course can belong to a major OR an elective block."
     }
   }
 }

@@ -97,7 +97,8 @@
     "structures": "Struktury",
     "users": "Użytkownicy",
     "didactics": "Dydaktyka",
-    "generateSchedule": "Generuj plan"
+    "generateSchedule": "Generuj plan",
+    "programs": "Programy"
   },
   "navbar": {
     "guest": "Gość",
@@ -649,6 +650,50 @@
       "statusErrors": "Wykryto problemy",
       "successTitle": "Plan wygenerowany poprawnie",
       "successDescription": "Nie wykryto żadnych ostrzeżeń ani problemów krytycznych. Plan jest gotowy do sprawdzenia"
+    }
+  },
+  "programs": {
+    "title": "Programy",
+    "semester": "Semestr",
+    "searchPlaceholder": "Szukaj...",
+    "noData": "Brak danych do wyświetlenia.",
+    "addProgram": "Dodaj rocznik",
+    "addCourse": "Dodaj przedmiot",
+    "faculties": {
+      "title": "Wydział"
+    },
+    "fields": {
+      "title": "Kierunek",
+      "programsCount": "{count, plural, =0 {Brak roczników} one {1 rocznik} few {# roczniki} many {# roczników} other {# rocznika}}"
+    },
+    "list": {
+      "title": "Program studiów",
+      "semestersCount": "{count, plural, =0 {Brak semestrów} one {1 semestr} few {# semestry} many {# semestrów} other {# semestru}}"
+    },
+    "semesters": {
+      "title": "Semestry",
+      "coursesCount": "{count, plural, =0 {Brak przedmiotów} one {1 przedmiot} few {# przedmioty} many {# przedmiotów} other {# przedmiotu}}"
+    },
+    "modal": {
+      "editProgram": "Edytuj rocznik",
+      "addProgram": "Dodaj nowy rocznik",
+      "startYear": "Rok akademicki (np. 2024/2025)",
+      "programName": "Nazwa własna programu (opcjonalnie)",
+      "yearFrom": "Rok od",
+      "yearTo": "Rok do",
+      "yearErrorFormat": "Lata muszą być liczbami 4-cyfrowymi",
+      "yearErrorDiff": "Różnica między latami musi wynosić dokładnie 1 rok",
+      "yearErrorOrder": "Pierwszy rok musi być mniejszy od drugiego"
+    },
+    "curriculumModal": {
+      "title": "Dodaj przedmiot do siatki",
+      "course": "Wybierz przedmiot",
+      "coursePlaceholder": "Wpisz kod lub nazwę przedmiotu...",
+      "courseNoOptions": "Nie znaleziono przedmiotu",
+      "major": "Specjalność (opcjonalnie)",
+      "electiveBlock": "Blok obieralny (opcjonalnie)",
+      "none": "Brak",
+      "exclusivityHint": "Przedmiot może należeć do specjalności ALBO do bloku."
     }
   }
 }
