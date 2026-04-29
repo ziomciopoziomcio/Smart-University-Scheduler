@@ -14,7 +14,6 @@ from backend.src.courses.models import (
     Course_type_detail,
     StudyMode,
 )
-from helpers.db_seeder.generators import employees
 from src.courses.models import Major, Elective_block, FrequencyType
 
 
