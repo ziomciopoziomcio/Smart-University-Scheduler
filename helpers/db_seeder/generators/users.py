@@ -116,10 +116,10 @@ def _sum_values(d: dict[str, int]) -> int:
     :param d: dictionary
     :return: sum of dictionary values
     """
-    sum: int = 0
+    sum_vals: int = 0
     for k in d.keys():
-        sum += d[k]
-    return sum
+        sum_vals += d[k]
+    return sum_vals
 
 
 def _expand_roles(num_of_roles: dict[str, int]) -> list[str]:
