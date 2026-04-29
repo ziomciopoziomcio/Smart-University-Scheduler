@@ -86,7 +86,7 @@ def _draw_pc_needed(class_type: ClassType, threshold=0.8) -> bool:
     :return: True if a PC is required for the given class type, False otherwise.
     """
 
-    if class_type in ClassType.ELEARNING:
+    if class_type == ClassType.ELEARNING:
         return True
     if class_type in [ClassType.LECTURE, ClassType.TUTORIALS]:
         return False
