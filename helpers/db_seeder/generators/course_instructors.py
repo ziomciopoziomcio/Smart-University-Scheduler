@@ -337,8 +337,8 @@ def _add_course_instructors_to_db(
         teacher_id = teacher_obj.id
 
         # get form
-        type: ClassType | None = _map_course_type(form)
-        if type is None:
+        class_type: ClassType | None = _map_course_type(form)
+        if class_type is None:
             print(f"Unknown class type {form} for course code {cc}")
             continue
 
@@ -354,7 +354,7 @@ def _add_course_instructors_to_db(
 
         # course_instructor object
         ci_obj = Courses_instructors(
-            employee=emp_id, course=course_id, class_type=type, hours=hours
+            employee=emp_id, course=course_id, class_type=class_type, hours=hours
         )
         session.add(ci_obj)
         db_course_instructors[k] = ci_obj
