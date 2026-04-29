@@ -37,7 +37,8 @@ class UserBase(BaseSchema):
 
 
 class UserCreate(UserBase):
-    password: Annotated[str, StringConstraints(max_length=255)]
+    password: Annotated[str, StringConstraints(max_length=255)] | None = None
+    send_login_credentials_email: bool = False
 
 
 class UserRead(UserBase):
@@ -122,6 +123,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
     requires_2fa: bool = False
+    force_password_change: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
