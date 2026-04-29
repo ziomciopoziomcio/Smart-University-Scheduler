@@ -6,7 +6,7 @@ from typing import DefaultDict
 
 from sqlalchemy.orm import Session
 
-from src.courses.models import (
+from backend.src.courses.models import (
     Major,
     Course,
     Study_program,
