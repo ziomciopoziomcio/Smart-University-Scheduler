@@ -1,8 +1,4 @@
-import os
 from pathlib import Path
-
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
 
 from helpers.db_seeder.generators._save_users_to_excel import (
     save_teachers_to_excel,
