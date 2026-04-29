@@ -180,8 +180,9 @@ export default function StudentModal({open, student, onClose, onSuccess}: Studen
                             onChange={(e) => {
                                 setMajorId(e.target.value as number);
                             }}>
-                        <MenuItem value=""><em>{intl.formatMessage({id: 'academics.student.majorNone'})}</em></MenuItem>
-                        {majors.map(m => <MenuItem key={m.id} value={m.id}>{m.major_name}</MenuItem>)}
+                        <MenuItem
+                            value=""><em>{intl.formatMessage({id: 'academics.students.majorNone'})}</em></MenuItem> {majors.map(m =>
+                        <MenuItem key={m.id} value={m.id}>{m.major_name}</MenuItem>)}
                     </Select>
                 </FormControl>
 

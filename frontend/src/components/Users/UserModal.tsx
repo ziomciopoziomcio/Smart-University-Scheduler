@@ -48,20 +48,25 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                 setDegree('');
                 setPassword('');
                 setSendEmail(false);
+                setForceChange(true);
+                setShowPassword(false);
             }
         }
     }, [open, user]);
 
     const handleGeneratePassword = () => {
         const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+        const randomValues = new Uint32Array(12);
+        crypto.getRandomValues(randomValues);
         let retVal = "";
-        for (let i = 0, n = charset.length; i < 12; ++i) {
-            retVal += charset.charAt(Math.floor(Math.random() * n));
+        for (let i = 0; i < 12; i++) {
+            retVal += charset[randomValues[i] % charset.length];
         }
         setPassword(retVal);
         setShowPassword(true);
-        void navigator.clipboard.writeText(retVal);
-        setSnackbarOpen(true);
+        navigator.clipboard.writeText(retVal)
+            .then(() => setSnackbarOpen(true))
+            .catch((err) => console.error("Nie udało się skopiować hasła", err));
     };
 
     const handleCopyPassword = () => {
@@ -115,7 +120,7 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                         {isEditMode ? intl.formatMessage({id: 'users.view.edit'}) : intl.formatMessage({id: 'users.view.add'})}
                     </Typography>
 
-                    <TextField label="Email"
+                    <TextField label={intl.formatMessage({id: 'users.modal.emailLabel'})}
                                value={email}
                                onChange={(e) => {
                                    setEmail(e.target.value);
@@ -123,7 +128,7 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                                fullWidth
                                disabled={isSubmitting}
                     />
-                    <TextField label="Imię"
+                    <TextField label={intl.formatMessage({id: 'users.modal.nameLabel'})}
                                value={name}
                                onChange={(e) => {
                                    setName(e.target.value);
@@ -131,7 +136,7 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                                fullWidth
                                disabled={isSubmitting}
                     />
-                    <TextField label="Nazwisko"
+                    <TextField label={intl.formatMessage({id: 'users.modal.surnameLabel'})}
                                value={surname}
                                onChange={(e) => {
                                    setSurname(e.target.value);
@@ -142,14 +147,14 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
 
                     <Box sx={{display: 'flex', gap: 2}}>
                         {/*TODO change to select*/}
-                        <TextField label="Tytuł / Stopień"
+                        <TextField label={intl.formatMessage({id: 'users.modal.degreeLabel'})}
                                    value={degree}
                                    onChange={(e) => {
                                        setDegree(e.target.value);
                                    }}
                                    fullWidth disabled={isSubmitting}
                         />
-                        <TextField label="Numer telefonu"
+                        <TextField label={intl.formatMessage({id: 'users.modal.phoneLabel'})}
                                    value={phone}
                                    onChange={(e) => {
                                        setPhone(e.target.value);
@@ -163,7 +168,7 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                                 <Box sx={{flexGrow: 1}}>
                                     <AuthPasswordField
                                         label={intl.formatMessage({id: 'users.modal.initialPassword'})}
-                                        placeholder="********"
+                                        placeholder="#####"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         disabled={isSubmitting}

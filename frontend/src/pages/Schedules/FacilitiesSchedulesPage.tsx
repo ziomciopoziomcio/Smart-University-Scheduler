@@ -42,19 +42,19 @@ export default function SchedulesFacilitiesPage({view}: SchedulesFacilitiesPageP
     }, [search]);
 
     useEffect(() => {
-        setPage(1);
-        setSearch('');
-    }, [view, campusId, buildingId]);
+        const fetchMetadata = async () => {
+            if (campusId) getCampus(Number(campusId)).then(setCurrentCampus).catch(console.error);
+            else setCurrentCampus(null);
+
+            if (buildingId) getBuilding(Number(buildingId)).then(setCurrentBuilding).catch(console.error);
+            else setCurrentBuilding(null);
+        };
+        void fetchMetadata();
+    }, [campusId, buildingId]);
 
     const loadData = useCallback(async () => {
         setLoading(true);
-        setError(null);
         try {
-            if (campusId && (!currentCampus || currentCampus.id !== Number(campusId)))
-                setCurrentCampus(await getCampus(Number(campusId)));
-            if (buildingId && (!currentBuilding || currentBuilding.id !== Number(buildingId)))
-                setCurrentBuilding(await getBuilding(Number(buildingId)));
-
             if (view === 'campuses') {
                 const res = await fetchCampuses(page, pageSize, debouncedSearch);
                 setData(res.items);
@@ -68,8 +68,8 @@ export default function SchedulesFacilitiesPage({view}: SchedulesFacilitiesPageP
                 setData(res.items);
                 setTotalItems(res.total);
             }
-        } catch {
-            setError('Wystąpił błąd');
+        } catch (err: any) {
+            setError(err.message || intl.formatMessage({id: 'common.errors.unknown'}));
         } finally {
             setLoading(false);
         }

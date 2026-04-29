@@ -142,8 +142,8 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
                     loading={isSearchingUsers}
                     disabled={isEditMode || isLoadingData}
                     noOptionsText={userSearchInputValue.length > 0
-                        ? intl.formatMessage({id: 'academics.employees.noResults'})
-                        : intl.formatMessage({id: 'academics.employees.searchPrompt'})}
+                        ? intl.formatMessage({id: 'academics.employees.modal.noResults'})
+                        : intl.formatMessage({id: 'academics.employees.modal.searchPrompt'})}
                     renderInput={(params) => (
                         <TextField
                             {...params}
@@ -187,7 +187,7 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
                     <InputLabel>{intl.formatMessage({id: 'academics.employees.unitLabel'})}</InputLabel>
                     <Select
                         value={unitId}
-                        label={intl.formatMessage({id: 'academics.employees.unit'})}
+                        label={intl.formatMessage({id: 'academics.employees.unitLabel'})}
                         onChange={(e) => setUnitId(e.target.value as number)}
                     >
                         {units.map(u => <MenuItem key={u.id} value={u.id}>{u.unit_name}</MenuItem>)}

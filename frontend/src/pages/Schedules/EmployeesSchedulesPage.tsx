@@ -47,27 +47,34 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
     }, [search]);
 
     useEffect(() => {
-        setPage(1);
-        setSearch('');
-        setData([]);
-        setLoading(true);
-        setError(null);
-    }, [view, facultyId, unitId]);
+        const fetchMetadata = async () => {
+            try {
+                if (facultyId) {
+                    const fac = await getFaculty(Number(facultyId));
+                    setCurrentFaculty(fac);
+                } else {
+                    setCurrentFaculty(null);
+                }
+
+                if (unitId) {
+                    const un = await getUnit(Number(unitId));
+                    setCurrentUnit(un);
+                } else {
+                    setCurrentUnit(null);
+                }
+            } catch (e) {
+                console.error("Metadata fetch failed", e);
+            }
+        };
+        void fetchMetadata();
+    }, [facultyId, unitId]);
 
     const loadData = useCallback(async () => {
         if (view === 'units' && !facultyId) return;
         if (view === 'lecturers' && (!facultyId || !unitId)) return;
 
         setLoading(true);
-        setError(null);
         try {
-            if (facultyId && (!currentFaculty || currentFaculty.id !== Number(facultyId))) {
-                setCurrentFaculty(await getFaculty(Number(facultyId)));
-            }
-            if (unitId && (!currentUnit || currentUnit.id !== Number(unitId))) {
-                setCurrentUnit(await getUnit(Number(unitId)));
-            }
-
             if (view === 'faculties') {
                 const res = await fetchFaculties(page, pageSize, debouncedSearch);
                 setData(res.items || res);
@@ -84,8 +91,8 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
                 setData(res.items || []);
                 setTotalItems(res.total || 0);
             }
-        } catch {
-            setError('Błąd ładowania danych');
+        } catch (err: any) {
+            setError(err.message);
         } finally {
             setLoading(false);
         }
