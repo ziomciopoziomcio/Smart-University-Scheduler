@@ -526,23 +526,7 @@ def generate_majors(
     return db_majors
 
 
-def generate_elective_blocks(
-    session: Session,
-    study_fields: dict[str, Study_fields],
-) -> dict[tuple[str, str], Elective_block]:
-    """
-    Creates Elective_block objects
-    :param session: database session
-    :param study_fields: dictionary mapping study fields names
-        to their corresponding Study_fields objects.
-    :return: dictionary mapping elective blocks and study field names
-        to their corresponding Elective_block objects.
-    """
-
-    db_elective_blocks: dict[tuple[str, str], Elective_block] = (
-        {}
-    )  # elective_block_name, study_field_name, object
-
+def _get_elective_blocks_names():
     elective_blocks_names = {
         "informatyka.": [
             "Programowanie Gier",
@@ -600,6 +584,27 @@ def generate_elective_blocks(
             "Cybersecurity Basics",
         ],
     }
+    return elective_blocks_names
+
+
+def generate_elective_blocks(
+    session: Session,
+    study_fields: dict[str, Study_fields],
+) -> dict[tuple[str, str], Elective_block]:
+    """
+    Creates Elective_block objects
+    :param session: database session
+    :param study_fields: dictionary mapping study fields names
+        to their corresponding Study_fields objects.
+    :return: dictionary mapping elective blocks and study field names
+        to their corresponding Elective_block objects.
+    """
+
+    db_elective_blocks: dict[tuple[str, str], Elective_block] = (
+        {}
+    )  # elective_block_name, study_field_name, object
+
+    elective_blocks_names = _get_elective_blocks_names()
 
     for sf_name in elective_blocks_names.keys():
         print(f"STUDY FIELD: {sf_name} ==============================")
