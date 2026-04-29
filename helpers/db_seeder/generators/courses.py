@@ -155,8 +155,6 @@ def add_course_detail(
 ) -> tuple[tuple[int, ClassType], Course_type_detail]:
     """
     Add a course detail to the database.
-    If `class_hours` is less than or equal to 0, no record is created and None is returned.
-
     :param session: database session
     :param course_code: the code of the course to which the detail will be added
     :param class_type: the type of the class
