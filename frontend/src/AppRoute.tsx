@@ -26,6 +26,7 @@ import StudentSchedulePage from "./pages/Schedules/StudentSchedulePage.tsx";
 import StudentsSchedulesPage from "./pages/Schedules/StudentsSchedulesPage.tsx";
 import DidacticsPage from "./pages/Didactics/DidacticsPage.tsx";
 import GenerateSchedulePage from "./pages/GenerateSchedule/GenerateSchedulePage.tsx";
+import ProgramsPage from "./pages/Programs/ProgramsPage.tsx";
 
 function AppRoute() {
     const isAuthenticated = useAuthStore((state) => state.token !== null);
@@ -146,7 +147,19 @@ function AppRoute() {
                             <Route path="courses/faculty/:facultyId/unit/:unitId/course/:courseCode/instructors"
                                    element={<DidacticsPage view="course_instructors"/>}/>
                         </Route>
+
+                        {/* ==================== PROGRAMS ==================== */}
+                        <Route path="/programs">
+                            <Route index element={<ProgramsPage view="faculties"/>}/>
+                            <Route path="faculty/:facultyId" element={<ProgramsPage view="fields"/>}/>
+                            <Route path="faculty/:facultyId/field/:fieldId" element={<ProgramsPage view="programs"/>}/>
+                            <Route path="faculty/:facultyId/field/:fieldId/program/:programId"
+                                   element={<ProgramsPage view="semesters"/>}/>
+                            <Route path="faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId"
+                                   element={<ProgramsPage view="curriculum"/>}/>
+                        </Route>
                     </Route>
+
 
                     {/*==================== DEFAULT ====================*/}
                     <Route

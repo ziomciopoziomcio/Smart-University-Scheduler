@@ -1,21 +1,31 @@
-import { type PaginatedResponse, COURSES_URL, getHeaders } from "@api/core";
-import type { StudyProgram, StudyProgramCreate, StudyProgramUpdate } from "./types";
+import {type PaginatedResponse, COURSES_URL, getHeaders} from "@api/core";
+import type {StudyProgram, StudyProgramCreate, StudyProgramUpdate} from "./types";
 
 export const fetchStudyPrograms = async (
-    limit = 100,
-    offset = 0,
-    studyFieldId?: number
+    page = 1,
+    limit = 10,
+    search?: string,
+    filters: {
+        study_field?: number;
+        start_year?: string;
+        program_name?: string;
+    } = {}
 ): Promise<PaginatedResponse<StudyProgram>> => {
-    const params = new URLSearchParams({ limit: limit.toString(), offset: offset.toString() });
-    if (studyFieldId) params.append('study_field', studyFieldId.toString());
+    const offset = (page - 1) * limit;
+    const params = new URLSearchParams({limit: limit.toString(), offset: offset.toString()});
 
-    const response = await fetch(`${COURSES_URL}/study-programs?${params.toString()}`, { headers: getHeaders() });
+    if (search) params.append('search', search);
+    if (filters.study_field) params.append('study_field', filters.study_field.toString());
+    if (filters.start_year) params.append('start_year', filters.start_year);
+    if (filters.program_name) params.append('program_name', filters.program_name);
+
+    const response = await fetch(`${COURSES_URL}/study-programs?${params.toString()}`, {headers: getHeaders()});
     if (!response.ok) throw new Error('Nie udało się pobrać programów studiów');
     return response.json();
 };
 
 export const getStudyProgram = async (id: number): Promise<StudyProgram> => {
-    const response = await fetch(`${COURSES_URL}/study-programs/${id}`, { headers: getHeaders() });
+    const response = await fetch(`${COURSES_URL}/study-programs/${id}`, {headers: getHeaders()});
     if (!response.ok) throw new Error('Nie udało się pobrać szczegółów programu');
     return response.json();
 };
