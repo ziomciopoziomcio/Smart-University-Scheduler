@@ -245,6 +245,54 @@ def _parse_course_language(
         return default
 
 
+def _validate_course_data(
+    course_code: int,
+    course_name: str,
+    course_coordinator: str,
+    leading_unit: str,
+    db_courses: dict[int, Course],
+    mapped_units: dict[str, int],
+) -> tuple[bool, int | None]:
+    """
+    Validates course data before insertion.
+    """
+
+    if course_code == 0:
+        print(f"Wrong data - could not parse course code - {course_name}")
+        return False, None
+
+    if course_coordinator == "":
+        print(f"Wrong data - no course coordinator - {course_name}")
+        return False, None
+
+    if course_code in db_courses:
+        print(f"Duplicate course code {course_code}: {course_name}")
+        return False, None
+
+    leading_unit_id = mapped_units.get(leading_unit)
+    if leading_unit_id is None:
+        print("Wrong data - leading unit not found")
+        return False, None
+
+    return True, leading_unit_id
+
+
+def _get_course_coordinator_id(
+    course_coordinator: str,
+    db_employees: dict[tuple[str | None, str, str], Employees],
+) -> int | None:
+    """
+    Finds course coordinator ID based on name and surname match.
+    """
+
+    for (degree, name, surname), employee in db_employees.items():
+        if name in course_coordinator and surname in course_coordinator:
+            return employee.id
+
+    print("Wrong data - no course coordinator found")
+    return None
+
+
 def generate_courses(
     session: Session,
     units: dict[str, Units],
@@ -283,46 +331,24 @@ def generate_courses(
                     )
 
                     # validation
-                    if course_code == 0:
-                        print(
-                            f"Wrong data - could not parse course code - {course_name}"
-                        )
-                        continue
+                    is_valid, leading_unit_id = _validate_course_data(
+                        course_code,
+                        course_name,
+                        course_coordinator,
+                        leading_unit,
+                        db_courses,
+                        mapped_units,
+                    )
 
-                    if course_coordinator == "":
-                        print(f"Wrong data - no course coordinator - {course_name}")
-                        continue
-
-                    if course_code in db_courses.keys():
-                        print(f"Duplicate course code {course_code}: {course_name}")
-                        continue
-
-                    leading_unit_id = mapped_units.get(leading_unit, None)
-                    if leading_unit_id is None:
-                        print("Wrong data - leading unit not found")
+                    if not is_valid:
                         continue
 
                     # course_coordinator mapping
-                    course_coordinator_id = -1
-                    emp_keys = list(db_employees.keys())
-                    for k in emp_keys:
-                        # degree = k[0]
-                        name = k[1]
-                        surname = k[2]
-                        # if degree is not None:
-                        #     if (
-                        #         degree in course_coordinator
-                        #         and name in course_coordinator
-                        #         and surname in course_coordinator
-                        #     ):
-                        #         course_coordinator_id = db_employees[k].id
-                        #         break
-                        # else:
-                        if name in course_coordinator and surname in course_coordinator:
-                            course_coordinator_id = db_employees[k].id
-                            break
-                    if course_coordinator_id == -1:
-                        print("Wrong data - no course coordinator found")
+                    course_coordinator_id = _get_course_coordinator_id(
+                        course_coordinator, db_employees
+                    )
+
+                    if course_coordinator_id is None:
                         continue
 
                     # add course
