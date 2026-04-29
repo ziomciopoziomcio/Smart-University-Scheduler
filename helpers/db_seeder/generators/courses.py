@@ -373,6 +373,45 @@ def generate_courses(
     return db_courses
 
 
+def _should_process_course_type_details(
+    course_code: int,
+    course_codes_db: set[int],
+    already_added_codes: set[int],
+) -> bool:
+    if course_code not in course_codes_db:
+        print(f"Course code {course_code} not found")
+        return False
+
+    if course_code in already_added_codes:
+        print(f"Course code {course_code} type details already added")
+        return False
+
+    return True
+
+
+def _parse_course_hours(przedmiot: dict) -> dict[ClassType, int]:
+    return {
+        ClassType.LECTURE: _parse_hours_to_int(przedmiot["W"]),
+        ClassType.TUTORIALS: _parse_hours_to_int(przedmiot["Ć"]),
+        ClassType.LABORATORY: _parse_hours_to_int(przedmiot["L"]),
+        ClassType.SEMINAR: _parse_hours_to_int(przedmiot["S"]),
+        ClassType.OTHER: _parse_hours_to_int(przedmiot["I"]),
+        ClassType.ELEARNING: _parse_hours_to_int(przedmiot["E-Learn."]),
+    }
+
+
+def _add_course_type_details(
+    session: Session,
+    course_code: int,
+    hours_map: dict[ClassType, int],
+    db_course_type_details: dict[tuple[int, ClassType], Course_type_detail],
+):
+    for class_type, hours in hours_map.items():
+        if hours > 0:
+            key, obj = add_course_detail(session, course_code, class_type, hours)
+            db_course_type_details[key] = obj
+
+
 def generate_course_type_details(
     session: Session,
     courses: dict[int, Course],
@@ -390,9 +429,9 @@ def generate_course_type_details(
     with open(sourcefile, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    course_codes_db = courses.keys()  # only course codes
+    course_codes_db = set(courses.keys())
     db_course_type_details: dict[tuple[int, ClassType], Course_type_detail] = {}
-    already_added_codes: set[int] = set()  # helper
+    already_added_codes: set[int] = set()
 
     for kierunek in data:
         for semestr in kierunek["semestry"]:
@@ -401,50 +440,24 @@ def generate_course_type_details(
                     course_code = _parse_course_code(przedmiot["Kod przedmiotu"])
                     course_name = przedmiot["Nazwa przedmiotu w języku polskim"]
 
-                    if course_code not in course_codes_db:
-                        print(f"Course code {course_code} not found")
+                    if not _should_process_course_type_details(
+                        course_code, course_codes_db, already_added_codes
+                    ):
                         continue
 
-                    if course_code in already_added_codes:
-                        print(f"Course code {course_code} type details already added")
-                        continue
-
-                    lecture_hours = _parse_hours_to_int(przedmiot["W"])
-                    tutorials_hours = _parse_hours_to_int(przedmiot["Ć"])
-                    labs_hours = _parse_hours_to_int(przedmiot["L"])
-                    seminar_hours = _parse_hours_to_int(przedmiot["S"])
-                    other_hours = _parse_hours_to_int(przedmiot["I"])
-                    elearning_hours = _parse_hours_to_int(przedmiot["E-Learn."])
-
-                    _course_coordinator = przedmiot[
-                        "kierownik"
-                    ]  # only for validating course
+                    hours_map = _parse_course_hours(przedmiot)
 
                     print(
-                        f"{course_code} {course_name}: {lecture_hours}, {tutorials_hours}, {labs_hours}, {seminar_hours}, {other_hours}, {elearning_hours}"
+                        f"{course_code} {course_name}: {', '.join(map(str, hours_map.values()))}"
                     )
 
-                    # correct data - adding do db
+                    _add_course_type_details(
+                        session,
+                        course_code,
+                        hours_map,
+                        db_course_type_details,
+                    )
 
-                    mapped = {
-                        ClassType.LECTURE: lecture_hours,
-                        ClassType.TUTORIALS: tutorials_hours,
-                        ClassType.LABORATORY: labs_hours,
-                        ClassType.SEMINAR: seminar_hours,
-                        ClassType.OTHER: other_hours,
-                        ClassType.ELEARNING: elearning_hours,
-                    }
-
-                    for class_type in mapped.keys():
-                        hours = mapped[class_type]
-                        if hours > 0:
-                            added: tuple[tuple[int, ClassType], Course_type_detail] = (
-                                add_course_detail(
-                                    session, course_code, class_type, hours
-                                )
-                            )
-
-                            db_course_type_details[added[0]] = added[1]
                     already_added_codes.add(course_code)
 
                 except KeyError as e:
