@@ -37,7 +37,7 @@ class UserBase(BaseSchema):
 
 
 class UserCreate(UserBase):
-    password: Annotated[str, StringConstraints(max_length=255)] | None = None
+    password: Annotated[str, StringConstraints(min_length=8, max_length=255)] | None = None
     send_login_credentials_email: bool = False
 
     @model_validator(mode="after")
