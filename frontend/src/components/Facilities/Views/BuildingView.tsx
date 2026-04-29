@@ -61,10 +61,12 @@ export function BuildingView({data, campusId, onRefresh}: BuildingViewProps) {
                         width: '250px'
                     },
                     {
-                        // TODO: get room count from API (waiting for endpoint)
-                        render: () => `? ${intl.formatMessage({id: 'facilities.room.rooms'})}`,
+                        render: (item: Building) => intl.formatMessage(
+                            {id: 'facilities.building.roomsCount'},
+                            {count: item.rooms_number}
+                        ),
                         variant: 'secondary',
-                        width: '100px'
+                        width: '120px'
                     }
                 ]}
 

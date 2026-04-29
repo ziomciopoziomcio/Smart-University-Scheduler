@@ -308,7 +308,15 @@
       "errors": {
         "delete": "Error while removing student assignment."
       },
-      "noOptionsText": "Type at least 3 characters or no results"
+      "modal": {
+        "noResults": "No results found",
+        "searchPrompt": "Start typing to search...",
+        "userSearchLabel": "Search user (name, surname or email)",
+        "loading": "Loading data...",
+        "user": "User",
+        "studyProgram": "Study Program",
+        "major": "Major (optional)"
+      }
     },
     "employees": {
       "employees": "Employees",
@@ -328,7 +336,12 @@
       "errors": {
         "delete": "Error while removing employee assignment."
       },
-      "noOptionsText": "Type at least 3 characters or no results"
+      "modal": {
+        "noResults": "No results found",
+        "searchPrompt": "Start typing to search...",
+        "userSearchLabel": "Search user (name, surname or email)",
+        "loading": "Loading data..."
+      }
     }
   },
   "users": {
@@ -339,7 +352,7 @@
       "deleteConfirm": "Delete"
     },
     "page": {
-      "searchPlaceholder": "Search user (name, surname, email...)"
+      "searchPlaceholder": "Search user by name, surname or email..."
     },
     "view": {
       "add": "Add user",
@@ -362,7 +375,17 @@
       "degreeLabel": "Degree / Title",
       "passwordLabel": "Password",
       "passwordEditLabel": "New password (leave blank to keep current)",
-      "password2Label": "Repeat password"
+      "password2Label": "Repeat password",
+      "resetPasswordTitle": "Account Security",
+      "resetPasswordDesc": "For security reasons, the password can only be changed by the account owner.",
+      "sendResetLink": "Send password reset link",
+      "initialPassword": "Initial password",
+      "generate": "Generate",
+      "copySuccess": "Password copied to clipboard!",
+      "forceChangeLabel": "Force password change on first login",
+      "sendEmailLabel": "Send login credentials to user's email",
+      "copyTooltip": "Copy password",
+      "passwordCopied": "Password copied to clipboard"
     },
     "errors": {
       "save": "Error while saving user.",

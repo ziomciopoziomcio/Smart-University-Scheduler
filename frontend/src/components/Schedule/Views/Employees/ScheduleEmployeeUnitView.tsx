@@ -33,13 +33,25 @@ export function ScheduleEmployeeUnitView({
             <ListView<Unit>
                 items={data}
                 icon={GroupsIcon}
-                getTitle={(item) => item.unit_name}
+                getTitle={(item) => item?.unit_name || '—'}
                 titleWidth="400px"
                 columns={[
                     {
-                        render: (item) => item.unit_short || '—',
+                        render: (item) => item?.unit_short || '—',
                         variant: 'secondary',
                         width: '150px'
+                    },
+                    {
+                        render: (item) =>
+                            intl.formatMessage(
+                                {
+                                    id: 'plans.lecturerPlan.departmentSelect.lecturersCountValue',
+                                    defaultMessage: '{count, plural, one {# pracownik} other {# pracowników}}'
+                                },
+                                {count: item.lecturers_count ?? 0}
+                            ),
+                        variant: 'secondary',
+                        width: '180px'
                     }
                 ]}
                 onItemClick={(item) => {

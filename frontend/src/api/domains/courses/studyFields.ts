@@ -3,19 +3,23 @@ import type {StudyField, StudyFieldCreate, StudyPlanGroupSummary, StudyFieldUpda
 
 
 export const fetchStudyFields = async (
-    limit = 100,
-    offset = 0,
+    page = 1,
+    limit = 10,
+    search?: string,
     filters: {
         faculty?: number;
         field_name?: string;
     } = {}
 ): Promise<PaginatedResponse<StudyField>> => {
+    const offset = (page - 1) * limit;
     const query = new URLSearchParams({
         limit: limit.toString(),
         offset: offset.toString(),
         ...(filters.faculty !== undefined && {faculty: filters.faculty.toString()}),
         ...(filters.field_name && {field_name: filters.field_name}),
     });
+
+    if (search) query.append('search', search);
 
     const response = await fetch(`${COURSES_URL}/study-fields?${query.toString()}`, {
         headers: getHeaders(),

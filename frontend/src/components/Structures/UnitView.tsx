@@ -51,6 +51,14 @@ export function UnitView({data, facultyId, onRefresh}: UnitViewProps) {
                         render: (item: Unit) => item.unit_short,
                         variant: 'secondary',
                         width: '150px'
+                    },
+                    {
+                        render: (item: Unit) => intl.formatMessage(
+                            {id: 'plans.lecturerPlan.departmentSelect.lecturersCountValue'},
+                            {count: item.lecturers_count || 0}
+                        ),
+                        variant: 'secondary',
+                        width: '150px'
                     }
                 ]}
 

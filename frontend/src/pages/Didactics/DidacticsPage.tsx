@@ -1,33 +1,18 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useCallback} from 'react';
 import {useParams} from 'react-router-dom';
 import {Box, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
 
-import {PageBreadcrumbs, type BreadcrumbItem, SearchBar} from '@components/Common';
+import {PageBreadcrumbs, type BreadcrumbItem, SearchBar, ListPagination} from '@components/Common';
 import {
-    fetchFaculties,
-    getFaculty,
-    fetchUnits,
-    getUnit,
-    fetchStudyFields,
-    getStudyField,
-    type Faculty,
-    type Unit,
-    type StudyField,
-    getCourse,
-    type Course
+    fetchFaculties, getFaculty, fetchUnits, getUnit, fetchStudyFields, getStudyField,
+    type Faculty, type Unit, type StudyField, getCourse, type Course,
+    fetchMajors, fetchElectiveBlocks, fetchCourses, fetchCourseInstructors
 } from '@api';
 
 import {
-    DidacticsDashboardView,
-    FieldDashboardView,
-    MajorView,
-    BlockView,
-    DidacticsFacultyView,
-    DidacticsStudyFieldView,
-    DidacticsUnitView,
-    DidacticsCourseView,
-    CourseInstructorsView
+    DidacticsDashboardView, FieldDashboardView, MajorView, BlockView, DidacticsFacultyView,
+    DidacticsStudyFieldView, DidacticsUnitView, DidacticsCourseView, CourseInstructorsView
 } from '@components/Didactics';
 
 export default function DidacticsPage({view}: { view: string }) {
@@ -36,15 +21,36 @@ export default function DidacticsPage({view}: { view: string }) {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [search, setSearch] = useState('');
     const [data, setData] = useState<any[]>([]);
+
+    const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
 
     const [currentFaculty, setCurrentFaculty] = useState<Faculty | null>(null);
     const [currentField, setCurrentField] = useState<StudyField | null>(null);
     const [currentUnit, setCurrentUnit] = useState<Unit | null>(null);
     const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
 
-    const loadData = async () => {
+    useEffect(() => {
+        setPage(1);
+        setSearch('');
+        setDebouncedSearch('');
+    }, [view, facultyId, fieldId, unitId, courseCode]);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1);
+        }, 300);
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [search]);
+
+    const loadData = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
@@ -57,20 +63,26 @@ export default function DidacticsPage({view}: { view: string }) {
             if (courseCode && (!currentCourse || currentCourse.course_code !== Number(courseCode)))
                 setCurrentCourse(await getCourse(Number(courseCode)));
 
+            let res;
             if (view === 'faculties_for_fields' || view === 'faculties_for_courses') {
-                let res;
-                try {
-                    res = await (fetchFaculties as any)({limit: 100, offset: 0});
-                } catch {
-                    res = await (fetchFaculties as any)();
-                }
-                setData(res?.items || res?.data || (Array.isArray(res) ? res : []));
+                res = await fetchFaculties(page, pageSize, debouncedSearch);
             } else if (view === 'fields') {
-                const res = await fetchStudyFields(100, 0, {faculty: Number(facultyId), field_name: search});
-                setData(res?.items || (Array.isArray(res) ? res : []));
+                res = await fetchStudyFields(page, pageSize, debouncedSearch, {faculty: Number(facultyId)});
             } else if (view === 'units_for_courses') {
-                const res = await fetchUnits(Number(facultyId));
-                setData(res?.items || (Array.isArray(res) ? res : []));
+                res = await fetchUnits(Number(facultyId), page, pageSize, debouncedSearch);
+            } else if (view === 'majors') {
+                res = await fetchMajors(page, pageSize, debouncedSearch, {study_field: Number(fieldId)});
+            } else if (view === 'blocks') {
+                res = await fetchElectiveBlocks(page, pageSize, debouncedSearch, {study_field: Number(fieldId)});
+            } else if (view === 'catalog') {
+                res = await fetchCourses(page, pageSize, debouncedSearch, {leading_unit: Number(unitId)});
+            } else if (view === 'course_instructors') {
+                res = await fetchCourseInstructors(Number(courseCode), page, pageSize);
+            }
+
+            if (res) {
+                setData(res.items || []);
+                setTotalItems(res.total || 0);
             }
         } catch (err: any) {
             console.error(err);
@@ -78,11 +90,11 @@ export default function DidacticsPage({view}: { view: string }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [view, facultyId, fieldId, unitId, courseCode, page, pageSize, debouncedSearch]);
 
     useEffect(() => {
         void loadData();
-    }, [view, facultyId, fieldId, unitId, courseCode, search]);
+    }, [loadData]);
 
     const getBreadcrumbs = (): BreadcrumbItem[] => {
         const breadcrumbs: BreadcrumbItem[] = [
@@ -127,9 +139,11 @@ export default function DidacticsPage({view}: { view: string }) {
         return breadcrumbs;
     };
 
+    const showSearch = ['faculties_for_fields', 'faculties_for_courses', 'fields', 'majors', 'blocks', 'catalog', 'units_for_courses'].includes(view);
+
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', gap: 3, width: '100%'}}>
-            {['fields', 'majors', 'blocks', 'catalog', 'units_for_courses'].includes(view) && (
+            {showSearch && (
                 <SearchBar value={search} onChange={setSearch}
                            placeholder={intl.formatMessage({id: 'didactics.common.search'})}/>
             )}
@@ -157,20 +171,34 @@ export default function DidacticsPage({view}: { view: string }) {
 
                         {view === 'faculties_for_fields' &&
                             <DidacticsFacultyView data={data} basePath="/didactics/fields/faculty"/>}
-                        {view === 'fields' && <DidacticsStudyFieldView data={data} facultyId={Number(facultyId)}
-                                                                       onRefresh={() => void loadData()}/>}
-                        {view === 'majors' && <MajorView fieldId={Number(fieldId)}/>}
-                        {view === 'blocks' && <BlockView fieldId={Number(fieldId)}/>}
+                        {view === 'fields' &&
+                            <DidacticsStudyFieldView data={data} facultyId={Number(facultyId)} onRefresh={loadData}/>}
+
+                        {view === 'majors' && <MajorView data={data} fieldId={Number(fieldId)} onRefresh={loadData}/>}
+                        {view === 'blocks' && <BlockView data={data} fieldId={Number(fieldId)} onRefresh={loadData}/>}
+                        {view === 'catalog' &&
+                            <DidacticsCourseView data={data} unitId={Number(unitId)} facultyId={Number(facultyId)}
+                                                 onRefresh={loadData}/>}
+                        {view === 'course_instructors' &&
+                            <CourseInstructorsView data={data} courseCode={Number(courseCode)}
+                                                   facultyId={Number(facultyId)} onRefresh={loadData}/>}
 
                         {view === 'faculties_for_courses' &&
                             <DidacticsFacultyView data={data} basePath="/didactics/courses/faculty"/>}
                         {view === 'units_for_courses' && <DidacticsUnitView data={data} facultyId={Number(facultyId)}/>}
 
-                        {view === 'catalog' &&
-                            <DidacticsCourseView unitId={Number(unitId)} facultyId={Number(facultyId)}/>}
-
-                        {view === 'course_instructors' &&
-                            <CourseInstructorsView courseCode={Number(courseCode)} facultyId={Number(facultyId)}/>}
+                        {!['dashboard', 'field_dashboard'].includes(view) && totalItems > 0 && (
+                            <ListPagination
+                                page={page}
+                                totalItems={totalItems}
+                                pageSize={pageSize}
+                                onPageChange={setPage}
+                                onPageSizeChange={(size) => {
+                                    setPageSize(size);
+                                    setPage(1);
+                                }}
+                            />
+                        )}
                     </Box>
                 )}
             </Box>
