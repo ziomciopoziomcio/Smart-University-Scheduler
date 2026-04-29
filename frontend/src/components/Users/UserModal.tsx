@@ -1,7 +1,8 @@
 import {useState, useEffect} from 'react';
 import {
     Dialog, DialogContent, Typography, Box, Button, CircularProgress,
-    TextField, Tooltip, FormControlLabel, Checkbox, IconButton, Snackbar, Alert
+    TextField, Tooltip, FormControlLabel, Checkbox, IconButton, Snackbar, Alert,
+    FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 import {LockReset, Autorenew, ContentCopy} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
@@ -26,7 +27,7 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
     const [degree, setDegree] = useState('');
     const [password, setPassword] = useState('');
     const [forceChange, setForceChange] = useState(true);
-    const [sendEmail, setSendEmail] = useState(false); // Nowy stan
+    const [sendEmail, setSendEmail] = useState(false);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -146,14 +147,30 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                     />
 
                     <Box sx={{display: 'flex', gap: 2}}>
-                        {/*TODO change to select*/}
-                        <TextField label={intl.formatMessage({id: 'users.modal.degreeLabel'})}
-                                   value={degree}
-                                   onChange={(e) => {
-                                       setDegree(e.target.value);
-                                   }}
-                                   fullWidth disabled={isSubmitting}
-                        />
+                        <FormControl fullWidth disabled={isSubmitting}>
+                            <InputLabel id="degree-select-label">
+                                {intl.formatMessage({id: 'users.modal.degreeLabel'})}
+                            </InputLabel>
+                            <Select
+                                labelId="degree-select-label"
+                                value={degree}
+                                label={intl.formatMessage({id: 'users.modal.degreeLabel'})}
+                                onChange={(e) => setDegree(e.target.value as string)}
+                            >
+                                <MenuItem value="">
+                                    <em>{intl.formatMessage({
+                                        id: 'users.modal.degreeNone',
+                                        defaultMessage: 'Brak'
+                                    })}</em>
+                                </MenuItem>
+                                <MenuItem value="inz">inż.</MenuItem>
+                                <MenuItem value="mgr">mgr</MenuItem>
+                                <MenuItem value="dr">dr</MenuItem>
+                                <MenuItem value="dr_hab">dr hab.</MenuItem>
+                                <MenuItem value="prof">prof.</MenuItem>
+                            </Select>
+                        </FormControl>
+
                         <TextField label={intl.formatMessage({id: 'users.modal.phoneLabel'})}
                                    value={phone}
                                    onChange={(e) => {
