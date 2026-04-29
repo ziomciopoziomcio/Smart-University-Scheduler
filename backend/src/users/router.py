@@ -447,7 +447,14 @@ def create_user(
     db.refresh(obj)
 
     if send_email_flag:
-        assert temp_password is not None
+        if temp_password is None:
+            logger.error(
+                "Temporary password was not generated for user creation with credential email enabled"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Unable to send login credentials email",
+            )
         background_tasks.add_task(
             send_login_credentials_email, obj.email, temp_password
         )
