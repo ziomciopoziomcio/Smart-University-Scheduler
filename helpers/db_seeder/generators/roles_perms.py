@@ -223,8 +223,3 @@ def generate_roles_from_excel_file(
 
     session.flush()
     return db_roles
-
-
-if __name__ == "__main__":
-    path = r"..\data\role_uprawnienia.xlsx"
-    sheet_name = "Arkusz1"

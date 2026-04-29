@@ -390,7 +390,6 @@ def generate_course_type_details(
                     seminar_hours = _parse_hours_to_int(przedmiot["S"])
                     other_hours = _parse_hours_to_int(przedmiot["I"])
                     elearning_hours = _parse_hours_to_int(przedmiot["E-Learn."])
-                    # todo project
 
                     _course_coordinator = przedmiot[
                         "kierownik"
