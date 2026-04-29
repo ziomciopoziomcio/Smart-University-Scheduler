@@ -630,7 +630,7 @@ def generate_curriculum_courses_elective_blocks(
         )
 
         # find study programs
-        study_programs = _keys = set()
+        study_programs = set()
         sp_keys = db_study_programs.keys()
         for k in sp_keys:
             if k[0] == study_field_name and k[2] == degree:

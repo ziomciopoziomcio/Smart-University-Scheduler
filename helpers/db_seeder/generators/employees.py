@@ -65,7 +65,7 @@ def generate_employees(
 
     # for teacher in db_teachers:
     ti = db_teachers.items()
-    for k, v in ti:
+    for _, v in ti:
         user_id = _get_user_id(v)
         faculty_id = _get_random_faculty_id(db_faculties)
         unit_id = _get_random_unit_id(db_units)
