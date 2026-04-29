@@ -126,6 +126,9 @@ def _add_person(people: dict[str, dict], raw_person: str) -> None:
     if not first_name and not last_name:
         return
 
+    if len(first_name) > 30:
+        return
+
     key = f"{first_name.lower()}|{last_name.lower()}"
     new_rank = rank_degree(degree)
 

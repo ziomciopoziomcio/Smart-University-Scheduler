@@ -76,6 +76,8 @@ GROUPS_PATH = r"..\data\groups.json"
 PERMS_EXCEL_SHEET = "Arkusz1"
 SEED = 1234
 
+EXCEL_WITH_TEACHERS = "../excel_users/teachers.xlsx"
+EXCEL_WITH_OTHER_USERS = "../excel_users/other_users.xlsx"
 
 if __name__ == "__main__":
     # Base.metadata.drop_all(bind=engine)
@@ -281,7 +283,7 @@ if __name__ == "__main__":
 
     # SAVE USERS TO EXCEL
     save_teachers_to_excel(
-        filename="teachers.xlsx",
+        filename=EXCEL_WITH_TEACHERS,
         db_teachers=db_teachers,
         db_faculties=db_faculties,
         db_units=db_units,
@@ -289,7 +291,7 @@ if __name__ == "__main__":
     )
 
     save_not_teachers_to_excel(
-        filename="other_users.xlsx", db_not_teachers=db_not_teachers
+        filename=EXCEL_WITH_OTHER_USERS, db_not_teachers=db_not_teachers
     )
 
     session.close()
