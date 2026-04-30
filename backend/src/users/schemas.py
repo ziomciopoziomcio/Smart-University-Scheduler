@@ -37,7 +37,18 @@ class UserBase(BaseSchema):
 
 
 class UserCreate(UserBase):
-    password: Annotated[str, StringConstraints(max_length=255)]
+    password: Annotated[str, StringConstraints(min_length=8, max_length=255)] | None = (
+        None
+    )
+    send_login_credentials_email: bool = False
+
+    @model_validator(mode="after")
+    def validate_password_or_credentials_email(self) -> "UserCreate":
+        if not self.password and not self.send_login_credentials_email:
+            raise ValueError(
+                "Either provide a password or set send_login_credentials_email to true."
+            )
+        return self
 
 
 class UserRead(UserBase):
@@ -122,6 +133,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
     requires_2fa: bool = False
+    force_password_change: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
