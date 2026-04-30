@@ -1,5 +1,6 @@
 import CloseRounded from '@mui/icons-material/CloseRounded';
-import {Box, IconButton, Paper, Typography} from '@mui/material';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import {Box, Button, IconButton, Paper, Typography} from '@mui/material';
 import type {ScheduleEntry, ScheduleEntryDetails} from '@api';
 import {getTilePaletteByVariant} from './utils/tileColorUtils';
 import {useIntl} from 'react-intl';
@@ -8,12 +9,14 @@ interface SubjectDetailsPopupProps {
     entry: ScheduleEntry;
     details: ScheduleEntryDetails;
     onClose: () => void;
+    onEdit?: () => void;
 }
 
 export function SubjectDetailsPopup({
                                         entry,
                                         details,
                                         onClose,
+                                        onEdit,
                                     }: SubjectDetailsPopupProps) {
     const palette = getTilePaletteByVariant(entry.variant);
     const {formatMessage} = useIntl();
@@ -34,8 +37,41 @@ export function SubjectDetailsPopup({
                 boxSizing: 'border-box',
                 zIndex: 20,
                 p: 3,
+                pt: onEdit ? 5.5 : 3,
             }}
         >
+            {onEdit && (
+                <Button
+                    size="small"
+                    startIcon={<EditOutlinedIcon sx={{fontSize: 15}}/>}
+                    onClick={onEdit}
+                    sx={{
+                        position: 'absolute',
+                        top: 10,
+                        left: 12,
+                        minWidth: 'auto',
+                        height: 28,
+                        px: 1,
+                        borderRadius: '10px',
+                        textTransform: 'none',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: '#5F6B7A',
+                        bgcolor: 'rgba(255,255,255,0.65)',
+                        boxShadow: 'none',
+                        '& .MuiButton-startIcon': {
+                            mr: 0.5,
+                        },
+                        '&:hover': {
+                            bgcolor: 'rgba(255,255,255,0.95)',
+                            boxShadow: 'none',
+                        },
+                    }}
+                >
+                    {formatMessage({id: 'schedule.details.edit', defaultMessage: 'Edit'})}
+                </Button>
+            )}
+
             <IconButton
                 onClick={onClose}
                 size="small"
@@ -109,19 +145,23 @@ export function SubjectDetailsPopup({
                     </Typography>
                 </Box>
 
-                <Box>
-                    <Typography sx={{fontSize: '15px', fontWeight: 600, mb: 0.5}}>
-                        {formatMessage({id: 'schedule.details.audience'})}
-                    </Typography>
+                {details.audience.length > 0 && (
+                    <Box>
+                        <Typography sx={{fontSize: '15px', fontWeight: 600, mb: 0.5}}>
+                            {formatMessage({id: 'schedule.details.audience'})}
+                        </Typography>
 
-                    <Box sx={{display: 'flex', flexDirection: 'column', gap: 0.5}}>
-                        {details.audience.map((item, index) => (
-                            <Typography key={`${entry.id}-audience-${index}`} sx={{fontSize: '12.5px'}}>
-                                {item.fieldOfStudy} | {item.semester} | {item.specialization}
-                            </Typography>
-                        ))}
+                        <Box sx={{display: 'flex', flexDirection: 'column', gap: 0.75}}>
+                            {details.audience.map((audience, index) => (
+                                <Typography key={`${audience.fieldOfStudy}-${index}`} sx={{fontSize: '13px'}}>
+                                    {[audience.fieldOfStudy, audience.semester, audience.specialization]
+                                        .filter(Boolean)
+                                        .join(' · ')}
+                                </Typography>
+                            ))}
+                        </Box>
                     </Box>
-                </Box>
+                )}
             </Box>
         </Paper>
     );

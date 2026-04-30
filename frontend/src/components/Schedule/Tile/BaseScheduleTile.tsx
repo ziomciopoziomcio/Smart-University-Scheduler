@@ -1,3 +1,4 @@
+import type {PointerEvent} from 'react';
 import {Box, Typography} from '@mui/material';
 
 interface BaseScheduleTileProps {
@@ -12,24 +13,29 @@ interface BaseScheduleTileProps {
     watermarkText?: string;
     horizontalGap?: number;
     onClick?: () => void;
+    onPointerDown?: (event: PointerEvent<HTMLDivElement>) => void;
+    isDragging?: boolean;
 }
 
 export function BaseScheduleTile({
-                                     title,
-                                     top,
-                                     leftPercent,
-                                     widthPercent,
-                                     height,
-                                     background,
-                                     border,
-                                     watermarkColor,
-                                     watermarkText = 'W',
-                                     horizontalGap = 4,
-                                     onClick,
-                                 }: BaseScheduleTileProps) {
+    title,
+    top,
+    leftPercent,
+    widthPercent,
+    height,
+    background,
+    border,
+    watermarkColor,
+    watermarkText = 'W',
+    horizontalGap = 4,
+    onClick,
+    onPointerDown,
+    isDragging = false,
+}: BaseScheduleTileProps) {
     return (
         <Box
             onClick={onClick}
+            onPointerDown={onPointerDown}
             sx={{
                 position: 'absolute',
                 top,
@@ -47,11 +53,19 @@ export function BaseScheduleTile({
                 textAlign: 'center',
                 px: 0.75,
                 boxShadow: '0 1px 0 rgba(0,0,0,0.03)',
-                cursor: 'pointer',
-                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                cursor: 'grab',
+                opacity: isDragging ? 0.35 : 1,
+                userSelect: 'none',
+                touchAction: 'none',
+                transition: isDragging
+                    ? 'opacity 0.12s ease'
+                    : 'transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease',
+                '&:active': {
+                    cursor: 'grabbing',
+                },
                 '&:hover': {
-                    transform: 'scale(1.01)',
-                    boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
+                    transform: isDragging ? 'none' : 'scale(1.01)',
+                    boxShadow: isDragging ? 'none' : '0 4px 10px rgba(0,0,0,0.08)',
                 },
             }}
         >
@@ -85,6 +99,7 @@ export function BaseScheduleTile({
                     color: '#1E1E1E',
                     maxWidth: '100%',
                     overflowWrap: 'anywhere',
+                    pointerEvents: 'none',
                 }}
             >
                 {title}

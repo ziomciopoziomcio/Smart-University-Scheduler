@@ -9,6 +9,8 @@ interface ExerciseTileProps {
     widthPercent: number;
     height: number;
     onClick?: () => void;
+    onPointerDown?: (event: React.PointerEvent<HTMLDivElement>) => void;
+    isDragging?: boolean;
 }
 
 export function ExerciseTile(props: ExerciseTileProps) {
