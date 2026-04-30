@@ -1,3 +1,4 @@
+import type {PointerEvent} from 'react';
 import {type ScheduleEntry} from '@api';
 import {
     getDayIndexFromDate,
@@ -19,14 +20,18 @@ interface ScheduleTileFactoryProps {
     columnIndex?: number;
     columnCount?: number;
     onClick: (entry: ScheduleEntry) => void;
+    onPointerDown?: (entry: ScheduleEntry, event: PointerEvent<HTMLDivElement>) => void;
+    draggingEntryId?: string | null;
 }
 
 export function ScheduleTileFactory({
-                                        entry,
-                                        columnIndex = 0,
-                                        columnCount = 1,
-                                        onClick,
-                                    }: ScheduleTileFactoryProps) {
+    entry,
+    columnIndex = 0,
+    columnCount = 1,
+    onClick,
+    onPointerDown,
+    draggingEntryId,
+}: ScheduleTileFactoryProps) {
     const entryDate = parseIsoDate(entry.date);
     const dayIndex = getDayIndexFromDate(entryDate);
 
@@ -41,6 +46,8 @@ export function ScheduleTileFactory({
         widthPercent: singleTileWidthPercent,
         height: getTileHeight(entry.startTime, entry.endTime),
         onClick: () => onClick(entry),
+        onPointerDown: (event: PointerEvent<HTMLDivElement>) => onPointerDown?.(entry, event),
+        isDragging: draggingEntryId === entry.id,
     };
 
     switch (entry.variant) {
