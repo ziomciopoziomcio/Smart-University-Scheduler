@@ -1,22 +1,29 @@
 import {Box, Typography} from '@mui/material';
 import {useEffect, useMemo, useRef, useState} from 'react';
+import type {PointerEvent as ReactPointerEvent} from 'react';
 import {useIntl} from 'react-intl';
 
 import {SCHEDULE_LAYOUT, scheduleHours, weekdayMessageIds} from '@constants/schedule';
 import {ScheduleTileFactory} from './Tile/ScheduleTileFactory';
 import {SubjectDetailsPopup} from './SubjectDetailsPopup';
+import {EditScheduleSessionPopup} from './EditScheduleSessionPopup';
 import {formatMinutesToTimeLabel, getGridHeight, parseTimeToMinutes} from './utils/utils';
 import {getDayIndexFromDate, parseIsoDate} from './utils/dateUtils';
 
 import type {
-    CourseSessionDetailsResponse,
+    DayOfWeek,
     ScheduleEntry,
-    ScheduleEntryDetails
+    ScheduleEntryDetails,
+    UpdateScheduleSessionRequest,
 } from '@api';
-import {fetchCourseSessionDetails} from '@api';
+import {updateScheduleSession} from '@api'; //TODO: IT DOES NOT WORK  // https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/223
+
+// TODO: uncomment when backend endpoint is ready
+// import {fetchCourseSessionDetails} from '@api';
 
 interface WeekScheduleGridProps {
     entries: ScheduleEntry[];
+    onSessionUpdated?: () => void | Promise<void>;
 }
 
 interface EntryLayout {
@@ -24,26 +31,84 @@ interface EntryLayout {
     columnCount: number;
 }
 
-const DETAILS_FETCH_TIMEOUT_MS = 2500;
-
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T | null> {
-    return new Promise((resolve) => {
-        const timeoutId = window.setTimeout(() => {
-            resolve(null);
-        }, timeoutMs);
-
-        promise
-            .then((value) => {
-                resolve(value);
-            })
-            .catch(() => {
-                resolve(null);
-            })
-            .finally(() => {
-                window.clearTimeout(timeoutId);
-            });
-    });
+interface EditInitialValues {
+    dayOfWeek: DayOfWeek;
+    startTime: string;
+    endTime: string;
+    instructorId: number;
+    roomId: number;
+    applyOnce: boolean;
 }
+
+interface DragPreviewState {
+    entry: ScheduleEntry;
+    pointerX: number;
+    pointerY: number;
+    initialPointerX: number;
+    initialPointerY: number;
+    offsetX: number;
+    offsetY: number;
+    width: number;
+    height: number;
+    hasMoved: boolean;
+}
+
+interface DropPreviewState {
+    dayIndex: number;
+    top: number;
+    height: number;
+    startTime: string;
+    endTime: string;
+}
+
+const DRAG_SNAP_MINUTES = 15;
+const TIME_GRID_STEP_MINUTES = 15;
+const DRAG_START_THRESHOLD_PX = 6;
+
+const dayOfWeekByIndex: DayOfWeek[] = [
+    'MONDAY',
+    'TUESDAY',
+    'WEDNESDAY',
+    'THURSDAY',
+    'FRIDAY',
+    'SATURDAY',
+    'SUNDAY',
+];
+
+const MOCK_DEFAULT_INSTRUCTOR_ID = 42;
+const MOCK_DEFAULT_ROOM_ID = 18;
+
+const mockedInstructors = [
+    {id: 42, name: 'dr Anna Kowalska'},
+    {id: 43, name: 'prof. Jan Nowak'},
+    {id: 44, name: 'mgr Piotr Zieliński'},
+    {id: 45, name: 'dr hab. Katarzyna Wiśniewska'},
+];
+
+const mockedRooms = [
+    {id: 18, name: 'B-214', building: 'B', campus: 'Główny'},
+    {id: 19, name: 'A-101', building: 'A', campus: 'Główny'},
+    {id: 20, name: 'C-12', building: 'C', campus: 'Technologiczny'},
+    {id: 21, name: 'Lab-03', building: 'D', campus: 'Technologiczny'},
+];
+
+const getMockedCourseSessionDetails = (entry: ScheduleEntry): ScheduleEntryDetails => ({
+    typeLabel: entry.variant,
+    timeLabel: `${entry.startTime} - ${entry.endTime}`,
+    location: {
+        campus: 'Główny',
+        building: 'B',
+        room: 'B-214',
+    },
+    lecturer: 'dr Anna Kowalska',
+    audience: [
+        {
+            fieldOfStudy: 'Informatyka',
+            semester: 'Semestr 3',
+            specialization: 'Systemy informatyczne',
+        },
+    ],
+});
 
 function doEntriesOverlap(left: ScheduleEntry, right: ScheduleEntry) {
     const leftStart = parseTimeToMinutes(left.startTime);
@@ -71,8 +136,7 @@ function getEntryLayouts(entries: ScheduleEntry[]): Record<string, EntryLayout> 
 
     for (const [, dayEntries] of entriesByDay) {
         const sorted = [...dayEntries].sort((a, b) => {
-            const startDiff =
-                parseTimeToMinutes(a.startTime) - parseTimeToMinutes(b.startTime);
+            const startDiff = parseTimeToMinutes(a.startTime) - parseTimeToMinutes(b.startTime);
 
             if (startDiff !== 0) {
                 return startDiff;
@@ -151,11 +215,32 @@ function getEntryLayouts(entries: ScheduleEntry[]): Record<string, EntryLayout> 
     return layouts;
 }
 
-export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
+const formatMinutesToInputTime = (minutes: number) => {
+    const normalizedMinutes = Math.max(0, Math.min(minutes, 23 * 60 + 59));
+    const hours = Math.floor(normalizedMinutes / 60);
+    const mins = normalizedMinutes % 60;
+
+    return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+};
+
+const snapMinutes = (minutes: number) => {
+    return Math.round(minutes / DRAG_SNAP_MINUTES) * DRAG_SNAP_MINUTES;
+};
+
+export function WeekScheduleGrid({entries, onSessionUpdated}: WeekScheduleGridProps) {
     const [selectedEntry, setSelectedEntry] = useState<ScheduleEntry | null>(null);
     const [selectedDetails, setSelectedDetails] = useState<ScheduleEntryDetails | null>(null);
 
+    const [editEntry, setEditEntry] = useState<ScheduleEntry | null>(null);
+    const [editInitialValues, setEditInitialValues] = useState<EditInitialValues | null>(null);
+    const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+    const [dragPreview, setDragPreview] = useState<DragPreviewState | null>(null);
+    const [dropPreview, setDropPreview] = useState<DropPreviewState | null>(null);
+
     const detailsRequestId = useRef(0);
+    const gridRef = useRef<HTMLDivElement | null>(null);
+    const suppressNextClickRef = useRef(false);
 
     const {formatMessage} = useIntl();
     const gridHeight = getGridHeight();
@@ -176,112 +261,99 @@ export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
         return getEntryLayouts(orderedEntries);
     }, [orderedEntries]);
 
-    const getSubjectTypeLabel = (type: string) => {
-        const normalizedType = type
-            ?.toLowerCase()
-            .replace(/[-_\s]/g, '');
+    const getGridTopFromMinutes = (minutes: number) => {
+        const startHour = scheduleHours[0] ?? 8;
 
-        switch (normalizedType) {
-            case 'lecture':
-                return formatMessage({id: 'schedule.subjectType.lecture'});
+        return ((minutes - startHour * 60) / 60) * SCHEDULE_LAYOUT.hourRowHeight;
+    };
 
-            case 'laboratory':
-            case 'lab':
-                return formatMessage({id: 'schedule.subjectType.lab'});
+    const getTimeGridMarkers = () => {
+        const startHour = scheduleHours[0] ?? 8;
+        const endHour = scheduleHours[scheduleHours.length - 1] ?? 20;
 
-            case 'tutorials':
-            case 'classes':
-            case 'exercise':
-            case 'exercises':
-                return formatMessage({id: 'schedule.subjectType.exercise'});
+        const markers: number[] = [];
 
-            case 'project':
-                return formatMessage({id: 'schedule.subjectType.project'});
-
-            case 'seminar':
-                return formatMessage({id: 'schedule.subjectType.seminar'});
-
-            case 'other':
-                return formatMessage({
-                    id: 'schedule.subjectType.other',
-                    defaultMessage: 'Other'
-                });
-
-            case 'elearning':
-                return formatMessage({
-                    id: 'schedule.subjectType.elearning',
-                    defaultMessage: 'E-learning'
-                });
-
-            default:
-                return type || '—';
+        for (
+            let minutes = startHour * 60;
+            minutes <= endHour * 60;
+            minutes += TIME_GRID_STEP_MINUTES
+        ) {
+            markers.push(minutes);
         }
+
+        return markers;
     };
 
-    const mapAudience = (targetAudience: string[]) => {
-        return targetAudience.map((item) => {
-            const parts = item.split(' | ');
+    const getDropPreviewFromPointer = (
+        clientX: number,
+        clientY: number,
+        preview: DragPreviewState,
+    ): DropPreviewState | null => {
+        const gridElement = gridRef.current;
 
-            if (parts.length === 2) {
-                return {
-                    fieldOfStudy: parts[0] || item,
-                    semester: '',
-                    specialization: parts[1] || '',
-                };
-            }
+        if (!gridElement) {
+            return null;
+        }
 
-            const [fieldOfStudy, semester, specialization] = parts;
+        const rect = gridElement.getBoundingClientRect();
 
-            return {
-                fieldOfStudy: fieldOfStudy || item,
-                semester: semester || '',
-                specialization: specialization || '',
-            };
-        });
-    };
+        const draggedTileLeft = clientX - rect.left - preview.offsetX;
+        const draggedTileTop = clientY - rect.top - preview.offsetY;
+        const draggedTileCenterX = draggedTileLeft + preview.width / 2;
 
-    const mapCourseSessionDetails = (
-        details: CourseSessionDetailsResponse,
-    ): ScheduleEntryDetails => {
-        const targetAudience = details.targetAudience ?? details.target_audience ?? [];
+        if (
+            draggedTileCenterX < 0 ||
+            draggedTileCenterX > rect.width ||
+            draggedTileTop < 0 ||
+            draggedTileTop + preview.height > gridHeight
+        ) {
+            return null;
+        }
+
+        const dayIndex = Math.max(
+            0,
+            Math.min(
+                SCHEDULE_LAYOUT.dayCount - 1,
+                Math.floor((draggedTileCenterX / rect.width) * SCHEDULE_LAYOUT.dayCount),
+            ),
+        );
+
+        const startHour = scheduleHours[0] ?? 8;
+        const endHour = scheduleHours[scheduleHours.length - 1] ?? 20;
+
+        const duration = parseTimeToMinutes(preview.entry.endTime) - parseTimeToMinutes(preview.entry.startTime);
+        const rawStartMinutes = startHour * 60 + (draggedTileTop / SCHEDULE_LAYOUT.hourRowHeight) * 60;
+
+        const newStartMinutes = Math.max(
+            startHour * 60,
+            Math.min(
+                snapMinutes(rawStartMinutes),
+                endHour * 60 - duration,
+            ),
+        );
+
+        const newEndMinutes = newStartMinutes + duration;
 
         return {
-            typeLabel: getSubjectTypeLabel(details.type),
-            timeLabel: details.time,
-            location: {
-                campus: details.location.campus,
-                building: details.location.building,
-                room: details.location.room,
-            },
-            lecturer: details.lecturer,
-            audience: mapAudience(targetAudience),
+            dayIndex,
+            top: getGridTopFromMinutes(newStartMinutes),
+            height: (duration / 60) * SCHEDULE_LAYOUT.hourRowHeight,
+            startTime: formatMinutesToInputTime(newStartMinutes),
+            endTime: formatMinutesToInputTime(newEndMinutes),
         };
     };
 
-    const handleTileClick = async (entry: ScheduleEntry) => {
-        const currentRequestId = detailsRequestId.current + 1;
-        detailsRequestId.current = currentRequestId;
+    const getDefaultEditValues = (entry: ScheduleEntry): EditInitialValues => {
+        const dayIndex = getDayIndexFromDate(parseIsoDate(entry.date));
 
-        setSelectedEntry(null);
-        setSelectedDetails(null);
-
-        const response = await withTimeout(
-            fetchCourseSessionDetails(entry.id),
-            DETAILS_FETCH_TIMEOUT_MS
-        );
-
-        if (detailsRequestId.current !== currentRequestId) {
-            return;
-        }
-
-        if (!response) {
-            setSelectedEntry(null);
-            setSelectedDetails(null);
-            return;
-        }
-
-        setSelectedEntry(entry);
-        setSelectedDetails(mapCourseSessionDetails(response));
+        return {
+            dayOfWeek: dayOfWeekByIndex[dayIndex] ?? 'MONDAY',
+            startTime: entry.startTime,
+            endTime: entry.endTime,
+            instructorId: MOCK_DEFAULT_INSTRUCTOR_ID,
+            roomId: MOCK_DEFAULT_ROOM_ID,
+            applyOnce: false,
+        };
     };
 
     const handleClosePopup = () => {
@@ -290,8 +362,200 @@ export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
         setSelectedDetails(null);
     };
 
+    const handleCloseEditPopup = () => {
+        setEditEntry(null);
+        setEditInitialValues(null);
+    };
+
+    const openEditPopup = (entry: ScheduleEntry, values?: Partial<EditInitialValues>) => {
+        setEditEntry(entry);
+        setEditInitialValues({
+            ...getDefaultEditValues(entry),
+            ...values,
+            applyOnce: false,
+        });
+
+        handleClosePopup();
+    };
+
+    const handleTileClick = async (entry: ScheduleEntry) => {
+        if (suppressNextClickRef.current) {
+            suppressNextClickRef.current = false;
+            return;
+        }
+
+        // TODO: uncomment when backend endpoint is ready
+        // const currentRequestId = detailsRequestId.current + 1;
+        // detailsRequestId.current = currentRequestId;
+        //
+        // setSelectedEntry(null);
+        // setSelectedDetails(null);
+        //
+        // const response = await fetchCourseSessionDetails(entry.id);
+        //
+        // if (detailsRequestId.current !== currentRequestId) {
+        //     return;
+        // }
+        //
+        // if (!response) {
+        //     setSelectedEntry(null);
+        //     setSelectedDetails(null);
+        //     return;
+        // }
+        //
+        // setSelectedEntry(entry);
+        // setSelectedDetails(mapCourseSessionDetails(response));
+
+        setSelectedEntry(entry);
+        setSelectedDetails(getMockedCourseSessionDetails(entry));
+    };
+
+    const handleEditSave = async (payload: UpdateScheduleSessionRequest) => {
+        if (!editEntry) {
+            return;
+        }
+
+        setIsSavingEdit(true);
+
+        try {
+            await updateScheduleSession(editEntry.id, payload);
+
+            handleCloseEditPopup();
+            await onSessionUpdated?.();
+        } catch (error) {
+            if (error instanceof Error && error.message === 'Schedule update conflict') {
+                window.alert(formatMessage({
+                    id: 'schedule.edit.conflict',
+                    defaultMessage: 'This change creates a conflict.',
+                }));
+                return;
+            }
+
+            window.alert(formatMessage({
+                id: 'schedule.edit.error',
+                defaultMessage: 'Failed to update schedule session.',
+            }));
+        } finally {
+            setIsSavingEdit(false);
+        }
+    };
+
+    const handleTilePointerDown = (
+        entry: ScheduleEntry,
+        event: ReactPointerEvent<HTMLDivElement>,
+    ) => {
+        if (event.button !== 0) {
+            return;
+        }
+
+        const tileElement = event.currentTarget;
+        const rect = tileElement.getBoundingClientRect();
+
+        setDragPreview({
+            entry,
+            pointerX: event.clientX,
+            pointerY: event.clientY,
+            initialPointerX: event.clientX,
+            initialPointerY: event.clientY,
+            offsetX: event.clientX - rect.left,
+            offsetY: event.clientY - rect.top,
+            width: rect.width,
+            height: rect.height,
+            hasMoved: false,
+        });
+
+        setDropPreview(null);
+    };
+
+    const handleWindowPointerMove = (event: PointerEvent) => {
+        setDragPreview((current) => {
+            if (!current) {
+                return null;
+            }
+
+            const distanceX = Math.abs(event.clientX - current.initialPointerX);
+            const distanceY = Math.abs(event.clientY - current.initialPointerY);
+            const hasMoved = current.hasMoved || distanceX > DRAG_START_THRESHOLD_PX || distanceY > DRAG_START_THRESHOLD_PX;
+
+            if (!hasMoved) {
+                return {
+                    ...current,
+                    pointerX: event.clientX,
+                    pointerY: event.clientY,
+                    hasMoved,
+                };
+            }
+
+            event.preventDefault();
+
+            setDropPreview(getDropPreviewFromPointer(
+                event.clientX,
+                event.clientY,
+                current,
+            ));
+
+            return {
+                ...current,
+                pointerX: event.clientX,
+                pointerY: event.clientY,
+                hasMoved,
+            };
+        });
+    };
+
+    const handleWindowPointerUp = (event: PointerEvent) => {
+        setDragPreview((currentDragPreview) => {
+            if (!currentDragPreview) {
+                setDropPreview(null);
+                return null;
+            }
+
+            if (!currentDragPreview.hasMoved) {
+                setDropPreview(null);
+                return null;
+            }
+
+            suppressNextClickRef.current = true;
+
+            const finalDropPreview = getDropPreviewFromPointer(
+                event.clientX,
+                event.clientY,
+                currentDragPreview,
+            );
+
+            if (finalDropPreview) {
+                openEditPopup(currentDragPreview.entry, {
+                    dayOfWeek: dayOfWeekByIndex[finalDropPreview.dayIndex] ?? 'MONDAY',
+                    startTime: finalDropPreview.startTime,
+                    endTime: finalDropPreview.endTime,
+                });
+            }
+
+            setDropPreview(null);
+            return null;
+        });
+    };
+    useEffect(() => {
+        if (!dragPreview) {
+            return;
+        }
+
+        window.addEventListener('pointermove', handleWindowPointerMove);
+        window.addEventListener('pointerup', handleWindowPointerUp);
+        window.addEventListener('pointercancel', handleWindowPointerUp);
+
+        return () => {
+            window.removeEventListener('pointermove', handleWindowPointerMove);
+            window.removeEventListener('pointerup', handleWindowPointerUp);
+            window.removeEventListener('pointercancel', handleWindowPointerUp);
+        };
+    }, [dragPreview]);
+
     useEffect(() => {
         handleClosePopup();
+        handleCloseEditPopup();
+        setDragPreview(null);
+        setDropPreview(null);
     }, [entries]);
 
     return (
@@ -341,23 +605,32 @@ export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
                         height: gridHeight,
                     }}
                 >
-                    {scheduleHours.slice(0, -1).map((hour: number, index: number) => (
-                        <Box
-                            key={hour}
-                            sx={{
-                                position: 'absolute',
-                                top: index * SCHEDULE_LAYOUT.hourRowHeight - 11,
-                                right: 10,
-                            }}
-                        >
-                            <Typography sx={{fontSize: '13px', color: '#2B2B2B', fontWeight: 400}}>
-                                {formatMinutesToTimeLabel(hour * 60)}
-                            </Typography>
-                        </Box>
-                    ))}
-                </Box>
+                    {getTimeGridMarkers()
+                        .filter((minutes) => minutes % 60 === 0)
+                        .slice(0, -1)
+                        .map((minutes) => (
+                            <Box
+                                key={minutes}
+                                sx={{
+                                    position: 'absolute',
+                                    top: getGridTopFromMinutes(minutes) - 11,
+                                    right: 10,
+                                }}
+                            >
+                                <Typography
+                                    sx={{
+                                        fontSize: '13px',
+                                        color: '#2B2B2B',
+                                        fontWeight: 500,
+                                    }}
+                                >
+                                    {formatMinutesToTimeLabel(minutes)}
+                                </Typography>
+                            </Box>
+                        ))}                </Box>
 
                 <Box
+                    ref={gridRef}
                     sx={{
                         position: 'absolute',
                         top: SCHEDULE_LAYOUT.dayHeaderHeight,
@@ -376,23 +649,58 @@ export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
                                 width: '1px',
                                 height: gridHeight,
                                 bgcolor: 'rgba(68, 68, 68, 0.33)',
+                                pointerEvents: 'none',
                             }}
                         />
                     ))}
 
-                    {scheduleHours.map((hour: number, index: number) => (
+                    {getTimeGridMarkers().map((minutes) => {
+                        const isFullHour = minutes % 60 === 0;
+
+                        return (
+                            <Box
+                                key={`horizontal-${minutes}`}
+                                sx={{
+                                    position: 'absolute',
+                                    top: getGridTopFromMinutes(minutes),
+                                    left: 0,
+                                    width: '100%',
+                                    height: isFullHour ? '1px' : '1px',
+                                    bgcolor: isFullHour
+                                        ? 'rgba(68, 68, 68, 0.36)'
+                                        : 'rgba(68, 68, 68, 0.07)',
+                                    pointerEvents: 'none',
+                                }}
+                            />
+                        );
+                    })}
+
+                    {dropPreview && dragPreview?.hasMoved && (
                         <Box
-                            key={`horizontal-${hour}`}
                             sx={{
                                 position: 'absolute',
-                                top: index * SCHEDULE_LAYOUT.hourRowHeight,
-                                left: 0,
-                                width: '100%',
-                                height: '1px',
-                                bgcolor: 'rgba(68, 68, 68, 0.33)',
+                                top: dropPreview.top,
+                                left: `${(dropPreview.dayIndex / SCHEDULE_LAYOUT.dayCount) * 100}%`,
+                                width: `${100 / SCHEDULE_LAYOUT.dayCount}%`,
+                                height: dropPreview.height,
+                                px: 0.5,
+                                boxSizing: 'border-box',
+                                pointerEvents: 'none',
+                                zIndex: 12,
                             }}
-                        />
-                    ))}
+                        >
+                            <Box
+                                sx={{
+                                    width: '100%',
+                                    height: '100%',
+                                    borderRadius: '8px',
+                                    bgcolor: 'rgba(79, 94, 130, 0.14)',
+                                    border: '2px dashed rgba(79, 94, 130, 0.55)',
+                                    boxSizing: 'border-box',
+                                }}
+                            />
+                        </Box>
+                    )}
 
                     {orderedEntries.map((entry) => {
                         const layout = entryLayouts[entry.id] ?? {
@@ -407,6 +715,8 @@ export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
                                 columnIndex={layout.columnIndex}
                                 columnCount={layout.columnCount}
                                 onClick={handleTileClick}
+                                onPointerDown={handleTilePointerDown}
+                                draggingEntryId={dragPreview?.hasMoved ? dragPreview.entry.id : null}
                             />
                         );
                     })}
@@ -420,17 +730,78 @@ export function WeekScheduleGrid({entries}: WeekScheduleGridProps) {
                                 zIndex: 19,
                             }}
                         >
-                            <Box onClick={(e) => e.stopPropagation()}>
+                            <Box onClick={(event) => event.stopPropagation()}>
                                 <SubjectDetailsPopup
                                     entry={selectedEntry}
                                     details={selectedDetails}
                                     onClose={handleClosePopup}
+                                    onEdit={() => openEditPopup(selectedEntry)}
                                 />
                             </Box>
                         </Box>
                     )}
                 </Box>
             </Box>
+
+            <EditScheduleSessionPopup
+                key={
+                    editEntry && editInitialValues
+                        ? [
+                            editEntry.id,
+                            editInitialValues.dayOfWeek,
+                            editInitialValues.startTime,
+                            editInitialValues.endTime,
+                            editInitialValues.instructorId,
+                            editInitialValues.roomId,
+                        ].join('-')
+                        : 'closed'
+                }
+                open={Boolean(editEntry)}
+                entry={editEntry}
+                initialValues={editInitialValues}
+                instructors={mockedInstructors}
+                rooms={mockedRooms}
+                isSaving={isSavingEdit}
+                onClose={handleCloseEditPopup}
+                onSave={handleEditSave}
+            />
+
+            {dragPreview?.hasMoved && (
+                <Box
+                    sx={{
+                        position: 'fixed',
+                        top: dragPreview.pointerY - dragPreview.offsetY,
+                        left: dragPreview.pointerX - dragPreview.offsetX,
+                        width: dragPreview.width,
+                        height: dragPreview.height,
+                        borderRadius: '8px',
+                        bgcolor: 'rgba(255,255,255,0.92)',
+                        border: '2px solid rgba(79, 94, 130, 0.45)',
+                        boxShadow: '0 18px 40px rgba(20, 30, 55, 0.22)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        px: 1,
+                        zIndex: 9999,
+                        pointerEvents: 'none',
+                        transform: 'scale(1.02)',
+                    }}
+                >
+                    <Typography
+                        sx={{
+                            fontSize: 'clamp(8px, 0.72vw, 11px)',
+                            lineHeight: 1.15,
+                            fontWeight: 600,
+                            color: '#1E1E1E',
+                            textAlign: 'center',
+                            whiteSpace: 'pre-line',
+                            overflowWrap: 'anywhere',
+                        }}
+                    >
+                        {dragPreview.entry.title}
+                    </Typography>
+                </Box>
+            )}
         </Box>
     );
 }

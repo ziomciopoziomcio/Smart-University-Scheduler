@@ -15,6 +15,7 @@ export interface WeekScheduleProps {
     isLoading: boolean;
     onPrevWeek: () => void;
     onNextWeek: () => void;
+    onSessionUpdated?: () => void | Promise<void>;
 }
 
 export interface CourseSessionDetailsResponse {
@@ -67,3 +68,33 @@ export interface ScheduleVersion {
     id: number;
     notifications: ScheduleNotification[];
 }
+
+export type DayOfWeek =
+    | 'MONDAY'
+    | 'TUESDAY'
+    | 'WEDNESDAY'
+    | 'THURSDAY'
+    | 'FRIDAY'
+    | 'SATURDAY'
+    | 'SUNDAY';
+
+export interface UpdateScheduleSessionRequest {
+    dayOfWeek: DayOfWeek;
+    startTime: string;
+    endTime: string;
+    instructorId: number;
+    roomId: number;
+    applyOnce: boolean;
+}
+
+export type ScheduleEditInstructorOption = {
+    id: number;
+    name: string;
+};
+
+export type ScheduleEditRoomOption = {
+    id: number;
+    name: string;
+    building?: string;
+    campus?: string;
+};
