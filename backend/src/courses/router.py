@@ -714,108 +714,6 @@ def delete_course_instructor(
     return None
 
 
-# Course
-@router.post(
-    "/", response_model=schemas.CourseRead, status_code=status.HTTP_201_CREATED
-)
-def create_course(
-    payload: schemas.CourseCreate,
-    db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(require_permission("course:create")),
-):
-    obj = models.Course(**payload.model_dump())
-    db.add(obj)
-    _commit_or_rollback(db)
-    db.refresh(obj)
-    return obj
-
-
-@router.get("/", response_model=PaginatedResponse[schemas.CourseRead])
-def list_courses(
-    course_name: str | None = Query(None, min_length=1),
-    course_language: models.CourseLanguage | None = Query(None),
-    leading_unit: int | None = Query(None),
-    course_coordinator: int | None = Query(None),
-    min_ects_points: int | None = Query(None, ge=0),
-    max_ects_points: int | None = Query(None, ge=0),
-    limit: int | None = Query(COURSE_LIMIT, ge=1, le=200),
-    offset: int = Query(0, ge=0),
-    db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(require_permission("courses:view")),
-    search: str | None = Query(None, min_length=1),
-):
-    query = db.query(models.Course)
-    count_query = db.query(models.Course.course_code)
-
-    filters = []
-    if course_name is not None:
-        filters.append(models.Course.course_name.ilike(f"%{course_name}%"))
-    if course_language is not None:
-        filters.append(models.Course.course_language == course_language)
-    if leading_unit is not None:
-        filters.append(models.Course.leading_unit == leading_unit)
-    if course_coordinator is not None:
-        filters.append(models.Course.course_coordinator == course_coordinator)
-    if min_ects_points is not None:
-        filters.append(models.Course.ects_points >= min_ects_points)
-    if max_ects_points is not None:
-        filters.append(models.Course.ects_points <= max_ects_points)
-
-    query, count_query = apply_filters_to_queries(query, count_query, filters)
-
-    query, count_query = apply_search_to_queries(
-        search, query, count_query, [models.Course.course_name]
-    )
-
-    pagination_result = paginate(
-        query,
-        limit,
-        offset,
-        order_by=models.Course.course_code,
-        count_query=count_query,
-    )
-
-    return pagination_result
-
-
-@router.get("/{course_code}", response_model=schemas.CourseRead)
-def get_course(
-    course_code: int,
-    db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(require_permission("course:view")),
-):
-    return _get_or_404(db, models.Course, course_code, "Course")
-
-
-@router.patch("/{course_code}", response_model=schemas.CourseRead)
-def update_course(
-    course_code: int,
-    payload: schemas.CourseUpdate,
-    db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(require_permission("course:update")),
-):
-    obj = _get_or_404(db, models.Course, course_code, "Course")
-    _apply_patch_or_reject_nulls(
-        obj, payload, nullable_fields={"major", "elective_block"}
-    )
-    db.add(obj)
-    _commit_or_rollback(db)
-    db.refresh(obj)
-    return obj
-
-
-@router.delete("/{course_code}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_course(
-    course_code: int,
-    db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(require_permission("course:delete")),
-):
-    obj = _get_or_404(db, models.Course, course_code, "Course")
-    db.delete(obj)
-    _commit_or_rollback(db)
-    return None
-
-
 # Study Programs
 @router.post(
     "/study-programs",
@@ -1050,6 +948,108 @@ def delete_curriculum(
         course=course,
         semester=semester,
     )
+    db.delete(obj)
+    _commit_or_rollback(db)
+    return None
+
+
+# Course
+@router.post(
+    "/", response_model=schemas.CourseRead, status_code=status.HTTP_201_CREATED
+)
+def create_course(
+    payload: schemas.CourseCreate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("course:create")),
+):
+    obj = models.Course(**payload.model_dump())
+    db.add(obj)
+    _commit_or_rollback(db)
+    db.refresh(obj)
+    return obj
+
+
+@router.get("/", response_model=PaginatedResponse[schemas.CourseRead])
+def list_courses(
+    course_name: str | None = Query(None, min_length=1),
+    course_language: models.CourseLanguage | None = Query(None),
+    leading_unit: int | None = Query(None),
+    course_coordinator: int | None = Query(None),
+    min_ects_points: int | None = Query(None, ge=0),
+    max_ects_points: int | None = Query(None, ge=0),
+    limit: int | None = Query(COURSE_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("courses:view")),
+    search: str | None = Query(None, min_length=1),
+):
+    query = db.query(models.Course)
+    count_query = db.query(models.Course.course_code)
+
+    filters = []
+    if course_name is not None:
+        filters.append(models.Course.course_name.ilike(f"%{course_name}%"))
+    if course_language is not None:
+        filters.append(models.Course.course_language == course_language)
+    if leading_unit is not None:
+        filters.append(models.Course.leading_unit == leading_unit)
+    if course_coordinator is not None:
+        filters.append(models.Course.course_coordinator == course_coordinator)
+    if min_ects_points is not None:
+        filters.append(models.Course.ects_points >= min_ects_points)
+    if max_ects_points is not None:
+        filters.append(models.Course.ects_points <= max_ects_points)
+
+    query, count_query = apply_filters_to_queries(query, count_query, filters)
+
+    query, count_query = apply_search_to_queries(
+        search, query, count_query, [models.Course.course_name]
+    )
+
+    pagination_result = paginate(
+        query,
+        limit,
+        offset,
+        order_by=models.Course.course_code,
+        count_query=count_query,
+    )
+
+    return pagination_result
+
+
+@router.get("/{course_code}", response_model=schemas.CourseRead)
+def get_course(
+    course_code: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("course:view")),
+):
+    return _get_or_404(db, models.Course, course_code, "Course")
+
+
+@router.patch("/{course_code}", response_model=schemas.CourseRead)
+def update_course(
+    course_code: int,
+    payload: schemas.CourseUpdate,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("course:update")),
+):
+    obj = _get_or_404(db, models.Course, course_code, "Course")
+    _apply_patch_or_reject_nulls(
+        obj, payload, nullable_fields={"major", "elective_block"}
+    )
+    db.add(obj)
+    _commit_or_rollback(db)
+    db.refresh(obj)
+    return obj
+
+
+@router.delete("/{course_code}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_course(
+    course_code: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("course:delete")),
+):
+    obj = _get_or_404(db, models.Course, course_code, "Course")
     db.delete(obj)
     _commit_or_rollback(db)
     return None
