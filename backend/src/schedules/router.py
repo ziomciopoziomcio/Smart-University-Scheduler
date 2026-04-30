@@ -627,3 +627,56 @@ async def get_study_field_plan(
     )
 
     return _map_schedule_entries(await result.data())
+
+
+def _get_student_group_ids(db: Session, student_id: int) -> list[int]:
+    """
+    Fetches all group IDs that a student belongs to based on the Group_members model.
+    """
+    records = (
+        db.query(ac_mod.Group_members.group)
+        .filter(ac_mod.Group_members.student == student_id)
+        .all()
+    )
+    return [int(r[0]) for r in records]
+
+
+@router.get("/student-plan", response_model=list[schemas.ScheduleEntry])
+async def get_student_plan(
+    student_id: int = Query(..., description="ID of the student"),
+    start_date: date = Query(
+        ...,
+        description="Starting date of the week (must be a Monday, format: YYYY-MM-DD)",
+    ),
+    db: Session = Depends(get_db),
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(require_permission("schedule:view")),
+):
+    """
+    Get the schedule plan for a specific student for a given week.
+    The response covers the entire work week (Monday-Friday).
+    """
+    if start_date.weekday() != 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="start_date must be a Monday.",
+        )
+
+    day_configs = _get_academic_day_configs(db, start_date)
+    if not day_configs:
+        return []
+
+    group_ids = _get_student_group_ids(db, student_id)
+
+    if not group_ids:
+        return []
+
+    result = await neo4j_session.run(
+        STUDY_FIELD_PLAN_ACADEMIC_QUERY,
+        group_ids=group_ids,
+        day_configs=day_configs,
+    )
+
+    records = await result.data()
+
+    return _map_schedule_entries(records)
