@@ -276,6 +276,20 @@
       "exercise": "Ćwiczenia",
       "project": "Projekt",
       "seminar": "Seminarium"
+    },
+    "edit": {
+      "title": "Edytuj zajęcia",
+      "dayOfWeek": "Dzień tygodnia",
+      "startTime": "Godzina rozpoczęcia",
+      "endTime": "Godzina zakończenia",
+      "instructor": "Prowadzący",
+      "room": "Sala",
+      "applyOnce": "Zastosuj tylko jednorazowo",
+      "conflict": "Ta zmiana powoduje konflikt w planie.",
+      "error": "Nie udało się zaktualizować zajęć."
+    },
+    "details": {
+      "edit": "Edytuj"
     }
   },
   "academics": {

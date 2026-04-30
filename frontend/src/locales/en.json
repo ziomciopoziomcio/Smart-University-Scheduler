@@ -276,6 +276,22 @@
       "exercise": "Classes",
       "project": "Project",
       "seminar": "Seminar"
+    },
+    "schedule": {
+      "edit": {
+        "title": "Edit schedule session",
+        "dayOfWeek": "Day of week",
+        "startTime": "Start time",
+        "endTime": "End time",
+        "instructor": "Instructor",
+        "room": "Room",
+        "applyOnce": "Apply only once",
+        "conflict": "This change creates a schedule conflict.",
+        "error": "Failed to update schedule session."
+      },
+      "details": {
+        "edit": "Edit"
+      }
     }
   },
   "academics": {
