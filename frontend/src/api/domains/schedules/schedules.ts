@@ -18,7 +18,7 @@ export const fetchCourseSessionDetails = async (
 };
 
 export const generateSchedule = async (): Promise<ScheduleVersion> => {
-    const response = await fetch(`${SCHEDULES_URL}/generate`, {
+    const response = await fetch(`/optimize/run`, {
         method: 'POST',
         headers: getHeaders(),
     });

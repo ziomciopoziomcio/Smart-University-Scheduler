@@ -53,8 +53,8 @@ export default function GenerateSchedulePage() {
 
         try {
             // TODO WHEN READY:
-            // const generatedSchedule = await generateSchedule();
-            const generatedSchedule = await Promise.resolve({id: mockedGeneratedScheduleResult.id});
+            const generatedSchedule = await generateSchedule();
+            // const generatedSchedule = await Promise.resolve({id: mockedGeneratedScheduleResult.id});
 
             await sleep(3000);
 
