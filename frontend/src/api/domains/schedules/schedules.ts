@@ -1,6 +1,9 @@
-import {getHeaders, SCHEDULES_URL} from '@api/core';
-import {
-    type CourseSessionDetailsResponse, type ScheduleVersion, type UpdateScheduleSessionRequest
+import {BASE_URL, getHeaders, SCHEDULES_URL} from '@api/core';
+
+import type {
+    CourseSessionDetailsResponse,
+    ScheduleVersion,
+    UpdateScheduleSessionRequest,
 } from './types';
 
 export const fetchCourseSessionDetails = async (
@@ -17,10 +20,19 @@ export const fetchCourseSessionDetails = async (
     return response.json();
 };
 
-export const generateSchedule = async (): Promise<ScheduleVersion> => {
-    const response = await fetch(`/optimize/run`, {
+export interface GenerateScheduleRequest {
+    faculty_id?: number;
+}
+
+export const generateSchedule = async (
+    payload?: GenerateScheduleRequest,
+): Promise<ScheduleVersion> => {
+    const response = await fetch(`${BASE_URL}/optimize/run`, {
         method: 'POST',
         headers: getHeaders(),
+        body: payload?.faculty_id
+            ? JSON.stringify({faculty_id: payload.faculty_id})
+            : undefined,
     });
 
     if (!response.ok) {
@@ -30,7 +42,7 @@ export const generateSchedule = async (): Promise<ScheduleVersion> => {
     return response.json();
 };
 
-//TODO: IT DOES NOT WORK
+// TODO: IT DOES NOT WORK
 // https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/223
 
 export const updateScheduleSession = async (
