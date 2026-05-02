@@ -1,6 +1,6 @@
 import uuid
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 
 from src.common.kafka_client import send_event
 from . import schemas
@@ -18,7 +18,7 @@ router = APIRouter(prefix="/optimize", tags=["optimization"])
 )
 async def trigger_optimization(
     payload: schemas.OptimizationRequest | None = None,
-    faculty_id: int | None = None,
+    faculty_id: int | None = Query(None, gt=0),
     _current_user=Depends(require_permission("optimization:run")),
 ):
     """
