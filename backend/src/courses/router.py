@@ -1086,9 +1086,8 @@ def list_curriculum(
             )
         )
 
-    return pagination.PaginatedResponse(
-        items=items, total=paginated.total, limit=limit, offset=offset
-    )
+    paginated.items = items
+    return paginated
 
 
 @router.get(
