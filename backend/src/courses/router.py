@@ -770,7 +770,7 @@ def list_study_programs(
     query = db.query(
         models.Study_program, func.coalesce(semesters_sq, 0).label("semesters_count")
     )
-    count_query = db.query(func.count(models.Study_program.id))
+    count_query = db.query(models.Study_program.id)
 
     if study_field is not None:
         filter_stmt = models.Study_program.study_field == study_field
