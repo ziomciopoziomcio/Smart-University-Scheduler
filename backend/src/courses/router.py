@@ -905,6 +905,8 @@ def get_program_semester_summary(
     ),
 ):
 
+    _get_or_404(db, models.Study_program, program_id, "Study Program")
+
     max_sem = (
         db.query(func.coalesce(func.max(models.Curriculum_course.semester), 0))
         .filter(models.Curriculum_course.study_program == program_id)
