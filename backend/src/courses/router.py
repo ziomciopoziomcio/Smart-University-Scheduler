@@ -846,11 +846,7 @@ def get_study_program(
             status_code=status.HTTP_404_NOT_FOUND, detail="StudyProgram not found"
         )
 
-    max_sem = (
-        db.query(func.coalesce(func.max(models.Curriculum_course.semester), 0))
-        .filter(models.Curriculum_course.study_program == program_id)
-        .scalar()
-    ) or 0
+    max_sem = int(row.semesters_count or 0)
 
     rows = (
         db.query(
