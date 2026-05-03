@@ -176,7 +176,7 @@ class StudyProgramCreate(StudyProgramBase):
 class StudyProgramRead(StudyProgramBase):
     id: int
     semesters_count: int = 0
-    semester_summary: list[SemesterSummary] = []
+    semester_summary: list["SemesterSummary"] = []
 
 
 class StudyProgramUpdate(StudyProgramBase):
