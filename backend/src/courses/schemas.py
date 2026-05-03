@@ -40,6 +40,7 @@ class StudyFieldListSummary(StudyFieldRead):
     semesters_count: int
     specializations_count: int
     elective_blocks_count: int
+    programs_count: int
 
 
 # Major
@@ -174,6 +175,8 @@ class StudyProgramCreate(StudyProgramBase):
 
 class StudyProgramRead(StudyProgramBase):
     id: int
+    semesters_count: int = 0
+    semester_summary: list[SemesterSummary] = []
 
 
 class StudyProgramUpdate(StudyProgramBase):
@@ -218,3 +221,21 @@ class CurriculumCourseUpdate(BaseModel):
                 "Course cannot belong to both a major and an elective block"
             )
         return self
+
+
+class CourseSummary(BaseSchema):
+    course_code: int
+    course_name: str
+    ects_points: int
+
+
+class CurriculumCourseNested(CurriculumCourseRead):
+    course_details: CourseSummary
+    major_details: Optional[MajorRead] = None
+    elective_block_details: Optional[ElectiveBlockRead] = None
+
+
+class SemesterSummary(BaseSchema):
+    semester_number: int
+    courses_count: int
+    ects_sum: int
