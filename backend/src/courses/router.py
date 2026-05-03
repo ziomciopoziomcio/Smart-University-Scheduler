@@ -1042,12 +1042,6 @@ def list_curriculum(
     if elective_block is not None:
         q = q.filter(models.Curriculum_course.elective_block == elective_block)
 
-    q = q.order_by(
-        models.Curriculum_course.study_program,
-        models.Curriculum_course.course,
-        models.Curriculum_course.semester,
-    )
-
     paginated = paginate(
         q,
         limit,
