@@ -2,6 +2,8 @@
 Data validation schemas
 """
 
+from __future__ import annotations
+
 from typing import Optional, Annotated
 
 from pydantic import BaseModel, model_validator, Field, StringConstraints, ConfigDict
@@ -176,7 +178,7 @@ class StudyProgramCreate(StudyProgramBase):
 class StudyProgramRead(StudyProgramBase):
     id: int
     semesters_count: int = 0
-    semester_summary: list["SemesterSummary"] = []
+    semester_summary: list["SemesterSummary"] = Field(default_factory=list)
 
 
 class StudyProgramUpdate(StudyProgramBase):
