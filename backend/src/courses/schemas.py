@@ -177,8 +177,11 @@ class StudyProgramCreate(StudyProgramBase):
 
 class StudyProgramRead(StudyProgramBase):
     id: int
-    semesters_count: int = 0
-    semester_summary: list["SemesterSummary"] = Field(default_factory=list)
+
+
+class StudyProgramDetailRead(StudyProgramRead):
+    semesters_count: int
+    semester_summary: list["SemesterSummary"]
 
 
 class StudyProgramUpdate(StudyProgramBase):
