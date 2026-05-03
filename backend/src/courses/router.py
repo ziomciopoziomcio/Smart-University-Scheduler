@@ -1008,6 +1008,11 @@ def list_curriculum(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("curriculums:view")),
 ):
+    groups_subq = (
+        db.query(func.count(ac_models.Groups.id))
+        .filter(ac_models.Groups.major == models.Major.id)
+        .scalar_subquery()
+    )
 
     q = (
         db.query(
@@ -1015,6 +1020,7 @@ def list_curriculum(
             models.Course,
             models.Major,
             models.Elective_block,
+            func.coalesce(groups_subq, 0).label("major_group_count"),
         )
         .join(
             models.Course, models.Curriculum_course.course == models.Course.course_code
@@ -1050,7 +1056,7 @@ def list_curriculum(
 
     items = []
     for row in paginated.items:
-        cc, course_obj, major_obj, block_obj = row
+        cc, course_obj, major_obj, block_obj, major_group_count = row
         items.append(
             schemas.CurriculumCourseNested(
                 study_program=cc.study_program,
@@ -1068,7 +1074,7 @@ def list_curriculum(
                         id=major_obj.id,
                         study_field=major_obj.study_field,
                         major_name=major_obj.major_name,
-                        group_count=0,
+                        group_count=major_group_count,
                     )
                     if major_obj
                     else None
@@ -1100,16 +1106,21 @@ def get_curriculum_course(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("curriculum:view")),
 ):
+    groups_subq = (
+        db.query(func.count(ac_models.Groups.id))
+        .filter(ac_models.Groups.major == models.Major.id)
+        .scalar_subquery()
+    )
+
     row = (
         db.query(
             models.Curriculum_course,
             models.Course,
             models.Major,
             models.Elective_block,
+            func.coalesce(groups_subq, 0).label("major_group_count"),
         )
-        .join(
-            models.Course, models.Curriculum_course.course == models.Course.course_code
-        )
+        .join(models.Course, models.Curriculum_course.course == models.Course.id)
         .outerjoin(models.Major, models.Curriculum_course.major == models.Major.id)
         .outerjoin(
             models.Elective_block,
@@ -1128,7 +1139,7 @@ def get_curriculum_course(
             status_code=status.HTTP_404_NOT_FOUND, detail="Curriculum course not found"
         )
 
-    cc, course_obj, major_obj, block_obj = row
+    cc, course_obj, major_obj, block_obj, major_group_count = row
     return schemas.CurriculumCourseNested(
         study_program=cc.study_program,
         course=cc.course,
@@ -1145,7 +1156,7 @@ def get_curriculum_course(
                 id=major_obj.id,
                 study_field=major_obj.study_field,
                 major_name=major_obj.major_name,
-                group_count=0,
+                group_count=major_group_count,
             )
             if major_obj
             else None
