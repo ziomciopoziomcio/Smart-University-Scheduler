@@ -22,22 +22,14 @@ import {
     getFaculty,
     fetchElectiveBlocks,
     fetchStudyPlanGroupsSummary,
-    getStudyField
+    getStudyField, fetchStudyFieldPlan
 } from '@api';
 
 import {WeekSchedule} from '@components/Schedule/WeekSchedule';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
-import {getMockStudyPlanScheduleEntries} from '../../mocks/studyPlansMock';
 
-//https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/115
-// ---------------------------------------------------------------------------
-// TODO: Replace with backend API call
-const fetchStudentScheduleFromApi = async (params: any): Promise<ScheduleEntry[]> => {
-    await new Promise(resolve => setTimeout(resolve, 600));
-    return getMockStudyPlanScheduleEntries(params);
-};
-// ---------------------------------------------------------------------------
+//https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/237
 
 export default function StudentSchedulePage() {
     const intl = useIntl();
@@ -90,7 +82,7 @@ export default function StudentSchedulePage() {
             if (!fieldOfStudyId || !semesterId) return;
 
             try {
-                const res = await fetchElectiveBlocks(1, 100, {
+                const res = await fetchElectiveBlocks(1, 100, undefined, {
                     study_field: Number(fieldOfStudyId),
                     semester: Number(semesterId),
                 });
@@ -157,16 +149,14 @@ export default function StudentSchedulePage() {
             setIsScheduleLoading(true);
 
             try {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const params: any = {
-                    fieldOfStudyId: fieldOfStudyId!,
-                    semesterId: semesterId!,
-                    specializationId: specializationId || null,
-                    groupId: groupId || null,
-                    electiveBlockId: null
-                };
-
-                const res = await fetchStudentScheduleFromApi(params);
+                const res = await fetchStudyFieldPlan({
+                    startDate: toIsoDate(currentWeekStart),
+                    studyProgram: Number(fieldOfStudyId), //TODO: BACKEND SHOULD DELETE IT
+                    studyField: Number(fieldOfStudyId),
+                    semester: Number(semesterId),
+                    specializationId: specializationId ? Number(specializationId) : null,
+                    groupIds: groupId ? [Number(groupId)] : undefined,
+                });
 
                 const startIso = toIsoDate(currentWeekStart);
                 const endIso = toIsoDate(addDays(currentWeekStart, 6));

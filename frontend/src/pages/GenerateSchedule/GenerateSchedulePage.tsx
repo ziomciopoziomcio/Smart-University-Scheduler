@@ -18,7 +18,6 @@ import {
 import {useAuthStore} from '@store/useAuthStore';
 
 // TODO: WHEN BACKEND WILL BE CREATED, PUT IT IN API AND DELETE MOCKS
-//https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/195
 //// https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/188
 
 const mockedGeneratedScheduleResult: ScheduleVersion = {

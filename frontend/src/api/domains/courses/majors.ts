@@ -4,12 +4,12 @@ import type {Major, MajorCreate, MajorUpdate} from './types';
 export const fetchMajors = async (
     page = 1,
     limit = 10,
-    search?: string,
     filters: {
         study_field?: number;
         major_name?: string;
         semester?: number;
     } = {},
+    search?: string
 ): Promise<PaginatedResponse<Major>> => {
     const offset = (page - 1) * limit;
     const query = new URLSearchParams({
