@@ -725,6 +725,49 @@ def delete_course_instructor(
 
 
 # Study Programs
+def _get_semester_summary(
+    db: Session, program_id: int, max_sem: int | None = None
+) -> list[schemas.SemesterSummary]:
+    if max_sem is None:
+        max_sem = (
+            db.query(func.coalesce(func.max(models.Curriculum_course.semester), 0))
+            .filter(models.Curriculum_course.study_program == program_id)
+            .scalar()
+        ) or 0
+
+    rows = (
+        db.query(
+            models.Curriculum_course.semester.label("semester"),
+            func.count(models.Curriculum_course.course).label("courses_count"),
+            func.coalesce(func.sum(models.Course.ects_points), 0).label("ects_sum"),
+        )
+        .join(
+            models.Course, models.Curriculum_course.course == models.Course.course_code
+        )
+        .filter(models.Curriculum_course.study_program == program_id)
+        .group_by(models.Curriculum_course.semester)
+        .order_by(models.Curriculum_course.semester)
+        .all()
+    )
+
+    per_sem = {
+        r.semester: {"courses_count": r.courses_count, "ects_sum": r.ects_sum or 0}
+        for r in rows
+    }
+
+    semester_summary = []
+    for s in range(1, (max_sem or 0) + 1):
+        entry = per_sem.get(s, {"courses_count": 0, "ects_sum": 0})
+        semester_summary.append(
+            schemas.SemesterSummary(
+                semester_number=s,
+                courses_count=entry["courses_count"],
+                ects_sum=entry["ects_sum"],
+            )
+        )
+    return semester_summary
+
+
 @router.post(
     "/study-programs",
     response_model=schemas.StudyProgramRead,
@@ -746,7 +789,7 @@ def create_study_program(
 
 @router.get(
     "/study-programs",
-    response_model=PaginatedResponse[schemas.StudyProgramRead],
+    response_model=PaginatedResponse[schemas.StudyProgramDetailRead],
 )
 def list_study_programs(
     study_field: int | None = Query(None),
@@ -802,21 +845,27 @@ def list_study_programs(
         count_query=count_query,
     )
 
-    pagination_result.items = [
-        schemas.StudyProgramRead(
-            id=row.Study_program.id,
-            study_field=row.Study_program.study_field,
-            start_year=row.Study_program.start_year,
-            program_name=row.Study_program.program_name,
-            semesters_count=row.semesters_count or 0,
+    items = []
+    for row in pagination_result.items:
+        study_program_obj, semesters_count = row
+        items.append(
+            schemas.StudyProgramDetailRead(
+                id=study_program_obj.id,
+                study_field=study_program_obj.study_field,
+                start_year=study_program_obj.start_year,
+                program_name=study_program_obj.program_name,
+                semesters_count=semesters_count or 0,
+                semester_summary=[],
+            )
         )
-        for row in pagination_result.items
-    ]
+    pagination_result.items = items
 
     return pagination_result
 
 
-@router.get("/study-programs/{program_id}", response_model=schemas.StudyProgramRead)
+@router.get(
+    "/study-programs/{program_id}", response_model=schemas.StudyProgramDetailRead
+)
 def get_study_program(
     program_id: int,
     db: Session = Depends(get_db),
@@ -824,7 +873,6 @@ def get_study_program(
         require_permission("study-program:view")
     ),
 ):
-
     semesters_sq = (
         db.query(func.max(models.Curriculum_course.semester))
         .filter(models.Curriculum_course.study_program == models.Study_program.id)
@@ -846,39 +894,9 @@ def get_study_program(
         )
 
     max_sem = int(row.semesters_count or 0)
+    semester_summary = _get_semester_summary(db, program_id, max_sem)
 
-    rows = (
-        db.query(
-            models.Curriculum_course.semester.label("semester"),
-            func.count(models.Curriculum_course.course).label("courses_count"),
-            func.coalesce(func.sum(models.Course.ects_points), 0).label("ects_sum"),
-        )
-        .join(
-            models.Course, models.Curriculum_course.course == models.Course.course_code
-        )
-        .filter(models.Curriculum_course.study_program == program_id)
-        .group_by(models.Curriculum_course.semester)
-        .order_by(models.Curriculum_course.semester)
-        .all()
-    )
-
-    per_sem = {
-        r.semester: {"courses_count": r.courses_count, "ects_sum": r.ects_sum or 0}
-        for r in rows
-    }
-
-    semester_summary = []
-    for s in range(1, (max_sem or 0) + 1):
-        entry = per_sem.get(s, {"courses_count": 0, "ects_sum": 0})
-        semester_summary.append(
-            schemas.SemesterSummary(
-                semester_number=s,
-                courses_count=entry["courses_count"],
-                ects_sum=entry["ects_sum"],
-            )
-        )
-
-    return schemas.StudyProgramRead(
+    return schemas.StudyProgramDetailRead(
         id=row.Study_program.id,
         study_field=row.Study_program.study_field,
         start_year=row.Study_program.start_year,
@@ -899,50 +917,8 @@ def get_program_semester_summary(
         require_permission("study-program:view")
     ),
 ):
-
     _get_or_404(db, models.Study_program, program_id, "Study Program")
-
-    max_sem = (
-        db.query(func.coalesce(func.max(models.Curriculum_course.semester), 0))
-        .filter(models.Curriculum_course.study_program == program_id)
-        .scalar()
-    ) or 0
-
-    rows = (
-        db.query(
-            models.Curriculum_course.semester.label("semester"),
-            func.count(models.Curriculum_course.course).label("courses_count"),
-            func.coalesce(func.sum(models.Course.ects_points), 0).label("ects_sum"),
-        )
-        .join(
-            models.Course, models.Curriculum_course.course == models.Course.course_code
-        )
-        .filter(models.Curriculum_course.study_program == program_id)
-        .group_by(models.Curriculum_course.semester)
-        .order_by(models.Curriculum_course.semester)
-        .all()
-    )
-
-    per_sem = {
-        row.semester: {
-            "courses_count": row.courses_count,
-            "ects_sum": row.ects_sum or 0,
-        }
-        for row in rows
-    }
-
-    result = []
-    for s in range(1, max_sem + 1):
-        entry = per_sem.get(s, {"courses_count": 0, "ects_sum": 0})
-        result.append(
-            schemas.SemesterSummary(
-                semester_number=s,
-                courses_count=entry["courses_count"],
-                ects_sum=entry["ects_sum"],
-            )
-        )
-
-    return result
+    return _get_semester_summary(db, program_id)
 
 
 @router.patch("/study-programs/{program_id}", response_model=schemas.StudyProgramRead)
@@ -1120,7 +1096,9 @@ def get_curriculum_course(
             models.Elective_block,
             func.coalesce(groups_subq, 0).label("major_group_count"),
         )
-        .join(models.Course, models.Curriculum_course.course == models.Course.id)
+        .join(
+            models.Course, models.Curriculum_course.course == models.Course.course_code
+        )
         .outerjoin(models.Major, models.Curriculum_course.major == models.Major.id)
         .outerjoin(
             models.Elective_block,

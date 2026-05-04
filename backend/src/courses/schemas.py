@@ -181,7 +181,7 @@ class StudyProgramRead(StudyProgramBase):
 
 class StudyProgramDetailRead(StudyProgramRead):
     semesters_count: int
-    semester_summary: list["SemesterSummary"]
+    semester_summary: list["SemesterSummary"] = Field(default_factory=list)
 
 
 class StudyProgramUpdate(StudyProgramBase):
