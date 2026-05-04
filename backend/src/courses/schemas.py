@@ -2,6 +2,8 @@
 Data validation schemas
 """
 
+from __future__ import annotations
+
 from typing import Optional, Annotated
 
 from pydantic import BaseModel, model_validator, Field, StringConstraints, ConfigDict
@@ -40,6 +42,7 @@ class StudyFieldListSummary(StudyFieldRead):
     semesters_count: int
     specializations_count: int
     elective_blocks_count: int
+    programs_count: int
 
 
 # Major
@@ -176,6 +179,11 @@ class StudyProgramRead(StudyProgramBase):
     id: int
 
 
+class StudyProgramDetailRead(StudyProgramRead):
+    semesters_count: int
+    semester_summary: list["SemesterSummary"] = Field(default_factory=list)
+
+
 class StudyProgramUpdate(StudyProgramBase):
     study_field: Optional[int] = None
     start_year: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
@@ -218,3 +226,21 @@ class CurriculumCourseUpdate(BaseModel):
                 "Course cannot belong to both a major and an elective block"
             )
         return self
+
+
+class CourseSummary(BaseSchema):
+    course_code: int
+    course_name: str
+    ects_points: int
+
+
+class CurriculumCourseNested(CurriculumCourseRead):
+    course_details: CourseSummary
+    major_details: MajorRead | None = None
+    elective_block_details: ElectiveBlockRead | None = None
+
+
+class SemesterSummary(BaseSchema):
+    semester_number: int
+    courses_count: int
+    ects_sum: int

@@ -69,6 +69,12 @@ def list_study_fields(
         .scalar_subquery()
     )
 
+    programs_sq = (
+        db.query(func.count(models.Study_program.id))
+        .filter(models.Study_program.study_field == models.Study_fields.id)
+        .scalar_subquery()
+    )
+
     query = (
         db.query(
             models.Study_fields.id,
@@ -79,6 +85,7 @@ def list_study_fields(
             func.count(func.distinct(models.Major.id)).label("specializations_count"),
             func.max(models.Curriculum_course.semester).label("semesters_count"),
             elective_blocks_sq.label("elective_blocks_count"),
+            func.coalesce(programs_sq, 0).label("programs_count"),
         )
         .outerjoin(models.Major, models.Study_fields.id == models.Major.study_field)
         .outerjoin(
@@ -95,6 +102,8 @@ def list_study_fields(
             models.Study_fields.field_name,
             models.Study_fields.language,
             models.Study_fields.mode,
+            elective_blocks_sq,
+            programs_sq,
         )
     )
     count_query = db.query(models.Study_fields.id)
@@ -138,6 +147,7 @@ def list_study_fields(
             semesters_count=row.semesters_count or 0,
             specializations_count=row.specializations_count or 0,
             elective_blocks_count=row.elective_blocks_count or 0,
+            programs_count=row.programs_count or 0,
         )
         for row in pagination_result.items
     ]
@@ -715,6 +725,49 @@ def delete_course_instructor(
 
 
 # Study Programs
+def _get_semester_summary(
+    db: Session, program_id: int, max_sem: int | None = None
+) -> list[schemas.SemesterSummary]:
+    if max_sem is None:
+        max_sem = (
+            db.query(func.coalesce(func.max(models.Curriculum_course.semester), 0))
+            .filter(models.Curriculum_course.study_program == program_id)
+            .scalar()
+        ) or 0
+
+    rows = (
+        db.query(
+            models.Curriculum_course.semester.label("semester"),
+            func.count(models.Curriculum_course.course).label("courses_count"),
+            func.coalesce(func.sum(models.Course.ects_points), 0).label("ects_sum"),
+        )
+        .join(
+            models.Course, models.Curriculum_course.course == models.Course.course_code
+        )
+        .filter(models.Curriculum_course.study_program == program_id)
+        .group_by(models.Curriculum_course.semester)
+        .order_by(models.Curriculum_course.semester)
+        .all()
+    )
+
+    per_sem = {
+        r.semester: {"courses_count": r.courses_count, "ects_sum": r.ects_sum or 0}
+        for r in rows
+    }
+
+    semester_summary = []
+    for s in range(1, (max_sem or 0) + 1):
+        entry = per_sem.get(s, {"courses_count": 0, "ects_sum": 0})
+        semester_summary.append(
+            schemas.SemesterSummary(
+                semester_number=s,
+                courses_count=entry["courses_count"],
+                ects_sum=entry["ects_sum"],
+            )
+        )
+    return semester_summary
+
+
 @router.post(
     "/study-programs",
     response_model=schemas.StudyProgramRead,
@@ -736,7 +789,7 @@ def create_study_program(
 
 @router.get(
     "/study-programs",
-    response_model=PaginatedResponse[schemas.StudyProgramRead],
+    response_model=PaginatedResponse[schemas.StudyProgramDetailRead],
 )
 def list_study_programs(
     study_field: int | None = Query(None),
@@ -750,16 +803,28 @@ def list_study_programs(
     ),
     search: str | None = Query(None, min_length=1),
 ):
-    query = db.query(models.Study_program)
+    semesters_sq = (
+        db.query(func.max(models.Curriculum_course.semester))
+        .filter(models.Curriculum_course.study_program == models.Study_program.id)
+        .scalar_subquery()
+    )
+
+    query = db.query(
+        models.Study_program, func.coalesce(semesters_sq, 0).label("semesters_count")
+    )
+    count_query = db.query(models.Study_program.id)
 
     if study_field is not None:
-        query = query.filter(models.Study_program.study_field == study_field)
+        filter_stmt = models.Study_program.study_field == study_field
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
     if start_year is not None:
-        query = query.filter(models.Study_program.start_year.ilike(f"%{start_year}%"))
+        f = models.Study_program.start_year.ilike(f"%{start_year}%")
+        query, count_query = query.filter(f), count_query.filter(f)
     if program_name is not None:
-        query = query.filter(
-            models.Study_program.program_name.ilike(f"%{program_name}%")
-        )
+        f = models.Study_program.program_name.ilike(f"%{program_name}%")
+        query, count_query = query.filter(f), count_query.filter(f)
+
     if search:
         f = build_ilike_search_filter(
             search,
@@ -770,11 +835,37 @@ def list_study_programs(
         )
         if f is not None:
             query = query.filter(f)
+            count_query = count_query.filter(f)
 
-    return paginate(query, limit, offset, models.Study_program.id)
+    pagination_result = paginate(
+        query,
+        limit,
+        offset,
+        order_by=models.Study_program.id,
+        count_query=count_query,
+    )
+
+    items = []
+    for row in pagination_result.items:
+        study_program_obj, semesters_count = row
+        items.append(
+            schemas.StudyProgramDetailRead(
+                id=study_program_obj.id,
+                study_field=study_program_obj.study_field,
+                start_year=study_program_obj.start_year,
+                program_name=study_program_obj.program_name,
+                semesters_count=semesters_count or 0,
+                semester_summary=[],
+            )
+        )
+    pagination_result.items = items
+
+    return pagination_result
 
 
-@router.get("/study-programs/{program_id}", response_model=schemas.StudyProgramRead)
+@router.get(
+    "/study-programs/{program_id}", response_model=schemas.StudyProgramDetailRead
+)
 def get_study_program(
     program_id: int,
     db: Session = Depends(get_db),
@@ -782,7 +873,52 @@ def get_study_program(
         require_permission("study-program:view")
     ),
 ):
-    return _get_or_404(db, models.Study_program, program_id, "StudyProgram")
+    semesters_sq = (
+        db.query(func.max(models.Curriculum_course.semester))
+        .filter(models.Curriculum_course.study_program == models.Study_program.id)
+        .scalar_subquery()
+    )
+
+    row = (
+        db.query(
+            models.Study_program,
+            func.coalesce(semesters_sq, 0).label("semesters_count"),
+        )
+        .filter(models.Study_program.id == program_id)
+        .first()
+    )
+
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="StudyProgram not found"
+        )
+
+    max_sem = int(row.semesters_count or 0)
+    semester_summary = _get_semester_summary(db, program_id, max_sem)
+
+    return schemas.StudyProgramDetailRead(
+        id=row.Study_program.id,
+        study_field=row.Study_program.study_field,
+        start_year=row.Study_program.start_year,
+        program_name=row.Study_program.program_name,
+        semesters_count=row.semesters_count or 0,
+        semester_summary=semester_summary,
+    )
+
+
+@router.get(
+    "/study-programs/{program_id}/semester-summary",
+    response_model=list[schemas.SemesterSummary],
+)
+def get_program_semester_summary(
+    program_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("study-program:view")
+    ),
+):
+    _get_or_404(db, models.Study_program, program_id, "Study Program")
+    return _get_semester_summary(db, program_id)
 
 
 @router.patch("/study-programs/{program_id}", response_model=schemas.StudyProgramRead)
@@ -835,7 +971,7 @@ def create_curriculum_course(
 
 
 @router.get(
-    "/curriculum", response_model=PaginatedResponse[schemas.CurriculumCourseRead]
+    "/curriculum", response_model=PaginatedResponse[schemas.CurriculumCourseNested]
 )
 def list_curriculum(
     study_program: int | None = Query(None),
@@ -848,27 +984,43 @@ def list_curriculum(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("curriculums:view")),
 ):
-    query = db.query(models.Curriculum_course)
-
-    if study_program is not None:
-        query = query.filter(models.Curriculum_course.study_program == study_program)
-    if course is not None:
-        query = query.filter(models.Curriculum_course.course == course)
-    if semester is not None:
-        query = query.filter(models.Curriculum_course.semester == semester)
-    if major is not None:
-        query = query.filter(models.Curriculum_course.major == major)
-    if elective_block is not None:
-        query = query.filter(models.Curriculum_course.elective_block == elective_block)
-
-    query = query.order_by(
-        models.Curriculum_course.study_program,
-        models.Curriculum_course.course,
-        models.Curriculum_course.semester,
+    groups_subq = (
+        db.query(func.count(ac_models.Groups.id))
+        .filter(ac_models.Groups.major == models.Major.id)
+        .scalar_subquery()
     )
 
-    return paginate(
-        query,
+    q = (
+        db.query(
+            models.Curriculum_course,
+            models.Course,
+            models.Major,
+            models.Elective_block,
+            func.coalesce(groups_subq, 0).label("major_group_count"),
+        )
+        .join(
+            models.Course, models.Curriculum_course.course == models.Course.course_code
+        )
+        .outerjoin(models.Major, models.Curriculum_course.major == models.Major.id)
+        .outerjoin(
+            models.Elective_block,
+            models.Curriculum_course.elective_block == models.Elective_block.id,
+        )
+    )
+
+    if study_program is not None:
+        q = q.filter(models.Curriculum_course.study_program == study_program)
+    if course is not None:
+        q = q.filter(models.Curriculum_course.course == course)
+    if semester is not None:
+        q = q.filter(models.Curriculum_course.semester == semester)
+    if major is not None:
+        q = q.filter(models.Curriculum_course.major == major)
+    if elective_block is not None:
+        q = q.filter(models.Curriculum_course.elective_block == elective_block)
+
+    paginated = paginate(
+        q,
         limit,
         offset,
         order_by=[
@@ -878,10 +1030,50 @@ def list_curriculum(
         ],
     )
 
+    items = []
+    for row in paginated.items:
+        cc, course_obj, major_obj, block_obj, major_group_count = row
+        items.append(
+            schemas.CurriculumCourseNested(
+                study_program=cc.study_program,
+                course=cc.course,
+                semester=cc.semester,
+                major=cc.major,
+                elective_block=cc.elective_block,
+                course_details=schemas.CourseSummary(
+                    course_code=course_obj.course_code,
+                    course_name=course_obj.course_name,
+                    ects_points=course_obj.ects_points,
+                ),
+                major_details=(
+                    schemas.MajorRead(
+                        id=major_obj.id,
+                        study_field=major_obj.study_field,
+                        major_name=major_obj.major_name,
+                        group_count=major_group_count,
+                    )
+                    if major_obj
+                    else None
+                ),
+                elective_block_details=(
+                    schemas.ElectiveBlockRead(
+                        id=block_obj.id,
+                        study_field=block_obj.study_field,
+                        elective_block_name=block_obj.elective_block_name,
+                    )
+                    if block_obj
+                    else None
+                ),
+            )
+        )
+
+    paginated.items = items
+    return paginated
+
 
 @router.get(
     "/curriculum/{study_program}/{course}/{semester}",
-    response_model=schemas.CurriculumCourseRead,
+    response_model=schemas.CurriculumCourseNested,
 )
 def get_curriculum_course(
     study_program: int,
@@ -890,13 +1082,72 @@ def get_curriculum_course(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("curriculum:view")),
 ):
-    return _get_by_fields_or_404(
-        db,
-        models.Curriculum_course,
-        "Curriculum Course",
-        study_program=study_program,
-        course=course,
-        semester=semester,
+    groups_subq = (
+        db.query(func.count(ac_models.Groups.id))
+        .filter(ac_models.Groups.major == models.Major.id)
+        .scalar_subquery()
+    )
+
+    row = (
+        db.query(
+            models.Curriculum_course,
+            models.Course,
+            models.Major,
+            models.Elective_block,
+            func.coalesce(groups_subq, 0).label("major_group_count"),
+        )
+        .join(
+            models.Course, models.Curriculum_course.course == models.Course.course_code
+        )
+        .outerjoin(models.Major, models.Curriculum_course.major == models.Major.id)
+        .outerjoin(
+            models.Elective_block,
+            models.Curriculum_course.elective_block == models.Elective_block.id,
+        )
+        .filter(
+            models.Curriculum_course.study_program == study_program,
+            models.Curriculum_course.course == course,
+            models.Curriculum_course.semester == semester,
+        )
+        .one_or_none()
+    )
+
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Curriculum course not found"
+        )
+
+    cc, course_obj, major_obj, block_obj, major_group_count = row
+    return schemas.CurriculumCourseNested(
+        study_program=cc.study_program,
+        course=cc.course,
+        semester=cc.semester,
+        major=cc.major,
+        elective_block=cc.elective_block,
+        course_details=schemas.CourseSummary(
+            course_code=course_obj.course_code,
+            course_name=course_obj.course_name,
+            ects_points=course_obj.ects_points,
+        ),
+        major_details=(
+            schemas.MajorRead(
+                id=major_obj.id,
+                study_field=major_obj.study_field,
+                major_name=major_obj.major_name,
+                group_count=major_group_count,
+            )
+            if major_obj
+            else None
+        ),
+        elective_block_details=(
+            schemas.ElectiveBlockRead(
+                id=block_obj.id,
+                study_field=block_obj.study_field,
+                elective_block_name=block_obj.elective_block_name,
+            )
+            if block_obj
+            else None
+        ),
     )
 
 
