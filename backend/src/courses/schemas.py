@@ -236,8 +236,8 @@ class CourseSummary(BaseSchema):
 
 class CurriculumCourseNested(CurriculumCourseRead):
     course_details: CourseSummary
-    major_details: Optional[MajorRead] = None
-    elective_block_details: Optional[ElectiveBlockRead] = None
+    major_details: MajorRead | None = None
+    elective_block_details: ElectiveBlockRead | None = None
 
 
 class SemesterSummary(BaseSchema):
