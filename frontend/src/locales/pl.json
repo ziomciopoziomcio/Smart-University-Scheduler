@@ -479,6 +479,10 @@
       "checkFaculty": "Sprawdź plany studentów z wydziału ",
       "noFields": "Brak informacji o kierunkach studiów dla tego wydziału.",
       "noFaculties": "Brak wydziałów do wyświetlenia.",
+      "studySchedule": {
+        "title": "Plan zajęć",
+        "electiveBlocks": "Bloki obieralne"
+      },
       "studyField": {
         "errors": {
           "invalidFacultyId": "Nieprawidłowe id wydziału.",
