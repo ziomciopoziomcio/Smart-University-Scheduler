@@ -33,7 +33,7 @@ export const fetchStudyFieldPlan = async ({
     }
 
     if (groupId != null) {
-        params.set('groupId', String(groupId));
+        params.set('group_id', String(groupId));
     }
 
     const response = await fetch(`${SCHEDULES_URL}/study-field-plan?${params.toString()}`, {
