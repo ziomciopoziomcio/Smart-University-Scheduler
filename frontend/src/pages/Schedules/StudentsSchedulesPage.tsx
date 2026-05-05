@@ -12,6 +12,7 @@ import {
     fetchMajors,
     fetchStudyFieldSemesterSummary,
     fetchStudyPlanGroupsSummary,
+    getMajor,
     type Faculty,
     type StudyField,
     type StudyFieldSemesterSummary,
@@ -41,6 +42,7 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
 
     const [currentFaculty, setCurrentFaculty] = useState<Faculty | null>(null);
     const [currentField, setCurrentField] = useState<StudyField | null>(null);
+    const [currentMajorName, setCurrentMajorName] = useState<string | null>(null);
 
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
@@ -75,7 +77,14 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                 label: `${intl.formatMessage({id: 'plans.studentsPlan.studySemester.semester'})} ${semesterId}`,
                 path: majorId
                     ? `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/major`
-                    : `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group`
+                    : undefined
+            });
+        }
+
+        if (majorId) {
+            items.push({
+                label: currentMajorName ?? `${majorId}`,
+                path: undefined
             });
         }
 
@@ -98,13 +107,20 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                 } else {
                     setCurrentField(null);
                 }
+
+                if (majorId && fieldOfStudyId && semesterId) {
+                    const major = await getMajor(Number(majorId));
+                    setCurrentMajorName(major?.major_name ?? `${majorId}`);
+                } else {
+                    setCurrentMajorName(null);
+                }
             } catch (err) {
                 console.error('Nie udało się pobrać danych do breadcrumbs', err);
             }
         };
 
         void fetchBreadcrumbMetadata();
-    }, [facultyId, fieldOfStudyId]);
+    }, [facultyId, fieldOfStudyId, semesterId, majorId]);
 
     const loadData = useCallback(async () => {
         setLoading(true);
