@@ -530,12 +530,11 @@ def _validate_study_field_plan_params(
 
 def _get_filtered_group_ids(
     db: Session,
-    study_program: int,
     study_field: int,
     semester: int,
     specialization_id: int | None,
     elective_block_id: int | None,
-    group_ids: list[int] | None,
+    group_id: int | None,
 ) -> list[int]:
     """Builds and executes the SQL query to fetch relevant group IDs."""
     sql_query = (
@@ -547,7 +546,6 @@ def _get_filtered_group_ids(
         .filter(
             ac_mod.Groups.semester == semester,
             course_models.Study_program.study_field == study_field,
-            course_models.Study_program.id == study_program,
         )
     )
 
@@ -555,8 +553,8 @@ def _get_filtered_group_ids(
         sql_query = sql_query.filter(ac_mod.Groups.major == specialization_id)
     if elective_block_id:
         sql_query = sql_query.filter(ac_mod.Groups.elective_block == elective_block_id)
-    if group_ids:
-        sql_query = sql_query.filter(ac_mod.Groups.id.in_(group_ids))
+    if group_id:
+        sql_query = sql_query.filter(ac_mod.Groups.id == group_id)
 
     return [int(row[0]) for row in sql_query.all()]
 
@@ -579,12 +577,11 @@ def _map_schedule_entries(records: list[dict]) -> list[schemas.ScheduleEntry]:
 @router.get("/study-field-plan", response_model=list[schemas.ScheduleEntry])
 async def get_study_field_plan(
     start_date: date = Query(...),
-    study_program: int = Query(...),
     study_field: int = Query(...),
     semester: int = Query(..., gt=0),
     specialization_id: int | None = Query(None),
     elective_block_id: int | None = Query(None),
-    group_ids: list[int] | None = Query(None),
+    group_id: int | None = Query(None),
     db: Session = Depends(get_db),
     neo4j_session=Depends(get_neo4j_session),
     _current_user: user_models.Users = Depends(require_permission("schedule:view")),
@@ -593,12 +590,11 @@ async def get_study_field_plan(
     Get study field plan for a given week starting from start_date (which must be a Monday).
     Optionally filter by specialization, elective block and groups.
     :param start_date: Starting date of the week (must be a Monday)
-    :param study_program: Study program ID
     :param study_field: Study field ID
     :param semester: Semester number (1 or 2)
     :param specialization_id: Specialization ID (optional)
     :param elective_block_id: Elective block ID (optional)
-    :param group_ids: List of group IDs to filter by (optional)
+    :param group_id: Group id to filter by
     :param db: Session
     :param neo4j_session: Neo4j session
     :param _current_user: Current user (for permissions)
@@ -608,13 +604,12 @@ async def get_study_field_plan(
 
     day_configs = _get_academic_day_configs(db, start_date)
     final_group_ids = _get_filtered_group_ids(
-        db,
-        study_program,
-        study_field,
-        semester,
-        specialization_id,
-        elective_block_id,
-        group_ids,
+        db=db,
+        study_field=study_field,
+        semester=semester,
+        specialization_id=specialization_id,
+        elective_block_id=elective_block_id,
+        group_id=group_id,
     )
 
     if not day_configs or not final_group_ids:
