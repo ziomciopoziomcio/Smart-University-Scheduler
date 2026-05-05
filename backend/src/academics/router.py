@@ -634,10 +634,15 @@ def _build_groups_summary_query(
         )
     )
 
-    if specialization_id is not None:
+    if specialization_id is None and elective_block_id is None:
+        query = query.filter(
+            models.Groups.major.is_(None), models.Groups.elective_block.is_(None)
+        )
+    elif specialization_id is not None:
         query = query.filter(models.Groups.major == specialization_id)
     elif elective_block_id is not None:
         query = query.filter(models.Groups.elective_block == elective_block_id)
+
     return query
 
 
