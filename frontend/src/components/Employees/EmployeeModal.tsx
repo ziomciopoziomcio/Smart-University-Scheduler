@@ -52,7 +52,9 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
 
     useEffect(() => {
         if (facultyId) {
-            fetchUnits(Number(facultyId), 1, 100)
+            fetchUnits(1, 100, {
+                faculty_id: Number(facultyId),
+            })
                 .then(res => {
                     setUnits(res.items || res);
                 })

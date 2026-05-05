@@ -69,7 +69,14 @@ export default function DidacticsPage({view}: { view: string }) {
             } else if (view === 'fields') {
                 res = await fetchStudyFields(page, pageSize, debouncedSearch, {faculty: Number(facultyId)});
             } else if (view === 'units_for_courses') {
-                res = await fetchUnits(Number(facultyId), page, pageSize, debouncedSearch);
+                res = await fetchUnits(
+                    page,
+                    pageSize,
+                    {
+                        faculty_id: Number(facultyId),
+                    },
+                    debouncedSearch || undefined,
+                );
             } else if (view === 'majors') {
                 res = await fetchMajors(page, pageSize, debouncedSearch, {study_field: Number(fieldId)});
             } else if (view === 'blocks') {

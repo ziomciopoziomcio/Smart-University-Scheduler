@@ -80,7 +80,14 @@ export default function StructuresPage({view}: StructuresPageProps) {
                 setCurrentFaculty(null);
             } else if (facultyId) {
                 const [unitsRes, facultyRes] = await Promise.all([
-                    fetchUnits(Number(facultyId), page, pageSize, debouncedSearch),
+                    fetchUnits(
+                        page,
+                        pageSize,
+                        {
+                            faculty_id: Number(facultyId),
+                        },
+                        debouncedSearch || undefined,
+                    ),
                     getFaculty(Number(facultyId))
                 ]);
                 setData(unitsRes.items as Unit[]);
