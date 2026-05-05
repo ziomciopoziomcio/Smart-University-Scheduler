@@ -4,14 +4,15 @@ import {useParams} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 
 import {
-    type CourseInstructor,
     type Faculty,
     type Unit,
     type PaginatedResponse,
     type ScheduleEntry,
+    type Lecturer,
     getFaculty,
     fetchUnits,
-    fetchLecturerPlan
+    fetchLecturerPlan,
+    getLecturerById
 } from '@api';
 import {WeekSchedule} from '@components/Schedule/WeekSchedule';
 import {addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
@@ -31,13 +32,6 @@ export async function getLecturerScheduleForWeek(
         startDate: toIsoDate(weekStart),
     });
 }
-
-// TODO: Replace with backend API call for lecturer names
-const mockedLecturers: CourseInstructor[] = [
-    {id: 1, name: 'Piotr', surname: 'Duch', degree: 'dr inż.'},
-    {id: 2, name: 'Robert', surname: 'Kapturski', degree: 'mgr inż.'},
-    {id: 3, name: 'Anna', surname: 'Nowak', degree: 'dr hab. inż.'},
-];
 
 export default function EmployeeSchedulePage() {
     const intl = useIntl();
@@ -61,13 +55,13 @@ export default function EmployeeSchedulePage() {
             setIsNamesLoading(true);
 
             try {
-                const [faculty, unitsRes] = await Promise.all([
+                const [faculty, unitsRes, lecturer] = await Promise.all([
                     getFaculty(Number(facultyId)) as Promise<Faculty>,
-                    fetchUnits(Number(facultyId)) as Promise<PaginatedResponse<Unit>>
+                    fetchUnits(Number(facultyId)) as Promise<PaginatedResponse<Unit>>,
+                    getLecturerById(Number(lecturerId)) as Promise<Lecturer>
                 ]);
 
                 const unit = unitsRes.items.find((u) => String(u.id) === String(unitId));
-                const lecturer = mockedLecturers.find((item) => String(item.id) === String(lecturerId));
 
                 if (!cancelled) {
                     setFacultyName(faculty.faculty_short || faculty.faculty_name);

@@ -95,7 +95,6 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
                     },
                     debouncedSearch || undefined,
                 );
-                console.log(res);
                 setData(res.items || []);
                 setTotalItems(res.total || 0);
             } else if (view === 'lecturers' && facultyId && unitId) {

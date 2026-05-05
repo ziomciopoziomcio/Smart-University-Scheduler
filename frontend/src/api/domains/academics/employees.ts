@@ -1,5 +1,5 @@
 import {getHeaders, type PaginatedResponse, ACADEMICS_URL} from '@api/core';
-import {type Employee} from './types.ts';
+import {type Employee, type Lecturer} from './types.ts';
 
 export const fetchEmployees = async (
     page = 1,
@@ -89,4 +89,16 @@ export const deleteEmployee = async (id: number): Promise<void> => {
     if (!response.ok) {
         throw new Error('Nie udało się usunąć profilu pracownika');
     }
+};
+
+export const getLecturerById = async (id: number): Promise<Lecturer> => {
+    const response = await fetch(`${ACADEMICS_URL}/instructors/${id}`, {
+        headers: getHeaders()
+    });
+
+    if (!response.ok) {
+        throw new Error('Nie udało się pobrać danych prowadzącego');
+    }
+
+    return response.json();
 };
