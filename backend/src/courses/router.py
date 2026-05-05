@@ -269,6 +269,10 @@ def list_majors(
             query = query.filter(f)
             count_query = count_query.filter(f)
 
+    if semester is not None:
+        query = query.filter(groups_subq > 0)
+        count_query = count_query.filter(groups_subq > 0)
+
     pagination_result = paginate(
         query,
         limit,
