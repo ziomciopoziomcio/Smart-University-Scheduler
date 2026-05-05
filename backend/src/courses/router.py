@@ -65,13 +65,17 @@ def list_study_fields(
 ):
     elective_blocks_sq = (
         db.query(func.count(models.Elective_block.id))
+        .select_from(models.Elective_block)
         .filter(models.Elective_block.study_field == models.Study_fields.id)
+        .correlate(models.Study_fields)
         .scalar_subquery()
     )
 
     programs_sq = (
         db.query(func.count(models.Study_program.id))
+        .select_from(models.Study_program)
         .filter(models.Study_program.study_field == models.Study_fields.id)
+        .correlate(models.Study_fields)
         .scalar_subquery()
     )
 
