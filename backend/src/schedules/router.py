@@ -728,7 +728,7 @@ async def get_room_plan(
     plan_version: str | None = Query(None),
     db: Session = Depends(get_db),
     neo4j_session=Depends(get_neo4j_session),
-    # _current_user: user_models.Users = Depends(require_permission("schedule:view")),
+    _current_user: user_models.Users = Depends(require_permission("schedule:view")),
 ):
     """
     Returns weekly schedule for a specific room (Mon–Fri).
