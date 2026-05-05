@@ -15,4 +15,4 @@ db-reset:
 makemigrations:
 	cd infrastructure/docker && docker compose exec backend alembic revision --autogenerate -m "$(msg)"
 install:
-	pip install -r requirements.txt
+	pip install -r helpers/db_seeder/requirements.txt
