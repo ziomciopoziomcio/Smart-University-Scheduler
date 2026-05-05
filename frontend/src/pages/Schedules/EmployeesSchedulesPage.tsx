@@ -78,11 +78,23 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
         setLoading(true);
         try {
             if (view === 'faculties') {
-                const res = await fetchFaculties(page, pageSize, debouncedSearch);
+                const res = await fetchFaculties(
+                    page,
+                    pageSize,
+                    {},
+                    debouncedSearch || undefined,
+                );
                 setData(res.items || res);
                 setTotalItems(res.total || 0);
             } else if (view === 'units' && facultyId) {
-                const res = await fetchUnits(Number(facultyId), page, pageSize, debouncedSearch);
+                const res = await fetchUnits(
+                    page,
+                    pageSize,
+                    {
+                        faculty_id: Number(facultyId),
+                    },
+                    debouncedSearch || undefined,
+                );
                 setData(res.items || []);
                 setTotalItems(res.total || 0);
             } else if (view === 'lecturers' && facultyId && unitId) {
@@ -105,20 +117,34 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
     }, [loadData]);
 
     const getBreadcrumbs = (): BreadcrumbItem[] => {
-        const items: BreadcrumbItem[] = [{label: intl.formatMessage({id: 'plans.plans'}), path: '/schedules'}];
-        items.push({
-            label: intl.formatMessage({id: 'plans.lecturerPlan.title'}),
-            path: view !== 'faculties' ? '/schedules/lecturers/faculty' : undefined
-        });
+        const items: BreadcrumbItem[] = [
+            {
+                label: intl.formatMessage({id: 'plans.plans'}),
+                path: '/schedules',
+            },
+            {
+                label: intl.formatMessage({id: 'plans.lecturerPlan.title'}),
+                path: view !== 'faculties' ? '/schedules/lecturers/faculty' : undefined,
+            },
+        ];
 
-        if (facultyId && currentFaculty) {
+        if (facultyId) {
             items.push({
-                label: currentFaculty.faculty_short,
-                path: view === 'lecturers' ? `/schedules/lecturers/faculty/${facultyId}/unit` : undefined
+                label: currentFaculty
+                    ? currentFaculty.faculty_short
+                    : `Wydział ${facultyId}`,
+                path: view === 'lecturers'
+                    ? `/schedules/lecturers/faculty/${facultyId}/unit`
+                    : undefined,
             });
         }
-        if (unitId && currentUnit) {
-            items.push({label: currentUnit.unit_short || currentUnit.unit_name});
+
+        if (unitId) {
+            items.push({
+                label: currentUnit
+                    ? currentUnit.unit_short || currentUnit.unit_name
+                    : `Jednostka ${unitId}`,
+            });
         }
 
         return items;

@@ -2,22 +2,40 @@ import {getHeaders, ACADEMICS_URL, type PaginatedResponse} from '@api/core';
 import type {Unit} from "./types.ts";
 
 export const fetchUnits = async (
-    facultyId: number,
     page = 1,
     limit = 10,
-    search?: string
+    filters: {
+        faculty_id?: number;
+        unit_name?: string;
+        unit_short?: string;
+    } = {},
+    search?: string,
 ): Promise<PaginatedResponse<Unit>> => {
     const offset = (page - 1) * limit;
+
     const params = new URLSearchParams({
-        faculty_id: facultyId.toString(),
         limit: limit.toString(),
-        offset: offset.toString()
+        offset: offset.toString(),
     });
 
-    if (search) params.append('search', search);
+    if (filters.faculty_id !== undefined) {
+        params.append('faculty_id', filters.faculty_id.toString());
+    }
+
+    if (filters.unit_name) {
+        params.append('unit_name', filters.unit_name);
+    }
+
+    if (filters.unit_short) {
+        params.append('unit_short', filters.unit_short);
+    }
+
+    if (search) {
+        params.append('search', search);
+    }
 
     const response = await fetch(`${ACADEMICS_URL}/units?${params.toString()}`, {
-        headers: getHeaders()
+        headers: getHeaders(),
     });
 
     if (!response.ok) {
@@ -28,8 +46,14 @@ export const fetchUnits = async (
 };
 
 export const getUnit = async (id: number): Promise<Unit> => {
-    const response = await fetch(`${ACADEMICS_URL}/units/${id}`, {headers: getHeaders()});
-    if (!response.ok) throw new Error('Nie udało się pobrać szczegółów jednostki');
+    const response = await fetch(`${ACADEMICS_URL}/units/${id}`, {
+        headers: getHeaders(),
+    });
+
+    if (!response.ok) {
+        throw new Error('Nie udało się pobrać szczegółów jednostki');
+    }
+
     return response.json();
 };
 
