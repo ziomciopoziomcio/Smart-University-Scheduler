@@ -1,24 +1,54 @@
-import {Box, Button, Paper, Typography} from '@mui/material';
+import {
+    Box,
+    Button,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Paper,
+    Select,
+    Typography,
+    type SelectChangeEvent,
+} from '@mui/material';
 import {AutoAwesomeOutlined} from '@mui/icons-material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import {useIntl} from 'react-intl';
 
 import {theme} from '../../theme/theme.ts';
+import type {Faculty} from '@api';
 
 interface GenerateHeroProps {
     onGenerate: () => Promise<void>;
     isGenerating: boolean;
+
+    isAdministrator: boolean;
+    faculties: Faculty[];
+    selectedFacultyId: number | null;
+    onFacultyChange: (facultyId: number) => void;
+    isFacultiesLoading?: boolean;
 }
 
-export default function GenerateHero({onGenerate, isGenerating}: GenerateHeroProps) {
+export default function GenerateHero({
+    onGenerate,
+    isGenerating,
+    isAdministrator,
+    faculties,
+    selectedFacultyId,
+    onFacultyChange,
+    isFacultiesLoading = false,
+}: GenerateHeroProps) {
     const intl = useIntl();
+
+    const isGenerateDisabled =
+        isGenerating ||
+        isFacultiesLoading ||
+        (isAdministrator && !selectedFacultyId);
 
     return (
         <Paper
             elevation={0}
             sx={{
                 p: {xs: 3.5, md: 5},
-                minHeight: {xs: 240, md: 220},
+                minHeight: {xs: 260, md: 240},
                 borderRadius: '24px',
                 background: '#FFFFFF',
                 border: '1px solid rgba(0,0,0,0.06)',
@@ -64,6 +94,51 @@ export default function GenerateHero({onGenerate, isGenerating}: GenerateHeroPro
                     >
                         {intl.formatMessage({id: 'generateSchedule.hero.description'})}
                     </Typography>
+
+                    {isAdministrator && (
+                        <FormControl
+                            fullWidth
+                            size="small"
+                            sx={{
+                                mt: 3,
+                                maxWidth: 430,
+                            }}
+                        >
+                            <InputLabel>
+                                {intl.formatMessage({id: 'generateSchedule.hero.facultyLabel'})}
+                            </InputLabel>
+
+                            <Select
+                                value={selectedFacultyId ? String(selectedFacultyId) : ''}
+                                label={intl.formatMessage({id: 'generateSchedule.hero.facultyLabel'})}
+                                disabled={isFacultiesLoading || isGenerating}
+                                onChange={(event: SelectChangeEvent) => {
+                                    onFacultyChange(Number(event.target.value));
+                                }}
+                                sx={{
+                                    height: 46,
+                                    borderRadius: '16px',
+                                    bgcolor: '#FBFCFF',
+                                    fontSize: 14,
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: 'rgba(0,0,0,0.08)',
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: 'rgba(0,0,0,0.16)',
+                                    },
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: '#7A89A8',
+                                    },
+                                }}
+                            >
+                                {faculties.map((faculty) => (
+                                    <MenuItem key={faculty.id} value={String(faculty.id)}>
+                                        {faculty.faculty_short || faculty.faculty_name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    )}
                 </Box>
             </Box>
 
@@ -72,7 +147,7 @@ export default function GenerateHero({onGenerate, isGenerating}: GenerateHeroPro
                 variant="contained"
                 startIcon={<AutoAwesomeOutlined/>}
                 onClick={() => void onGenerate()}
-                disabled={isGenerating}
+                disabled={isGenerateDisabled}
                 sx={{
                     px: {xs: 4, md: 6},
                     py: {xs: 1.9, md: 2.25},

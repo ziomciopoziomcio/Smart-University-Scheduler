@@ -58,3 +58,10 @@ export interface StudyPlanGroupSummary {
     group_name: string;
     academic_year: string;
 }
+
+export interface Lecturer {
+    id: number;
+    name: string;
+    surname: string;
+    degree: string;
+}
