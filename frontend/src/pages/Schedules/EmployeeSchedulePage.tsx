@@ -18,6 +18,8 @@ import {addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/da
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 
 //https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/184
+//TODO: INSTEAD OF FETCH UNIT DO GET UNIT!! https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/240
+
 export async function getLecturerScheduleForWeek(
     lecturerId: string,
     weekStart: Date,

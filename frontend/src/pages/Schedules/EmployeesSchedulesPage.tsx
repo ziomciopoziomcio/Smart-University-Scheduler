@@ -59,6 +59,7 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
                 }
 
                 if (unitId) {
+                                        debugger;
                     const un = await getUnit(Number(unitId));
                     setCurrentUnit(un);
                 } else {
@@ -105,20 +106,34 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
     }, [loadData]);
 
     const getBreadcrumbs = (): BreadcrumbItem[] => {
-        const items: BreadcrumbItem[] = [{label: intl.formatMessage({id: 'plans.plans'}), path: '/schedules'}];
-        items.push({
-            label: intl.formatMessage({id: 'plans.lecturerPlan.title'}),
-            path: view !== 'faculties' ? '/schedules/lecturers/faculty' : undefined
-        });
+        const items: BreadcrumbItem[] = [
+            {
+                label: intl.formatMessage({id: 'plans.plans'}),
+                path: '/schedules',
+            },
+            {
+                label: intl.formatMessage({id: 'plans.lecturerPlan.title'}),
+                path: view !== 'faculties' ? '/schedules/lecturers/faculty' : undefined,
+            },
+        ];
 
-        if (facultyId && currentFaculty) {
+        if (facultyId) {
             items.push({
-                label: currentFaculty.faculty_short,
-                path: view === 'lecturers' ? `/schedules/lecturers/faculty/${facultyId}/unit` : undefined
+                label: currentFaculty
+                    ? currentFaculty.faculty_short
+                    : `Wydział ${facultyId}`,
+                path: view === 'lecturers'
+                    ? `/schedules/lecturers/faculty/${facultyId}/unit`
+                    : undefined,
             });
         }
-        if (unitId && currentUnit) {
-            items.push({label: currentUnit.unit_short || currentUnit.unit_name});
+
+        if (unitId) {
+            items.push({
+                label: currentUnit
+                    ? currentUnit.unit_short || currentUnit.unit_name
+                    : `Jednostka ${unitId}`,
+            });
         }
 
         return items;
