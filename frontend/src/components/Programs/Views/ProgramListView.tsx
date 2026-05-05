@@ -25,7 +25,8 @@ export function ProgramListView({data, facultyId, fieldId, onRefresh, fieldName}
             <ListView<StudyProgram>
                 items={data}
                 icon={FolderSpecialIcon}
-                getTitle={(item) => item.program_name || `${fieldName} ${item.start_year}`} titleWidth="400px"
+                getTitle={(item) => item.program_name || `${fieldName} ${item.start_year}`}
+                titleWidth="400px"
                 columns={[
                     {
                         render: (item) => (
@@ -36,13 +37,10 @@ export function ProgramListView({data, facultyId, fieldId, onRefresh, fieldName}
                         width: '150px'
                     },
                     {
-                        // TODO: Waiting for backend to add semesters_count to StudyProgramRead or calculate in frontend
-                        render: (item) => (item as any).semesters_count !== undefined
-                            ? intl.formatMessage(
-                                {id: 'programs.list.semestersCount', defaultMessage: '{count} semestrów'},
-                                {count: (item as any).semesters_count}
-                            )
-                            : '? semestrów',
+                        render: (item) => intl.formatMessage(
+                            {id: 'programs.list.semestersCount', defaultMessage: '{count} semestrów'},
+                            {count: item.semesters_count ?? 0}
+                        ),
                         variant: 'secondary',
                         width: '150px',
                         align: 'right'

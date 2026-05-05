@@ -1,15 +1,14 @@
 import {COURSES_URL, type PaginatedResponse, getHeaders} from '@api/core';
 import type {StudyField, StudyFieldCreate, StudyPlanGroupSummary, StudyFieldUpdate} from './types';
 
-
 export const fetchStudyFields = async (
     page = 1,
     limit = 10,
+    search?: string,
     filters: {
         faculty?: number;
         field_name?: string;
-    } = {},
-    search?: string,
+    } = {}
 ): Promise<PaginatedResponse<StudyField>> => {
     const offset = (page - 1) * limit;
     const query = new URLSearchParams({
@@ -38,7 +37,6 @@ export const getStudyField = async (id: number): Promise<StudyField> => {
     return response.json();
 };
 
-
 export const createStudyField = async (payload: StudyFieldCreate): Promise<StudyField> => {
     const response = await fetch(`${COURSES_URL}/study-fields`, {
         method: 'POST',
@@ -49,7 +47,6 @@ export const createStudyField = async (payload: StudyFieldCreate): Promise<Study
     if (!response.ok) throw new Error('Nie udało się utworzyć kierunku');
     return response.json();
 };
-
 
 export const updateStudyField = async (id: number, payload: StudyFieldUpdate): Promise<StudyField> => {
     const response = await fetch(`${COURSES_URL}/study-fields/${id}`, {
@@ -62,7 +59,6 @@ export const updateStudyField = async (id: number, payload: StudyFieldUpdate): P
     return response.json();
 };
 
-
 export const deleteStudyField = async (id: number): Promise<void> => {
     const response = await fetch(`${COURSES_URL}/study-fields/${id}`, {
         method: 'DELETE',
@@ -72,7 +68,6 @@ export const deleteStudyField = async (id: number): Promise<void> => {
     if (!response.ok) throw new Error('Nie udało się usunąć kierunku');
 };
 
-//TODO: NOT WORKING YET!!!!!!
 export const fetchStudyPlanGroups = async (
     fieldOfStudyId: number,
     semesterNumber: number,

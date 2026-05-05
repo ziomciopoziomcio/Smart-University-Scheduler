@@ -28,13 +28,10 @@ export function ProgramFieldView({data, facultyId}: ProgramFieldViewProps) {
                         width: '150px'
                     },
                     {
-                        // TODO: Waiting for backend to add programs_count to StudyFieldRead or calculate in frontend
-                        render: (item) => (item as any).programs_count !== undefined
-                            ? intl.formatMessage(
-                                {id: 'programs.fields.programsCount', defaultMessage: '{count} roczników'},
-                                {count: (item as any).programs_count}
-                            )
-                            : '? roczników',
+                        render: (item) => intl.formatMessage(
+                            {id: 'programs.fields.programsCount', defaultMessage: '{count} roczników'},
+                            {count: item.programs_count ?? 0}
+                        ),
                         variant: 'secondary',
                         width: '150px',
                         align: 'right'

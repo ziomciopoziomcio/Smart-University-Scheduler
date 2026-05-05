@@ -1,3 +1,4 @@
+import {useState} from "react";
 import {Box, Chip, Typography} from '@mui/material';
 import {useIntl} from 'react-intl';
 import BookIcon from '@mui/icons-material/Book';
@@ -5,7 +6,6 @@ import StarOutlineIcon from '@mui/icons-material/StarOutline';
 import {ListView} from '@components/Common';
 import {type CurriculumCourse} from '@api';
 import {CurriculumModal} from '../Modals/CurriculumModal';
-import {useState} from "react";
 
 interface ProgramCurriculumViewProps {
     data: CurriculumCourse[];
@@ -29,7 +29,6 @@ export function ProgramCurriculumView({data, programId, semesterId, fieldId, onR
             <ListView<CurriculumCourse & { id: string }>
                 items={mappedData}
                 icon={BookIcon}
-                // TODO: course_details - waiting for backend to include course name in curriculum endpoint or fetch separately in frontend
                 getTitle={(item) => item.course_details?.course_name || `ID Przedmiotu: ${item.course}`}
                 titleWidth="400px"
                 columns={[
@@ -37,13 +36,12 @@ export function ProgramCurriculumView({data, programId, semesterId, fieldId, onR
                         render: (item) => (
                             <Typography variant="body2" fontWeight={600} display="flex" alignItems="center" gap={0.5}>
                                 <StarOutlineIcon fontSize="small" sx={{color: '#f59e0b'}}/>
-                                {item.course_details?.ects_points !== undefined ? item.course_details.ects_points : '?'} ECTS
+                                {item.course_details?.ects_points ?? 0} ECTS
                             </Typography>
                         ),
                         width: '120px'
                     },
                     {
-                        // TODO: major_details - waiting for backend to include major name in curriculum endpoint or fetch separately in frontend
                         render: (item) => item.major ? (
                             <Chip
                                 size="small"
@@ -55,7 +53,6 @@ export function ProgramCurriculumView({data, programId, semesterId, fieldId, onR
                         width: '200px'
                     },
                     {
-                        // TODO: elective_block_details - waiting for backend to include elective block name in curriculum endpoint or fetch separately in frontend
                         render: (item) => item.elective_block ? (
                             <Chip
                                 size="small"
@@ -81,7 +78,6 @@ export function ProgramCurriculumView({data, programId, semesterId, fieldId, onR
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={onRefresh}
             />
-
         </Box>
     );
 }

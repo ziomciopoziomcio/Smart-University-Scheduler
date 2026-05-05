@@ -81,7 +81,7 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
         setLoading(true);
         try {
             if (view === 'faculties') {
-                const res = await fetchFaculties(page, pageSize, debouncedSearch);
+                const res = await fetchFaculties(page, pageSize, undefined, debouncedSearch);
                 setData(res.items || []);
                 setTotalItems(res.total || 0);
             } else if (view === 'fields' && facultyId) {
@@ -92,11 +92,14 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
                 const res = await fetchStudyPrograms(page, pageSize, debouncedSearch, {study_field: Number(fieldId)});
                 setData(res.items || []);
                 setTotalItems(res.total || 0);
-            } else if (view === 'semesters' && currentField) {
-                const count = currentField.semesters_count || 7;
-                const semestersList = Array.from({length: count}, (_, i) => ({
-                    id: i + 1,
-                    name: `${intl.formatMessage({id: 'programs.semester'})} ${i + 1}`
+            } else if (view === 'semesters' && currentProgram) {
+                const summary = currentProgram.semester_summary || [];
+
+                const semestersList = summary.map(s => ({
+                    id: s.semester_number,
+                    name: `${intl.formatMessage({id: 'programs.semester'})} ${s.semester_number}`,
+                    courses_count: s.courses_count,
+                    ects_sum: s.ects_sum
                 }));
 
                 const filtered = debouncedSearch
@@ -120,7 +123,7 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
         } finally {
             setLoading(false);
         }
-    }, [view, facultyId, fieldId, programId, semesterId, page, pageSize, debouncedSearch, currentField]);
+    }, [view, facultyId, fieldId, programId, semesterId, page, pageSize, debouncedSearch, currentField, currentProgram]);
 
     useEffect(() => {
         void loadData();
