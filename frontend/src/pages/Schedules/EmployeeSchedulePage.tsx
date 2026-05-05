@@ -5,12 +5,12 @@ import {useIntl} from 'react-intl';
 
 import {
     type Faculty,
-    // type Unit,
     type ScheduleEntry,
     type Lecturer,
     getFaculty,
     fetchLecturerPlan,
-    getLecturerById
+    getLecturerById,
+    getUnit
 } from '@api';
 import {WeekSchedule} from '@components/Schedule/WeekSchedule';
 import {addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
@@ -52,8 +52,9 @@ export default function EmployeeSchedulePage() {
             setIsNamesLoading(true);
 
             try {
-                const [faculty, lecturer] = await Promise.all([
+                const [faculty, unit, lecturer] = await Promise.all([
                     getFaculty(Number(facultyId)) as Promise<Faculty>,
+                    getUnit(Number(unitId)),
                     getLecturerById(Number(lecturerId)) as Promise<Lecturer>
                 ]);
 
@@ -64,6 +65,7 @@ export default function EmployeeSchedulePage() {
                             ? [lecturer.degree, lecturer.name, lecturer.surname].filter(Boolean).join(' ')
                             : lecturerId
                     );
+                    setUnitName(unit.unit_short)
                 }
             } catch (error) {
                 if (!cancelled) {

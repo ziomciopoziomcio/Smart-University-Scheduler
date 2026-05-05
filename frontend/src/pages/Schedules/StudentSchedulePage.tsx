@@ -20,21 +20,20 @@ import {
     type StudyField,
     type StudyPlanGroupSummary,
     getFaculty,
+    getMajor,
     fetchElectiveBlocks,
     fetchStudyPlanGroupsSummary,
-    getStudyField, fetchStudyFieldPlan
+    getStudyField,
+    fetchStudyFieldPlan
 } from '@api';
 
 import {WeekSchedule} from '@components/Schedule/WeekSchedule';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 
-//https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/237
-//TODO: If choose elective blocks, add id to array in fetch plan
-
 export default function StudentSchedulePage() {
     const intl = useIntl();
-    const {facultyId, fieldOfStudyId, semesterId, specializationId, groupId} = useParams();
+    const {facultyId, fieldOfStudyId, semesterId, majorId, groupId} = useParams();
 
     const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => getStartOfWeek(new Date()));
     const [entries, setEntries] = useState<ScheduleEntry[]>([]);
@@ -65,8 +64,9 @@ export default function StudentSchedulePage() {
                 setFaculty(facRes);
                 setField(fieldRes);
 
-                if (specializationId) {
-                    setSpecializationName(`Specjalizacja ${specializationId}`);
+                if (majorId) {
+                    const major = await getMajor(Number(majorId));
+                    setSpecializationName(major.major_name || `${majorId}`);
                 }
             } catch (err) {
                 console.error('Błąd ładowania kontekstu', err);
@@ -76,7 +76,7 @@ export default function StudentSchedulePage() {
         };
 
         void fetchContext();
-    }, [facultyId, fieldOfStudyId, specializationId]);
+    }, [facultyId, fieldOfStudyId, majorId]);
 
     useEffect(() => {
         const loadBlocks = async () => {
@@ -150,11 +150,10 @@ export default function StudentSchedulePage() {
             try {
                 const res = await fetchStudyFieldPlan({
                     startDate: toIsoDate(currentWeekStart),
-                    studyProgram: Number(fieldOfStudyId), //TODO: BACKEND SHOULD DELETE IT
                     studyField: Number(fieldOfStudyId),
                     semester: Number(semesterId),
-                    specializationId: specializationId ? Number(specializationId) : null,
-                    groupIds: groupId ? [Number(groupId)] : undefined,
+                    specializationId: majorId ? Number(majorId) : null,
+                    groupId: Number(groupId)
                 });
 
                 const startIso = toIsoDate(currentWeekStart);
@@ -169,39 +168,66 @@ export default function StudentSchedulePage() {
         };
 
         void fetchPlan();
-    }, [fieldOfStudyId, semesterId, specializationId, groupId, currentWeekStart]);
+    }, [fieldOfStudyId, semesterId, majorId, groupId, currentWeekStart]);
 
-    const breadcrumbs = useMemo((): BreadcrumbItem[] => [
-        {label: intl.formatMessage({id: 'plans.plans', defaultMessage: 'Plany'}), path: '/schedules'},
-        {
-            label: intl.formatMessage({id: 'plans.studentsPlan.title', defaultMessage: 'Plany studenckie'}),
-            path: '/schedules/study/faculty'
-        },
-        {
-            label: faculty ? (faculty.faculty_short || faculty.faculty_name) : facultyId ?? '...',
-            path: `/schedules/study/faculty/${facultyId}/field`
-        },
-        {
-            label: field ? field.field_name : fieldOfStudyId ?? '...',
-            path: `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester`
-        },
-        {
-            label: specializationName ?? `${intl.formatMessage({
-                id: 'plans.studentsPlan.studySemester.semester',
-                defaultMessage: 'Semestr'
-            })} ${semesterId}`,
-            path: specializationId
-                ? `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/specialization`
-                : `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group`
-        },
-        {
+    const breadcrumbs = useMemo((): BreadcrumbItem[] => {
+        const items: BreadcrumbItem[] = [
+            {
+                label: intl.formatMessage({id: 'plans.plans', defaultMessage: 'Plany'}),
+                path: '/schedules'
+            },
+            {
+                label: intl.formatMessage({
+                    id: 'plans.studentsPlan.title',
+                    defaultMessage: 'Plany studenckie'
+                }),
+                path: '/schedules/study/faculty'
+            },
+            {
+                label: faculty ? (faculty.faculty_short || faculty.faculty_name) : facultyId ?? '...',
+                path: `/schedules/study/faculty/${facultyId}/field`
+            },
+            {
+                label: field ? field.field_name : fieldOfStudyId ?? '...',
+                path: `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester`
+            },
+            {
+                label: `${intl.formatMessage({
+                    id: 'plans.studentsPlan.studySemester.semester',
+                    defaultMessage: 'Semestr'
+                })} ${semesterId}`,
+                path: majorId
+                    ? `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/major`
+                    : `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/group`
+            }
+        ];
+
+        if (majorId) {
+            items.push({
+                label: specializationName ?? `Specjalizacja ${majorId}`,
+                path: `/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/major/${majorId}/group`
+            });
+        }
+
+        items.push({
             label: intl.formatMessage({
                 id: 'plans.studentsPlan.studySchedule.title',
                 defaultMessage: 'Plan zajęć'
             }),
             path: ''
-        }
-    ], [intl, faculty, field, specializationName, facultyId, fieldOfStudyId, semesterId, specializationId]);
+        });
+
+        return items;
+    }, [
+        intl,
+        faculty,
+        field,
+        specializationName,
+        facultyId,
+        fieldOfStudyId,
+        semesterId,
+        majorId
+    ]);
 
     const handleGroupToggle = (blockId: number, groupId: number) => {
         setSelectedBlockGroupIds((prev) => {

@@ -54,6 +54,7 @@ export default function SchedulesFacilitiesPage({view}: SchedulesFacilitiesPageP
 
     const loadData = useCallback(async () => {
         setLoading(true);
+        setError(null);
         try {
             if (view === 'campuses') {
                 const res = await fetchCampuses(page, pageSize, debouncedSearch);
@@ -69,6 +70,8 @@ export default function SchedulesFacilitiesPage({view}: SchedulesFacilitiesPageP
                 setTotalItems(res.total);
             }
         } catch (err: any) {
+            setData([]);
+            setTotalItems(0);
             setError(err.message || intl.formatMessage({id: 'common.errors.unknown'}));
         } finally {
             setLoading(false);

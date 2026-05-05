@@ -479,6 +479,10 @@
       "checkFaculty": "Check the schedule of students from faculty ",
       "noFields": "There are no fields of study available for this faculty.",
       "noFaculties": "There are no faculties to display.",
+      "studySchedule": {
+        "title": "Class schedule",
+        "electiveBlocks": "Elective blocks"
+      },
       "studyField": {
         "errors": {
           "invalidFacultyId": "Invalid faculty id.",
