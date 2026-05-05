@@ -3,6 +3,7 @@ Connection with the database and functions to interact with it.
 """
 
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -11,7 +12,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-loaded = load_dotenv(r"../../../infrastructure/docker/.env")
+env_path = Path(__file__).resolve().parents[3] / "infrastructure" / "docker" / ".env"
+
+loaded = load_dotenv(env_path)
 if not loaded:
     logger.error("Failed to load dotenv file")
     raise RuntimeError("load_dotenv() - failed to load dotenv")
