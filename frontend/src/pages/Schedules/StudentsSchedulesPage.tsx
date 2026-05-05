@@ -57,7 +57,6 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
         ];
 
         if (facultyId) {
-            console.log(currentFaculty);
             items.push({
                 label: currentFaculty ? currentFaculty.faculty_short : facultyId,
                 path: `/schedules/study/faculty/${facultyId}/field`

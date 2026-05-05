@@ -30,6 +30,7 @@ import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 
 //https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/237
+//TODO: If choose elective blocks, add id to array in fetch plan
 
 export default function StudentSchedulePage() {
     const intl = useIntl();
@@ -130,8 +131,6 @@ export default function StudentSchedulePage() {
                 [blockId]: groups,
             }));
         } catch (err) {
-            console.error(`Nie udało się pobrać grup dla bloku ${blockId}`, err);
-
             setBlockGroups((prev) => ({
                 ...prev,
                 [blockId]: [],
