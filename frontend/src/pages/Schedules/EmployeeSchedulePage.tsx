@@ -5,7 +5,6 @@ import {useIntl} from 'react-intl';
 
 import {
     type Faculty,
-    type Unit,
     type ScheduleEntry,
     type Lecturer,
     getFaculty,
