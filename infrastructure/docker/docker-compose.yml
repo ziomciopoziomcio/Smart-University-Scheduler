@@ -80,7 +80,6 @@ services:
       context: ../../backend
     container_name: smart_scheduler_backend_API
     restart: unless-stopped
-    working_dir: /app/backend
     environment:
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
@@ -103,7 +102,6 @@ services:
       NEO4J_PASSWORD: ${NEO4J_PASSWORD}
       NEO4J_USER: ${NEO4J_USER:-neo4j}
       NEO4J_PORT: ${NEO4J_PORT:-7687}
-      PYTHONPATH: /app
     depends_on:
       - postgres
       - kafka
@@ -111,7 +109,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ../../:/app
+      - ../../backend:/app
     command: uvicorn main:app --host 0.0.0.0 --port 3000 --reload
 
   ai_worker:
