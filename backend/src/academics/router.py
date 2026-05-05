@@ -446,10 +446,17 @@ def get_unit(
         .scalar_subquery()
     )
 
+    courses_subq = (
+        db.query(func.count(course_models.Course.course_code))
+        .filter(course_models.Course.leading_unit == models.Units.id)
+        .scalar_subquery()
+    )
+
     row = (
         db.query(
             models.Units,
             func.coalesce(lecturers_subq, 0).label("lecturers_count"),
+            func.coalesce(courses_subq, 0).label("courses_count"),
         )
         .filter(models.Units.id == unit_id)
         .one_or_none()
@@ -467,6 +474,7 @@ def get_unit(
         unit_short=row.Units.unit_short,
         faculty_id=row.Units.faculty_id,
         lecturers_count=row.lecturers_count,
+        courses_count=row.courses_count,
     )
 
 
