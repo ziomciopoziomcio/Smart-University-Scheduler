@@ -1,4 +1,8 @@
 {
+  "common": {
+    "cancel": "Anuluj",
+    "save": "Zapisz"
+  },
   "login": {
     "title": "Zaloguj się",
     "username": "email",
@@ -268,7 +272,8 @@
       "time": "Czas",
       "location": "Lokalizacja",
       "lecturer": "Prowadzi",
-      "audience": "Dla"
+      "audience": "Dla",
+      "edit": "Edytuj"
     },
     "subjectType": {
       "lecture": "Wykład",
@@ -287,9 +292,6 @@
       "applyOnce": "Zastosuj tylko jednorazowo",
       "conflict": "Ta zmiana powoduje konflikt w planie.",
       "error": "Nie udało się zaktualizować zajęć."
-    },
-    "details": {
-      "edit": "Edytuj"
     }
   },
   "academics": {
