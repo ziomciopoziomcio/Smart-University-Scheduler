@@ -6,9 +6,12 @@ import svgr from 'vite-plugin-svgr';
 // https://vite.dev/config/
 export default defineConfig({
     plugins: [react(), svgr()],
+    envDir: '../infrastructure/docker',
     server: {
         watch: {
             usePolling: true,
+            interval: 100,
+            ignored: ['**/node_modules/**', '**/dist/**'],
         },
         host: true,
         port: 5173,
