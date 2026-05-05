@@ -9,10 +9,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 loaded = load_dotenv(r"../../../infrastructure/docker/.env")
-if loaded:
-    print("load_dotenv() - successfully loaded")
-else:
-    print("load_dotenv() - failed to load dotenv")
+if not loaded:
+    raise RuntimeError("load_dotenv() - failed to load dotenv")
+
 
 POSTGRES_USER = os.getenv("DB_USER")
 POSTGRES_PASSWORD = os.getenv("DB_PASSWORD")
