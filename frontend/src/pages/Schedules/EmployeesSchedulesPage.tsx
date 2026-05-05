@@ -143,7 +143,7 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
             items.push({
                 label: currentUnit
                     ? currentUnit.unit_short || currentUnit.unit_name
-                    : `Jednostka ${unitId}`,
+                    : `${unitId}`,
             });
         }
 
