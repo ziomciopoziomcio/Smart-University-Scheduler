@@ -7,10 +7,17 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import logging
+
+logger = logging.getLogger(__name__)
 
 loaded = load_dotenv(r"../../../infrastructure/docker/.env")
 if not loaded:
+    logger.error("Failed to load dotenv file")
     raise RuntimeError("load_dotenv() - failed to load dotenv")
+
+
+logger.info("Successfully loaded dotenv file")
 
 
 POSTGRES_USER = os.getenv("DB_USER")
