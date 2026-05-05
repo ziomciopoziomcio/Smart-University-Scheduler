@@ -680,3 +680,27 @@ async def get_student_plan(
     records = await result.data()
 
     return _map_schedule_entries(records)
+
+
+@router.get("/room-plan", response_model=list[schemas.ScheduleEntry])
+async def get_room_plan(
+    start_date: date = Query(..., description="Must be Monday (YYYY-MM-DD)"),
+    campus: str = Query(...),
+    building: str = Query(...),
+    room: str = Query(...),
+    plan_version: str | None = Query(None),
+    db: Session = Depends(get_db),
+    neo4j_session=Depends(get_neo4j_session),
+    # _current_user: user_models.Users = Depends(require_permission("schedule:view")),
+):
+    """
+    Returns weekly schedule for a specific room (Mon–Fri).
+    """
+
+    if start_date.weekday() != 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="start_date must be a Monday.",
+        )
+
+    return []
