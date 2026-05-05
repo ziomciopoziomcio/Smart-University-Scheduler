@@ -5,12 +5,10 @@ import {useIntl} from 'react-intl';
 
 import {
     type Faculty,
-    type Unit,
-    type PaginatedResponse,
+    // type Unit,
     type ScheduleEntry,
     type Lecturer,
     getFaculty,
-    fetchUnits,
     fetchLecturerPlan,
     getLecturerById
 } from '@api';
@@ -18,7 +16,6 @@ import {WeekSchedule} from '@components/Schedule/WeekSchedule';
 import {addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 
-//https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/184
 //TODO: INSTEAD OF FETCH UNIT DO GET UNIT!! https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/240
 
 export async function getLecturerScheduleForWeek(
@@ -55,17 +52,13 @@ export default function EmployeeSchedulePage() {
             setIsNamesLoading(true);
 
             try {
-                const [faculty, unitsRes, lecturer] = await Promise.all([
+                const [faculty, lecturer] = await Promise.all([
                     getFaculty(Number(facultyId)) as Promise<Faculty>,
-                    fetchUnits(Number(facultyId)) as Promise<PaginatedResponse<Unit>>,
                     getLecturerById(Number(lecturerId)) as Promise<Lecturer>
                 ]);
 
-                const unit = unitsRes.items.find((u) => String(u.id) === String(unitId));
-
                 if (!cancelled) {
                     setFacultyName(faculty.faculty_short || faculty.faculty_name);
-                    setUnitName(unit ? unit.unit_short || unit.unit_name : unitId);
                     setLecturerLabel(
                         lecturer
                             ? [lecturer.degree, lecturer.name, lecturer.surname].filter(Boolean).join(' ')
