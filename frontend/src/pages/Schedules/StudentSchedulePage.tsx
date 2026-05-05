@@ -29,9 +29,6 @@ import {WeekSchedule} from '@components/Schedule/WeekSchedule';
 import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 
-//https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/237
-//TODO: If choose elective blocks, add id to array in fetch plan
-
 export default function StudentSchedulePage() {
     const intl = useIntl();
     const {facultyId, fieldOfStudyId, semesterId, specializationId, groupId} = useParams();
@@ -150,11 +147,10 @@ export default function StudentSchedulePage() {
             try {
                 const res = await fetchStudyFieldPlan({
                     startDate: toIsoDate(currentWeekStart),
-                    studyProgram: Number(fieldOfStudyId), //TODO: BACKEND SHOULD DELETE IT
                     studyField: Number(fieldOfStudyId),
                     semester: Number(semesterId),
                     specializationId: specializationId ? Number(specializationId) : null,
-                    groupIds: groupId ? [Number(groupId)] : undefined,
+                    groupId: Number(groupId)
                 });
 
                 const startIso = toIsoDate(currentWeekStart);

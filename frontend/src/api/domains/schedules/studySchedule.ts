@@ -3,26 +3,23 @@ import type {ScheduleEntry} from './types';
 
 export interface FetchStudyFieldPlanParams {
     startDate: string;
-    studyProgram: number;
     studyField: number;
     semester: number;
     specializationId?: number | null;
     electiveBlockId?: number | null;
-    groupIds?: number[];
+    groupId?: number | null;
 }
 
 export const fetchStudyFieldPlan = async ({
     startDate,
-    studyProgram,
     studyField,
     semester,
     specializationId,
     electiveBlockId,
-    groupIds,
+    groupId,
 }: FetchStudyFieldPlanParams): Promise<ScheduleEntry[]> => {
     const params = new URLSearchParams({
         start_date: startDate,
-        study_program: String(studyProgram),
         study_field: String(studyField),
         semester: String(semester),
     });
@@ -35,9 +32,9 @@ export const fetchStudyFieldPlan = async ({
         params.set('elective_block_id', String(electiveBlockId));
     }
 
-    groupIds?.forEach((groupId) => {
-        params.append('group_ids', String(groupId));
-    });
+    if (groupId != null) {
+        params.set('groupId', String(groupId));
+    }
 
     const response = await fetch(`${SCHEDULES_URL}/study-field-plan?${params.toString()}`, {
         method: 'GET',
