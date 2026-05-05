@@ -1084,18 +1084,40 @@ def _get_semester_stats_query(db: Session, study_field_id: int) -> list[Any]:
     return (
         db.query(
             course_models.Curriculum_course.semester,
-            func.count(func.distinct(course_models.Curriculum_course.major)).label(
-                "spec_count"
-            ),
             func.count(
-                func.distinct(course_models.Curriculum_course.elective_block)
+                func.distinct(
+                    case(
+                        (
+                            models.Groups.semester
+                            == course_models.Curriculum_course.semester,
+                            models.Groups.major,
+                        ),
+                        else_=None,
+                    )
+                )
+            ).label("spec_count"),
+            func.count(
+                func.distinct(
+                    case(
+                        (
+                            models.Groups.semester
+                            == course_models.Curriculum_course.semester,
+                            models.Groups.elective_block,
+                        ),
+                        else_=None,
+                    )
+                )
             ).label("elec_count"),
             func.count(
                 func.distinct(
                     case(
                         (
                             (models.Groups.major.is_(None))
-                            & (models.Groups.elective_block.is_(None)),
+                            & (models.Groups.elective_block.is_(None))
+                            & (
+                                models.Groups.semester
+                                == course_models.Curriculum_course.semester
+                            ),
                             models.Groups.id,
                         ),
                         else_=None,
