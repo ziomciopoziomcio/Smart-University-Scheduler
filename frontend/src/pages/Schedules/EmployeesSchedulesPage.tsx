@@ -59,7 +59,6 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
                 }
 
                 if (unitId) {
-                                        debugger;
                     const un = await getUnit(Number(unitId));
                     setCurrentUnit(un);
                 } else {
@@ -79,11 +78,24 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
         setLoading(true);
         try {
             if (view === 'faculties') {
-                const res = await fetchFaculties(page, pageSize, debouncedSearch);
+                const res = await fetchFaculties(
+                    page,
+                    pageSize,
+                    {},
+                    debouncedSearch || undefined,
+                );
                 setData(res.items || res);
                 setTotalItems(res.total || 0);
             } else if (view === 'units' && facultyId) {
-                const res = await fetchUnits(Number(facultyId), page, pageSize, debouncedSearch);
+                const res = await fetchUnits(
+                    page,
+                    pageSize,
+                    {
+                        faculty_id: Number(facultyId),
+                    },
+                    debouncedSearch || undefined,
+                );
+                console.log(res);
                 setData(res.items || []);
                 setTotalItems(res.total || 0);
             } else if (view === 'lecturers' && facultyId && unitId) {
