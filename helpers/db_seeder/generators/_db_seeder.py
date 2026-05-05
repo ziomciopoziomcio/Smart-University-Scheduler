@@ -4,6 +4,7 @@ from helpers.db_seeder.generators._save_users_to_excel import (
     save_teachers_to_excel,
     save_not_teachers_to_excel,
 )
+from helpers.db_seeder.generators.academic_calendar import generate_academic_calendar
 from helpers.db_seeder.generators.create_admin import create_user_admin
 
 # import src.academics.models
@@ -83,6 +84,10 @@ if __name__ == "__main__":
     Base.metadata.create_all(bind=engine)
 
     session = next(get_db())
+
+
+    # ACADEMIC CALENDAR
+    generate_academic_calendar(session=session)
 
     # CAMPUSES
     db_campuses = generate_campuses(session)
