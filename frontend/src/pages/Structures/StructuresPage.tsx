@@ -74,7 +74,7 @@ export default function StructuresPage({view}: StructuresPageProps) {
         setError(null);
         try {
             if (view === 'faculties') {
-                const res = await fetchFaculties(page, pageSize, debouncedSearch);
+                const res = await fetchFaculties(page, pageSize, {}, debouncedSearch);
                 setData(res.items as Faculty[]);
                 setTotalItems(res.total);
                 setCurrentFaculty(null);
