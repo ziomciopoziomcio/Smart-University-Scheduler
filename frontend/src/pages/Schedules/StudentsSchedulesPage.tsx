@@ -82,20 +82,36 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
         return items;
     };
 
+    useEffect(() => {
+        const fetchBreadcrumbMetadata = async () => {
+            try {
+                if (facultyId) {
+                    const faculty = await getFaculty(Number(facultyId)) as Faculty;
+                    setCurrentFaculty(faculty);
+                } else {
+                    setCurrentFaculty(null);
+                }
+
+                if (fieldOfStudyId) {
+                    const field = await getStudyField(Number(fieldOfStudyId));
+                    setCurrentField(field);
+                } else {
+                    setCurrentField(null);
+                }
+            } catch (err) {
+                console.error('Nie udało się pobrać danych do breadcrumbs', err);
+            }
+        };
+
+        void fetchBreadcrumbMetadata();
+    }, [facultyId, fieldOfStudyId]);
+
     const loadData = useCallback(async () => {
         setLoading(true);
         setError(null);
 
         try {
             const offset = (page - 1) * pageSize;
-
-            if (facultyId && !currentFaculty) {
-                setCurrentFaculty(await getFaculty(Number(facultyId)) as Faculty);
-            }
-
-            if (fieldOfStudyId && !currentField) {
-                setCurrentField(await getStudyField(Number(fieldOfStudyId)));
-            }
 
             if (view === 'faculties') {
                 const res = await fetchFaculties(page, pageSize, {
@@ -168,9 +184,7 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
         majorId,
         page,
         pageSize,
-        search,
-        currentFaculty,
-        currentField
+        search
     ]);
 
     useEffect(() => {

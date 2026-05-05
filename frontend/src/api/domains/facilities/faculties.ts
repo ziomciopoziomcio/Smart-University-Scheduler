@@ -1,16 +1,24 @@
-import {FACILITIES_URL, getHeaders, type PaginatedResponse} from "@api/core";
-import {type Faculty} from "./types";
+import {FACILITIES_URL, getHeaders, type PaginatedResponse} from '@api/core';
+import {type Faculty} from './types';
+
+interface FetchFacultiesFilters {
+    faculty_name?: string;
+    faculty_short?: string;
+}
 
 export const fetchFaculties = async (
     page = 1,
     limit = 10,
+    filters: FetchFacultiesFilters = {},
     search?: string
 ): Promise<PaginatedResponse<Faculty>> => {
     const offset = (page - 1) * limit;
 
     const query = new URLSearchParams({
         limit: limit.toString(),
-        offset: offset.toString()
+        offset: offset.toString(),
+        ...(filters.faculty_name && {faculty_name: filters.faculty_name}),
+        ...(filters.faculty_short && {faculty_short: filters.faculty_short}),
     });
 
     if (search) query.append('search', search);

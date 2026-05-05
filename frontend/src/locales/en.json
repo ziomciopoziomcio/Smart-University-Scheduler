@@ -646,10 +646,9 @@
       "title": "Generate plans",
       "description": "Schedule generation may take a while. You can review the created version and check detected issues.",
       "button": "Generate",
-      "versionNameLabel": "Plan name",
-      "versionNamePlaceholder": "Enter plan name",
-      "defaultVersionName": "Plan {number}",
-      "generating": "Generating..."
+      "generating": "Generating...",
+      "facultyLabel": "Faculty",
+      "facultyPlaceholder": "Select faculty"
     },
     "notifications": {
       "title": "Notifications",
@@ -657,14 +656,14 @@
       "loading": "Generating schedule and loading notifications...",
       "emptyTitle": "No notifications",
       "emptyDescription": "No additional information was returned after generating the schedule.",
+      "successTitle": "Schedule generated successfully",
+      "successDescription": "No warnings or critical issues were detected. The schedule looks good.",
       "warningTitle": "Warning",
       "errorTitle": "Critical issue",
       "infoTitle": "Information",
       "statusSuccess": "No issues",
       "statusWarnings": "Requires review",
-      "statusErrors": "Issues detected",
-      "successTitle": "Schedule generated successfully",
-      "successDescription": "No warnings or critical issues were detected. The schedule is ready to review."
+      "statusErrors": "Issues detected"
     }
   }
 }
