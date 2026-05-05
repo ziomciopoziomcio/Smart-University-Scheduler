@@ -101,6 +101,29 @@ STUDY_FIELD_PLAN_ACADEMIC_QUERY = """
     ORDER BY config.physical_date, t.startTime
 """
 
+ROOM_PLAN_QUERY = """
+    UNWIND $day_configs AS config
+
+    MATCH (s:ClassSession)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
+    MATCH (s)-[:HELD_IN]->(r:Room)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(c:Campus)
+    MATCH (s)-[:OF_COURSE]->(course:Course)
+
+    WHERE c.campusShort = $campus
+      AND b.buildingNumber = $building
+      AND r.roomName = $room
+      AND config.week_number IN s.weeks
+      AND ($plan_version IS NULL OR s.planVersion = $plan_version)
+
+    RETURN
+        s.sessionId AS session_id,
+        course.courseName AS course_name,
+        course.classType AS class_type,
+        config.physical_date AS physical_date,
+        t.startTime AS start_time,
+        t.endTime AS end_time
+    ORDER BY config.physical_date, t.startTime
+"""
+
 
 @router.post("/generate", status_code=status.HTTP_202_ACCEPTED)
 async def generate_schedule(
@@ -682,6 +705,20 @@ async def get_student_plan(
     return _map_schedule_entries(records)
 
 
+def _map_room_plan(records: list[dict]) -> list[schemas.ScheduleEntry]:
+    return [
+        schemas.ScheduleEntry(
+            id=rec["session_id"],
+            title=rec["course_name"],
+            date=date.fromisoformat(rec["physical_date"]),
+            startTime=rec["start_time"],
+            endTime=rec["end_time"],
+            variant=_parse_variant(rec["class_type"]),
+        )
+        for rec in records
+    ]
+
+
 @router.get("/room-plan", response_model=list[schemas.ScheduleEntry])
 async def get_room_plan(
     start_date: date = Query(..., description="Must be Monday (YYYY-MM-DD)"),
@@ -703,4 +740,23 @@ async def get_room_plan(
             detail="start_date must be a Monday.",
         )
 
-    return []
+    day_configs = _get_academic_day_configs(db, start_date)
+    if not day_configs:
+        # raise HTTPException(
+        #     status_code=status.HTTP_400_BAD_REQUEST,
+        #     detail="day_configs empty",
+        # )
+        return []
+
+    result = await neo4j_session.run(
+        ROOM_PLAN_QUERY,
+        campus=campus,
+        building=building,
+        room=room,
+        plan_version=plan_version,
+        day_configs=day_configs,
+    )
+
+    records = await result.data()
+
+    return _map_room_plan(records)
