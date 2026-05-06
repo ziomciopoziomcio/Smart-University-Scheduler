@@ -132,8 +132,8 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
                 setTotalItems(res.total || 0);
             }
             setError(null);
-        } catch (err: any) {
-            setError(err.message || intl.formatMessage({id: 'programs.errorLoading'}));
+        } catch {
+            setError(intl.formatMessage({id: 'programs.errorLoading'}));
         } finally {
             setLoading(false);
         }

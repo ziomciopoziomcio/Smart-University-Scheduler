@@ -162,7 +162,9 @@ export function CurriculumModal({open, programId, semesterId, fieldId, onClose, 
                             labelId="block-label"
                             value={blockId}
                             label={intl.formatMessage({id: 'programs.curriculumModal.electiveBlock'})}
-                            onChange={(e) => setBlockId(e.target.value as number | '')}
+                            onChange={(e) => {
+                                setBlockId(e.target.value as number | '');
+                            }}
                         >
                             <MenuItem
                                 value=""><em>{intl.formatMessage({id: 'programs.curriculumModal.none'})}</em></MenuItem>
