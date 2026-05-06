@@ -62,7 +62,9 @@ export function ProgramCurriculumView({data, programId, semesterId, fieldId, onR
                         width: '200px'
                     }
                 ]}
-                onAddClick={() => setIsModalOpen(true)}
+                onAddClick={() => {
+                    setIsModalOpen(true);
+                }}
                 addLabel={intl.formatMessage({id: 'programs.addCourse'})}
                 emptyMessage={intl.formatMessage({id: 'programs.noData'})}
                 hideDividerOnLastItem
@@ -73,8 +75,9 @@ export function ProgramCurriculumView({data, programId, semesterId, fieldId, onR
                 programId={programId}
                 semesterId={semesterId}
                 fieldId={fieldId}
-                onClose={() => setIsModalOpen(false)}
-                onSuccess={onRefresh}
+                onClose={() => {
+                    setIsModalOpen(false);
+                }} onSuccess={onRefresh}
             />
         </Box>
     );

@@ -47,12 +47,19 @@ export function ProgramGroupModal({
 
     useEffect(() => {
         if (open && fieldId) {
-            fetchMajors(1, 100, {study_field: fieldId})
-                .then(res => setMajors(res.items || []))
-                .catch(console.error);
+            fetchMajors(1, 100, undefined,
+                {
+                    study_field: fieldId
+                }
+            )
+                .then(res => {
+                    setMajors(res.items || []);
+                }).catch(console.error);
 
             fetchElectiveBlocks(1, 100, undefined, {study_field: fieldId})
-                .then(res => setBlocks(res.items || []))
+                .then(res => {
+                    setBlocks(res.items || []);
+                })
                 .catch(console.error);
         }
     }, [open, fieldId]);
@@ -109,7 +116,9 @@ export function ProgramGroupModal({
                     label={intl.formatMessage({id: 'programs.groups.modal.nameLabel'})}
                     placeholder={intl.formatMessage({id: 'programs.groups.modal.namePlaceholder'})}
                     value={groupName}
-                    onChange={(e) => setGroupName(e.target.value)}
+                    onChange={(e) => {
+                        setGroupName(e.target.value);
+                    }}
                     fullWidth
                     disabled={isSubmitting}
                     autoFocus
@@ -124,7 +133,9 @@ export function ProgramGroupModal({
                             labelId="major-label"
                             value={majorId}
                             label={intl.formatMessage({id: 'programs.groups.modal.majorLabel'})}
-                            onChange={(e) => setMajorId(e.target.value as number | '')}
+                            onChange={(e) => {
+                                setMajorId(e.target.value as number | '');
+                            }}
                         >
                             <MenuItem
                                 value=""><em>{intl.formatMessage({id: 'programs.groups.modal.none'})}</em></MenuItem>
@@ -139,7 +150,9 @@ export function ProgramGroupModal({
                             labelId="block-label"
                             value={blockId}
                             label={intl.formatMessage({id: 'programs.groups.modal.blockLabel'})}
-                            onChange={(e) => setBlockId(e.target.value as number | '')}
+                            onChange={(e) => {
+                                setBlockId(e.target.value as number | '');
+                            }}
                         >
                             <MenuItem
                                 value=""><em>{intl.formatMessage({id: 'programs.groups.modal.none'})}</em></MenuItem>

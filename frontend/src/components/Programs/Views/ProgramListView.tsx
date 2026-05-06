@@ -49,7 +49,9 @@ export function ProgramListView({data, facultyId, fieldId, onRefresh, fieldName}
                 onItemClick={(item) => {
                     navigate(`/programs/faculty/${facultyId}/field/${fieldId}/program/${item.id}`);
                 }}
-                onAddClick={() => setIsModalOpen(true)}
+                onAddClick={() => {
+                    setIsModalOpen(true);
+                }}
                 addLabel={intl.formatMessage({id: 'programs.addProgram'})}
                 emptyMessage={intl.formatMessage({id: 'programs.noData'})}
                 hideDividerOnLastItem
@@ -59,8 +61,9 @@ export function ProgramListView({data, facultyId, fieldId, onRefresh, fieldName}
                 open={isModalOpen}
                 program={null}
                 fieldId={fieldId}
-                onClose={() => setIsModalOpen(false)}
-                onSuccess={onRefresh}
+                onClose={() => {
+                    setIsModalOpen(false);
+                }} onSuccess={onRefresh}
             />
         </Box>
     );

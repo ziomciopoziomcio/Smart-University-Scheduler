@@ -27,7 +27,7 @@ export function StudyProgramModal({open, program, fieldId, onClose, onSuccess}: 
     useEffect(() => {
         if (open) {
             setError(null);
-            if (program && program.start_year.includes('/')) {
+            if (program?.start_year.includes('/')) {
                 const [from, to] = program.start_year.split('/');
                 setYearFrom(from);
                 setYearTo(to);
@@ -121,7 +121,9 @@ export function StudyProgramModal({open, program, fieldId, onClose, onSuccess}: 
                 <TextField
                     label={intl.formatMessage({id: 'programs.modal.programName'})}
                     value={programName}
-                    onChange={(e) => setProgramName(e.target.value)}
+                    onChange={(e) => {
+                        setProgramName(e.target.value);
+                    }}
                     fullWidth
                     placeholder={intl.formatMessage({id: 'programs.modal.programNamePlaceholder'})}
                 />

@@ -49,7 +49,9 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
             setDebouncedSearch(search);
             setPage(1);
         }, 300);
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+        };
     }, [search]);
 
     useEffect(() => {
@@ -133,7 +135,7 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
             }
             setError(null);
         } catch (err: any) {
-            setError(err.message || intl.formatMessage({ id: 'programs.errorLoading' }));
+            setError(err.message || intl.formatMessage({id: 'programs.errorLoading'}));
         } finally {
             setLoading(false);
         }
@@ -177,10 +179,20 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
         }
 
         if (view === 'curriculum') {
-            items.push({ label: intl.formatMessage({ id: 'programs.dashboard.curriculumTitle', defaultMessage: 'Siatka zajęć' }) });
+            items.push({
+                label: intl.formatMessage({
+                    id: 'programs.dashboard.curriculumTitle',
+                    defaultMessage: 'Siatka zajęć'
+                })
+            });
         }
         if (view === 'groups') {
-            items.push({ label: intl.formatMessage({ id: 'programs.dashboard.groupsTitle', defaultMessage: 'Grupy dziekańskie' }) });
+            items.push({
+                label: intl.formatMessage({
+                    id: 'programs.dashboard.groupsTitle',
+                    defaultMessage: 'Grupy dziekańskie'
+                })
+            });
         }
 
         return items;

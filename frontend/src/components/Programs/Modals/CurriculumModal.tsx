@@ -36,12 +36,16 @@ export function CurriculumModal({open, programId, semesterId, fieldId, onClose, 
 
     useEffect(() => {
         if (open && fieldId) {
-            fetchMajors(1, 100, {study_field: fieldId})
-                .then(res => setMajors(res.items || []))
+            fetchMajors(1, 100, undefined, {study_field: fieldId})
+                .then(res => {
+                    setMajors(res.items || []);
+                })
                 .catch(console.error);
 
             fetchElectiveBlocks(1, 100, undefined, {study_field: fieldId})
-                .then(res => setBlocks(res.items || []))
+                .then(res => {
+                    setBlocks(res.items || []);
+                })
                 .catch(console.error);
         }
     }, [open, fieldId]);
@@ -61,9 +65,10 @@ export function CurriculumModal({open, programId, semesterId, fieldId, onClose, 
             }
         }, 400);
 
-        return () => clearTimeout(delayDebounceFn);
+        return () => {
+            clearTimeout(delayDebounceFn);
+        };
     }, [courseSearchInput, open]);
-
     useEffect(() => {
         if (!open) {
             setSelectedCourse(null);
@@ -105,9 +110,13 @@ export function CurriculumModal({open, programId, semesterId, fieldId, onClose, 
                     options={courseOptions}
                     getOptionLabel={(option) => `${option.course_code} - ${option.course_name}`}
                     value={selectedCourse}
-                    onChange={(_, newValue) => setSelectedCourse(newValue)}
+                    onChange={(_, newValue) => {
+                        setSelectedCourse(newValue);
+                    }}
                     inputValue={courseSearchInput}
-                    onInputChange={(_, newInputValue) => setCourseSearchInput(newInputValue)}
+                    onInputChange={(_, newInputValue) => {
+                        setCourseSearchInput(newInputValue);
+                    }}
                     loading={isSearchingCourses}
                     noOptionsText={intl.formatMessage({id: 'programs.curriculumModal.courseNoOptions'})}
                     renderInput={(params) => (
@@ -136,7 +145,9 @@ export function CurriculumModal({open, programId, semesterId, fieldId, onClose, 
                             labelId="major-label"
                             value={majorId}
                             label={intl.formatMessage({id: 'programs.curriculumModal.major'})}
-                            onChange={(e) => setMajorId(e.target.value as number | '')}
+                            onChange={(e) => {
+                                setMajorId(e.target.value as number | '');
+                            }}
                         >
                             <MenuItem
                                 value=""><em>{intl.formatMessage({id: 'programs.curriculumModal.none'})}</em></MenuItem>
