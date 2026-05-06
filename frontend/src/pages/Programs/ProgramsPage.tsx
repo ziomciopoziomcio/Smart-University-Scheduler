@@ -114,7 +114,6 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
                 setTotalItems(0);
 
             } else if (view === 'curriculum' && programId && semesterId) {
-                // TODO: API SHOULD SUPPORT SEMESTER FILTERING - FOR NOW WE FILTER CLIENT-SIDE
 
                 const res = await fetchCurriculum(page, pageSize, debouncedSearch, {
                     study_program: Number(programId),
@@ -123,15 +122,14 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
                 setData(res.items || []);
                 setTotalItems(res.total || 0);
             } else if (view === 'groups' && programId && semesterId) {
+
                 const res = await fetchGroups(page, pageSize, {
-                    study_program: Number(programId)
+                    study_program: Number(programId),
+                    semester: Number(semesterId)
                 }, debouncedSearch);
 
-                const targetSemester = Number(semesterId);
-                const filteredBySemester = (res.items || []).filter(g => g.semester === targetSemester);
-
-                setData(filteredBySemester);
-                setTotalItems(filteredBySemester.length);
+                setData(res.items || []);
+                setTotalItems(res.total || 0);
             }
             setError(null);
         } catch (err: any) {

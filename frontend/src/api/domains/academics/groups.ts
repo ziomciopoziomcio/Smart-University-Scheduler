@@ -9,6 +9,7 @@ export const fetchGroups = async (
         major?: number;
         elective_block?: number;
         group_name?: string;
+        semester?: number;
     } = {},
     search?: string
 ): Promise<PaginatedResponse<Group>> => {
@@ -25,6 +26,9 @@ export const fetchGroups = async (
         }),
         ...(filters.elective_block !== undefined && {
             elective_block: filters.elective_block.toString(),
+        }),
+        ...(filters.semester !== undefined && {
+            semester: filters.semester.toString()
         }),
         ...(filters.group_name && {
             group_name: filters.group_name,
