@@ -31,14 +31,14 @@ export function ProgramListView({data, facultyId, fieldId, onRefresh, fieldName}
                     {
                         render: (item) => (
                             <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                                Nabór: {item.start_year}
+                                {intl.formatMessage({id: 'programs.list.recruitment'}, {year: item.start_year})}
                             </Typography>
                         ),
                         width: '150px'
                     },
                     {
                         render: (item) => intl.formatMessage(
-                            {id: 'programs.list.semestersCount', defaultMessage: '{count} semestrów'},
+                            {id: 'programs.list.semestersCount'},
                             {count: item.semesters_count ?? 0}
                         ),
                         variant: 'secondary',
@@ -50,7 +50,7 @@ export function ProgramListView({data, facultyId, fieldId, onRefresh, fieldName}
                     navigate(`/programs/faculty/${facultyId}/field/${fieldId}/program/${item.id}`);
                 }}
                 onAddClick={() => setIsModalOpen(true)}
-                addLabel={intl.formatMessage({id: 'programs.addProgram', defaultMessage: 'Dodaj rocznik'})}
+                addLabel={intl.formatMessage({id: 'programs.addProgram'})}
                 emptyMessage={intl.formatMessage({id: 'programs.noData'})}
                 hideDividerOnLastItem
             />

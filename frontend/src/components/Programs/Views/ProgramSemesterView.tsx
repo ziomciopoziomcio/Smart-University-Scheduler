@@ -32,7 +32,7 @@ export function ProgramSemesterView({data, facultyId, fieldId, programId}: Progr
                 columns={[
                     {
                         render: (item) => intl.formatMessage(
-                            {id: 'programs.semesters.coursesCount', defaultMessage: '{count} przedmiotów'},
+                            {id: 'programs.semesters.coursesCount'},
                             {count: item.courses_count ?? 0}
                         ),
                         variant: 'secondary',

@@ -155,8 +155,15 @@ function AppRoute() {
                             <Route path="faculty/:facultyId/field/:fieldId" element={<ProgramsPage view="programs"/>}/>
                             <Route path="faculty/:facultyId/field/:fieldId/program/:programId"
                                    element={<ProgramsPage view="semesters"/>}/>
+
                             <Route path="faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId"
+                                   element={<ProgramsPage view="semester-dashboard"/>}/>
+
+                            <Route path="faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/curriculum"
                                    element={<ProgramsPage view="curriculum"/>}/>
+
+                            <Route path="faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/groups"
+                                   element={<ProgramsPage view="groups"/>}/>
                         </Route>
                     </Route>
 

@@ -29,7 +29,7 @@ export function ProgramFieldView({data, facultyId}: ProgramFieldViewProps) {
                     },
                     {
                         render: (item) => intl.formatMessage(
-                            {id: 'programs.fields.programsCount', defaultMessage: '{count} roczników'},
+                            {id: 'programs.fields.programsCount'},
                             {count: item.programs_count ?? 0}
                         ),
                         variant: 'secondary',

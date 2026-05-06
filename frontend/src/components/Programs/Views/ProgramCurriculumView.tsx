@@ -2,7 +2,6 @@ import {useState} from "react";
 import {Box, Chip, Typography} from '@mui/material';
 import {useIntl} from 'react-intl';
 import BookIcon from '@mui/icons-material/Book';
-import StarOutlineIcon from '@mui/icons-material/StarOutline';
 import {ListView} from '@components/Common';
 import {type CurriculumCourse} from '@api';
 import {CurriculumModal} from '../Modals/CurriculumModal';
@@ -29,13 +28,12 @@ export function ProgramCurriculumView({data, programId, semesterId, fieldId, onR
             <ListView<CurriculumCourse & { id: string }>
                 items={mappedData}
                 icon={BookIcon}
-                getTitle={(item) => item.course_details?.course_name || `ID Przedmiotu: ${item.course}`}
+                getTitle={(item) => item.course_details?.course_name || intl.formatMessage({id: 'programs.curriculum.courseIdFallback'}, {id: item.course})}
                 titleWidth="400px"
                 columns={[
                     {
                         render: (item) => (
                             <Typography variant="body2" fontWeight={600} display="flex" alignItems="center" gap={0.5}>
-                                <StarOutlineIcon fontSize="small" sx={{color: '#f59e0b'}}/>
                                 {item.course_details?.ects_points ?? 0} ECTS
                             </Typography>
                         ),
@@ -45,7 +43,7 @@ export function ProgramCurriculumView({data, programId, semesterId, fieldId, onR
                         render: (item) => item.major ? (
                             <Chip
                                 size="small"
-                                label={item.major_details?.major_name || `Spec. ID: ${item.major}`}
+                                label={item.major_details?.major_name || intl.formatMessage({id: 'programs.curriculum.majorIdFallback'}, {id: item.major})}
                                 color="primary"
                                 variant="outlined"
                             />
@@ -56,7 +54,7 @@ export function ProgramCurriculumView({data, programId, semesterId, fieldId, onR
                         render: (item) => item.elective_block ? (
                             <Chip
                                 size="small"
-                                label={item.elective_block_details?.elective_block_name || `Blok ID: ${item.elective_block}`}
+                                label={item.elective_block_details?.elective_block_name || intl.formatMessage({id: 'programs.curriculum.blockIdFallback'}, {id: item.elective_block})}
                                 color="secondary"
                                 variant="outlined"
                             />
@@ -65,7 +63,7 @@ export function ProgramCurriculumView({data, programId, semesterId, fieldId, onR
                     }
                 ]}
                 onAddClick={() => setIsModalOpen(true)}
-                addLabel={intl.formatMessage({id: 'programs.addCourse', defaultMessage: 'Dodaj przedmiot'})}
+                addLabel={intl.formatMessage({id: 'programs.addCourse'})}
                 emptyMessage={intl.formatMessage({id: 'programs.noData'})}
                 hideDividerOnLastItem
             />

@@ -8,7 +8,7 @@ import {
     fetchFaculties, getFaculty, type Faculty,
     fetchStudyFields, getStudyField, type StudyField,
     fetchStudyPrograms, getStudyProgram, type StudyProgram,
-    fetchCurriculum
+    fetchCurriculum, fetchGroups
 } from '@api';
 
 import {
@@ -18,9 +18,11 @@ import {
     ProgramSemesterView,
     ProgramCurriculumView
 } from '@components/Programs';
+import {ProgramGroupView} from "@components/Programs/Views/ProgramGroupView.tsx";
+import {ProgramSemesterDashboardView} from "@components/Programs/Views/ProgramSemesterDashboardView.tsx";
 
 interface ProgramsPageProps {
-    view: 'faculties' | 'fields' | 'programs' | 'semesters' | 'curriculum';
+    view: 'faculties' | 'fields' | 'programs' | 'semesters' | 'semester-dashboard' | 'curriculum' | 'groups';
 }
 
 export default function ProgramsPage({view}: ProgramsPageProps) {
@@ -110,16 +112,28 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
                 setTotalItems(0);
 
             } else if (view === 'curriculum' && programId && semesterId) {
+                // TODO: API SHOULD SUPPORT SEMESTER FILTERING - FOR NOW WE FILTER CLIENT-SIDE
+
                 const res = await fetchCurriculum(page, pageSize, debouncedSearch, {
                     study_program: Number(programId),
                     semester: Number(semesterId)
                 });
                 setData(res.items || []);
                 setTotalItems(res.total || 0);
+            } else if (view === 'groups' && programId && semesterId) {
+                const res = await fetchGroups(page, pageSize, {
+                    study_program: Number(programId)
+                }, debouncedSearch);
+
+                const targetSemester = Number(semesterId);
+                const filteredBySemester = (res.items || []).filter(g => g.semester === targetSemester);
+
+                setData(filteredBySemester);
+                setTotalItems(filteredBySemester.length);
             }
             setError(null);
         } catch (err: any) {
-            setError(err.message || 'Błąd ładowania danych');
+            setError(err.message || intl.formatMessage({ id: 'programs.errorLoading' }));
         } finally {
             setLoading(false);
         }
@@ -132,27 +146,43 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
     const getBreadcrumbs = (): BreadcrumbItem[] => {
         const items: BreadcrumbItem[] = [{label: intl.formatMessage({id: 'programs.title'}), path: '/programs'}];
 
-        if (['fields', 'programs', 'semesters', 'curriculum'].includes(view)) {
+        const hasFaculty = ['fields', 'programs', 'semesters', 'semester-dashboard', 'curriculum', 'groups'].includes(view);
+        const hasField = ['programs', 'semesters', 'semester-dashboard', 'curriculum', 'groups'].includes(view);
+        const hasProgram = ['semesters', 'semester-dashboard', 'curriculum', 'groups'].includes(view);
+        const hasSemester = ['semester-dashboard', 'curriculum', 'groups'].includes(view);
+
+        if (hasFaculty) {
             items.push({
                 label: currentFaculty ? currentFaculty.faculty_short : intl.formatMessage({id: 'programs.faculties.title'}),
                 path: view !== 'fields' ? `/programs/faculty/${facultyId}` : undefined
             });
         }
-        if (['programs', 'semesters', 'curriculum'].includes(view)) {
+        if (hasField) {
             items.push({
                 label: currentField ? currentField.field_name : intl.formatMessage({id: 'programs.fields.title'}),
                 path: view !== 'programs' ? `/programs/faculty/${facultyId}/field/${fieldId}` : undefined
             });
         }
-        if (['semesters', 'curriculum'].includes(view)) {
+        if (hasProgram) {
             items.push({
-                label: currentProgram ? (currentProgram.program_name || currentProgram.start_year) : intl.formatMessage({id: 'programs.list.title'}),
+                label: currentProgram ? currentProgram.start_year : intl.formatMessage({id: 'programs.list.title'}),
                 path: view !== 'semesters' ? `/programs/faculty/${facultyId}/field/${fieldId}/program/${programId}` : undefined
             });
         }
-        if (view === 'curriculum' && semesterId) {
-            items.push({label: `${intl.formatMessage({id: 'programs.semester'})} ${semesterId}`});
+        if (hasSemester && semesterId) {
+            items.push({
+                label: `${intl.formatMessage({id: 'programs.semester'})} ${semesterId}`,
+                path: view !== 'semester-dashboard' ? `/programs/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${semesterId}` : undefined
+            });
         }
+
+        if (view === 'curriculum') {
+            items.push({ label: intl.formatMessage({ id: 'programs.dashboard.curriculumTitle', defaultMessage: 'Siatka zajęć' }) });
+        }
+        if (view === 'groups') {
+            items.push({ label: intl.formatMessage({ id: 'programs.dashboard.groupsTitle', defaultMessage: 'Grupy dziekańskie' }) });
+        }
+
         return items;
     };
 
@@ -194,6 +224,15 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
                             />
                         )}
 
+                        {view === 'semester-dashboard' && (
+                            <ProgramSemesterDashboardView
+                                facultyId={Number(facultyId)}
+                                fieldId={Number(fieldId)}
+                                programId={Number(programId)}
+                                semesterId={Number(semesterId)}
+                            />
+                        )}
+
                         {view === 'curriculum' && (
                             <ProgramCurriculumView
                                 data={data}
@@ -201,6 +240,17 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
                                 semesterId={Number(semesterId)}
                                 fieldId={Number(fieldId)}
                                 onRefresh={loadData}
+                            />
+                        )}
+
+                        {view === 'groups' && (
+                            <ProgramGroupView
+                                data={data}
+                                programId={Number(programId)}
+                                semesterId={Number(semesterId)}
+                                fieldId={Number(fieldId)}
+                                onRefresh={loadData}
+                                facultyId={Number(facultyId)}
                             />
                         )}
 
@@ -214,7 +264,7 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
                             />
                         )}
 
-                        {!loading && data.length === 0 && (
+                        {!loading && data.length === 0 && view !== 'semester-dashboard' && (
                             <Alert severity="info">{intl.formatMessage({id: 'programs.noData'})}</Alert>
                         )}
                     </Box>

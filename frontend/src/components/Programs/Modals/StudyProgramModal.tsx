@@ -102,7 +102,7 @@ export function StudyProgramModal({open, program, fieldId, onClose, onSuccess}: 
                             setYearFrom(e.target.value);
                             setError(null);
                         }}
-                        placeholder="2023"
+                        placeholder={intl.formatMessage({id: 'programs.modal.yearFromPlaceholder'})}
                         fullWidth
                     />
                     <Typography sx={{fontWeight: 700, color: 'text.secondary'}}>/</Typography>
@@ -113,7 +113,7 @@ export function StudyProgramModal({open, program, fieldId, onClose, onSuccess}: 
                             setYearTo(e.target.value);
                             setError(null);
                         }}
-                        placeholder="2024"
+                        placeholder={intl.formatMessage({id: 'programs.modal.yearToPlaceholder'})}
                         fullWidth
                     />
                 </Box>
@@ -123,15 +123,14 @@ export function StudyProgramModal({open, program, fieldId, onClose, onSuccess}: 
                     value={programName}
                     onChange={(e) => setProgramName(e.target.value)}
                     fullWidth
-                    placeholder="np. Profil praktyczny"
+                    placeholder={intl.formatMessage({id: 'programs.modal.programNamePlaceholder'})}
                 />
             </DialogContent>
 
             <DialogActions sx={{p: 3}}>
-                <Button onClick={onClose} sx={{
-                    fontWeight: 600,
-                    color: 'text.secondary'
-                }}>{intl.formatMessage({id: 'common.cancel'})}</Button>
+                <Button onClick={onClose} sx={{fontWeight: 600, color: 'text.secondary'}}>
+                    {intl.formatMessage({id: 'common.cancel'})}
+                </Button>
                 <Button onClick={handleSubmit} variant="contained" disabled={isSubmitting}
                         sx={{borderRadius: '10px', px: 4, fontWeight: 600}}>
                     {isSubmitting ? <CircularProgress size={24}/> : intl.formatMessage({id: 'common.save'})}

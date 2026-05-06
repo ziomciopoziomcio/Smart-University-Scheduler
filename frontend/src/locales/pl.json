@@ -590,7 +590,8 @@
       "empty": "Brak kierunków studiów na tym wydziale.",
       "nameLabel": "Nazwa Kierunku",
       "namePlaceholder": "np. Informatyka Stosowana",
-      "majorsCount": "Specjalizacji"
+      "majorsCount": "Specjalizacji",
+      "blocksCount": "{count, plural, =0 {Brak bloków} one {1 blok} few {# bloki} many {# bloków} other {# bloku}}"
     },
     "majors": {
       "add": "Dodaj Specjalizację",
@@ -678,6 +679,7 @@
     "noData": "Brak danych do wyświetlenia.",
     "addProgram": "Dodaj rocznik",
     "addCourse": "Dodaj przedmiot",
+    "errorLoading": "Błąd ładowania danych",
     "faculties": {
       "title": "Wydział"
     },
@@ -687,11 +689,23 @@
     },
     "list": {
       "title": "Program studiów",
-      "semestersCount": "{count, plural, =0 {Brak semestrów} one {1 semestr} few {# semestry} many {# semestrów} other {# semestru}}"
+      "semestersCount": "{count, plural, =0 {Brak semestrów} one {1 semestr} few {# semestry} many {# semestrów} other {# semestru}}",
+      "recruitment": "Nabór: {year}"
     },
     "semesters": {
       "title": "Semestry",
       "coursesCount": "{count, plural, =0 {Brak przedmiotów} one {1 przedmiot} few {# przedmioty} many {# przedmiotów} other {# przedmiotu}}"
+    },
+    "dashboard": {
+      "curriculumTitle": "Siatka zajęć",
+      "curriculumDesc": "Zarządzaj przedmiotami w tym semestrze",
+      "groupsTitle": "Grupy dziekańskie",
+      "groupsDesc": "Zarządzaj grupami i przypisuj studentów"
+    },
+    "curriculum": {
+      "courseIdFallback": "ID Przedmiotu: {id}",
+      "majorIdFallback": "Spec. ID: {id}",
+      "blockIdFallback": "Blok ID: {id}"
     },
     "modal": {
       "editProgram": "Edytuj rocznik",
@@ -702,7 +716,10 @@
       "yearTo": "Rok do",
       "yearErrorFormat": "Lata muszą być liczbami 4-cyfrowymi",
       "yearErrorDiff": "Różnica między latami musi wynosić dokładnie 1 rok",
-      "yearErrorOrder": "Pierwszy rok musi być mniejszy od drugiego"
+      "yearErrorOrder": "Pierwszy rok musi być mniejszy od drugiego",
+      "yearFromPlaceholder": "2023",
+      "yearToPlaceholder": "2024",
+      "programNamePlaceholder": "np. Profil praktyczny"
     },
     "curriculumModal": {
       "title": "Dodaj przedmiot do siatki",
@@ -713,6 +730,33 @@
       "electiveBlock": "Blok obieralny (opcjonalnie)",
       "none": "Brak",
       "exclusivityHint": "Przedmiot może należeć do specjalności ALBO do bloku."
+    },
+    "groups": {
+      "title": "Grupy",
+      "add": "Dodaj grupę",
+      "edit": "Edytuj grupę",
+      "deleteTitle": "Usuń grupę",
+      "deleteDesc": "Czy na pewno chcesz usunąć grupę {name}?",
+      "empty": "Brak grup w tym semestrze",
+      "studentsCount": "Studenci: {count}",
+      "chip": {
+        "major": "Specjalność: {name}",
+        "block": "Blok: {name}",
+        "general": "Rocznik (Ogólna)"
+      },
+      "modal": {
+        "nameLabel": "Nazwa grupy",
+        "namePlaceholder": "np. W1, L2, AI-1",
+        "majorLabel": "Specjalność",
+        "blockLabel": "Blok obieralny",
+        "none": "Brak",
+        "exclusivityHint": "* Grupa może być przypisana do całego rocznika, specjalności ALBO bloku obieralnego."
+      }
+    },
+    "groupStudents": {
+      "title": "Studenci w grupie",
+      "empty": "Brak studentów przypisanych do tej grupy",
+      "index": "Indeks: {id}"
     }
   }
 }
