@@ -112,7 +112,6 @@ ROOM_PLAN_QUERY = """
       AND b.buildingNumber = toInteger($building)
       AND r.roomName = $room
       AND config.week_number IN s.weeks
-      AND ($plan_version IS NULL OR s.planVersion = $plan_version)
 
     RETURN
         s.sessionId AS session_id,
