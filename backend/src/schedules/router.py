@@ -742,10 +742,6 @@ async def get_room_plan(
 
     day_configs = _get_academic_day_configs(db, start_date)
     if not day_configs:
-        # raise HTTPException(
-        #     status_code=status.HTTP_400_BAD_REQUEST,
-        #     detail="day_configs empty",
-        # )
         return []
 
     result = await neo4j_session.run(
