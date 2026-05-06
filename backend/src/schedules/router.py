@@ -706,17 +706,8 @@ async def get_student_plan(
 
 
 def _map_room_plan(records: list[dict]) -> list[schemas.ScheduleEntry]:
-    return [
-        schemas.ScheduleEntry(
-            id=rec["session_id"],
-            title=rec["course_name"],
-            date=date.fromisoformat(rec["physical_date"]),
-            startTime=rec["start_time"],
-            endTime=rec["end_time"],
-            variant=_parse_variant(rec["class_type"]),
-        )
-        for rec in records
-    ]
+    normalized_records = [{**rec, "title": rec["course_name"]} for rec in records]
+    return _map_schedule_entries(normalized_records)
 
 
 @router.get("/room-plan", response_model=list[schemas.ScheduleEntry])
