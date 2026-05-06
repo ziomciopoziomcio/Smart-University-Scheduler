@@ -416,6 +416,7 @@
     }
   },
   "roles": {
+    "usersCount": "{count, plural, =0 {No users} one {1 user} other {# users}}",
     "title": "Roles",
     "searchPlaceholder": "Search role...",
     "add": "Add role",

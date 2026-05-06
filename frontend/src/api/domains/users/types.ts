@@ -42,4 +42,5 @@ export interface Role {
     id: number;
     role_name: string;
     permissions: Permission[];
+    users_count?: number;
 }
