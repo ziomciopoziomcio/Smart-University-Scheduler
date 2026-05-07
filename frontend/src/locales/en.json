@@ -295,6 +295,7 @@
         "conflict": "This change creates a schedule conflict.",
         "error": "Failed to update schedule session."
       },
+    "schedule": {
       "details": {
         "edit": "Edit"
       }
