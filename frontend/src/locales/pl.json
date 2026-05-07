@@ -762,6 +762,7 @@
   },
   "chat": {
     "title": "Chat",
+    "searchChats": "Szukaj rozmów...",
     "subtitle": "Asystent planu zajęć",
     "newChat": "Nowy czat",
     "newChatTitle": "Nowy czat",

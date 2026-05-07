@@ -767,6 +767,7 @@
   },
   "chat": {
     "title": "Chat",
+    "searchChats": "Search chats",
     "subtitle": "Schedule assistant",
     "newChat": "New chat",
     "newChatTitle": "New chat",

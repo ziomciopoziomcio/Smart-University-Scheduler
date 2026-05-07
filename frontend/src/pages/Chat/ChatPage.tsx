@@ -4,197 +4,15 @@ import {useIntl} from 'react-intl';
 
 import {ChatArchivePanel, ChatConversationPanel} from '@components/chat';
 
-import type {PaginatedResponse} from '@api/core';
 import {
     type Chat,
     type ChatMessage,
-    type ChatTurnResponse,
+    createChat,
+    deleteChat,
+    fetchChatMessages,
+    fetchChats,
+    sendChatMessage,
 } from '@api/domains/conversations';
-
-// TODO BACKEND:
-// import {
-//     createChat,
-//     deleteChat,
-//     fetchChatMessages,
-//     fetchChats,
-//     sendChatMessage,
-// } from '@api/domains/conversations';
-
-const MOCK_DELAY = 300;
-const MOCK_USER_ID = 1;
-
-let mockChats: Chat[] = [
-    {
-        id: 1,
-        user_id: MOCK_USER_ID,
-        title: 'Czy mogę przełożyć Programowanie Sieciowe?',
-        created_at: new Date().toISOString(),
-    },
-    {
-        id: 2,
-        user_id: MOCK_USER_ID,
-        title: 'O której godzinie konsultacje?',
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    },
-];
-
-let mockMessages: Record<number, ChatMessage[]> = {
-    1: [
-        {
-            id: 1,
-            chat_id: 1,
-            role: 'user',
-            content: 'Czy mogę przełożyć Programowanie Sieciowe?',
-            created_at: new Date().toISOString(),
-        },
-        {
-            id: 2,
-            chat_id: 1,
-            role: 'assistant',
-            content: 'Mogę pomóc sprawdzić możliwe terminy. Wybierz proszę zajęcia i preferowany dzień.',
-            created_at: new Date().toISOString(),
-        },
-    ],
-    2: [
-        {
-            id: 3,
-            chat_id: 2,
-            role: 'user',
-            content: 'O której godzinie są konsultacje?',
-            created_at: new Date().toISOString(),
-        },
-        {
-            id: 4,
-            chat_id: 2,
-            role: 'assistant',
-            content: 'Sprawdzę to w Twoim planie, gdy endpoint będzie podłączony.',
-            created_at: new Date().toISOString(),
-        },
-    ],
-};
-
-const wait = () => new Promise((resolve) => setTimeout(resolve, MOCK_DELAY));
-
-function toPaginatedResponse<T>(
-    items: T[],
-    page = 1,
-    limit = 50
-): PaginatedResponse<T> {
-    const offset = (page - 1) * limit;
-
-    return {
-        items: items.slice(offset, offset + limit),
-        total: items.length,
-        limit,
-        offset,
-    };
-}
-
-async function mockFetchChats(
-    page = 1,
-    limit = 50
-): Promise<PaginatedResponse<Chat>> {
-    await wait();
-
-    // TODO BACKEND:
-    // ZAMIANA NA BACKEND:
-    // return fetchChats(page, limit);
-
-    const sortedChats = [...mockChats].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
-
-    return toPaginatedResponse(sortedChats, page, limit);
-}
-
-async function mockCreateChat(title?: string | null): Promise<Chat> {
-    await wait();
-
-    // TODO BACKEND:
-    // ZAMIANA NA BACKEND:
-    // return createChat(title);
-
-    const chat: Chat = {
-        id: Date.now(),
-        user_id: MOCK_USER_ID,
-        title: title || 'Nowy czat',
-        created_at: new Date().toISOString(),
-    };
-
-    mockChats = [chat, ...mockChats];
-    mockMessages[chat.id] = [];
-
-    return chat;
-}
-
-async function mockDeleteChat(chatId: number): Promise<void> {
-    await wait();
-
-    // TODO BACKEND:
-    // ZAMIANA NA BACKEND:
-    // return deleteChat(chatId);
-
-    mockChats = mockChats.filter((chat) => chat.id !== chatId);
-    delete mockMessages[chatId];
-}
-
-async function mockFetchChatMessages(
-    chatId: number,
-    page = 1,
-    limit = 100
-): Promise<PaginatedResponse<ChatMessage>> {
-    await wait();
-
-    // TODO BACKEND:
-    // ZAMIANA NA BACKEND:
-    // return fetchChatMessages(chatId, page, limit);
-
-    const messages = mockMessages[chatId] || [];
-
-    return toPaginatedResponse(messages, page, limit);
-}
-
-async function mockSendChatMessage(
-    chatId: number,
-    content: string
-): Promise<ChatTurnResponse> {
-    await wait();
-
-    // TODO BACKEND:
-    // ZAMIANA NA BACKEND:
-    // return sendChatMessage(chatId, content);
-
-    const now = new Date().toISOString();
-
-    const userMessage: ChatMessage = {
-        id: Date.now(),
-        chat_id: chatId,
-        role: 'user',
-        content,
-        created_at: now,
-    };
-
-    const aiMessage: ChatMessage = {
-        id: Date.now() + 1,
-        chat_id: chatId,
-        role: 'assistant',
-        content: 'To jest tymczasowa odpowiedź. Tutaj później podepniesz endpoint AI chatu.',
-        created_at: new Date().toISOString(),
-    };
-
-    mockMessages[chatId] = [...(mockMessages[chatId] || []), userMessage, aiMessage];
-
-    mockChats = mockChats.map((chat) =>
-        chat.id === chatId && (!chat.title || chat.title === 'Nowy czat')
-            ? {...chat, title: content.slice(0, 48)}
-            : chat
-    );
-
-    return {
-        user_message: userMessage,
-        ai_message: aiMessage,
-    };
-}
 
 export default function ChatPage() {
     const intl = useIntl();
@@ -214,55 +32,55 @@ export default function ChatPage() {
         [chats, selectedChatId]
     );
 
-    useEffect(() => {
-        const loadChats = async () => {
-            setIsChatsLoading(true);
+    const loadChats = async (selectFirst = true) => {
+        setIsChatsLoading(true);
 
-            try {
-                const result = await mockFetchChats(1, 50);
+        try {
+            const result = await fetchChats(1, 50);
 
-                // TODO BACKEND:
-                // Po przełączeniu na backend zostaje tak samo,
-                // bo backend też zwraca PaginatedResponse<Chat>.
-                setChats(result.items);
+            setChats(result.items);
 
-                if (result.items.length > 0) {
-                    setSelectedChatId(result.items[0].id);
-                }
-            } finally {
-                setIsChatsLoading(false);
+            if (selectFirst) {
+                setSelectedChatId((currentSelectedChatId) => {
+                    if (currentSelectedChatId) {
+                        const stillExists = result.items.some((chat) => chat.id === currentSelectedChatId);
+                        if (stillExists) return currentSelectedChatId;
+                    }
+
+                    return result.items[0]?.id ?? null;
+                });
             }
-        };
+        } finally {
+            setIsChatsLoading(false);
+        }
+    };
 
+    const loadMessages = async (chatId: number) => {
+        setIsMessagesLoading(true);
+
+        try {
+            const result = await fetchChatMessages(chatId, 1, 100);
+            setMessages(result.items);
+        } finally {
+            setIsMessagesLoading(false);
+        }
+    };
+
+    useEffect(() => {
         void loadChats();
     }, []);
 
     useEffect(() => {
-        const loadMessages = async () => {
-            if (!selectedChatId) {
-                setMessages([]);
-                return;
-            }
+        if (!selectedChatId) {
+            setMessages([]);
+            return;
+        }
 
-            setIsMessagesLoading(true);
-
-            try {
-                const result = await mockFetchChatMessages(selectedChatId, 1, 100);
-
-                // TODO BACKEND:
-                // Po przełączeniu na backend zostaje tak samo,
-                // bo backend też zwraca PaginatedResponse<ChatMessage>.
-                setMessages(result.items);
-            } finally {
-                setIsMessagesLoading(false);
-            }
-        };
-
-        void loadMessages();
+        void loadMessages(selectedChatId);
     }, [selectedChatId]);
 
     const handleNewChat = async () => {
-        const chat = await mockCreateChat(
+        const chat = await createChat(
             intl.formatMessage({
                 id: 'chat.newChatTitle',
                 defaultMessage: 'Nowy czat',
@@ -276,7 +94,7 @@ export default function ChatPage() {
     };
 
     const handleDeleteChat = async (chatId: number) => {
-        await mockDeleteChat(chatId);
+        await deleteChat(chatId);
 
         setChats((prev) => {
             const next = prev.filter((chat) => chat.id !== chatId);
@@ -297,9 +115,11 @@ export default function ChatPage() {
         let chatId = selectedChatId;
 
         if (!chatId) {
-            const chat = await mockCreateChat(content.slice(0, 48));
+            const chat = await createChat(content.slice(0, 48));
+
             setChats((prev) => [chat, ...prev]);
             setSelectedChatId(chat.id);
+
             chatId = chat.id;
         }
 
@@ -317,7 +137,7 @@ export default function ChatPage() {
         setMessages((prev) => [...prev, optimisticUserMessage]);
 
         try {
-            const response = await mockSendChatMessage(chatId, content);
+            const response = await sendChatMessage(chatId, content);
 
             setMessages((prev) => [
                 ...prev.filter((message) => message.id !== optimisticUserMessage.id),
@@ -327,11 +147,22 @@ export default function ChatPage() {
 
             setChats((prev) =>
                 prev.map((chat) =>
-                    chat.id === chatId && (!chat.title || chat.title === 'Nowy czat')
+                    chat.id === chatId && (!chat.title || chat.title === 'Nowy czat' || chat.title === 'New chat')
                         ? {...chat, title: content.slice(0, 48)}
                         : chat
                 )
             );
+
+            const currentChat = chats.find((chat) => chat.id === chatId);
+
+            if (currentChat && (!currentChat.title || currentChat.title === 'Nowy czat' || currentChat.title === 'New chat')) {
+                // Opcjonalne, ale przydatne: zapisuje tytuł rozmowy w backendzie,
+                // jeśli masz updateChat w api/domains/conversations.ts.
+                // await updateChat(chatId, {title: content.slice(0, 48)});
+            }
+        } catch (error) {
+            setMessages((prev) => prev.filter((message) => message.id !== optimisticUserMessage.id));
+            console.error('Nie udało się wysłać wiadomości:', error);
         } finally {
             setIsSending(false);
         }
