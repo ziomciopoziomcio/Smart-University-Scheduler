@@ -28,9 +28,11 @@ export interface StudyField {
     mode?: string;
     semesters_count?: number;
     specializations_count?: number;
+    elective_blocks_count?: number;
+    programs_count?: number;
 }
 
-export type StudyFieldCreate = Omit<StudyField, 'id' | 'semesters_count' | 'specializations_count'>;
+export type StudyFieldCreate = Omit<StudyField, 'id' | 'semesters_count' | 'specializations_count' | 'elective_blocks_count' | 'programs_count'>;
 export type StudyFieldUpdate = Partial<StudyFieldCreate>;
 
 export interface StudyPlanGroupSummary {
@@ -69,16 +71,30 @@ export interface CourseInstructor {
     hours: number;
 }
 
+export interface SemesterSummary {
+    semester_number: number;
+    courses_count: number;
+    ects_sum: number;
+}
+
 export interface StudyProgram {
     id: number;
     study_field: number;
     start_year: string;
     program_name?: string | null;
+    semesters_count?: number;
+    semester_summary?: SemesterSummary[];
 }
 
-export type StudyProgramCreate = Omit<StudyProgram, 'id'>;
+export type StudyProgramCreate = Omit<StudyProgram, 'id' | 'semesters_count' | 'semester_summary'>;
 export type StudyProgramUpdate = Partial<StudyProgramCreate>;
 export type StudyProgramDetails = StudyProgram;
+
+export interface CourseSummary {
+    course_code: number;
+    course_name: string;
+    ects_points: number;
+}
 
 export interface CurriculumCourse {
     study_program: number;
@@ -86,9 +102,12 @@ export interface CurriculumCourse {
     semester: number;
     major?: number | null;
     elective_block?: number | null;
+    course_details?: CourseSummary;
+    major_details?: MajorDetails | null;
+    elective_block_details?: ElectiveBlock | null;
 }
 
-export type CurriculumCourseCreate = CurriculumCourse;
+export type CurriculumCourseCreate = Omit<CurriculumCourse, 'course_details' | 'major_details' | 'elective_block_details'>;
 export type CurriculumCourseUpdate = Pick<CurriculumCourse, 'major' | 'elective_block'>;
 
 export interface CurriculumFilters {

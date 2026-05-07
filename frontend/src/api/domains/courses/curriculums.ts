@@ -2,12 +2,15 @@ import {type PaginatedResponse, COURSES_URL, getHeaders} from "@api/core";
 import type {CurriculumCourse, CurriculumCourseCreate, CurriculumCourseUpdate, CurriculumFilters} from "./types";
 
 export const fetchCurriculum = async (
+    page = 1,
     limit = 100,
-    offset = 0,
+    search?: string,
     filters: CurriculumFilters = {}
 ): Promise<PaginatedResponse<CurriculumCourse>> => {
+    const offset = (page - 1) * limit;
     const params = new URLSearchParams({limit: limit.toString(), offset: offset.toString()});
 
+    if (search) params.append('search', search);
     if (filters.study_program) params.append('study_program', filters.study_program.toString());
     if (filters.semester) params.append('semester', filters.semester.toString());
     if (filters.major) params.append('major', filters.major.toString());

@@ -1,5 +1,5 @@
 import {getHeaders, type PaginatedResponse, ACADEMICS_URL} from '@api/core';
-import {type Group, type StudyPlanGroupSummary} from './types.ts';
+import {type Group, type GroupCreate, type GroupUpdate, type StudyPlanGroupSummary} from './types.ts';
 
 export const fetchGroups = async (
     page = 1,
@@ -9,7 +9,9 @@ export const fetchGroups = async (
         major?: number;
         elective_block?: number;
         group_name?: string;
+        semester?: number;
     } = {},
+    search?: string
 ): Promise<PaginatedResponse<Group>> => {
     const offset = (page - 1) * limit;
 
@@ -25,10 +27,15 @@ export const fetchGroups = async (
         ...(filters.elective_block !== undefined && {
             elective_block: filters.elective_block.toString(),
         }),
+        ...(filters.semester !== undefined && {
+            semester: filters.semester.toString()
+        }),
         ...(filters.group_name && {
             group_name: filters.group_name,
         }),
     });
+
+    if (search) query.append('search', search);
 
     const response = await fetch(`${ACADEMICS_URL}/groups?${query.toString()}`, {
         headers: getHeaders(),
@@ -75,4 +82,32 @@ export const fetchStudyPlanGroupsSummary = async (params: {
     }
 
     return response.json();
+};
+
+export const createGroup = async (payload: GroupCreate): Promise<Group> => {
+    const response = await fetch(`${ACADEMICS_URL}/groups`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Nie udało się utworzyć grupy');
+    return response.json();
+};
+
+export const updateGroup = async (id: number, payload: GroupUpdate): Promise<Group> => {
+    const response = await fetch(`${ACADEMICS_URL}/groups/${id}`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error('Nie udało się zaktualizować grupy');
+    return response.json();
+};
+
+export const deleteGroup = async (id: number): Promise<void> => {
+    const response = await fetch(`${ACADEMICS_URL}/groups/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Nie udało się usunąć grupy');
 };

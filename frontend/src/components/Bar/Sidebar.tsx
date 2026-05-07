@@ -11,6 +11,8 @@ import diagram_icon from '@assets/icons/diagram.svg?react';
 import easel_icon from '@assets/icons/easel.svg?react';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import GenerateScheduleIcon from '@mui/icons-material/EditCalendarOutlined';
+import StarBorderPurple500OutlinedIcon from '@mui/icons-material/StarBorderPurple500Outlined';
+
 
 import {
     Drawer,
@@ -76,6 +78,12 @@ const menuConfig: SidebarMenuItem[] = [
         id: 'sidebar.didactics',
         icon: <SchoolOutlinedIcon/>,
         path: '/didactics', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.programs',
+        icon: <StarBorderPurple500OutlinedIcon/>,
+        path: '/programs', // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {

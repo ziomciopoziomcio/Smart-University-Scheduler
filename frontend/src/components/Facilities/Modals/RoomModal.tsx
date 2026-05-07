@@ -80,11 +80,9 @@ export function RoomModal({open, buildingId, room, onClose, onSuccess}: RoomModa
         const loadUnits = async () => {
             setIsLoadingUnits(true);
             try {
-                const res = await fetchUnits(
-                    {
-                        faculty_id: Number(selectedFacultyId),
-                    },
-                );
+                const res = await fetchUnits(1, 100, {
+                    faculty_id: Number(selectedFacultyId),
+                });
                 setUnits(res.items);
             } catch {
                 console.error("Failed to load units");
