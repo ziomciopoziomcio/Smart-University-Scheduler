@@ -2,7 +2,7 @@ import {useEffect, useMemo, useState} from 'react';
 import {Box} from '@mui/material';
 import {useIntl} from 'react-intl';
 
-import {ChatArchivePanel, ChatConversationPanel} from '@components/chat';
+import {ChatArchivePanel, ChatConversationPanel} from '@components/Chat';
 
 import {
     type Chat,
