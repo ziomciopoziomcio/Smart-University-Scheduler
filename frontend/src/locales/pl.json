@@ -759,5 +759,18 @@
       "empty": "Brak studentów przypisanych do tej grupy",
       "index": "Indeks: {id}"
     }
+  },
+  "chat": {
+    "title": "Chat",
+    "searchChats": "Szukaj rozmów...",
+    "subtitle": "Asystent planu zajęć",
+    "newChat": "Nowy czat",
+    "newChatTitle": "Nowy czat",
+    "history": "Historia rozmów",
+    "emptyHistory": "Brak rozmów.",
+    "untitled": "Bez tytułu",
+    "emptyTitle": "Zacznij nową rozmowę",
+    "emptyDescription": "Zapytaj o plan, zmianę terminu albo dostępność zajęć.",
+    "placeholder": "Napisz wiadomość..."
   }
 }
