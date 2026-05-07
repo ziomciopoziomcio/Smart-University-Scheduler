@@ -55,7 +55,10 @@ export function DidacticsStudyFieldView({data, facultyId, onRefresh}: DidacticsS
                         width: '150px'
                     },
                     {
-                        render: () => "? bloków", // TODO: fetch blocks count (waiting for backend)
+                        render: (item: StudyField) => intl.formatMessage(
+                            {id: 'didactics.fields.blocksCount'},
+                            {count: item.elective_blocks_count ?? 0}
+                        ),
                         icon: ExtensionOutlined,
                         variant: 'secondary',
                         width: '150px'

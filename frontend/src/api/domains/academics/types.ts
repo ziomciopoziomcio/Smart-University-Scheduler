@@ -36,7 +36,11 @@ export interface Group {
     study_program: number;
     major: number | null;
     elective_block: number | null;
+    semester: number;
 }
+
+export type GroupCreate = Omit<Group, 'id'>;
+export type GroupUpdate = Partial<GroupCreate>;
 
 export interface Unit {
     id: number;
