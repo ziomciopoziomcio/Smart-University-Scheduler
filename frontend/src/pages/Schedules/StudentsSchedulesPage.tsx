@@ -222,7 +222,7 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                     px: {xs: 2, md: 3},
                     py: {xs: 2.5, md: 3},
                     borderRadius: 2,
-                    bgcolor: '#FBFCFF',
+                    bgcolor: '#FFFFFF',
                     minHeight: 420
                 }}
             >

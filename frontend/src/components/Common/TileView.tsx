@@ -48,7 +48,7 @@ export default function TileView<T extends { id: number | string }>({
                         sx={{
                             flexGrow: 1,
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            minWidth: 320,
+                            width: '30%',
                             p: isFlat ? 1.5 : 2.5,
                             border: isFlat ? 'none' : '1px solid rgba(0,0,0,0.1)',
                             borderRadius: '16px',
@@ -131,7 +131,7 @@ export default function TileView<T extends { id: number | string }>({
             {!hideAdd && onAddClick && DefaultIcon && (
                 <Box onClick={onAddClick} sx={{
                     flexGrow: 1,
-                    display: 'flex', alignItems: 'center', minWidth: 320, p: 2.5,
+                    display: 'flex', alignItems: 'center', width: '30%', p: 2.5,
                     border: '1px dashed rgba(0,0,0,0.2)', borderRadius: '16px',
                     cursor: 'pointer', transition: 'all 0.2s', gap: 2,
                     '&:hover': {bgcolor: '#fbfbfb', borderColor: 'rgba(0,0,0,0.3)'}
