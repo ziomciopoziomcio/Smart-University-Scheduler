@@ -1,7 +1,7 @@
-import {getHeaders, type PaginatedResponse} from '@api/core';
+import {BASE_URL, getHeaders, type PaginatedResponse} from '@api/core';
 import type {Chat, CreateChatPayload, UpdateChatPayload, CreateMessagePayload, ChatMessage, ChatTurnResponse} from "./types";
 
-const CHATS_URL = `${import.meta.env.VITE_API_URL}/chats`;
+const CHATS_URL = `${BASE_URL}/chats`;
 
 export const fetchChats = async (
     page = 1,
