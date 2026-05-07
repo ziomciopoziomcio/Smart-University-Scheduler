@@ -764,5 +764,17 @@
       "empty": "No students assigned to this group",
       "index": "Index: {id}"
     }
+  },
+  "chat": {
+    "title": "Chat",
+    "subtitle": "Schedule assistant",
+    "newChat": "New chat",
+    "newChatTitle": "New chat",
+    "history": "Chat history",
+    "emptyHistory": "No chats yet.",
+    "untitled": "Untitled",
+    "emptyTitle": "Start a new conversation",
+    "emptyDescription": "Ask about your schedule, rescheduling, or class availability.",
+    "placeholder": "Type a message..."
   }
 }

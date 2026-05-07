@@ -27,6 +27,7 @@ import StudentsSchedulesPage from "./pages/Schedules/StudentsSchedulesPage.tsx";
 import DidacticsPage from "./pages/Didactics/DidacticsPage.tsx";
 import GenerateSchedulePage from "./pages/GenerateSchedule/GenerateSchedulePage.tsx";
 import ProgramsPage from "./pages/Programs/ProgramsPage.tsx";
+import ChatPage from "./pages/Chat/ChatPage.tsx";
 
 function AppRoute() {
     const isAuthenticated = useAuthStore((state) => state.token !== null);
@@ -46,6 +47,9 @@ function AppRoute() {
                     <Route element={<MainLayout/>}>
                         {/*==================== MY PLAN ====================*/}
                         <Route path="/plan" element={<MySchedule/>}/>
+
+                        {/*==================== CHAT ====================*/}
+                        <Route path="/chat" element={<ChatPage/>}/>
 
                         {/*==================== EDIT FACILITIES ====================*/}
                         <Route path="/facilities" element={<FacilitiesPage view="campuses"/>}/>
@@ -159,11 +163,13 @@ function AppRoute() {
                             <Route path="faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId"
                                    element={<ProgramsPage view="semester-dashboard"/>}/>
 
-                            <Route path="faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/curriculum"
-                                   element={<ProgramsPage view="curriculum"/>}/>
+                            <Route
+                                path="faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/curriculum"
+                                element={<ProgramsPage view="curriculum"/>}/>
 
-                            <Route path="faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/groups"
-                                   element={<ProgramsPage view="groups"/>}/>
+                            <Route
+                                path="faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/groups"
+                                element={<ProgramsPage view="groups"/>}/>
                         </Route>
                     </Route>
 

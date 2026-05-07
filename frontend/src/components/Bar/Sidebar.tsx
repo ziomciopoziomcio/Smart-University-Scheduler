@@ -101,7 +101,7 @@ const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.chat',
         icon: <ChatBubbleOutline/>,
-        path: '/',  // TODO: change to real path and add allowedRoles
+        path: '/chat',  // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
