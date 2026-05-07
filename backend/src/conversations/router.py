@@ -19,6 +19,7 @@ from ..users.auth import get_current_user
 from ..users.models import Users
 from ..common.require_permission import require_permission
 from ..users import models as user_models
+from ..academics import models as academics_models
 
 from src.rag.llm_agent import process_chat_message, get_system_prompt
 from src.database.database import SessionLocal
@@ -144,8 +145,8 @@ def _save_user_msg_sync(
         local_db.refresh(user_msg)
 
         employee = (
-            local_db.query(user_models.Employees)
-            .filter(user_models.Employees.user_id == user_id)
+            local_db.query(academics_models.Employees)
+            .filter(academics_models.Employees.user_id == user_id)
             .first()
         )
         schedule_user_id = employee.id if employee is not None else user_id
