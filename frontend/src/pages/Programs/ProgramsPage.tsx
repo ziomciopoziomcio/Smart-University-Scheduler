@@ -89,7 +89,7 @@ export default function ProgramsPage({view}: ProgramsPageProps) {
                 setData(res.items || []);
                 setTotalItems(res.total || 0);
             } else if (view === 'fields' && facultyId) {
-                const res = await fetchStudyFields(page, pageSize, debouncedSearch, {faculty: Number(facultyId)});
+                const res = await fetchStudyFields(page, pageSize, {faculty: Number(facultyId)}, debouncedSearch);
                 setData(res.items || []);
                 setTotalItems(res.total || 0);
             } else if (view === 'programs' && fieldId) {

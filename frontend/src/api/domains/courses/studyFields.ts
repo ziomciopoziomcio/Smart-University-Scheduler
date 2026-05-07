@@ -4,11 +4,11 @@ import type {StudyField, StudyFieldCreate, StudyPlanGroupSummary, StudyFieldUpda
 export const fetchStudyFields = async (
     page = 1,
     limit = 10,
-    search?: string,
     filters: {
         faculty?: number;
         field_name?: string;
-    } = {}
+    } = {},
+    search?: string,
 ): Promise<PaginatedResponse<StudyField>> => {
     const offset = (page - 1) * limit;
     const query = new URLSearchParams({
