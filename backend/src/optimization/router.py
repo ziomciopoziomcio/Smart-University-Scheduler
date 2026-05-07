@@ -4,7 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.common.kafka_client import send_event
 from . import schemas
+from .services import validate_optimization_data
 from ..common.require_permission import require_permission
+from ..database.database import get_db
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -42,3 +45,17 @@ async def trigger_optimization(
         status="PENDING",
         message="Optimization task has been successfully queued.",
     )
+
+
+@router.get("/validate/{faculty_id}", response_model=schemas.ValidationReport)
+def validate_algorithm_data(
+    faculty_id: int,
+    db: Session = Depends(get_db),
+    # _current_user: user_models.Users = Depends(require_permission("optimization:view")),
+):
+    """
+    Validates data consistency before running the genetic algorithm.
+    Checks for missing instructors, workload discrepancies, and unaccomodatable group sizes.
+    """
+    report_data = validate_optimization_data(faculty_id, db)
+    return report_data
