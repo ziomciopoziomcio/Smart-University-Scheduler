@@ -411,6 +411,7 @@
     }
   },
   "roles": {
+    "usersCount": "{count, plural, =0 {Brak użytkowników} one {1 użytkownik} few {# użytkowników} many {# użytkowników} other {# użytkownika}}",
     "title": "Role systemowe",
     "searchPlaceholder": "Szukaj roli...",
     "add": "Dodaj rolę",

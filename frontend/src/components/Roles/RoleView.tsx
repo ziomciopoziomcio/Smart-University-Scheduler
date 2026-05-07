@@ -52,7 +52,10 @@ export function RoleView({data, onRefresh}: RoleViewProps) {
                 variant="flat"
                 iconSize={50}
                 getTitle={(item: Role) => item.role_name}
-                getSubtitle={() => intl.formatMessage({id: 'roles.usersCountPending'})}
+                getSubtitle={(item: Role) => intl.formatMessage(
+                    {id: 'roles.usersCount'},
+                    {count: item.users_count ?? 0}
+                )}
                 onItemClick={(item: Role) => {
                     navigate(`/roles/${item.id}`);
                 }} onMenuOpen={handleMenuOpen}
