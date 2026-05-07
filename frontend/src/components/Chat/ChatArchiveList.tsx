@@ -1,7 +1,7 @@
 import {Box, CircularProgress, List, Typography} from '@mui/material';
 import {useMemo} from 'react';
 import {useIntl} from 'react-intl';
-import type {Chat} from './types';
+import type {Chat} from '@api/domains/conversations';
 import {ChatArchiveListItem} from './ChatArchiveListItem';
 
 interface ChatArchiveListProps {
