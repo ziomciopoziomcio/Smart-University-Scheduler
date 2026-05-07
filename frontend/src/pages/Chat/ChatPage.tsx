@@ -152,14 +152,6 @@ export default function ChatPage() {
                         : chat
                 )
             );
-
-            const currentChat = chats.find((chat) => chat.id === chatId);
-
-            if (currentChat && (!currentChat.title || currentChat.title === 'Nowy czat' || currentChat.title === 'New chat')) {
-                // Opcjonalne, ale przydatne: zapisuje tytuł rozmowy w backendzie,
-                // jeśli masz updateChat w api/domains/conversations.ts.
-                // await updateChat(chatId, {title: content.slice(0, 48)});
-            }
         } catch (error) {
             setMessages((prev) => prev.filter((message) => message.id !== optimisticUserMessage.id));
             console.error('Nie udało się wysłać wiadomości:', error);
