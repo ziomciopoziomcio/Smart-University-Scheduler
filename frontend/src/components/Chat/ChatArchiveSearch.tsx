@@ -19,7 +19,7 @@ export function ChatArchiveSearch({value, onChange}: ChatArchiveSearchProps) {
                 px: 1.5,
                 py: 0.8,
                 mt: 0.5,
-                borderRadius: 2,
+                borderRadius: 1,
                 bgcolor: '#FFFFFF',
                 border: '1px solid rgba(0,0,0,0.06)',
             }}

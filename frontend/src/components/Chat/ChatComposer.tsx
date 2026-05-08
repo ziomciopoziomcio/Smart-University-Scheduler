@@ -46,7 +46,7 @@ export function ChatComposer({
                     }}
                     InputProps={{
                         sx: {
-                            borderRadius: 3,
+                            borderRadius: 1,
                             bgcolor: '#F8FAFD',
                         },
                     }}

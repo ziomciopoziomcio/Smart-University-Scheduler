@@ -30,7 +30,7 @@ export function ChatConversationPanel({
                 display: 'flex',
                 flexDirection: 'column',
                 minHeight: 'calc(100vh - 120px)',
-                borderRadius: 3,
+                borderRadius: 1,
                 border: '1px solid rgba(0,0,0,0.06)',
                 bgcolor: '#F8FAFD',
                 overflow: 'hidden',
