@@ -8,12 +8,17 @@ import {addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/da
 import {fetchRoomPlan} from '@api/domains/schedules';
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 
+//TODO: https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/276
 export async function getRoomScheduleForWeek(
-    roomId: string,
+    campusId: number,
+    buildingId: number,
+    roomId: number,
     weekStart: Date,
 ): Promise<ScheduleEntry[]> {
     return fetchRoomPlan({
-        roomId: Number(roomId),
+        campusId: campusId,
+        buildingId: buildingId,
+        roomId: roomId,
         startDate: toIsoDate(weekStart),
     });
 }
@@ -76,7 +81,9 @@ export default function RoomSchedulePage() {
             setIsScheduleLoading(true);
             try {
                 const response = await getRoomScheduleForWeek(
-                    roomId,
+                    Number(campusId),
+                    Number(buildingId),
+                    Number(roomId),
                     currentWeekStart,
                 );
                 if (!isCancelled) setEntries(response);

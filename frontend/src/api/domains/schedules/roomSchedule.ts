@@ -11,30 +11,29 @@ const mapVariantToScheduleVariant = (
     switch (normalized) {
         case 'lecture':
             return 'lecture';
-
         case 'laboratory':
             return 'lab';
-
         case 'tutorials':
             return 'exercise';
-
         case 'seminar':
             return 'seminar';
-
         case 'project':
             return 'project';
-
         default:
             return 'lecture';
     }
 };
 
 export const fetchRoomPlan = async (params: {
+    campusId: number;
+    buildingId: number;
     roomId: number;
     startDate: string;
 }): Promise<ScheduleEntry[]> => {
     const query = new URLSearchParams({
-        room_id: params.roomId.toString(),
+        campus: params.campusId.toString(),
+        building: params.buildingId.toString(),
+        room: params.roomId.toString(),
         start_date: params.startDate,
     });
 
