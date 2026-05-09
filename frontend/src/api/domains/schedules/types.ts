@@ -66,16 +66,18 @@ export interface WeekScheduleProps {
     onSessionUpdated?: () => void | Promise<void>;
 }
 
+export interface CourseLocation {
+    campus: string;
+    building: string;
+    room: string;
+}
+
 export interface CourseSessionDetailsResponse {
     courseName?: string;
     course_name?: string;
     type: string;
     time: string;
-    location: {
-        campus: string;
-        building: string;
-        room: string;
-    };
+    location: CourseLocation;
     lecturer: string;
     targetAudience?: string[];
     target_audience?: string[];
@@ -84,7 +86,7 @@ export interface CourseSessionDetailsResponse {
 export interface ScheduleEntryAudience {
     fieldOfStudy: string;
     semester: string;
-    specialization: string;
+    specialization?: string;
 }
 
 export interface ScheduleEntryDetails {

@@ -11,15 +11,16 @@ import {formatMinutesToTimeLabel, getGridHeight, parseTimeToMinutes} from './uti
 import {getDayIndexFromDate, parseIsoDate} from './utils/dateUtils';
 
 import type {
+    CourseSessionDetailsResponse,
     DayOfWeek,
     ScheduleEntry,
     ScheduleEntryDetails,
     UpdateScheduleSessionRequest,
 } from '@api';
-import {updateScheduleSession} from '@api'; //TODO: IT DOES NOT WORK  // https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/223
-
-// TODO: uncomment when backend endpoint is ready
-// import {fetchCourseSessionDetails} from '@api';
+import {
+    fetchCourseSessionDetails,
+    updateScheduleSession,
+} from '@api';
 
 interface WeekScheduleGridProps {
     entries: ScheduleEntry[];
@@ -38,6 +39,24 @@ interface EditInitialValues {
     instructorId: number;
     roomId: number;
     applyOnce: boolean;
+}
+
+interface EditInstructorOption {
+    id: number;
+    name: string;
+}
+
+interface EditRoomOption {
+    id: number;
+    name: string;
+    building: string;
+    campus: string;
+}
+
+interface ScheduleSessionEditOptions {
+    current: EditInitialValues;
+    instructors: EditInstructorOption[];
+    rooms: EditRoomOption[];
 }
 
 interface DragPreviewState {
@@ -74,41 +93,6 @@ const dayOfWeekByIndex: DayOfWeek[] = [
     'SATURDAY',
     'SUNDAY',
 ];
-
-const MOCK_DEFAULT_INSTRUCTOR_ID = 42;
-const MOCK_DEFAULT_ROOM_ID = 18;
-
-const mockedInstructors = [
-    {id: 42, name: 'dr Anna Kowalska'},
-    {id: 43, name: 'prof. Jan Nowak'},
-    {id: 44, name: 'mgr Piotr Zieliński'},
-    {id: 45, name: 'dr hab. Katarzyna Wiśniewska'},
-];
-
-const mockedRooms = [
-    {id: 18, name: 'B-214', building: 'B', campus: 'Główny'},
-    {id: 19, name: 'A-101', building: 'A', campus: 'Główny'},
-    {id: 20, name: 'C-12', building: 'C', campus: 'Technologiczny'},
-    {id: 21, name: 'Lab-03', building: 'D', campus: 'Technologiczny'},
-];
-
-const getMockedCourseSessionDetails = (entry: ScheduleEntry): ScheduleEntryDetails => ({
-    typeLabel: entry.variant,
-    timeLabel: `${entry.startTime} - ${entry.endTime}`,
-    location: {
-        campus: 'Główny',
-        building: 'B',
-        room: 'B-214',
-    },
-    lecturer: 'dr Anna Kowalska',
-    audience: [
-        {
-            fieldOfStudy: 'Informatyka',
-            semester: 'Semestr 3',
-            specialization: 'Systemy informatyczne',
-        },
-    ],
-});
 
 function doEntriesOverlap(left: ScheduleEntry, right: ScheduleEntry) {
     const leftStart = parseTimeToMinutes(left.startTime);
@@ -227,12 +211,36 @@ const snapMinutes = (minutes: number) => {
     return Math.round(minutes / DRAG_SNAP_MINUTES) * DRAG_SNAP_MINUTES;
 };
 
+const mapCourseSessionDetails = (
+    response: CourseSessionDetailsResponse,
+): ScheduleEntryDetails => {
+    const targetAudience = response.targetAudience ?? response.target_audience ?? [];
+
+    return {
+        typeLabel: response.type,
+        timeLabel: response.time,
+        location: response.location,
+        lecturer: response.lecturer,
+        audience: targetAudience.map((audienceItem) => {
+            const parts = audienceItem.split('|').map((part) => part.trim());
+
+            return {
+                fieldOfStudy: parts[0] || audienceItem,
+                semester: parts[1] || '',
+                specialization: parts[2] || '',
+            };
+        }),
+    };
+};
+
 export function WeekScheduleGrid({entries, onSessionUpdated}: WeekScheduleGridProps) {
     const [selectedEntry, setSelectedEntry] = useState<ScheduleEntry | null>(null);
     const [selectedDetails, setSelectedDetails] = useState<ScheduleEntryDetails | null>(null);
 
     const [editEntry, setEditEntry] = useState<ScheduleEntry | null>(null);
     const [editInitialValues, setEditInitialValues] = useState<EditInitialValues | null>(null);
+    const [editInstructors, setEditInstructors] = useState<EditInstructorOption[]>([]);
+    const [editRooms, setEditRooms] = useState<EditRoomOption[]>([]);
     const [isSavingEdit, setIsSavingEdit] = useState(false);
 
     const [dragPreview, setDragPreview] = useState<DragPreviewState | null>(null);
@@ -350,9 +358,45 @@ export function WeekScheduleGrid({entries, onSessionUpdated}: WeekScheduleGridPr
             dayOfWeek: dayOfWeekByIndex[dayIndex] ?? 'MONDAY',
             startTime: entry.startTime,
             endTime: entry.endTime,
-            instructorId: MOCK_DEFAULT_INSTRUCTOR_ID,
-            roomId: MOCK_DEFAULT_ROOM_ID,
+            instructorId: 0,
+            roomId: 0,
             applyOnce: false,
+        };
+    };
+
+    const loadEditOptions = async (
+        entry: ScheduleEntry,
+        values?: Partial<EditInitialValues>,
+    ): Promise<ScheduleSessionEditOptions | null> => {
+        /*
+            TODO BACKEND:
+            const response = await fetchScheduleSessionEditOptions(entry.id);
+
+            return {
+                current: {
+                    dayOfWeek: response.current.dayOfWeek,
+                    startTime: response.current.startTime,
+                    endTime: response.current.endTime,
+                    instructorId: response.current.instructorId,
+                    roomId: response.current.roomId,
+                    applyOnce: false,
+                    ...values,
+                },
+                instructors: response.instructors,
+                rooms: response.rooms,
+            };
+        */
+
+        const fallbackCurrent = {
+            ...getDefaultEditValues(entry),
+            ...values,
+            applyOnce: false,
+        };
+
+        return {
+            current: fallbackCurrent,
+            instructors: [],
+            rooms: [],
         };
     };
 
@@ -365,15 +409,44 @@ export function WeekScheduleGrid({entries, onSessionUpdated}: WeekScheduleGridPr
     const handleCloseEditPopup = () => {
         setEditEntry(null);
         setEditInitialValues(null);
+        setEditInstructors([]);
+        setEditRooms([]);
     };
 
-    const openEditPopup = (entry: ScheduleEntry, values?: Partial<EditInitialValues>) => {
+    const openEditPopup = async (
+        entry: ScheduleEntry,
+        values?: Partial<EditInitialValues>,
+    ) => {
+        const options = await loadEditOptions(entry, values);
+
+        if (!options) {
+            return;
+        }
+
+        if (
+            options.current.instructorId === 0 ||
+            options.current.roomId === 0 ||
+            options.instructors.length === 0 ||
+            options.rooms.length === 0
+        ) {
+            console.warn(
+                'Edit options endpoint is not connected yet. Replace loadEditOptions() with backend API call.',
+            );
+
+            window.alert(
+                formatMessage({
+                    id: 'schedule.edit.optionsMissing',
+                    defaultMessage: 'Editing is not available yet. Missing instructors and rooms from backend.',
+                }),
+            );
+
+            return;
+        }
+
         setEditEntry(entry);
-        setEditInitialValues({
-            ...getDefaultEditValues(entry),
-            ...values,
-            applyOnce: false,
-        });
+        setEditInitialValues(options.current);
+        setEditInstructors(options.instructors);
+        setEditRooms(options.rooms);
 
         handleClosePopup();
     };
@@ -384,30 +457,29 @@ export function WeekScheduleGrid({entries, onSessionUpdated}: WeekScheduleGridPr
             return;
         }
 
-        // TODO: uncomment when backend endpoint is ready
-        // const currentRequestId = detailsRequestId.current + 1;
-        // detailsRequestId.current = currentRequestId;
-        //
-        // setSelectedEntry(null);
-        // setSelectedDetails(null);
-        //
-        // const response = await fetchCourseSessionDetails(entry.id);
-        //
-        // if (detailsRequestId.current !== currentRequestId) {
-        //     return;
-        // }
-        //
-        // if (!response) {
-        //     setSelectedEntry(null);
-        //     setSelectedDetails(null);
-        //     return;
-        // }
-        //
-        // setSelectedEntry(entry);
-        // setSelectedDetails(mapCourseSessionDetails(response));
+        const currentRequestId = detailsRequestId.current + 1;
+        detailsRequestId.current = currentRequestId;
 
-        setSelectedEntry(entry);
-        setSelectedDetails(getMockedCourseSessionDetails(entry));
+        setSelectedEntry(null);
+        setSelectedDetails(null);
+
+        try {
+            const response = await fetchCourseSessionDetails(entry.id);
+
+            if (detailsRequestId.current !== currentRequestId) {
+                return;
+            }
+
+            setSelectedEntry(entry);
+            setSelectedDetails(mapCourseSessionDetails(response));
+        } catch (error) {
+            console.error('Nie udało się pobrać szczegółów zajęć:', error);
+
+            if (detailsRequestId.current === currentRequestId) {
+                setSelectedEntry(null);
+                setSelectedDetails(null);
+            }
+        }
     };
 
     const handleEditSave = async (payload: UpdateScheduleSessionRequest) => {
@@ -430,6 +502,8 @@ export function WeekScheduleGrid({entries, onSessionUpdated}: WeekScheduleGridPr
                 }));
                 return;
             }
+
+            console.error('Nie udało się zaktualizować zajęć:', error);
 
             window.alert(formatMessage({
                 id: 'schedule.edit.error',
@@ -504,6 +578,8 @@ export function WeekScheduleGrid({entries, onSessionUpdated}: WeekScheduleGridPr
     };
 
     const handleWindowPointerUp = (event: PointerEvent) => {
+        const finalDragPreview = dragPreview;
+
         setDragPreview((currentDragPreview) => {
             if (!currentDragPreview) {
                 setDropPreview(null);
@@ -517,24 +593,29 @@ export function WeekScheduleGrid({entries, onSessionUpdated}: WeekScheduleGridPr
 
             suppressNextClickRef.current = true;
 
-            const finalDropPreview = getDropPreviewFromPointer(
-                event.clientX,
-                event.clientY,
-                currentDragPreview,
-            );
-
-            if (finalDropPreview) {
-                openEditPopup(currentDragPreview.entry, {
-                    dayOfWeek: dayOfWeekByIndex[finalDropPreview.dayIndex] ?? 'MONDAY',
-                    startTime: finalDropPreview.startTime,
-                    endTime: finalDropPreview.endTime,
-                });
-            }
-
             setDropPreview(null);
             return null;
         });
+
+        if (!finalDragPreview || !finalDragPreview.hasMoved) {
+            return;
+        }
+
+        const finalDropPreview = getDropPreviewFromPointer(
+            event.clientX,
+            event.clientY,
+            finalDragPreview,
+        );
+
+        if (finalDropPreview) {
+            void openEditPopup(finalDragPreview.entry, {
+                dayOfWeek: dayOfWeekByIndex[finalDropPreview.dayIndex] ?? 'MONDAY',
+                startTime: finalDropPreview.startTime,
+                endTime: finalDropPreview.endTime,
+            });
+        }
     };
+
     useEffect(() => {
         if (!dragPreview) {
             return;
@@ -627,7 +708,8 @@ export function WeekScheduleGrid({entries, onSessionUpdated}: WeekScheduleGridPr
                                     {formatMinutesToTimeLabel(minutes)}
                                 </Typography>
                             </Box>
-                        ))}                </Box>
+                        ))}
+                </Box>
 
                 <Box
                     ref={gridRef}
@@ -665,7 +747,7 @@ export function WeekScheduleGrid({entries, onSessionUpdated}: WeekScheduleGridPr
                                     top: getGridTopFromMinutes(minutes),
                                     left: 0,
                                     width: '100%',
-                                    height: isFullHour ? '1px' : '1px',
+                                    height: '1px',
                                     bgcolor: isFullHour
                                         ? 'rgba(68, 68, 68, 0.36)'
                                         : 'rgba(68, 68, 68, 0.07)',
@@ -735,7 +817,9 @@ export function WeekScheduleGrid({entries, onSessionUpdated}: WeekScheduleGridPr
                                     entry={selectedEntry}
                                     details={selectedDetails}
                                     onClose={handleClosePopup}
-                                    onEdit={() => openEditPopup(selectedEntry)}
+                                    onEdit={() => {
+                                        void openEditPopup(selectedEntry);
+                                    }}
                                 />
                             </Box>
                         </Box>
@@ -759,8 +843,8 @@ export function WeekScheduleGrid({entries, onSessionUpdated}: WeekScheduleGridPr
                 open={Boolean(editEntry)}
                 entry={editEntry}
                 initialValues={editInitialValues}
-                instructors={mockedInstructors}
-                rooms={mockedRooms}
+                instructors={editInstructors}
+                rooms={editRooms}
                 isSaving={isSavingEdit}
                 onClose={handleCloseEditPopup}
                 onSave={handleEditSave}
