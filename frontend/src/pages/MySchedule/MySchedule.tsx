@@ -2,28 +2,25 @@ import {Box} from '@mui/material';
 import {useEffect, useState} from 'react';
 import type {ScheduleEntry} from '@api';
 import {WeekSchedule} from '@components/Schedule/WeekSchedule';
-import {scheduleMock} from '../../mocks/scheduleMock';
-import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
+import {fetchStudentPlan} from '@api/domains/schedules';
+import {useAuthStore} from '@store/useAuthStore';
+import {addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 
-// TODO: Replace with backend call
-// https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/106
-export async function getScheduleForWeek(weekStart: Date): Promise<ScheduleEntry[]> {
-    const weekEnd = addDays(weekStart, 6);
-    const startIso = toIsoDate(weekStart);
-    const endIso = toIsoDate(weekEnd);
+//TODO: https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/275
 
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const filtered = scheduleMock.filter((entry) => {
-                return entry.date >= startIso && entry.date <= endIso;
-            });
-
-            resolve(filtered);
-        }, 700);
+export async function getScheduleForWeek(
+    weekStart: Date,
+    userId: number,
+): Promise<ScheduleEntry[]> {
+    return fetchStudentPlan({
+        studentId: userId,
+        startDate: toIsoDate(weekStart),
     });
 }
 
 export default function MySchedule() {
+    const user = useAuthStore((state) => state.user);
+
     const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() =>
         getStartOfWeek(new Date()),
     );
@@ -34,9 +31,14 @@ export default function MySchedule() {
         let isCancelled = false;
 
         const fetchWeekSchedule = async () => {
+            if (!user?.id) {
+                setEntries([]);
+                return;
+            }
+
             setIsLoading(true);
             try {
-                const response = await getScheduleForWeek(currentWeekStart);
+                const response = await getScheduleForWeek(currentWeekStart, user.id);
 
                 if (!isCancelled) {
                     setEntries(response);
@@ -57,7 +59,7 @@ export default function MySchedule() {
         return () => {
             isCancelled = true;
         };
-    }, [currentWeekStart]);
+    }, [currentWeekStart, user?.id]);
 
     const handlePrevWeek = () => {
         setCurrentWeekStart((prev) => addWeeks(prev, -1));

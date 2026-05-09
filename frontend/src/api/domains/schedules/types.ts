@@ -9,6 +9,22 @@ export interface ScheduleEntry {
     variant: ScheduleTileVariant;
 }
 
+export interface StudentPlanApiEntry {
+    id: string;
+    title: string;
+    date: string;
+    startTime?: string;
+    endTime?: string;
+    start_time?: string;
+    end_time?: string;
+    variant?: string | null;
+}
+
+export interface FetchStudentPlanParams {
+    studentId: number;
+    startDate: string;
+}
+
 export interface WeekScheduleProps {
     entries: ScheduleEntry[];
     currentWeekStart: Date;
