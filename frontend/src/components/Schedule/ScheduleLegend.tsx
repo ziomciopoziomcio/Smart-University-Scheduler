@@ -1,34 +1,48 @@
 import {Box, Typography} from '@mui/material';
 import {useIntl} from 'react-intl';
-import type {ScheduleTileVariant} from '@api';
+import type {ScheduleEntry} from '@api';
 import {getTilePaletteByVariant} from './utils/tileColorUtils';
 
-const legendLabels: Record<ScheduleTileVariant, {labelId: string; fallback: string}> = {
-    lecture: {
-        labelId: 'schedule.subjectType.lecture',
-        fallback: 'Lecture',
-    },
-    lab: {
-        labelId: 'schedule.subjectType.lab',
-        fallback: 'Laboratory',
-    },
-    exercise: {
-        labelId: 'schedule.subjectType.exercise',
-        fallback: 'Classes',
-    },
-    project: {
-        labelId: 'schedule.subjectType.project',
-        fallback: 'Project',
-    },
-    seminar: {
-        labelId: 'schedule.subjectType.seminar',
-        fallback: 'Seminar',
-    },
-};
+type ScheduleTileVariant = ScheduleEntry['variant'];
 
 interface ScheduleLegendProps {
     variant: ScheduleTileVariant | null;
 }
+
+const legendLabels: Record<string, {labelId: string; defaultMessage: string}> = {
+    lecture: {
+        labelId: 'schedule.subjectType.lecture',
+        defaultMessage: 'Lecture',
+    },
+    lab: {
+        labelId: 'schedule.subjectType.lab',
+        defaultMessage: 'Laboratory',
+    },
+    laboratory: {
+        labelId: 'schedule.subjectType.lab',
+        defaultMessage: 'Laboratory',
+    },
+    exercise: {
+        labelId: 'schedule.subjectType.exercise',
+        defaultMessage: 'Exercise',
+    },
+    tutorials: {
+        labelId: 'schedule.subjectType.exercise',
+        defaultMessage: 'Exercise',
+    },
+    project: {
+        labelId: 'schedule.subjectType.project',
+        defaultMessage: 'Project',
+    },
+    seminar: {
+        labelId: 'schedule.subjectType.seminar',
+        defaultMessage: 'Seminar',
+    },
+};
+
+const normalizeVariant = (variant: ScheduleTileVariant): string => {
+    return String(variant).toLowerCase();
+};
 
 export function ScheduleLegend({variant}: ScheduleLegendProps) {
     const {formatMessage} = useIntl();
@@ -37,8 +51,12 @@ export function ScheduleLegend({variant}: ScheduleLegendProps) {
         return null;
     }
 
+    const normalizedVariant = normalizeVariant(variant);
     const palette = getTilePaletteByVariant(variant);
-    const label = legendLabels[variant];
+    const label = legendLabels[normalizedVariant] ?? {
+        labelId: `schedule.subjectType.${normalizedVariant}`,
+        defaultMessage: normalizedVariant,
+    };
 
     return (
         <Box
@@ -84,7 +102,7 @@ export function ScheduleLegend({variant}: ScheduleLegendProps) {
                 >
                     {formatMessage({
                         id: label.labelId,
-                        defaultMessage: label.fallback,
+                        defaultMessage: label.defaultMessage,
                     })}
                 </Typography>
             </Box>

@@ -234,7 +234,11 @@ const mapCourseSessionDetails = (
     };
 };
 
-export function WeekScheduleGrid({entries, onSessionUpdated, onTileHoverChange}: WeekScheduleGridProps) {
+export function WeekScheduleGrid({
+    entries,
+    onSessionUpdated,
+    onTileHoverChange,
+}: WeekScheduleGridProps) {
     const [selectedEntry, setSelectedEntry] = useState<ScheduleEntry | null>(null);
     const [selectedDetails, setSelectedDetails] = useState<ScheduleEntryDetails | null>(null);
 
@@ -368,7 +372,7 @@ export function WeekScheduleGrid({entries, onSessionUpdated, onTileHoverChange}:
     const loadEditOptions = async (
         entry: ScheduleEntry,
         values?: Partial<EditInitialValues>,
-    ): Promise<ScheduleSessionEditOptions | null> => {
+    ): Promise<ScheduleSessionEditOptions> => {
         /*
             TODO BACKEND:
             const response = await fetchScheduleSessionEditOptions(entry.id);
@@ -388,16 +392,34 @@ export function WeekScheduleGrid({entries, onSessionUpdated, onTileHoverChange}:
             };
         */
 
-        const fallbackCurrent = {
+        const current = {
             ...getDefaultEditValues(entry),
             ...values,
             applyOnce: false,
         };
 
         return {
-            current: fallbackCurrent,
-            instructors: [],
-            rooms: [],
+            current,
+            instructors: [
+                {
+                    id: 0,
+                    name: formatMessage({
+                        id: 'schedule.edit.instructorMissing',
+                        defaultMessage: 'Instructor will be loaded from backend',
+                    }),
+                },
+            ],
+            rooms: [
+                {
+                    id: 0,
+                    name: formatMessage({
+                        id: 'schedule.edit.roomMissing',
+                        defaultMessage: 'Room will be loaded from backend',
+                    }),
+                    building: '',
+                    campus: '',
+                },
+            ],
         };
     };
 
@@ -419,30 +441,6 @@ export function WeekScheduleGrid({entries, onSessionUpdated, onTileHoverChange}:
         values?: Partial<EditInitialValues>,
     ) => {
         const options = await loadEditOptions(entry, values);
-
-        if (!options) {
-            return;
-        }
-
-        if (
-            options.current.instructorId === 0 ||
-            options.current.roomId === 0 ||
-            options.instructors.length === 0 ||
-            options.rooms.length === 0
-        ) {
-            console.warn(
-                'Edit options endpoint is not connected yet. Replace loadEditOptions() with backend API call.',
-            );
-
-            window.alert(
-                formatMessage({
-                    id: 'schedule.edit.optionsMissing',
-                    defaultMessage: 'Editing is not available yet. Missing instructors and rooms from backend.',
-                }),
-            );
-
-            return;
-        }
 
         setEditEntry(entry);
         setEditInitialValues(options.current);
@@ -496,20 +494,7 @@ export function WeekScheduleGrid({entries, onSessionUpdated, onTileHoverChange}:
             handleCloseEditPopup();
             await onSessionUpdated?.();
         } catch (error) {
-            if (error instanceof Error && error.message === 'Schedule update conflict') {
-                window.alert(formatMessage({
-                    id: 'schedule.edit.conflict',
-                    defaultMessage: 'This change creates a conflict.',
-                }));
-                return;
-            }
-
             console.error('Nie udało się zaktualizować zajęć:', error);
-
-            window.alert(formatMessage({
-                id: 'schedule.edit.error',
-                defaultMessage: 'Failed to update schedule session.',
-            }));
         } finally {
             setIsSavingEdit(false);
         }
@@ -638,6 +623,7 @@ export function WeekScheduleGrid({entries, onSessionUpdated, onTileHoverChange}:
         handleCloseEditPopup();
         setDragPreview(null);
         setDropPreview(null);
+        onTileHoverChange?.(null);
     }, [entries]);
 
     return (

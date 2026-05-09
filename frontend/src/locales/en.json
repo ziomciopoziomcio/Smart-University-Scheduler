@@ -279,7 +279,7 @@
     "subjectType": {
       "lecture": "Lecture",
       "lab": "Laboratory",
-      "exercise": "Classes",
+      "exercise": "Exercise",
       "project": "Project",
       "seminar": "Seminar"
     },
