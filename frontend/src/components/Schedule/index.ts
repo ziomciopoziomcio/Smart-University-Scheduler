@@ -11,3 +11,4 @@ export {ScheduleStudentMajorView} from './Views/Students/ScheduleStudentMajorVie
 export {ScheduleStudentSemesterView} from './Views/Students/ScheduleStudentSemesterView.tsx'
 export {ScheduleStudentFieldView} from './Views/Students/ScheduleStudentFieldView.tsx'
 export {ScheduleStudentFacultyView} from './Views/Students/ScheduleStudentFacultyView.tsx'
+export * from './ScheduleLegend.tsx'

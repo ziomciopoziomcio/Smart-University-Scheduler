@@ -4,6 +4,7 @@ import {formatWeekRange} from './utils/dateUtils';
 import {WeekScheduleGrid} from './WeekScheduleGrid';
 import {WeekScheduleHeader} from './WeekScheduleHeader';
 import {useIntl} from 'react-intl';
+import {ScheduleLegend} from './ScheduleLegend';
 
 const monthMessageIds = [
     'calendar.january',
@@ -52,6 +53,18 @@ export function WeekSchedule({
                 onPrevWeek={onPrevWeek}
                 onNextWeek={onNextWeek}
             />
+
+            <Box
+                sx={{
+                    position: 'absolute',
+                    top: 16,
+                    right: 16,
+                    zIndex: 5,
+                    display: {xs: 'none', lg: 'block'},
+                }}
+            >
+                <ScheduleLegend/>
+            </Box>
 
             <Box sx={{position: 'relative'}}>
                 <WeekScheduleGrid
