@@ -114,3 +114,14 @@ export type ScheduleEditRoomOption = {
     building?: string;
     campus?: string;
 };
+
+export type RoomPlanApiEntry = {
+    id: string;
+    title: string;
+    date: string;
+    startTime?: string;
+    endTime?: string;
+    start_time?: string;
+    end_time?: string;
+    variant?: string | null;
+};

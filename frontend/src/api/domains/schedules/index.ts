@@ -3,3 +3,4 @@ export * from './employeeSchedule';
 export * from './schedules';
 export * from './studySchedule';
 export * from './studentSchedule';
+export * from './roomSchedule';

@@ -4,35 +4,17 @@ import {useParams} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 import {type ScheduleEntry, type Building, type Room, type Campus, getBuilding, getCampus, getRoom} from '@api';
 import {WeekSchedule} from '@components/Schedule/WeekSchedule.tsx';
-import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils.ts';
-import {getMockRoomScheduleEntries} from '../../mocks/roomPlansMock.tsx';
+import {addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils.ts';
+import {fetchRoomPlan} from '@api/domains/schedules';
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 
-// TODO: https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/113
 export async function getRoomScheduleForWeek(
-    campusId: string,
-    buildingId: string,
     roomId: string,
     weekStart: Date,
 ): Promise<ScheduleEntry[]> {
-    const weekEnd = addDays(weekStart, 6);
-    const startIso = toIsoDate(weekStart);
-    const endIso = toIsoDate(weekEnd);
-
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const allEntries = getMockRoomScheduleEntries({
-                campusId,
-                buildingId,
-                roomId,
-            });
-
-            const filtered = allEntries.filter((entry) => {
-                return entry.date >= startIso && entry.date <= endIso;
-            });
-
-            resolve(filtered);
-        }, 700);
+    return fetchRoomPlan({
+        roomId: Number(roomId),
+        startDate: toIsoDate(weekStart),
     });
 }
 
@@ -94,8 +76,6 @@ export default function RoomSchedulePage() {
             setIsScheduleLoading(true);
             try {
                 const response = await getRoomScheduleForWeek(
-                    campusId,
-                    buildingId,
                     roomId,
                     currentWeekStart,
                 );
