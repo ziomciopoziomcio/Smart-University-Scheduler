@@ -25,6 +25,7 @@ import {
 interface WeekScheduleGridProps {
     entries: ScheduleEntry[];
     onSessionUpdated?: () => void | Promise<void>;
+    onTileHoverChange?: (variant: ScheduleEntry['variant'] | null) => void;
 }
 
 interface EntryLayout {
@@ -233,7 +234,7 @@ const mapCourseSessionDetails = (
     };
 };
 
-export function WeekScheduleGrid({entries, onSessionUpdated}: WeekScheduleGridProps) {
+export function WeekScheduleGrid({entries, onSessionUpdated, onTileHoverChange}: WeekScheduleGridProps) {
     const [selectedEntry, setSelectedEntry] = useState<ScheduleEntry | null>(null);
     const [selectedDetails, setSelectedDetails] = useState<ScheduleEntryDetails | null>(null);
 
@@ -798,6 +799,12 @@ export function WeekScheduleGrid({entries, onSessionUpdated}: WeekScheduleGridPr
                                 columnCount={layout.columnCount}
                                 onClick={handleTileClick}
                                 onPointerDown={handleTilePointerDown}
+                                onMouseEnter={() => {
+                                    onTileHoverChange?.(entry.variant);
+                                }}
+                                onMouseLeave={() => {
+                                    onTileHoverChange?.(null);
+                                }}
                                 draggingEntryId={dragPreview?.hasMoved ? dragPreview.entry.id : null}
                             />
                         );

@@ -21,6 +21,8 @@ interface ScheduleTileFactoryProps {
     columnCount?: number;
     onClick: (entry: ScheduleEntry) => void;
     onPointerDown?: (entry: ScheduleEntry, event: PointerEvent<HTMLDivElement>) => void;
+    onMouseEnter?: () => void;
+    onMouseLeave?: () => void;
     draggingEntryId?: string | null;
 }
 
@@ -30,6 +32,8 @@ export function ScheduleTileFactory({
     columnCount = 1,
     onClick,
     onPointerDown,
+    onMouseEnter,
+    onMouseLeave,
     draggingEntryId,
 }: ScheduleTileFactoryProps) {
     const entryDate = parseIsoDate(entry.date);
@@ -47,20 +51,22 @@ export function ScheduleTileFactory({
         height: getTileHeight(entry.startTime, entry.endTime),
         onClick: () => onClick(entry),
         onPointerDown: (event: PointerEvent<HTMLDivElement>) => onPointerDown?.(entry, event),
+        onMouseEnter,
+        onMouseLeave,
         isDragging: draggingEntryId === entry.id,
     };
 
     switch (entry.variant) {
         case 'lab':
-            return <LabTile {...sharedProps} />;
+            return <LabTile {...sharedProps}/>;
         case 'exercise':
-            return <ExerciseTile {...sharedProps} />;
+            return <ExerciseTile {...sharedProps}/>;
         case 'project':
-            return <ProjectTile {...sharedProps} />;
+            return <ProjectTile {...sharedProps}/>;
         case 'seminar':
-            return <SeminarTile {...sharedProps} />;
+            return <SeminarTile {...sharedProps}/>;
         case 'lecture':
         default:
-            return <LectureTile {...sharedProps} />;
+            return <LectureTile {...sharedProps}/>;
     }
 }
