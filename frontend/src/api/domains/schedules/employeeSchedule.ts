@@ -1,56 +1,22 @@
 import {getHeaders, SCHEDULES_URL} from '@api/core';
-import {type ScheduleEntry} from '@api';
 
-type LecturerPlanApiEntry = {
-    id: string;
-    title: string;
-    date: string;
-    startTime?: string;
-    endTime?: string;
-    start_time?: string;
-    end_time?: string;
-    variant?: string | null;
-};
+import type {
+    FetchLecturerPlanParams,
+    LecturerPlanApiEntry,
+    ScheduleEntry,
+} from './types';
 
-type ScheduleEntryVariant = ScheduleEntry['variant'];
+import {createQueryParams, mapScheduleEntries} from './utils';
 
-const mapVariantToScheduleVariant = (
-    variant?: string | null
-): ScheduleEntryVariant => {
-    const normalized = variant?.toLowerCase();
-
-    switch (normalized) {
-        case 'lecture':
-            return 'lecture';
-
-        case 'laboratory':
-            return 'lab';
-
-        case 'tutorials':
-            return 'exercise';
-
-        case 'seminar':
-            return 'seminar';
-
-        case 'project':
-            return 'project';
-
-        default:
-            return 'lecture';
-    }
-};
-
-export const fetchLecturerPlan = async (params: {
-    instructorId: number;
-    startDate: string;
-    unitId?: number;
-}): Promise<ScheduleEntry[]> => {
-    const query = new URLSearchParams({
-        instructor_id: params.instructorId.toString(),
-        start_date: params.startDate,
-        ...(params.unitId !== undefined && {
-            unit_id: params.unitId.toString(),
-        }),
+export const fetchLecturerPlan = async ({
+    instructorId,
+    startDate,
+    unitId,
+}: FetchLecturerPlanParams): Promise<ScheduleEntry[]> => {
+    const query = createQueryParams({
+        instructor_id: instructorId,
+        start_date: startDate,
+        unit_id: unitId,
     });
 
     const response = await fetch(`${SCHEDULES_URL}/lecturer-plan?${query.toString()}`, {
@@ -63,12 +29,5 @@ export const fetchLecturerPlan = async (params: {
 
     const data: LecturerPlanApiEntry[] = await response.json();
 
-    return data.map((entry) => ({
-        id: entry.id,
-        title: entry.title,
-        date: entry.date,
-        startTime: entry.startTime ?? entry.start_time ?? '',
-        endTime: entry.endTime ?? entry.end_time ?? '',
-        variant: mapVariantToScheduleVariant(entry.variant),
-    }));
+    return mapScheduleEntries(data);
 };
