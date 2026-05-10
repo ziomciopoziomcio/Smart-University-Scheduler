@@ -22,7 +22,7 @@ class WorkloadIssue(BaseModel):
 
 class RoomIssue(BaseModel):
     course_code: int
-    group_name: str
+    group_name: list[str]
     members_amount: int
     pc_needed: bool
     projector_needed: bool
