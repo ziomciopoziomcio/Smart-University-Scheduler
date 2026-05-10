@@ -56,15 +56,15 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
             ac_mod.Groups.group_name,
             func.coalesce(member_count_sq.c.members_amount, 0).label("members_amount"),
         )
-        .select_from(course_models.Study_programs)
+        .select_from(course_models.Study_program)
         .join(
             course_models.Study_fields,
-            course_models.Study_programs.study_field == course_models.Study_fields.id,
+            course_models.Study_program.study_field == course_models.Study_fields.id,
         )
         .join(
             course_models.Curriculum_course,
             course_models.Curriculum_course.study_program
-            == course_models.Study_programs.id,
+            == course_models.Study_program.id,
         )
         .join(
             course_models.Course_type_detail,
@@ -73,7 +73,7 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
         )
         .join(
             ac_mod.Groups,
-            ac_mod.Groups.study_program == course_models.Study_programs.id,
+            ac_mod.Groups.study_program == course_models.Study_program.id,
         )
         .outerjoin(member_count_sq, member_count_sq.c.group_id == ac_mod.Groups.id)
         .filter(course_models.Study_fields.faculty == faculty_id)
