@@ -726,7 +726,7 @@ async def get_user_plan(
         return []
 
     if student:
-        group_ids = _get_student_group_ids(db, user_id)
+        group_ids = _get_student_group_ids(db, student.id)
 
         if not group_ids:
             return []
