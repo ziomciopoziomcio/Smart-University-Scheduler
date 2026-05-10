@@ -102,7 +102,6 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
             else comp.class_type
         )
         norm_type = c_type.split(".")[-1].strip().upper()
-
         key = (comp.course, norm_type)
         available_workload[key] = available_workload.get(key, 0) + float(
             comp.total_hours or 0
@@ -119,6 +118,7 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
         grouped_requirements[req_key].append(req)
 
     processed_reqs = []
+    oversized_groups = []
 
     for req_key, req_list in grouped_requirements.items():
         req_list_sorted = sorted(
@@ -130,6 +130,17 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
             placed = False
             members = int(req.members_amount)
             max_cap = int(req.max_group_participants_number)
+
+            if members > max_cap:
+                oversized_groups.append(
+                    {
+                        "course_code": req.course_code,
+                        "class_type": req_key[1],
+                        "group_name": req.group_name,
+                        "members_amount": members,
+                        "max_capacity": max_cap,
+                    }
+                )
 
             for b in bins:
                 if b["members_amount"] + members <= max_cap:
@@ -213,4 +224,5 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
         "missing_competencies": missing_competencies,
         "workload_mismatch": workload_mismatch,
         "no_suitable_rooms": no_suitable_rooms,
+        "oversized_groups": oversized_groups,  # <--- DODANO DO ZWRACANEGO SŁOWNIKA
     }
