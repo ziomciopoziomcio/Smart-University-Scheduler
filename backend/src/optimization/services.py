@@ -10,12 +10,12 @@ from ..facilities import models as fac_models
 def validate_optimization_data(faculty_id: int, db: Session) -> dict:
     rooms = (
         db.query(
-            fac_models.Rooms.id,
-            fac_models.Rooms.room_capacity,
-            fac_models.Rooms.pc_amount,
-            fac_models.Rooms.projector_availability,
+            fac_models.Room.id,
+            fac_models.Room.room_capacity,
+            fac_models.Room.pc_amount,
+            fac_models.Room.projector_availability,
         )
-        .filter(fac_models.Rooms.faculty_id == faculty_id)
+        .filter(fac_models.Room.faculty_id == faculty_id)
         .all()
     )
 
