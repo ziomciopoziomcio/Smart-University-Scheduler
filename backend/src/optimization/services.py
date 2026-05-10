@@ -112,6 +112,8 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
     workload_mismatch = []
     no_suitable_rooms = []
 
+    rooms.sort(key=lambda r: r.room_capacity, reverse=True)
+
     for req in requirements:
         c_type = str(
             req.class_type.value if hasattr(req.class_type, "value") else req.class_type
@@ -129,14 +131,16 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
 
         room_found = False
         for room in rooms:
-            if room.room_capacity >= members:
-                if pc and (room.pc_amount or 0) < members:
-                    continue
-                if proj and not room.projector_availability:
-                    continue
-
-                room_found = True
+            if room.room_capacity < members:
                 break
+
+            if pc and (room.pc_amount or 0) < members:
+                continue
+            if proj and not room.projector_availability:
+                continue
+
+            room_found = True
+            break
 
         if not room_found:
             no_suitable_rooms.append(
