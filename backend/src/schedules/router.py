@@ -5,6 +5,7 @@ from datetime import timezone, datetime, date, timedelta
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from ..academics.models import Students, Employees
 from . import models
 from . import schemas
 from ..academics import models as ac_mod
@@ -658,9 +659,17 @@ def _get_student_group_ids(db: Session, student_id: int) -> list[int]:
     return [int(r[0]) for r in records]
 
 
-@router.get("/student-plan", response_model=list[schemas.ScheduleEntry])
-async def get_student_plan(
-    student_id: int = Query(..., description="ID of the student"),
+def _get_student_with_user_id(db: Session, user_id: int):
+    return db.query(Students).filter(Students.user_id == user_id).first()
+
+
+def _get_employee_with_user_id(db: Session, user_id: int):
+    return db.query(Employees).filter(Employees.user_id == user_id).first()
+
+
+@router.get("/user-plan", response_model=list[schemas.ScheduleEntry])
+async def get_user_plan(
+    user_id: int = Query(..., description="ID of the user"),
     start_date: date = Query(
         ...,
         description="Starting date of the week (must be a Monday, format: YYYY-MM-DD)",
@@ -670,7 +679,7 @@ async def get_student_plan(
     _current_user: user_models.Users = Depends(require_permission("schedule:view")),
 ):
     """
-    Get the schedule plan for a specific student for a given week.
+    Get the schedule plan for a specific user for a given week.
     The response covers the entire work week (Monday-Friday).
     """
     if start_date.weekday() != 0:
@@ -679,24 +688,36 @@ async def get_student_plan(
             detail="start_date must be a Monday.",
         )
 
+    student = _get_student_with_user_id(db, user_id)
+    employee = _get_employee_with_user_id(db, user_id)
+
+    if not student and not employee:
+        raise HTTPException(
+            status_code=400,
+            detail="User is neither a student nor an employee",
+        )
+
     day_configs = _get_academic_day_configs(db, start_date)
     if not day_configs:
         return []
 
-    group_ids = _get_student_group_ids(db, student_id)
+    if student:
+        group_ids = _get_student_group_ids(db, user_id)
 
-    if not group_ids:
+        if not group_ids:
+            return []
+
+        result = await neo4j_session.run(
+            STUDY_FIELD_PLAN_ACADEMIC_QUERY,
+            group_ids=group_ids,
+            day_configs=day_configs,
+        )
+
+        records = await result.data()
+        return _map_schedule_entries(records)
+
+    else:
         return []
-
-    result = await neo4j_session.run(
-        STUDY_FIELD_PLAN_ACADEMIC_QUERY,
-        group_ids=group_ids,
-        day_configs=day_configs,
-    )
-
-    records = await result.data()
-
-    return _map_schedule_entries(records)
 
 
 def _map_room_plan(records: list[dict]) -> list[schemas.ScheduleEntry]:
