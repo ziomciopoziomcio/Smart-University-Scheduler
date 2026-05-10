@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
+from collections import defaultdict
 
 from ..academics import models as ac_mod
 from ..courses import models as course_models
@@ -52,6 +53,7 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
             course_models.Course_type_detail.class_hours,
             course_models.Course_type_detail.pc_needed,
             course_models.Course_type_detail.projector_needed,
+            course_models.Course_type_detail.max_group_participants_number,
             ac_mod.Groups.group_name,
             func.coalesce(member_count_sq.c.members_amount, 0).label("members_amount"),
         )
@@ -106,6 +108,51 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
             comp.total_hours or 0
         )
 
+    grouped_requirements = defaultdict(list)
+
+    for req in requirements:
+        c_type = str(
+            req.class_type.value if hasattr(req.class_type, "value") else req.class_type
+        )
+        norm_type = c_type.split(".")[-1].strip().upper()
+        req_key = (req.course_code, norm_type)
+        grouped_requirements[req_key].append(req)
+
+    processed_reqs = []
+
+    for req_key, req_list in grouped_requirements.items():
+        req_list_sorted = sorted(
+            req_list, key=lambda r: int(r.members_amount), reverse=True
+        )
+        bins = []
+
+        for req in req_list_sorted:
+            placed = False
+            members = int(req.members_amount)
+            max_cap = int(req.max_group_participants_number)
+
+            for b in bins:
+                if b["members_amount"] + members <= max_cap:
+                    b["members_amount"] += members
+                    b["group_names"].append(req.group_name)
+                    placed = True
+                    break
+
+            if not placed:
+                bins.append(
+                    {
+                        "course_code": req.course_code,
+                        "class_type": req_key[1],
+                        "class_hours": float(req.class_hours or 0),
+                        "pc_needed": bool(req.pc_needed),
+                        "projector_needed": bool(req.projector_needed),
+                        "group_names": [req.group_name],
+                        "members_amount": members,
+                    }
+                )
+
+        processed_reqs.extend(bins)
+
     required_workload = {}
     missing_competencies = []
     workload_mismatch = []
@@ -113,20 +160,13 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
 
     rooms.sort(key=lambda r: r.room_capacity, reverse=True)
 
-    for req in requirements:
-        c_type = str(
-            req.class_type.value if hasattr(req.class_type, "value") else req.class_type
-        )
-        norm_type = c_type.split(".")[-1].strip().upper()
-        key = (req.course_code, norm_type)
+    for req in processed_reqs:
+        key = (req["course_code"], req["class_type"])
+        required_workload[key] = required_workload.get(key, 0) + req["class_hours"]
 
-        required_workload[key] = required_workload.get(key, 0) + float(
-            req.class_hours or 0
-        )
-
-        members = int(req.members_amount)
-        pc = bool(req.pc_needed)
-        proj = bool(req.projector_needed)
+        members = req["members_amount"]
+        pc = req["pc_needed"]
+        proj = req["projector_needed"]
 
         room_found = False
         for room in rooms:
@@ -144,8 +184,8 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
         if not room_found:
             no_suitable_rooms.append(
                 {
-                    "course_code": req.course_code,
-                    "group_name": req.group_name,
+                    "course_code": req["course_code"],
+                    "group_names": req["group_names"],
                     "members_amount": members,
                     "pc_needed": pc,
                     "projector_needed": proj,
@@ -169,7 +209,7 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
             )
 
     return {
-        "total_genes_to_generate": len(requirements),
+        "total_genes_to_generate": len(processed_reqs),
         "missing_competencies": missing_competencies,
         "workload_mismatch": workload_mismatch,
         "no_suitable_rooms": no_suitable_rooms,
