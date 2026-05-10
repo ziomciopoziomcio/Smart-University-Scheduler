@@ -108,9 +108,9 @@ ROOM_PLAN_QUERY = """
     MATCH (s)-[:HELD_IN]->(r:Room)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(c:Campus)
     MATCH (s)-[:OF_COURSE]->(course:Course)
 
-    WHERE c.campusShort = $campus
-      AND b.buildingNumber = toInteger($building)
-      AND r.roomName = $room
+    WHERE c.campusId = $campus_id
+      AND b.buildingId = $building_id
+      AND r.roomId = $room_id
       AND config.week_number IN s.weeks
 
     RETURN
@@ -707,9 +707,9 @@ def _map_room_plan(records: list[dict]) -> list[schemas.ScheduleEntry]:
 @router.get("/room-plan", response_model=list[schemas.ScheduleEntry])
 async def get_room_plan(
     start_date: date = Query(..., description="Must be Monday (YYYY-MM-DD)"),
-    campus: str = Query(...),
-    building: str = Query(...),
-    room: str = Query(...),
+    campus_id: int = Query(...),
+    building_id: int = Query(...),
+    room_id: int = Query(...),
     plan_version: str | None = Query(None),
     db: Session = Depends(get_db),
     neo4j_session=Depends(get_neo4j_session),
@@ -731,9 +731,9 @@ async def get_room_plan(
 
     result = await neo4j_session.run(
         ROOM_PLAN_QUERY,
-        campus=campus,
-        building=building,
-        room=room,
+        campus_id=campus_id,
+        building_id=building_id,
+        room_id=room_id,
         plan_version=plan_version,
         day_configs=day_configs,
     )
