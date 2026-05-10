@@ -52,6 +52,13 @@ class StudyMode(str, enum.Enum):
     PART_TIME = "Part-time"
 
 
+class StudyDegree(str, enum.Enum):
+    BACHELOR = "Bachelor"
+    MASTER = "Master"
+    UNIFORM_MASTER = "Uniform_Master"
+    DOCTORAL = "Doctoral"
+
+
 class Study_fields(Base):
     """Study_fields model representing a study field in the system."""
 
@@ -65,6 +72,9 @@ class Study_fields(Base):
     )
     mode: Mapped[StudyMode] = mapped_column(
         Enum(StudyMode), default=StudyMode.FULL_TIME
+    )
+    degree: Mapped[StudyDegree] = mapped_column(
+        Enum(StudyDegree), default=StudyDegree.BACHELOR
     )
 
 
