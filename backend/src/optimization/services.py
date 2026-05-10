@@ -7,8 +7,8 @@ from ..courses import models as course_models
 from ..facilities import models as fac_models
 
 
-def validate_optimization_data(faculty_id: int, db: Session) -> dict:
-    rooms = (
+def _get_rooms(faculty_id: int, db: Session):
+    return (
         db.query(
             fac_models.Room.id,
             fac_models.Room.room_capacity,
@@ -19,7 +19,9 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
         .all()
     )
 
-    competencies = (
+
+def _get_competencies(faculty_id: int, db: Session):
+    return (
         db.query(
             course_models.Courses_instructors.course,
             course_models.Courses_instructors.class_type,
@@ -37,6 +39,8 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
         .all()
     )
 
+
+def _get_requirements(faculty_id: int, db: Session):
     member_count_sq = (
         db.query(
             ac_mod.Group_members.group.label("group_id"),
@@ -46,7 +50,7 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
         .subquery()
     )
 
-    requirements = (
+    return (
         db.query(
             course_models.Course_type_detail.course.label("course_code"),
             course_models.Course_type_detail.class_type,
@@ -94,6 +98,8 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
         .all()
     )
 
+
+def _calculate_available_workload(competencies) -> dict:
     available_workload = {}
     for comp in competencies:
         c_type = str(
@@ -106,9 +112,51 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
         available_workload[key] = available_workload.get(key, 0) + float(
             comp.total_hours or 0
         )
+    return available_workload
 
+
+def _pack_bins(req_list_sorted, class_type, oversized_groups) -> list:
+    bins = []
+    for req in req_list_sorted:
+        placed = False
+        members = int(req.members_amount)
+        max_cap = int(req.max_group_participants_number)
+
+        if members > max_cap:
+            oversized_groups.append(
+                {
+                    "course_code": req.course_code,
+                    "class_type": class_type,
+                    "group_name": req.group_name,
+                    "members_amount": members,
+                    "max_capacity": max_cap,
+                }
+            )
+
+        for b in bins:
+            if b["members_amount"] + members <= max_cap:
+                b["members_amount"] += members
+                b["group_names"].append(req.group_name)
+                placed = True
+                break
+
+        if not placed:
+            bins.append(
+                {
+                    "course_code": req.course_code,
+                    "class_type": class_type,
+                    "class_hours": float(req.class_hours or 0),
+                    "pc_needed": bool(req.pc_needed),
+                    "projector_needed": bool(req.projector_needed),
+                    "group_names": [req.group_name],
+                    "members_amount": members,
+                }
+            )
+    return bins
+
+
+def _bin_pack_requirements(requirements) -> tuple[list, list]:
     grouped_requirements = defaultdict(list)
-
     for req in requirements:
         c_type = str(
             req.class_type.value if hasattr(req.class_type, "value") else req.class_type
@@ -124,51 +172,15 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
         req_list_sorted = sorted(
             req_list, key=lambda r: int(r.members_amount), reverse=True
         )
-        bins = []
-
-        for req in req_list_sorted:
-            placed = False
-            members = int(req.members_amount)
-            max_cap = int(req.max_group_participants_number)
-
-            if members > max_cap:
-                oversized_groups.append(
-                    {
-                        "course_code": req.course_code,
-                        "class_type": req_key[1],
-                        "group_name": req.group_name,
-                        "members_amount": members,
-                        "max_capacity": max_cap,
-                    }
-                )
-
-            for b in bins:
-                if b["members_amount"] + members <= max_cap:
-                    b["members_amount"] += members
-                    b["group_names"].append(req.group_name)
-                    placed = True
-                    break
-
-            if not placed:
-                bins.append(
-                    {
-                        "course_code": req.course_code,
-                        "class_type": req_key[1],
-                        "class_hours": float(req.class_hours or 0),
-                        "pc_needed": bool(req.pc_needed),
-                        "projector_needed": bool(req.projector_needed),
-                        "group_names": [req.group_name],
-                        "members_amount": members,
-                    }
-                )
-
+        bins = _pack_bins(req_list_sorted, req_key[1], oversized_groups)
         processed_reqs.extend(bins)
 
-    required_workload = {}
-    missing_competencies = []
-    workload_mismatch = []
-    no_suitable_rooms = []
+    return processed_reqs, oversized_groups
 
+
+def _validate_rooms(processed_reqs, rooms) -> tuple[dict, list]:
+    required_workload = {}
+    no_suitable_rooms = []
     rooms.sort(key=lambda r: r.room_capacity, reverse=True)
 
     for req in processed_reqs:
@@ -183,12 +195,10 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
         for room in rooms:
             if room.room_capacity < members:
                 break
-
             if pc and (room.pc_amount or 0) < members:
                 continue
             if proj and not room.projector_availability:
                 continue
-
             room_found = True
             break
 
@@ -202,6 +212,15 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
                     "projector_needed": proj,
                 }
             )
+
+    return required_workload, no_suitable_rooms
+
+
+def _calculate_workload_mismatches(
+    required_workload, available_workload
+) -> tuple[list, list]:
+    missing_competencies = []
+    workload_mismatch = []
 
     for key, req_hours in required_workload.items():
         course_code, norm_type = key
@@ -219,10 +238,26 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
                 }
             )
 
+    return missing_competencies, workload_mismatch
+
+
+def validate_optimization_data(faculty_id: int, db: Session) -> dict:
+    rooms = _get_rooms(faculty_id, db)
+    competencies = _get_competencies(faculty_id, db)
+    requirements = _get_requirements(faculty_id, db)
+
+    available_workload = _calculate_available_workload(competencies)
+    processed_reqs, oversized_groups = _bin_pack_requirements(requirements)
+    required_workload, no_suitable_rooms = _validate_rooms(processed_reqs, rooms)
+
+    missing_competencies, workload_mismatch = _calculate_workload_mismatches(
+        required_workload, available_workload
+    )
+
     return {
         "total_genes_to_generate": len(processed_reqs),
         "missing_competencies": missing_competencies,
         "workload_mismatch": workload_mismatch,
         "no_suitable_rooms": no_suitable_rooms,
-        "oversized_groups": oversized_groups,  # <--- DODANO DO ZWRACANEGO SŁOWNIKA
+        "oversized_groups": oversized_groups,
     }
