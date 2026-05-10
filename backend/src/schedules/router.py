@@ -125,6 +125,30 @@ ROOM_PLAN_QUERY = """
 """
 
 
+EMPLOYEE_SCHEDULE_QUERY = """
+    UNWIND $day_configs AS config
+
+    MATCH (e:Employee {userId: $user_id})
+    MATCH (i:Instructor {instructorId: e.instructorId})
+    MATCH (s:ClassSession)-[:TAUGHT_BY]->(i)
+
+    MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
+    MATCH (s)-[:HELD_IN]->(r:Room)
+    MATCH (s)-[:OF_COURSE]->(course:Course)
+
+    WHERE config.week_number IN s.weeks
+
+    RETURN
+        s.sessionId AS session_id,
+        course.courseName AS course_name,
+        course.classType AS class_type,
+        config.physical_date AS physical_date,
+        t.startTime AS start_time,
+        t.endTime AS end_time,
+        r.roomName AS room_name
+    ORDER BY config.physical_date, t.startTime
+"""
+
 @router.post("/generate", status_code=status.HTTP_202_ACCEPTED)
 async def generate_schedule(
     payload: schemas.GenerateScheduleRequest,
