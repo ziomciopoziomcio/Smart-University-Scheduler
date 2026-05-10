@@ -40,8 +40,8 @@ def _get_competencies(faculty_id: int, db: Session):
     )
 
 
-def _get_requirements(faculty_id: int, db: Session):
-    member_count_sq = (
+def _get_member_count_subquery(db: Session):
+    return (
         db.query(
             ac_mod.Group_members.group.label("group_id"),
             func.count(ac_mod.Group_members.student).label("members_amount"),
@@ -49,6 +49,10 @@ def _get_requirements(faculty_id: int, db: Session):
         .group_by(ac_mod.Group_members.group)
         .subquery()
     )
+
+
+def _get_requirements(faculty_id: int, db: Session):
+    member_count_sq = _get_member_count_subquery(db)
 
     return (
         db.query(
