@@ -55,7 +55,7 @@ def validate_algorithm_data(
 ):
     """
     Validates data consistency before running the genetic algorithm.
-    Checks for missing instructors, workload discrepancies, and unaccomodatable group sizes.
+    Checks for missing instructors, workload discrepancies, and unaccountable group sizes.
     """
     report_data = validate_optimization_data(faculty_id, db)
     return report_data
