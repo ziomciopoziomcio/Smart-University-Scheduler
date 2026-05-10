@@ -245,7 +245,7 @@ class DataProvider:
             gene = ClassSessionGene(
                 course_code=row["course_code"],
                 class_type=normalized_class_type,
-                group_id=row["group_id"],
+                group_ids=row["group_id"],
                 duration_slots=duration,
                 pc_needed=row["pc_needed"],
                 projector_needed=row["projector_needed"],

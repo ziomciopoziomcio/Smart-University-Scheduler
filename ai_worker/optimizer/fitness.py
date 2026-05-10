@@ -252,10 +252,10 @@ class FitnessCalculator:
         if g1.instructor_id is not None and g1.instructor_id == g2.instructor_id:
             return self._is_time_overlap(g1, g2)
 
-        if g1.group_id == g2.group_id:
+        if g1.group_ids == g2.group_ids:
             return self._is_time_overlap(g1, g2)
 
-        if g2.group_id in self.conflicting_groups.get(g1.group_id, set()):
+        if g2.group_ids in self.conflicting_groups.get(g1.group_ids, set()):
             return self._is_time_overlap(g1, g2)
 
         return False
@@ -395,7 +395,7 @@ class FitnessCalculator:
         if active_weeks == []:
             return
 
-        profiles_in_group = self.group_to_profiles.get(gene.group_id, [])
+        profiles_in_group = self.group_to_profiles.get(gene.group_ids, [])
 
         weeks = active_weeks if active_weeks is not None else [None]
 

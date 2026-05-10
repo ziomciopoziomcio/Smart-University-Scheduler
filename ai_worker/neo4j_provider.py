@@ -390,7 +390,7 @@ class Neo4jProvider:
                 "session_id": str(uuid.uuid4()),
                 "instructor_id": int(gene.instructor_id),
                 "room_id": int(gene.room_id),
-                "group_id": int(gene.group_id),
+                "group_id": int(gene.group_ids),
                 "timeslot_id": int(gene.timeslot_id),
                 "course_code": str(gene.course_code),
                 "class_type": str(gene.class_type).upper(),

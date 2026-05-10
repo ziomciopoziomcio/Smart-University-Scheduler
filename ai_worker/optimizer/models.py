@@ -7,7 +7,7 @@ class ClassSessionGene:
 
     course_code: int
     class_type: str
-    group_id: int
+    group_ids: list[int]
     duration_slots: int
     pc_needed: bool
     projector_needed: bool
