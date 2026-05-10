@@ -14,14 +14,14 @@ class OptimizationResponse(BaseModel):
 
 
 class WorkloadIssue(BaseModel):
-    course_code: str
+    course_code: int
     class_type: str
     required_hours: float
     available_hours: float
 
 
 class RoomIssue(BaseModel):
-    course_code: str
+    course_code: int
     group_name: str
     members_amount: int
     pc_needed: bool
