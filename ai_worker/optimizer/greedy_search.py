@@ -366,15 +366,16 @@ def _is_group_ok(
     conflicting_groups: ConflictsMap,
 ) -> bool:
     """
-    Check that the group and its conflicting groups are free for all weeks and all slots in the requested interval.
+    Check that all combined groups and their conflicting groups are free
+    for all weeks and all slots in the requested interval.
 
-    :param gene: ClassSessionGene with group_id.
+    :param gene: ClassSessionGene containing group_ids (list of combined groups).
     :param weeks: Weeks to check.
     :param start_slot: Absolute start slot id.
     :param duration: Duration in slots.
     :param occupied_group: Set of occupied (week, slot, group_id) tuples.
     :param conflicting_groups: Map group_id -> set(conflicting_group_ids).
-    :return: True if group and its conflicting groups are free, False otherwise.
+    :return: True if all groups and their conflicting groups are free, False otherwise.
     """
     for w in weeks:
         for s in range(start_slot, start_slot + duration):
