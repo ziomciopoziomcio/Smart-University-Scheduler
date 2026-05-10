@@ -259,7 +259,7 @@ class DataProvider:
 
             processed_bins.extend(bins)
 
-        room_cache: dict[tuple[int, int, int], list[int]] = {}
+        room_cache: dict[tuple[int, bool, bool], list[int]] = {}
         genes = []
 
         for bin_data in processed_bins:
