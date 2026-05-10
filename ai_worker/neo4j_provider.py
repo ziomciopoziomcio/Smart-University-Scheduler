@@ -21,16 +21,20 @@ SAVE_SCHEDULE_QUERY = Query("""
         MATCH (t:TimeSlot {timeSlotId: row.timeslot_id})
         MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
 
-        CREATE (s:ClassSession {sessionId: row.session_id, weeks: row.weeks, facultyId: $faculty_id, createdAt: datetime()})
+        MATCH (g:Group) WHERE g.groupId IN row.group_ids
+        WITH row, i, r, t, c, collect(g) AS matched_groups, $faculty_id AS faculty_id, $batch AS b
+
+        WHERE size(matched_groups) = size(row.group_ids)
+
+        CREATE (s:ClassSession {sessionId: row.session_id, weeks: row.weeks, facultyId: faculty_id, createdAt: datetime()})
         MERGE (s)-[:TAUGHT_BY]->(i)
         MERGE (s)-[:HELD_IN]->(r)
         MERGE (s)-[:AT_TIME]->(t)
         MERGE (s)-[:OF_COURSE]->(c)
 
-        WITH s, row, $batch as b
-        UNWIND row.group_ids AS g_id
-        MATCH (g:Group {groupId: g_id})
-        MERGE (s)-[:FOR_GROUP]->(g)
+        WITH s, matched_groups, b
+        UNWIND matched_groups AS mg
+        MERGE (s)-[:FOR_GROUP]->(mg)
 
         WITH count(DISTINCT s) as created_count, size(b) as total_size
 
@@ -39,7 +43,7 @@ SAVE_SCHEDULE_QUERY = Query("""
                 WHEN created_count = total_size THEN created_count
                 ELSE 1 / (created_count - created_count)
             END as result
-        """)
+""")
 
 
 class Neo4jProvider:
