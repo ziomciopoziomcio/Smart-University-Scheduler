@@ -15,9 +15,9 @@ export const fetchRoomPlan = async ({
     startDate,
 }: FetchRoomPlanParams): Promise<ScheduleEntry[]> => {
     const query = createQueryParams({
-        campus: campusId,
-        building: buildingId,
-        room: roomId,
+        campus_id: campusId,
+        building_id: buildingId,
+        room_id: roomId,
         start_date: startDate,
     });
 
