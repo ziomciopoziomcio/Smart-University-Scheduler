@@ -188,13 +188,18 @@ def _candidate_cost(
 
     day = _day(start_slot)
     for w in weeks:
-        group_taken = _taken_slots_for_day_indexed(
-            occ=occ, week=w, entity_id=gene.group_ids, day=day, entity_type="group"
-        )
+        group_taken_set = set()
+        for g_id in gene.group_ids:
+            group_taken_set.update(
+                _taken_slots_for_day_indexed(
+                    occ=occ, week=w, entity_id=g_id, day=day, entity_type="group"
+                )
+            )
+
         cost += _cost_gap_penalty_for_day_span(
             start_slot=start_slot,
             duration=duration,
-            taken_slots=group_taken,
+            taken_slots=sorted(list(group_taken_set)),
             penalty=5.0,
         )
 
@@ -373,11 +378,12 @@ def _is_group_ok(
     """
     for w in weeks:
         for s in range(start_slot, start_slot + duration):
-            if (w, s, gene.group_ids) in occupied_group:
-                return False
-            for cg in conflicting_groups.get(gene.group_ids, set()):
-                if (w, s, cg) in occupied_group:
+            for g_id in gene.group_ids:
+                if (w, s, g_id) in occupied_group:
                     return False
+                for cg in conflicting_groups.get(g_id, set()):
+                    if (w, s, cg) in occupied_group:
+                        return False
     return True
 
 

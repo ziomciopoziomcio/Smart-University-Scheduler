@@ -252,11 +252,13 @@ class FitnessCalculator:
         if g1.instructor_id is not None and g1.instructor_id == g2.instructor_id:
             return self._is_time_overlap(g1, g2)
 
-        if g1.group_ids == g2.group_ids:
+        if not set(g1.group_ids).isdisjoint(g2.group_ids):
             return self._is_time_overlap(g1, g2)
 
-        if g2.group_ids in self.conflicting_groups.get(g1.group_ids, set()):
-            return self._is_time_overlap(g1, g2)
+        for g1_id in g1.group_ids:
+            conflicts = self.conflicting_groups.get(g1_id, set())
+            if not conflicts.isdisjoint(g2.group_ids):
+                return self._is_time_overlap(g1, g2)
 
         return False
 
@@ -391,17 +393,16 @@ class FitnessCalculator:
         :param itinerary: The dictionary to update
         """
         active_weeks = getattr(gene, "active_weeks", None)
-
         if active_weeks == []:
             return
-
-        profiles_in_group = self.group_to_profiles.get(gene.group_ids, [])
+        profiles_in_group = set()
+        for g_id in gene.group_ids:
+            profiles_in_group.update(self.group_to_profiles.get(g_id, []))
 
         weeks = active_weeks if active_weeks is not None else [None]
 
         for profile_id in profiles_in_group:
             weekly_dict = itinerary.setdefault(profile_id, {})
-
             for week in weeks:
                 weekly_dict.setdefault(week, []).append(gene)
 

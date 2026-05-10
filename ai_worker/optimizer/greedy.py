@@ -182,7 +182,8 @@ def _apply_assignment(
         for s in range(start_slot, start_slot + duration):
             occ.add_room_slot(w, s, room_id)
             occ.add_instr_slot(w, s, instr_id)
-            occ.add_group_slot(w, s, gene.group_ids)
+            for g_id in gene.group_ids:
+                occ.add_group_slot(w, s, g_id)
 
 
 def greedy_assign(

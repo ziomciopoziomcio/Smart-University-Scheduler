@@ -198,33 +198,78 @@ class DataProvider:
         requirements_df = data["requirements"]
         rooms_df = data["rooms"]
         competencies_df = data["competencies"].copy()
-        competencies_df["normalized_class_type"] = (
-            competencies_df["class_type"]
-            .astype(str)
-            .apply(lambda x: x.split(".")[-1].strip().upper())
-        )
-        competencies_dict = (
-            competencies_df.groupby(["course_code", "normalized_class_type"])[
-                "employee_id"
-            ]
-            .apply(lambda x: x.unique().tolist())
-            .to_dict()
-        )
 
-        room_cache: dict[tuple[int, int, int], list[int]] = {}
+        if not competencies_df.empty:
+            competencies_df["normalized_class_type"] = (
+                competencies_df["class_type"]
+                .astype(str)
+                .apply(lambda x: x.split(".")[-1].strip().upper())
+            )
+            competencies_dict = (
+                competencies_df.groupby(["course_code", "normalized_class_type"])[
+                    "employee_id"
+                ]
+                .apply(lambda x: x.unique().tolist())
+                .to_dict()
+            )
+        else:
+            competencies_dict = {}
 
-        genes = []
+        from collections import defaultdict
+
+        grouped_requirements = defaultdict(list)
 
         for _, row in requirements_df.iterrows():
-            duration = int(row["slots_per_class"])
+            c_type = str(row["class_type"]).split(".")[-1].strip().upper()
+            req_key = (row["course_code"], c_type)
+            grouped_requirements[req_key].append(row)
+
+        processed_bins = []
+        for req_key, req_list in grouped_requirements.items():
+            req_list_sorted = sorted(
+                req_list, key=lambda r: int(r["members_amount"]), reverse=True
+            )
+            bins = []
+
+            for row in req_list_sorted:
+                placed = False
+                members = int(row["members_amount"])
+                max_cap = int(row["max_group_participants_number"])
+
+                for b in bins:
+                    if b["members_amount"] + members <= max_cap:
+                        b["members_amount"] += members
+                        b["group_ids"].append(row["group_id"])
+                        placed = True
+                        break
+
+                if not placed:
+                    bins.append(
+                        {
+                            "course_code": row["course_code"],
+                            "class_type": req_key[1],
+                            "group_ids": [row["group_id"]],
+                            "members_amount": members,
+                            "pc_needed": bool(row["pc_needed"]),
+                            "projector_needed": bool(row["projector_needed"]),
+                            "slots_per_class": int(row["slots_per_class"]),
+                            "row_ref": row,
+                        }
+                    )
+
+            processed_bins.extend(bins)
+
+        room_cache: dict[tuple[int, int, int], list[int]] = {}
+        genes = []
+
+        for bin_data in processed_bins:
+            row = bin_data["row_ref"]
+            duration = bin_data["slots_per_class"]
             patterns = self._generate_allowed_patterns(row)
 
-            raw_class_type = str(row["class_type"])
-            normalized_class_type = raw_class_type.split(".")[-1].strip().upper()
-
-            members = int(row["members_amount"])
-            pc_needed = int(row["pc_needed"])
-            proj_needed = int(row["projector_needed"])
+            members = bin_data["members_amount"]
+            pc_needed = bin_data["pc_needed"]
+            proj_needed = bin_data["projector_needed"]
 
             req_key = (members, pc_needed, proj_needed)
 
@@ -237,19 +282,18 @@ class DataProvider:
                 room_cache[req_key] = rooms_df.loc[room_mask, "room_id"].tolist()
 
             allowed_rooms = room_cache.get(req_key, [])
-
             allowed_instructors = competencies_dict.get(
-                (row["course_code"], normalized_class_type), []
+                (bin_data["course_code"], bin_data["class_type"]), []
             )
 
             gene = ClassSessionGene(
-                course_code=row["course_code"],
-                class_type=normalized_class_type,
-                group_ids=row["group_id"],
+                course_code=bin_data["course_code"],
+                class_type=bin_data["class_type"],
+                group_ids=bin_data["group_ids"],
                 duration_slots=duration,
-                pc_needed=row["pc_needed"],
-                projector_needed=row["projector_needed"],
-                group_size=row["members_amount"],
+                pc_needed=pc_needed,
+                projector_needed=proj_needed,
+                group_size=members,
                 allowed_week_patterns=patterns,
                 selected_pattern_index=0,
                 allowed_rooms=allowed_rooms,

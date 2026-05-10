@@ -19,21 +19,24 @@ SAVE_SCHEDULE_QUERY = Query("""
         MATCH (i:Instructor {instructorId: row.instructor_id})
         MATCH (r:Room {roomId: row.room_id})
         MATCH (t:TimeSlot {timeSlotId: row.timeslot_id})
-        MATCH (g:Group {groupId: row.group_id})
         MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
 
         CREATE (s:ClassSession {sessionId: row.session_id, weeks: row.weeks, facultyId: $faculty_id, createdAt: datetime()})
         MERGE (s)-[:TAUGHT_BY]->(i)
         MERGE (s)-[:HELD_IN]->(r)
-        MERGE (s)-[:FOR_GROUP]->(g)
         MERGE (s)-[:AT_TIME]->(t)
         MERGE (s)-[:OF_COURSE]->(c)
 
-        WITH count(s) as created_count
+        WITH s, row, $batch as b
+        UNWIND row.group_ids AS g_id
+        MATCH (g:Group {groupId: g_id})
+        MERGE (s)-[:FOR_GROUP]->(g)
+
+        WITH count(DISTINCT s) as created_count, size(b) as total_size
 
         RETURN
             CASE
-                WHEN created_count = size($batch) THEN created_count
+                WHEN created_count = total_size THEN created_count
                 ELSE 1 / (created_count - created_count)
             END as result
         """)
@@ -390,7 +393,7 @@ class Neo4jProvider:
                 "session_id": str(uuid.uuid4()),
                 "instructor_id": int(gene.instructor_id),
                 "room_id": int(gene.room_id),
-                "group_id": int(gene.group_ids),
+                "group_ids": [int(g_id) for g_id in gene.group_ids],
                 "timeslot_id": int(gene.timeslot_id),
                 "course_code": str(gene.course_code),
                 "class_type": str(gene.class_type).upper(),
