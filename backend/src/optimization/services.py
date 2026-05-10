@@ -178,9 +178,26 @@ def _bin_pack_requirements(requirements) -> tuple[list, list]:
     return processed_reqs, oversized_groups
 
 
+def _has_suitable_room(rooms, members: int, pc: bool, proj: bool) -> bool:
+
+    for room in rooms:
+        if room.room_capacity < members:
+            return False
+
+        if pc and (room.pc_amount or 0) < members:
+            continue
+        if proj and not room.projector_availability:
+            continue
+
+        return True
+
+    return False
+
+
 def _validate_rooms(processed_reqs, rooms) -> tuple[dict, list]:
     required_workload = {}
     no_suitable_rooms = []
+
     rooms.sort(key=lambda r: r.room_capacity, reverse=True)
 
     for req in processed_reqs:
@@ -191,18 +208,7 @@ def _validate_rooms(processed_reqs, rooms) -> tuple[dict, list]:
         pc = req["pc_needed"]
         proj = req["projector_needed"]
 
-        room_found = False
-        for room in rooms:
-            if room.room_capacity < members:
-                break
-            if pc and (room.pc_amount or 0) < members:
-                continue
-            if proj and not room.projector_availability:
-                continue
-            room_found = True
-            break
-
-        if not room_found:
+        if not _has_suitable_room(rooms, members, pc, proj):
             no_suitable_rooms.append(
                 {
                     "course_code": req["course_code"],
