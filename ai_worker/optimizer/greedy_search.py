@@ -294,7 +294,7 @@ def _room_satisfies_requirements(gene: ClassSessionGene, room: dict) -> bool:
 
     room_pc = int(room.get("pc_amount", 0) or 0)
     if getattr(gene, "pc_needed", False):
-        required_pc = int(getattr(gene, "required_pc_amount", 1))
+        required_pc = int(gene.group_size)
         if room_pc < required_pc:
             return False
 
