@@ -108,9 +108,9 @@ ROOM_PLAN_QUERY = """
     MATCH (s)-[:HELD_IN]->(r:Room)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(c:Campus)
     MATCH (s)-[:OF_COURSE]->(course:Course)
 
-    WHERE c.id = $campus_id
-      AND b.id = $building_id
-      AND r.id = $room_id
+    WHERE c.campusId = $campus_id
+      AND b.buildingId = $building_id
+      AND r.roomId = $room_id
       AND config.week_number IN s.weeks
 
     RETURN
