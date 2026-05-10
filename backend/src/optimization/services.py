@@ -3,7 +3,6 @@ from sqlalchemy import func, or_
 
 from ..academics import models as ac_mod
 from ..courses import models as course_models
-from ..users import models as user_models
 from ..facilities import models as fac_models
 
 
@@ -26,10 +25,10 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
             func.sum(course_models.Courses_instructors.hours).label("total_hours"),
         )
         .join(
-            user_models.Employees,
-            course_models.Courses_instructors.employee == user_models.Employees.id,
+            ac_mod.Employees,
+            course_models.Courses_instructors.employee == ac_mod.Employees.id,
         )
-        .filter(user_models.Employees.faculty_id == faculty_id)
+        .filter(ac_mod.Employees.faculty_id == faculty_id)
         .group_by(
             course_models.Courses_instructors.course,
             course_models.Courses_instructors.class_type,
