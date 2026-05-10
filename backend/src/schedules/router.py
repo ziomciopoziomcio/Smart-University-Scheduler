@@ -741,8 +741,15 @@ async def get_user_plan(
         return _map_schedule_entries(records)
 
     else:
-        # todo employee branch
-        return []
+        # employee
+        result = await neo4j_session.run(
+            EMPLOYEE_SCHEDULE_QUERY,
+            instructor_id=employee.id,
+            day_configs=day_configs,
+        )
+
+        records = await result.data()
+        return _map_schedule_entries(records)
 
 
 def _map_room_plan(records: list[dict]) -> list[schemas.ScheduleEntry]:
