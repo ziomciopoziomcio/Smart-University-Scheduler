@@ -5,7 +5,6 @@ from typing import List
 
 from ..common.router_utils import (
     _get_or_404,
-    _get_by_fields_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
 )
