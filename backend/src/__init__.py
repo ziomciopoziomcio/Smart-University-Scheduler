@@ -6,6 +6,7 @@ from .schedules.router import router as schedules_router
 from .conversations.router import router as conversations_router
 from .common.routers.setup import router as setup_router
 from .optimization.router import router as optimization_router
+from .settings.router import router as settings_router
 
 api_routers = [
     academics_router,
@@ -16,4 +17,5 @@ api_routers = [
     conversations_router,
     setup_router,
     optimization_router,
+    settings_router,
 ]
