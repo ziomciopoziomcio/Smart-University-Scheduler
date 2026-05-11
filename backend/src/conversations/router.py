@@ -10,6 +10,7 @@ from src.common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
+    apply_search_to_queries,
 )
 from . import models, schemas
 from ..database.database import get_db
@@ -19,6 +20,7 @@ from ..users.auth import get_current_user
 from ..users.models import Users
 from ..common.require_permission import require_permission
 from ..users import models as user_models
+from ..academics import models as academics_models
 
 from src.rag.llm_agent import process_chat_message, get_system_prompt
 from src.database.database import SessionLocal
@@ -49,17 +51,36 @@ def create_chat(
 def list_chats(
     limit: int | None = Query(CHAT_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    search: str | None = Query(None, min_length=1),
     db: Session = Depends(get_db),
     current_user: Users = Depends(get_current_user),
     _current_user: user_models.Users = Depends(require_permission("chats:view")),
 ):
     query = db.query(models.Chats)
-    query = query.filter(
+    count_query = db.query(models.Chats.id)
+
+    base_filter = (
         models.Chats.user_id == current_user.id,
         models.Chats.visible.is_(True),
     )
+    query = query.filter(*base_filter)
+    count_query = count_query.filter(*base_filter)
 
-    return paginate(query, limit, offset, models.Chats.created_at.desc())
+    if search:
+        query, count_query = apply_search_to_queries(
+            search=search,
+            query=query,
+            count_query=count_query,
+            columns=[models.Chats.title],
+        )
+
+    return paginate(
+        query,
+        limit,
+        offset,
+        order_by=models.Chats.created_at.desc(),
+        count_query=count_query,
+    )
 
 
 @router.get("/{chat_id}", response_model=schemas.ChatRead)
@@ -144,8 +165,8 @@ def _save_user_msg_sync(
         local_db.refresh(user_msg)
 
         employee = (
-            local_db.query(user_models.Employees)
-            .filter(user_models.Employees.user_id == user_id)
+            local_db.query(academics_models.Employees)
+            .filter(academics_models.Employees.user_id == user_id)
             .first()
         )
         schedule_user_id = employee.id if employee is not None else user_id
