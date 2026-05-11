@@ -57,6 +57,7 @@ def create_study_field(
 def list_study_fields(
     faculty: int | None = Query(None),
     field_name: str | None = Query(None, min_length=1),
+    degree: models.StudyDegree | None = Query(None),
     limit: int = Query(STUDY_FIELD_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
@@ -86,6 +87,7 @@ def list_study_fields(
             models.Study_fields.field_name,
             models.Study_fields.language,
             models.Study_fields.mode,
+            models.Study_fields.degree,
             func.count(func.distinct(models.Major.id)).label("specializations_count"),
             func.max(models.Curriculum_course.semester).label("semesters_count"),
             elective_blocks_sq.label("elective_blocks_count"),
@@ -106,6 +108,7 @@ def list_study_fields(
             models.Study_fields.field_name,
             models.Study_fields.language,
             models.Study_fields.mode,
+            models.Study_fields.degree,
             elective_blocks_sq,
             programs_sq,
         )
@@ -119,6 +122,11 @@ def list_study_fields(
 
     if field_name is not None:
         filter_stmt = models.Study_fields.field_name.ilike(f"%{field_name}%")
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
+
+    if degree is not None:
+        filter_stmt = models.Study_fields.degree == degree
         query = query.filter(filter_stmt)
         count_query = count_query.filter(filter_stmt)
 
@@ -147,7 +155,8 @@ def list_study_fields(
             language=(
                 row.language.value if hasattr(row.language, "value") else row.language
             ),
-            mode=row.mode.value if hasattr(row.mode, "value") else row.mode,
+            mode=(row.mode.value if hasattr(row.mode, "value") else row.mode),
+            degree=(row.degree.value if hasattr(row.degree, "value") else row.degree),
             semesters_count=row.semesters_count or 0,
             specializations_count=row.specializations_count or 0,
             elective_blocks_count=row.elective_blocks_count or 0,
