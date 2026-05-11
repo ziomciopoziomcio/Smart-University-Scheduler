@@ -9,15 +9,15 @@ class BaseSchema(BaseModel):
 
 class PlannerSettingsBase(BaseSchema):
     faculty_id: int
-    planned_academic_year: Annotated[str, StringConstraints(max_length=20)] | None = (
-        None
-    )
-    planned_semester_type: ac_models.SemesterType | None = None
-    is_planning_active: bool | None = True
+    planned_academic_year: Annotated[str, StringConstraints(max_length=20)]
+    planned_semester_type: ac_models.SemesterType
+    is_planning_active: bool = True
 
 
 class PlannerSettingsCreate(PlannerSettingsBase):
-    pass
+    faculty_id: int
+    planned_academic_year: Annotated[str, StringConstraints(max_length=20)]
+    planned_semester_type: ac_models.SemesterType
 
 
 class PlannerSettingsRead(PlannerSettingsBase):
