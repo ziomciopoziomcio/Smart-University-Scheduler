@@ -126,9 +126,9 @@ ROOM_PLAN_QUERY = """
 
 
 EMPLOYEE_SCHEDULE_QUERY = """
-    UNWIND $day_configs AS config
-    
     MATCH (i:Instructor {instructorId: $instructor_id})
+    WITH i
+    UNWIND $day_configs AS config
     
     MATCH (s:ClassSession)-[:TAUGHT_BY]->(i)
     MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
