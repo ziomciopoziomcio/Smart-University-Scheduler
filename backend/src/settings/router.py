@@ -89,8 +89,8 @@ def update_planner_settings(
     _current_user: user_models.Users = Depends(require_permission("settings:update")),
 ):
     obj = _get_or_404(db, models.PlannerSettings, settings_id, "PlannerSettings")
-    # Reject nulls for non-nullable fields if needed - here faculty_id is non-nullable in model
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields=())
+    db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
     return obj
