@@ -20,7 +20,7 @@ class PlannerSettings(Base):
         Integer, ForeignKey("faculties.id"), unique=True
     )
 
-    planned_academic_year: Mapped[str] = mapped_column(String(20), default="2025/2026")
+    planned_academic_year: Mapped[str] = mapped_column(String(20), default="2025/2026") #TODO
     planned_semester_type: Mapped[SemesterType] = mapped_column(Enum(SemesterType))
     is_planning_active: Mapped[bool] = mapped_column(
         default=True
