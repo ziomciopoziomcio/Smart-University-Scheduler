@@ -721,7 +721,7 @@ async def get_user_plan(
 
     if not student and not employee:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="User is neither a student nor an employee",
         )
 
