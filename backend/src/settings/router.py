@@ -30,7 +30,8 @@ def create_planner_settings(
     Create planner settings (one per faculty). IntegrityError will be returned as 409
     when uniqueness / FK constraints are violated.
     """
-    obj = models.PlannerSettings(**payload.model_dump())
+    data = payload.model_dump(exclude_unset=True, exclude_none=True)
+    obj = models.PlannerSettings(**data)
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
