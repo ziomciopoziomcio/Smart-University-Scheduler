@@ -684,10 +684,14 @@ def _get_student_group_ids(db: Session, student_id: int) -> list[int]:
 
 
 def _get_student_with_user_id(db: Session, user_id: int):
+    """Returns the student associated with the given user ID."""
+
     return db.query(Students).filter(Students.user_id == user_id).first()
 
 
 def _get_employee_with_user_id(db: Session, user_id: int):
+    """Returns the employee associated with the given user ID."""
+
     return db.query(Employees).filter(Employees.user_id == user_id).first()
 
 
