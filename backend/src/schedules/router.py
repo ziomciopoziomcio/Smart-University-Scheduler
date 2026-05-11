@@ -686,13 +686,35 @@ def _get_student_group_ids(db: Session, student_id: int) -> list[int]:
 def _get_student_with_user_id(db: Session, user_id: int):
     """Returns the student associated with the given user ID."""
 
-    return db.query(Students).filter(Students.user_id == user_id).first()
+    students = db.query(Students).filter(Students.user_id == user_id).all()
+    if not students:
+        return None
+    if len(students) > 1:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "Multiple student records found for the given user_id. "
+                "The request is ambiguous and must be disambiguated."
+            ),
+        )
+    return students[0]
 
 
 def _get_employee_with_user_id(db: Session, user_id: int):
     """Returns the employee associated with the given user ID."""
 
-    return db.query(Employees).filter(Employees.user_id == user_id).first()
+    employees = db.query(Employees).filter(Employees.user_id == user_id).all()
+    if not employees:
+        return None
+    if len(employees) > 1:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "Multiple employee records found for the given user_id. "
+                "The request is ambiguous and must be disambiguated."
+            ),
+        )
+    return employees[0]
 
 
 @router.get("/user-plan", response_model=list[schemas.ScheduleEntry])
