@@ -13,9 +13,6 @@ from ..common.require_permission import require_permission
 from ..users import models as user_models
 from . import models, schemas
 
-import logging
-
-logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/settings", tags=["settings"])
 
 
