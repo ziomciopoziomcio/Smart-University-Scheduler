@@ -7,8 +7,10 @@ from ..academics.models import SemesterType
 
 class PlannerSettings(Base):
     """
-    Global configuration for the planner and genetic algorithm.
-    Allows administrators to tweak system behavior without changing code.
+    Per-faculty configuration for the planner and genetic algorithm.
+
+    Each faculty has at most one settings row (enforced by `faculty_id` with
+    `unique=True`). Use this table to store settings that vary between faculties.
     """
 
     __tablename__ = "planner_settings"
