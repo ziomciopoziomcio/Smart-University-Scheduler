@@ -42,3 +42,4 @@ class ValidationReport(BaseModel):
     workload_mismatch: list[WorkloadIssue]
     no_suitable_rooms: list[RoomIssue]
     oversized_groups: list[OversizedGroupIssue]
+    semester_parity_warnings: list[str]
