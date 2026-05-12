@@ -574,6 +574,7 @@ def list_groups(
     study_program: int | None = Query(None),
     major: int | None = Query(None),
     elective_block: int | None = Query(None),
+    is_active: bool | None = Query(None),
     group_name: str | None = Query(None, min_length=1),
     limit: int | None = Query(GROUP_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
@@ -589,6 +590,8 @@ def list_groups(
         query = query.filter(models.Groups.major == major)
     if elective_block is not None:
         query = query.filter(models.Groups.elective_block == elective_block)
+    if is_active is not None:
+        query = query.filter(models.Groups.is_active == is_active)
     if group_name is not None:
         query = query.filter(models.Groups.group_name.ilike(f"%{group_name}%"))
     if search:
