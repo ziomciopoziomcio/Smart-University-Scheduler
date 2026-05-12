@@ -121,9 +121,9 @@ if __name__ == "__main__":
     db_majors = generate_majors(session, db_study_fields, PATH)
     session.commit()
 
-    # # ELECTIVE BLOCKS
-    # db_elective_blocks = generate_elective_blocks(session, db_study_fields)
-    # session.commit()
+    # ELECTIVE BLOCKS
+    db_elective_blocks = generate_elective_blocks(session, db_study_fields)
+    session.commit()
     #
     # # PERMISSIONS
     # db_permissions = generate_permissions_from_excel_file(

@@ -603,12 +603,12 @@ def _get_elective_blocks_names():
 
 def generate_elective_blocks(
     session: Session,
-    study_fields: dict[str, Study_fields],
+    study_fields: dict[tuple[str, int], Study_fields],
 ) -> dict[tuple[str, str], Elective_block]:
     """
     Creates Elective_block objects
     :param session: database session
-    :param study_fields: dictionary mapping study fields names
+    :param study_fields: dictionary mapping study fields names and degree
         to their corresponding Study_fields objects.
     :return: dictionary mapping elective blocks and study field names
         to their corresponding Elective_block objects.
@@ -622,23 +622,24 @@ def generate_elective_blocks(
 
     for sf_name in elective_blocks_names.keys():
         print(f"STUDY FIELD: {sf_name} ==============================")
-        sf_obj = study_fields.get(sf_name, None)
+        for deg in range(1, 3):
+            sf_obj = study_fields.get((sf_name, deg), None)
 
-        if sf_obj is None:
-            print("STUDY FIELD NOT FOUND")
-            continue
+            if sf_obj is None:
+                print(f"STUDY FIELD NOT FOUND: ({sf_name} - {deg})")
+                continue
 
-        sf_id: int = sf_obj.id
+            sf_id: int = sf_obj.id
 
-        for eb_name in elective_blocks_names[sf_name]:
-            eb_obj = Elective_block(study_field=sf_id, elective_block_name=eb_name)
-            db_elective_blocks[(eb_name, sf_name)] = eb_obj
-            session.add(eb_obj)
-            print(f"Added {eb_name}")
+            for eb_name in elective_blocks_names[sf_name]:
+                eb_obj = Elective_block(study_field=sf_id, elective_block_name=eb_name)
+                db_elective_blocks[(eb_name, sf_name)] = eb_obj
+                session.add(eb_obj)
+                print(f"Added {eb_name}")
 
-        print()
-        print()
-        print()
+            print()
+            print()
+            print()
 
     session.flush()
     return db_elective_blocks
