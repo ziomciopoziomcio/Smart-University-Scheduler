@@ -37,13 +37,15 @@ def _get_study_field_major_degree_from_file(sourcefile: str, with_major=True):
 
 
 def generate_study_programs(
-    session: Session, sourcefile: str, db_study_fields: dict[str, Study_fields]
+    session: Session,
+    sourcefile: str,
+    db_study_fields: dict[tuple[str, int], Study_fields],
 ) -> dict[tuple[str, str, int], Study_program]:
     """
     Generates study programs.
     :param session: database session
     :param sourcefile: path to JSON file containing study field data
-    :param db_study_fields: dictionary mapping study field names to Study_fields
+    :param db_study_fields: dictionary mapping study field names and degree to Study_fields
     :return: dictionary mapping (study_field_name, start_year, degree) to Study_program
     """
     start_years = ["2023/24", "2024/25", "2025/26"]
@@ -65,7 +67,9 @@ def generate_study_programs(
             )
 
             print(f"Processing: {study_field_name} - {study_degree} - {description}")
-            study_field_obj = db_study_fields.get(study_field_name, None)
+            study_field_obj = db_study_fields.get(
+                (study_field_name, study_degree), None
+            )
             if study_field_obj is None:
                 print(f"Cannot study field {study_field_name}")
                 continue

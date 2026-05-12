@@ -121,181 +121,181 @@ if __name__ == "__main__":
     db_majors = generate_majors(session, db_study_fields, PATH)
     session.commit()
 
-    # ELECTIVE BLOCKS
-    db_elective_blocks = generate_elective_blocks(session, db_study_fields)
-    session.commit()
-
-    # PERMISSIONS
-    db_permissions = generate_permissions_from_excel_file(
-        session,
-        PERMS_EXCEL_PATH,
-        PERMS_EXCEL_SHEET,
-    )
-    session.commit()
-
-    # ROLES
-    db_roles = generate_roles_from_excel_file(
-        session,
-        PERMS_EXCEL_PATH,
-        PERMS_EXCEL_SHEET,
-        db_permissions,
-    )
-    session.commit()
-
-    # USERS
-    num_of_roles_not_teachers = {
-        "Administrator": 0,
-        "Schedule Manager": 0,
-        "Dean's Office": 0,
-        "Head of Unit": 0,
-        "Instructor": 0,
-        "Student": 1500,
-        "Administrative Staff": 0,
-        "Guest": 0,
-    }
-    teachers = extract_teachers(PATH)
-    db_teachers, db_not_teachers = generate_users(
-        session=session,
-        roles=db_roles,
-        total_not_teacher_new_users=1500,
-        num_of_roles_not_teachers=num_of_roles_not_teachers,
-        teachers=teachers,
-        seed=SEED,
-        not_teacher_email_domain="edu.p.lodz.pl",
-        teacher_email_domain="p.lodz.pl",
-        password_hash_func=PASSWORD_HASH_FUNC,
-    )
-    session.commit()
-
-    # EMPLOYEES
-    db_employees = generate_employees(
-        session=session,
-        db_teachers=db_teachers,
-        db_units=db_units,
-        db_faculties=db_faculties,
-    )
-    session.commit()
-
-    # COURSES
-    db_courses = generate_courses(session, db_units, db_employees, PATH)
-    session.commit()
-
-    # COURSES TYPE DETAILS
-    db_course_details = generate_course_type_details(session, db_courses, PATH)
-    session.commit()
-
-    # CURRICULUM COURSES
-    db_curr_courses = generate_curriculum_courses(
-        sourcefile=PATH,
-        session=session,
-        db_study_programs=db_study_programs,
-        db_courses=db_courses,
-        db_majors=db_majors,
-    )
-    session.commit()
-
-    # CURRICULUM COURSES FOR ELECTIVE BLOCKS
-    db_elective_curr_courses = generate_curriculum_courses_elective_blocks(
-        sourcefile=PATH,
-        session=session,
-        db_study_programs=db_study_programs,
-        db_courses=db_courses,
-        db_elective_blocks=db_elective_blocks,
-        limit=3,
-        seed=SEED,
-    )
-    session.commit()
-
-    # GROUPS
-    db_common_groups = generate_common_groups(
-        session=session, db_study_programs=db_study_programs, sourcefile=GROUPS_PATH
-    )
-    session.commit()
-
-    db_major_groups = generate_major_groups(
-        sourcefile=GROUPS_PATH,
-        session=session,
-        db_study_programs=db_study_programs,
-        db_majors=db_majors,
-        db_curr_courses=db_curr_courses,
-    )
-    session.commit()
-
-    db_elective_groups = generate_elective_groups(
-        session=session,
-        sourcefile=GROUPS_PATH,
-        db_study_programs=db_study_programs,
-        db_elective_blocks=db_elective_blocks,
-        db_curr_courses=db_elective_curr_courses,
-    )
-    session.commit()
-
-    # STUDENTS
-    db_students = generate_students(
-        session=session,
-        db_not_teachers=db_not_teachers,
-        db_study_programs=db_study_programs,
-        db_majors=db_majors,
-        db_major_groups=db_major_groups,
-    )
-    session.commit()
-
-    # GROUP MEMBERS
-    assign_students_to_common_groups(
-        session=session,
-        db_common_groups=db_common_groups,
-        db_students=db_students,
-        db_study_programs=db_study_programs,
-        group_size=15,
-    )
-    session.commit()
-
-    assign_students_to_major_groups(
-        session=session,
-        db_major_groups=db_major_groups,
-        db_students=db_students,
-        db_study_programs=db_study_programs,
-        db_curr_courses=db_curr_courses,
-    )
-    session.commit()
-
-    assign_students_to_elective_groups(
-        session=session,
-        db_elective_groups=db_elective_groups,
-        db_students=db_students,
-        db_study_programs=db_study_programs,
-    )
-    session.commit()
-
-    # COURSE INSTRUCTORS
-    db_course_instructors = generate_course_instructors(
-        session=session,
-        sourcefile=PATH,
-        num_of_groups=5,
-        db_teachers=db_teachers,
-        db_courses=db_courses,
-        db_employees=db_employees,
-        debug=False,
-    )
-    session.commit()
-
-    # ADMIN
-    admin_obj = create_user_admin(
-        session=session, password_hash_func=PASSWORD_HASH_FUNC, roles=db_roles
-    )
-    session.commit()
-
-    # SAVE USERS TO EXCEL
-    save_teachers_to_excel(
-        filename=EXCEL_WITH_TEACHERS,
-        db_teachers=db_teachers,
-        db_faculties=db_faculties,
-        db_units=db_units,
-        db_employees=db_employees,
-    )
-
-    save_not_teachers_to_excel(
-        filename=EXCEL_WITH_OTHER_USERS, db_not_teachers=db_not_teachers
-    )
+    # # ELECTIVE BLOCKS
+    # db_elective_blocks = generate_elective_blocks(session, db_study_fields)
+    # session.commit()
+    #
+    # # PERMISSIONS
+    # db_permissions = generate_permissions_from_excel_file(
+    #     session,
+    #     PERMS_EXCEL_PATH,
+    #     PERMS_EXCEL_SHEET,
+    # )
+    # session.commit()
+    #
+    # # ROLES
+    # db_roles = generate_roles_from_excel_file(
+    #     session,
+    #     PERMS_EXCEL_PATH,
+    #     PERMS_EXCEL_SHEET,
+    #     db_permissions,
+    # )
+    # session.commit()
+    #
+    # # USERS
+    # num_of_roles_not_teachers = {
+    #     "Administrator": 0,
+    #     "Schedule Manager": 0,
+    #     "Dean's Office": 0,
+    #     "Head of Unit": 0,
+    #     "Instructor": 0,
+    #     "Student": 1500,
+    #     "Administrative Staff": 0,
+    #     "Guest": 0,
+    # }
+    # teachers = extract_teachers(PATH)
+    # db_teachers, db_not_teachers = generate_users(
+    #     session=session,
+    #     roles=db_roles,
+    #     total_not_teacher_new_users=1500,
+    #     num_of_roles_not_teachers=num_of_roles_not_teachers,
+    #     teachers=teachers,
+    #     seed=SEED,
+    #     not_teacher_email_domain="edu.p.lodz.pl",
+    #     teacher_email_domain="p.lodz.pl",
+    #     password_hash_func=PASSWORD_HASH_FUNC,
+    # )
+    # session.commit()
+    #
+    # # EMPLOYEES
+    # db_employees = generate_employees(
+    #     session=session,
+    #     db_teachers=db_teachers,
+    #     db_units=db_units,
+    #     db_faculties=db_faculties,
+    # )
+    # session.commit()
+    #
+    # # COURSES
+    # db_courses = generate_courses(session, db_units, db_employees, PATH)
+    # session.commit()
+    #
+    # # COURSES TYPE DETAILS
+    # db_course_details = generate_course_type_details(session, db_courses, PATH)
+    # session.commit()
+    #
+    # # CURRICULUM COURSES
+    # db_curr_courses = generate_curriculum_courses(
+    #     sourcefile=PATH,
+    #     session=session,
+    #     db_study_programs=db_study_programs,
+    #     db_courses=db_courses,
+    #     db_majors=db_majors,
+    # )
+    # session.commit()
+    #
+    # # CURRICULUM COURSES FOR ELECTIVE BLOCKS
+    # db_elective_curr_courses = generate_curriculum_courses_elective_blocks(
+    #     sourcefile=PATH,
+    #     session=session,
+    #     db_study_programs=db_study_programs,
+    #     db_courses=db_courses,
+    #     db_elective_blocks=db_elective_blocks,
+    #     limit=3,
+    #     seed=SEED,
+    # )
+    # session.commit()
+    #
+    # # GROUPS
+    # db_common_groups = generate_common_groups(
+    #     session=session, db_study_programs=db_study_programs, sourcefile=GROUPS_PATH
+    # )
+    # session.commit()
+    #
+    # db_major_groups = generate_major_groups(
+    #     sourcefile=GROUPS_PATH,
+    #     session=session,
+    #     db_study_programs=db_study_programs,
+    #     db_majors=db_majors,
+    #     db_curr_courses=db_curr_courses,
+    # )
+    # session.commit()
+    #
+    # db_elective_groups = generate_elective_groups(
+    #     session=session,
+    #     sourcefile=GROUPS_PATH,
+    #     db_study_programs=db_study_programs,
+    #     db_elective_blocks=db_elective_blocks,
+    #     db_curr_courses=db_elective_curr_courses,
+    # )
+    # session.commit()
+    #
+    # # STUDENTS
+    # db_students = generate_students(
+    #     session=session,
+    #     db_not_teachers=db_not_teachers,
+    #     db_study_programs=db_study_programs,
+    #     db_majors=db_majors,
+    #     db_major_groups=db_major_groups,
+    # )
+    # session.commit()
+    #
+    # # GROUP MEMBERS
+    # assign_students_to_common_groups(
+    #     session=session,
+    #     db_common_groups=db_common_groups,
+    #     db_students=db_students,
+    #     db_study_programs=db_study_programs,
+    #     group_size=15,
+    # )
+    # session.commit()
+    #
+    # assign_students_to_major_groups(
+    #     session=session,
+    #     db_major_groups=db_major_groups,
+    #     db_students=db_students,
+    #     db_study_programs=db_study_programs,
+    #     db_curr_courses=db_curr_courses,
+    # )
+    # session.commit()
+    #
+    # assign_students_to_elective_groups(
+    #     session=session,
+    #     db_elective_groups=db_elective_groups,
+    #     db_students=db_students,
+    #     db_study_programs=db_study_programs,
+    # )
+    # session.commit()
+    #
+    # # COURSE INSTRUCTORS
+    # db_course_instructors = generate_course_instructors(
+    #     session=session,
+    #     sourcefile=PATH,
+    #     num_of_groups=5,
+    #     db_teachers=db_teachers,
+    #     db_courses=db_courses,
+    #     db_employees=db_employees,
+    #     debug=False,
+    # )
+    # session.commit()
+    #
+    # # ADMIN
+    # admin_obj = create_user_admin(
+    #     session=session, password_hash_func=PASSWORD_HASH_FUNC, roles=db_roles
+    # )
+    # session.commit()
+    #
+    # # SAVE USERS TO EXCEL
+    # save_teachers_to_excel(
+    #     filename=EXCEL_WITH_TEACHERS,
+    #     db_teachers=db_teachers,
+    #     db_faculties=db_faculties,
+    #     db_units=db_units,
+    #     db_employees=db_employees,
+    # )
+    #
+    # save_not_teachers_to_excel(
+    #     filename=EXCEL_WITH_OTHER_USERS, db_not_teachers=db_not_teachers
+    # )
 
     session.close()
