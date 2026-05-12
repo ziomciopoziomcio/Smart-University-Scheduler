@@ -85,7 +85,7 @@ def _assign_students_to_study_program(
 
 
 def _get_major_name_by_id(
-    db_majors: dict[tuple[str, str], Major], m_id: int | None
+    db_majors: dict[tuple[str, int, str], Major], m_id: int | None
 ) -> str | None:
     if m_id is None:
         return None
@@ -208,7 +208,7 @@ def generate_students(
     session: Session,
     db_not_teachers: dict[tuple[str | None, str, str, str, str, bool], Users],
     db_study_programs: dict[tuple[str, str, int], Study_program],
-    db_majors: dict[tuple[str, str], Major],
+    db_majors: dict[tuple[str, int, str], Major],
     db_major_groups: dict[str, Groups],
 ) -> dict[tuple[str, str | None, str | None], Students]:
     """
