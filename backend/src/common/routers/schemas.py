@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from ..academics import models as ac_models
 
+
 class PlannerSettingsPayload(BaseModel):
     """
     Optional initial planner settings to create during system setup.
