@@ -31,7 +31,7 @@ export type RoomPlanApiEntry = SchedulePlanApiEntry;
 export type StudyFieldPlanApiEntry = SchedulePlanApiEntry;
 
 export interface FetchStudentPlanParams {
-    studentId: number;
+    userId: number;
     startDate: string;
 }
 

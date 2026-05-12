@@ -8,17 +8,16 @@ import type {
 
 import {createQueryParams, mapScheduleEntries} from './utils';
 
-////TODO: https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/275
 export const fetchStudentPlan = async ({
-    studentId,
+    userId,
     startDate,
 }: FetchStudentPlanParams): Promise<ScheduleEntry[]> => {
     const query = createQueryParams({
-        student_id: studentId,
+        user_id: userId,
         start_date: startDate,
     });
 
-    const response = await fetch(`${SCHEDULES_URL}/student-plan?${query.toString()}`, {
+    const response = await fetch(`${SCHEDULES_URL}/user-plan?${query.toString()}`, {
         headers: getHeaders(),
     });
 

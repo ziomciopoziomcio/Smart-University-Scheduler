@@ -13,7 +13,7 @@ export async function getScheduleForWeek(
     userId: number,
 ): Promise<ScheduleEntry[]> {
     return await fetchStudentPlan({
-        studentId: userId,
+        userId: userId,
         startDate: toIsoDate(weekStart),
     });
 }
