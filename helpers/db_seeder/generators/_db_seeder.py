@@ -206,40 +206,40 @@ if __name__ == "__main__":
     )
     session.commit()
 
-    # # GROUPS
-    # db_common_groups = generate_common_groups(
-    #     session=session, db_study_programs=db_study_programs, sourcefile=GROUPS_PATH
-    # )
-    # session.commit()
-    #
-    # db_major_groups = generate_major_groups(
-    #     sourcefile=GROUPS_PATH,
-    #     session=session,
-    #     db_study_programs=db_study_programs,
-    #     db_majors=db_majors,
-    #     db_curr_courses=db_curr_courses,
-    # )
-    # session.commit()
-    #
-    # db_elective_groups = generate_elective_groups(
-    #     session=session,
-    #     sourcefile=GROUPS_PATH,
-    #     db_study_programs=db_study_programs,
-    #     db_elective_blocks=db_elective_blocks,
-    #     db_curr_courses=db_elective_curr_courses,
-    # )
-    # session.commit()
-    #
-    # # STUDENTS
-    # db_students = generate_students(
-    #     session=session,
-    #     db_not_teachers=db_not_teachers,
-    #     db_study_programs=db_study_programs,
-    #     db_majors=db_majors,
-    #     db_major_groups=db_major_groups,
-    # )
-    # session.commit()
-    #
+    # GROUPS
+    db_common_groups = generate_common_groups(
+        session=session, db_study_programs=db_study_programs, sourcefile=GROUPS_PATH
+    )
+    session.commit()
+
+    db_major_groups = generate_major_groups(
+        sourcefile=GROUPS_PATH,
+        session=session,
+        db_study_programs=db_study_programs,
+        db_majors=db_majors,
+        db_curr_courses=db_curr_courses,
+    )
+    session.commit()
+
+    db_elective_groups = generate_elective_groups(
+        session=session,
+        sourcefile=GROUPS_PATH,
+        db_study_programs=db_study_programs,
+        db_elective_blocks=db_elective_blocks,
+        db_curr_courses=db_elective_curr_courses,
+    )
+    session.commit()
+
+    # STUDENTS
+    db_students = generate_students(
+        session=session,
+        db_not_teachers=db_not_teachers,
+        db_study_programs=db_study_programs,
+        db_majors=db_majors,
+        db_major_groups=db_major_groups,
+    )
+    session.commit()
+
     # # GROUP MEMBERS
     # assign_students_to_common_groups(
     #     session=session,
