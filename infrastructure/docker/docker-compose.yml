@@ -164,6 +164,8 @@ services:
 #    environment:
 #      - VITE_API_URL=http://localhost:3000
 #      - WATCHPACK_POLLING=true
+#    depends_on:
+#        - backend
 
 volumes:
   postgres_data:
