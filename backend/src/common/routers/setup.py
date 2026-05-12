@@ -87,6 +87,9 @@ def initialize_system(
     except SQLAlchemyError:
         db.rollback()
         raise HTTPException(status_code=500, detail="Database error.")
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception:
         db.rollback()
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
