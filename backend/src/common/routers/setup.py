@@ -77,12 +77,38 @@ def initialize_system(
                         detail=f"Invalid planned_semester_type: {ps_data.get('planned_semester_type')}",
                     )
 
+            faculty_id = ps_data.get("faculty_id")
+            if faculty_id is not None:
+                existing_settings = db.execute(
+                    select(settings_models.PlannerSettings.id).where(
+                        settings_models.PlannerSettings.faculty_id == faculty_id
+                    )
+                ).scalars().first()
+                if existing_settings:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail=f"Planner settings already exist for faculty_id {faculty_id}.",
+                    )
+
             settings_obj = settings_models.PlannerSettings(**ps_data)
             db.add(settings_obj)
 
         db.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
+        error_message = str(getattr(exc, "orig", exc)).lower()
+        if "foreign key" in error_message and "faculty" in error_message:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid faculty_id: referenced faculty does not exist.",
+            )
+        if (
+            "unique" in error_message or "duplicate" in error_message
+        ) and ("planner_settings" in error_message or "faculty" in error_message):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Planner settings already exist for the provided faculty_id.",
+            )
         raise HTTPException(status_code=409, detail="Database conflict.")
     except SQLAlchemyError:
         db.rollback()
