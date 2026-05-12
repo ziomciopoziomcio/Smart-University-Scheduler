@@ -13,7 +13,7 @@ from src.database import seeder
 from src.users.models import Users
 from src.users.auth import hash_password as get_password_hash
 from .schemas import SetupPayloadSchema
-from src.settings import models as settings_models  # noqa: F401, E402
+from src.settings import models as settings_models
 from src.academics.models import SemesterType as AcademicsSemesterType
 
 router = APIRouter(prefix="/setup", tags=["System Setup"])
