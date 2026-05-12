@@ -13,6 +13,8 @@ from src.database import seeder
 from src.users.models import Users
 from src.users.auth import hash_password as get_password_hash
 from .schemas import SetupPayloadSchema
+from src.settings import models as settings_models  # noqa: F401, E402
+from src.academics.models import SemesterType as AcademicsSemesterType
 
 router = APIRouter(prefix="/setup", tags=["System Setup"])
 
@@ -57,6 +59,27 @@ def initialize_system(
             "surname": payload.admin_surname,
         }
         seeder.create_admin_user(db, admin_data, hashed_pwd)
+
+        if payload.planner_settings:
+            ps = payload.planner_settings
+            ps_data = ps.model_dump(exclude_unset=True, exclude_none=True)
+            if (
+                "planned_semester_type" in ps_data
+                and ps_data["planned_semester_type"] is not None
+            ):
+                try:
+                    ps_data["planned_semester_type"] = AcademicsSemesterType[
+                        ps_data["planned_semester_type"]
+                    ]
+                except KeyError:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Invalid planned_semester_type: {ps_data.get('planned_semester_type')}",
+                    )
+
+            settings_obj = settings_models.PlannerSettings(**ps_data)
+            db.add(settings_obj)
+
         db.commit()
     except IntegrityError:
         db.rollback()
