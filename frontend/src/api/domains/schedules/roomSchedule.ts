@@ -26,7 +26,7 @@ export const fetchRoomPlan = async ({
     });
 
     if (!response.ok) {
-        throw new Error('Nie udało się pobrać planu sali');
+        throw new Error('Failed to fetch room plan');
     }
 
     const data: RoomPlanApiEntry[] = await response.json();
