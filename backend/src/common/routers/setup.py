@@ -19,6 +19,33 @@ from src.academics.models import SemesterType as AcademicsSemesterType
 router = APIRouter(prefix="/setup", tags=["System Setup"])
 
 
+def _parse_academics_semester_type(value):
+    """
+    Parses a value into AcademicsSemesterType accepting:
+      - an instance of AcademicsSemesterType (returns it),
+      - an enum member name (e.g. "WINTER" / "winter"),
+      - an enum member value (e.g. "Winter" / "winter").
+    Raises ValueError if parsing fails.
+    """
+
+    if isinstance(value, AcademicsSemesterType):
+        return value
+    if not isinstance(value, str):
+        raise ValueError(
+            "planned_semester_type must be a string or AcademicsSemesterType"
+        )
+
+    v = value.strip().lower()
+    for m in AcademicsSemesterType:
+        if m.name.lower() == v:
+            return m
+    for m in AcademicsSemesterType:
+        if str(m.value).lower() == v:
+            return m
+
+    raise ValueError(f"Unknown AcademicsSemesterType: {value!r}")
+
+
 @router.post("/")
 def initialize_system(
     payload: SetupPayloadSchema,
@@ -68,10 +95,10 @@ def initialize_system(
                 and ps_data["planned_semester_type"] is not None
             ):
                 try:
-                    ps_data["planned_semester_type"] = AcademicsSemesterType[
+                    ps_data["planned_semester_type"] = _parse_academics_semester_type(
                         ps_data["planned_semester_type"]
-                    ]
-                except KeyError:
+                    )
+                except ValueError:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail=f"Invalid planned_semester_type: {ps_data.get('planned_semester_type')}",
