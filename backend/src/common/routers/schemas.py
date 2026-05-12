@@ -18,8 +18,8 @@ class PlannerSettingsPayload(BaseModel):
         description='Planned academic year, e.g. "2025/2026"',
         max_length=20,
     )
-    planned_semester_type: str | None = Field(
-        default=None,
+    planned_semester_type: str = Field(
+        ...,
         description="Semester type name (use values from academics.SemesterType enum)",
     )
     is_planning_active: bool | None = Field(
