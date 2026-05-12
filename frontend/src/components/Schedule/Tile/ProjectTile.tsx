@@ -11,6 +11,8 @@ interface ProjectTileProps {
     onClick?: () => void;
     onPointerDown?: (event: React.PointerEvent<HTMLDivElement>) => void;
     isDragging?: boolean;
+    onMouseEnter?: () => void;
+    onMouseLeave?: () => void;
 }
 
 export function ProjectTile(props: ProjectTileProps) {

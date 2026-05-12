@@ -11,6 +11,8 @@ interface LectureTileProps {
     onClick?: () => void;
     onPointerDown?: (event: React.PointerEvent<HTMLDivElement>) => void;
     isDragging?: boolean;
+    onMouseEnter?: () => void;
+    onMouseLeave?: () => void;
 }
 
 export function LectureTile(props: LectureTileProps) {

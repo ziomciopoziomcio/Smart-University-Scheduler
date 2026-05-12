@@ -2,6 +2,7 @@ import {BASE_URL, getHeaders, SCHEDULES_URL} from '@api/core';
 
 import type {
     CourseSessionDetailsResponse,
+    GenerateScheduleRequest,
     ScheduleVersion,
     UpdateScheduleSessionRequest,
 } from './types';
@@ -19,10 +20,6 @@ export const fetchCourseSessionDetails = async (
 
     return response.json();
 };
-
-export interface GenerateScheduleRequest {
-    faculty_id?: number;
-}
 
 export const generateSchedule = async (
     payload?: GenerateScheduleRequest,
@@ -44,7 +41,6 @@ export const generateSchedule = async (
 
 // TODO: IT DOES NOT WORK
 // https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/223
-
 export const updateScheduleSession = async (
     sessionId: string,
     payload: UpdateScheduleSessionRequest,

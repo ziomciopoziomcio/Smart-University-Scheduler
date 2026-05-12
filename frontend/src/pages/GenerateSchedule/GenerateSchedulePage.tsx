@@ -119,15 +119,12 @@ export default function GenerateSchedulePage() {
         setNotifications([]);
 
         try {
-            // const generatedSchedule = await generateSchedule({
-            //     faculty_id: isAdministrator ? selectedFacultyId ?? undefined : undefined,
-            // });
+            const generatedSchedule = await generateSchedule({
+                faculty_id: isAdministrator ? selectedFacultyId ?? undefined : undefined,
+            });
 
 
-            // TODO: WHEN BACKEND WILL ADD GET DETAILS ENDPOINT, USE REAL API HERE
-            // const result = await fetchGeneratedScheduleDetails(generatedSchedule.id);
-
-            const result = await fetchGeneratedScheduleDetails(1);
+            const result = await fetchGeneratedScheduleDetails(generatedSchedule.id);
 
             setNotifications(result.notifications);
             setHasGeneratedSchedule(true);

@@ -1,14 +1,12 @@
 import {getHeaders, SCHEDULES_URL} from '@api/core';
-import type {ScheduleEntry} from './types';
 
-export interface FetchStudyFieldPlanParams {
-    startDate: string;
-    studyField: number;
-    semester: number;
-    specializationId?: number | null;
-    electiveBlockId?: number | null;
-    groupId?: number | null;
-}
+import type {
+    FetchStudyFieldPlanParams,
+    ScheduleEntry,
+    StudyFieldPlanApiEntry,
+} from './types';
+
+import {createQueryParams, mapScheduleEntries} from './utils';
 
 export const fetchStudyFieldPlan = async ({
     startDate,
@@ -18,25 +16,16 @@ export const fetchStudyFieldPlan = async ({
     electiveBlockId,
     groupId,
 }: FetchStudyFieldPlanParams): Promise<ScheduleEntry[]> => {
-    const params = new URLSearchParams({
+    const query = createQueryParams({
         start_date: startDate,
-        study_field: String(studyField),
-        semester: String(semester),
+        study_field: studyField,
+        semester,
+        specialization_id: specializationId,
+        elective_block_id: electiveBlockId,
+        group_id: groupId,
     });
 
-    if (specializationId != null) {
-        params.set('specialization_id', String(specializationId));
-    }
-
-    if (electiveBlockId != null) {
-        params.set('elective_block_id', String(electiveBlockId));
-    }
-
-    if (groupId != null) {
-        params.set('group_id', String(groupId));
-    }
-
-    const response = await fetch(`${SCHEDULES_URL}/study-field-plan?${params.toString()}`, {
+    const response = await fetch(`${SCHEDULES_URL}/study-field-plan?${query.toString()}`, {
         method: 'GET',
         headers: getHeaders(),
     });
@@ -45,5 +34,7 @@ export const fetchStudyFieldPlan = async ({
         throw new Error('Failed to fetch study field plan');
     }
 
-    return response.json();
+    const data: StudyFieldPlanApiEntry[] = await response.json();
+
+    return mapScheduleEntries(data);
 };

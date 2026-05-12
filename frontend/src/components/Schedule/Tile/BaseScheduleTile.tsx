@@ -14,6 +14,8 @@ interface BaseScheduleTileProps {
     horizontalGap?: number;
     onClick?: () => void;
     onPointerDown?: (event: PointerEvent<HTMLDivElement>) => void;
+    onMouseEnter?: () => void;
+    onMouseLeave?: () => void;
     isDragging?: boolean;
 }
 
@@ -30,12 +32,16 @@ export function BaseScheduleTile({
     horizontalGap = 4,
     onClick,
     onPointerDown,
+    onMouseEnter,
+    onMouseLeave,
     isDragging = false,
 }: BaseScheduleTileProps) {
     return (
         <Box
             onClick={onClick}
             onPointerDown={onPointerDown}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
             sx={{
                 position: 'absolute',
                 top,

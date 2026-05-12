@@ -1,9 +1,11 @@
+import {useState} from 'react';
 import {Box, CircularProgress, Paper} from '@mui/material';
-import type {WeekScheduleProps} from '@api';
+import type {ScheduleTileVariant, WeekScheduleProps} from '@api';
 import {formatWeekRange} from './utils/dateUtils';
 import {WeekScheduleGrid} from './WeekScheduleGrid';
 import {WeekScheduleHeader} from './WeekScheduleHeader';
 import {useIntl} from 'react-intl';
+import {ScheduleLegend} from './ScheduleLegend';
 
 const monthMessageIds = [
     'calendar.january',
@@ -21,14 +23,17 @@ const monthMessageIds = [
 ] as const;
 
 export function WeekSchedule({
-                                 entries,
-                                 currentWeekStart,
-                                 isLoading,
-                                 onPrevWeek,
-                                 onNextWeek,
-                                 onSessionUpdated,
-                             }: WeekScheduleProps) {
+    entries,
+    currentWeekStart,
+    isLoading,
+    onPrevWeek,
+    onNextWeek,
+    onSessionUpdated,
+}: WeekScheduleProps) {
     const {formatMessage} = useIntl();
+
+    const [hoveredVariant, setHoveredVariant] = useState<ScheduleTileVariant | null>(null);
+
     const monthId = monthMessageIds[currentWeekStart.getMonth()];
     const currentDateLabel = `${formatMessage({id: monthId})} ${currentWeekStart.getFullYear()}`;
     const rangeLabel = formatWeekRange(currentWeekStart);
@@ -53,10 +58,23 @@ export function WeekSchedule({
                 onNextWeek={onNextWeek}
             />
 
+            <Box
+                sx={{
+                    position: 'absolute',
+                    top: 16,
+                    right: 16,
+                    zIndex: 5,
+                    display: {xs: 'none', lg: 'block'},
+                }}
+            >
+                <ScheduleLegend variant={hoveredVariant}/>
+            </Box>
+
             <Box sx={{position: 'relative'}}>
                 <WeekScheduleGrid
                     entries={entries}
                     onSessionUpdated={onSessionUpdated}
+                    onTileHoverChange={setHoveredVariant}
                 />
 
                 {isLoading && (
