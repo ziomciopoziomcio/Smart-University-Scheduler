@@ -5,6 +5,7 @@ from collections import defaultdict
 from ..academics import models as ac_mod
 from ..courses import models as course_models
 from ..facilities import models as fac_models
+from ..settings import models as settings_models
 
 
 def _get_rooms(faculty_id: int, db: Session):
@@ -99,6 +100,8 @@ def _get_requirements(faculty_id: int, db: Session):
                 == ac_mod.Groups.elective_block,
             )
         )
+        .filter(ac_mod.Groups.is_active == True)
+        .filter(course_models.Curriculum_course.semester == ac_mod.Groups.semester)
         .all()
     )
 
@@ -252,6 +255,19 @@ def _calculate_workload_mismatches(
 
 
 def validate_optimization_data(faculty_id: int, db: Session) -> dict:
+    planner_config: settings_models.PlannerSettings | None = (
+        db.query(settings_models.PlannerSettings)
+        .filter_by(faculty_id=faculty_id)
+        .first()
+    )
+
+    if not planner_config:
+        raise ValueError(
+            f"No planner settings found for faculty {faculty_id}. Please configure the planner settings before optimization."
+        )
+
+    target_semester = planner_config.planned_semester_type
+
     rooms = _get_rooms(faculty_id, db)
     competencies = _get_competencies(faculty_id, db)
     requirements = _get_requirements(faculty_id, db)
