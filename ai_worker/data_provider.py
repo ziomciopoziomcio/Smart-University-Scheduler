@@ -60,7 +60,7 @@ REQUIREMENTS_QUERY = """
     WHERE sf.faculty = %(faculty_id)s
       AND (cc.major IS NULL OR cc.major = g.major)
       AND (cc.elective_block IS NULL OR cc.elective_block = g.elective_block)
-    AND g.is_active = true
+      AND g.is_active = true
 """
 COMPETENCIES_QUERY = """
     SELECT
