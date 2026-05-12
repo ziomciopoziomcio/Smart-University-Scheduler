@@ -60,6 +60,7 @@ REQUIREMENTS_QUERY = """
     WHERE sf.faculty = %(faculty_id)s
       AND (cc.major IS NULL OR cc.major = g.major)
       AND (cc.elective_block IS NULL OR cc.elective_block = g.elective_block)
+    AND g.is_active = true
 """
 COMPETENCIES_QUERY = """
     SELECT
@@ -84,6 +85,9 @@ CONFLICTING_GROUPS_QUERY = """
     WHERE gm1."group" < gm2."group"
         AND sf1.faculty = %(faculty_id)s
         AND sf2.faculty = %(faculty_id)s
+
+        AND g1.is_active = true
+        AND g2.is_active = true
 """
 GROUP_MEMBERS_QUERY = """
     SELECT gm."group" AS group_id, gm.student AS student_id
@@ -92,6 +96,8 @@ GROUP_MEMBERS_QUERY = """
     JOIN study_programs sp ON g.study_program = sp.id
     JOIN study_fields sf ON sp.study_field = sf.id
     WHERE sf.faculty = %(faculty_id)s
+
+        AND g.is_active = true
 """
 
 
