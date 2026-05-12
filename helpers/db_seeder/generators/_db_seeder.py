@@ -240,62 +240,62 @@ if __name__ == "__main__":
     )
     session.commit()
 
-    # # GROUP MEMBERS
-    # assign_students_to_common_groups(
-    #     session=session,
-    #     db_common_groups=db_common_groups,
-    #     db_students=db_students,
-    #     db_study_programs=db_study_programs,
-    #     group_size=15,
-    # )
-    # session.commit()
-    #
-    # assign_students_to_major_groups(
-    #     session=session,
-    #     db_major_groups=db_major_groups,
-    #     db_students=db_students,
-    #     db_study_programs=db_study_programs,
-    #     db_curr_courses=db_curr_courses,
-    # )
-    # session.commit()
-    #
-    # assign_students_to_elective_groups(
-    #     session=session,
-    #     db_elective_groups=db_elective_groups,
-    #     db_students=db_students,
-    #     db_study_programs=db_study_programs,
-    # )
-    # session.commit()
-    #
-    # # COURSE INSTRUCTORS
-    # db_course_instructors = generate_course_instructors(
-    #     session=session,
-    #     sourcefile=PATH,
-    #     num_of_groups=5,
-    #     db_teachers=db_teachers,
-    #     db_courses=db_courses,
-    #     db_employees=db_employees,
-    #     debug=False,
-    # )
-    # session.commit()
-    #
-    # # ADMIN
-    # admin_obj = create_user_admin(
-    #     session=session, password_hash_func=PASSWORD_HASH_FUNC, roles=db_roles
-    # )
-    # session.commit()
-    #
-    # # SAVE USERS TO EXCEL
-    # save_teachers_to_excel(
-    #     filename=EXCEL_WITH_TEACHERS,
-    #     db_teachers=db_teachers,
-    #     db_faculties=db_faculties,
-    #     db_units=db_units,
-    #     db_employees=db_employees,
-    # )
-    #
-    # save_not_teachers_to_excel(
-    #     filename=EXCEL_WITH_OTHER_USERS, db_not_teachers=db_not_teachers
-    # )
+    # GROUP MEMBERS
+    assign_students_to_common_groups(
+        session=session,
+        db_common_groups=db_common_groups,
+        db_students=db_students,
+        db_study_programs=db_study_programs,
+        group_size=15,
+    )
+    session.commit()
+
+    assign_students_to_major_groups(
+        session=session,
+        db_major_groups=db_major_groups,
+        db_students=db_students,
+        db_study_programs=db_study_programs,
+        db_curr_courses=db_curr_courses,
+    )
+    session.commit()
+
+    assign_students_to_elective_groups(
+        session=session,
+        db_elective_groups=db_elective_groups,
+        db_students=db_students,
+        db_study_programs=db_study_programs,
+    )
+    session.commit()
+
+    # COURSE INSTRUCTORS
+    db_course_instructors = generate_course_instructors(
+        session=session,
+        sourcefile=PATH,
+        num_of_groups=5,
+        db_teachers=db_teachers,
+        db_courses=db_courses,
+        db_employees=db_employees,
+        debug=False,
+    )
+    session.commit()
+
+    # ADMIN
+    admin_obj = create_user_admin(
+        session=session, password_hash_func=PASSWORD_HASH_FUNC, roles=db_roles
+    )
+    session.commit()
+
+    # SAVE USERS TO EXCEL
+    save_teachers_to_excel(
+        filename=EXCEL_WITH_TEACHERS,
+        db_teachers=db_teachers,
+        db_faculties=db_faculties,
+        db_units=db_units,
+        db_employees=db_employees,
+    )
+
+    save_not_teachers_to_excel(
+        filename=EXCEL_WITH_OTHER_USERS, db_not_teachers=db_not_teachers
+    )
 
     session.close()
