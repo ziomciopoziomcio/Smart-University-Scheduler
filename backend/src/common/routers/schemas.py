@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
+from src.academics import models as ac_models
 
 
 class PlannerSettingsPayload(BaseModel):
@@ -18,9 +19,9 @@ class PlannerSettingsPayload(BaseModel):
         description='Planned academic year, e.g. "2025/2026"',
         max_length=20,
     )
-    planned_semester_type: str = Field(
+    planned_semester_type: ac_models.SemesterType = Field(
         ...,
-        description="Semester type name (use values from academics.SemesterType enum)",
+        description="Planned semester type (use values from academics.models.SemesterType)",
     )
     is_planning_active: bool | None = Field(
         default=True, description="Whether planner is active for this faculty"
@@ -68,7 +69,7 @@ class SetupPayloadSchema(BaseModel):
             "example": {
                 "faculty_id": 1,
                 "planned_academic_year": "2025/2026",
-                "planned_semester_type": "WINTER",
+                "planned_semester_type": "Winter",
                 "is_planning_active": True,
             }
         },
