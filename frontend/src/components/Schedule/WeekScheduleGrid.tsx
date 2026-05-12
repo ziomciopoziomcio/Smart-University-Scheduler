@@ -363,8 +363,8 @@ export function WeekScheduleGrid({
             dayOfWeek: dayOfWeekByIndex[dayIndex] ?? 'MONDAY',
             startTime: entry.startTime,
             endTime: entry.endTime,
-            instructorId: 0,
-            roomId: 0,
+            instructorId: 1,
+            roomId: 1,
             applyOnce: false,
         };
     };
