@@ -101,7 +101,7 @@ def _get_requirements(faculty_id: int, db: Session):
                 == ac_mod.Groups.elective_block,
             )
         )
-        .filter(ac_mod.Groups.is_active is True)
+        .filter(ac_mod.Groups.is_active.is_(True))
         .filter(course_models.Curriculum_course.semester == ac_mod.Groups.semester)
         .all()
     )
@@ -121,7 +121,7 @@ def _check_semester_parity(
             course_models.Study_program.study_field == course_models.Study_fields.id,
         )
         .filter(course_models.Study_fields.faculty == faculty_id)
-        .filter(ac_mod.Groups.is_active is True)
+        .filter(ac_mod.Groups.is_active.is_(True))
         .all()
     )
 
