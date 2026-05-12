@@ -44,14 +44,14 @@ def generate_study_fields(
 
     study_fields: set[tuple[str, str, int]] = (
         set()
-    )  # tuple(study_field, faculty_full_name)
+    )  # tuple(study_field, faculty_full_name, study_field_degree)
     for kierunek in data:
         new_el = (kierunek["nazwa"], kierunek["wydzial"], int(kierunek["stopien"]))
         study_fields.add(new_el)
 
     db_study_fields: dict[tuple[str, int], Study_fields] = (
         {}
-    )  # dict{study_field_name, Study_fields}
+    )  # dict{ (study_field_name, study_field_degree), Study_fields}
 
     for sf_data in study_fields:
         study_field_name, faculty_full_name, study_field_degree = sf_data
