@@ -513,8 +513,8 @@ def generate_majors(
     :param study_fields: dictionary mapping study fields names and degrees
         to their corresponding Study_fields objects.
     :param sourcefile: path to JSON file containing study field data
-    :return: dictionary mapping (study_field_name, major_name) tuples
-        to their corresponding Major objects.
+    :return: dictionary mapping (study_field_name, study_field_degree, major_name)
+        tuples to their corresponding Major objects.
     """
 
     db_majors: dict[tuple[str, int, str], Major] = {}
