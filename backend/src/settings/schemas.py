@@ -27,8 +27,6 @@ class PlannerSettingsBase(BaseSchema):
 
 
 class PlannerSettingsCreate(PlannerSettingsBase):
-    """Request schema for creating planner settings. All base fields are required."""
-
     pass
 
 
