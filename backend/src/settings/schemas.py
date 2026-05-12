@@ -27,11 +27,7 @@ class PlannerSettingsBase(BaseSchema):
 
 
 class PlannerSettingsCreate(PlannerSettingsBase):
-    """Request schema for creating planner settings. All base fields are required."""
-
-    faculty_id: int
-    planned_academic_year: Annotated[str, StringConstraints(max_length=20)]
-    planned_semester_type: ac_models.SemesterType
+    pass
 
 
 class PlannerSettingsRead(PlannerSettingsBase):
