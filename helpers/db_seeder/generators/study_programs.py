@@ -71,7 +71,10 @@ def generate_study_programs(
                 (study_field_name, study_degree), None
             )
             if study_field_obj is None:
-                print(f"Cannot study field {study_field_name}")
+                print(
+                    f"Cannot study field for lookup key "
+                    f"{(study_field_name, study_degree)}"
+                )
                 continue
 
             study_field_id = study_field_obj.id
