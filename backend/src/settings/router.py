@@ -27,8 +27,16 @@ def create_planner_settings(
     _current_user: user_models.Users = Depends(require_permission("settings:create")),
 ):
     """
-    Create planner settings (one per faculty). IntegrityError will be returned as 409
-    when uniqueness / FK constraints are violated.
+    Create planner settings for a faculty.
+
+    Request body: `PlannerSettingsCreate`.
+    Behavior:
+    - Creates a new PlannerSettings row associated with `faculty_id`.
+    - Uses `exclude_unset=True, exclude_none=True` when building the ORM instance
+      so DB defaults are not accidentally overwritten.
+    - Returns 201 with the created resource.
+    - Possible errors: 409 Conflict on DB integrity (unique / FK), 400 for validation.
+    Permissions: requires "settings:create".
     """
     data = payload.model_dump(exclude_unset=True, exclude_none=True)
     obj = models.PlannerSettings(**data)
@@ -48,8 +56,14 @@ def list_planner_settings(
     _current_user: user_models.Users = Depends(require_permission("settings:view")),
 ):
     """
-    List planner settings. If faculty_id is provided, returns either a single-item list (if found)
-    or raises 404.
+    List planner settings.
+
+    Query parameters:
+    - faculty_id (optional): if provided, returns a single-item list with the settings
+      for that faculty or 404 if not found.
+    Behavior:
+    - Returns a list of `PlannerSettingsRead` objects.
+    Permissions: requires "settings:view".
     """
     if faculty_id is not None:
         obj = (
@@ -75,6 +89,7 @@ def get_planner_settings(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("settings:view")),
 ):
+    """Return a single PlannerSettings by its numeric ID. Raises 404 when not found."""
     return _get_or_404(db, models.PlannerSettings, settings_id, "PlannerSettings")
 
 
@@ -88,6 +103,15 @@ def update_planner_settings(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("settings:update")),
 ):
+    """
+    Partially update planner settings (PATCH).
+
+    Behavior:
+    - Applies only provided fields from `PlannerSettingsUpdate`.
+    - The helper `_apply_patch_or_reject_nulls` prevents setting non-nullable fields to null.
+    - The object is re-added to the session and committed; returned value is refreshed.
+    Permissions: requires "settings:update".
+    """
     obj = _get_or_404(db, models.PlannerSettings, settings_id, "PlannerSettings")
     _apply_patch_or_reject_nulls(obj, payload, nullable_fields=())
     db.add(obj)
@@ -105,6 +129,8 @@ def delete_planner_settings(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("settings:delete")),
 ):
+    """Delete a PlannerSettings row by ID. Returns 204 on success. Requires "settings:delete"."""
+
     obj = _get_or_404(db, models.PlannerSettings, settings_id, "PlannerSettings")
     db.delete(obj)
     _commit_or_rollback(db)
