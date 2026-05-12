@@ -5,6 +5,7 @@ from datetime import timezone, datetime, date, timedelta
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from ..academics.models import Students, Employees
 from . import models
 from . import schemas
 from ..academics import models as ac_mod
@@ -115,11 +116,35 @@ ROOM_PLAN_QUERY = """
 
     RETURN
         s.sessionId AS session_id,
-        course.courseName AS course_name,
+        course.courseName AS title,
         course.classType AS class_type,
         config.physical_date AS physical_date,
         t.startTime AS start_time,
         t.endTime AS end_time
+    ORDER BY config.physical_date, t.startTime
+"""
+
+
+EMPLOYEE_SCHEDULE_QUERY = """
+    MATCH (i:Instructor {instructorId: $instructor_id})
+    WITH i
+    UNWIND $day_configs AS config
+    
+    MATCH (s:ClassSession)-[:TAUGHT_BY]->(i)
+    MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
+    MATCH (s)-[:HELD_IN]->(r:Room)
+    MATCH (s)-[:OF_COURSE]->(course:Course)
+    
+    WHERE config.week_number IN s.weeks
+    
+    RETURN
+        s.sessionId AS session_id,
+        course.courseName AS title,
+        course.classType AS class_type,
+        config.physical_date AS physical_date,
+        t.startTime AS start_time,
+        t.endTime AS end_time,
+        r.roomName AS room_name
     ORDER BY config.physical_date, t.startTime
 """
 
@@ -658,9 +683,43 @@ def _get_student_group_ids(db: Session, student_id: int) -> list[int]:
     return [int(r[0]) for r in records]
 
 
-@router.get("/student-plan", response_model=list[schemas.ScheduleEntry])
-async def get_student_plan(
-    student_id: int = Query(..., description="ID of the student"),
+def _get_student_with_user_id(db: Session, user_id: int):
+    """Returns the student associated with the given user ID."""
+
+    students = db.query(Students).filter(Students.user_id == user_id).all()
+    if not students:
+        return None
+    if len(students) > 1:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "Multiple student records found for the given user_id. "
+                "The request is ambiguous and must be disambiguated."
+            ),
+        )
+    return students[0]
+
+
+def _get_employee_with_user_id(db: Session, user_id: int):
+    """Returns the employee associated with the given user ID."""
+
+    employees = db.query(Employees).filter(Employees.user_id == user_id).all()
+    if not employees:
+        return None
+    if len(employees) > 1:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "Multiple employee records found for the given user_id. "
+                "The request is ambiguous and must be disambiguated."
+            ),
+        )
+    return employees[0]
+
+
+@router.get("/user-plan", response_model=list[schemas.ScheduleEntry])
+async def get_user_plan(
+    user_id: int = Query(..., description="ID of the user"),
     start_date: date = Query(
         ...,
         description="Starting date of the week (must be a Monday, format: YYYY-MM-DD)",
@@ -670,7 +729,7 @@ async def get_student_plan(
     _current_user: user_models.Users = Depends(require_permission("schedule:view")),
 ):
     """
-    Get the schedule plan for a specific student for a given week.
+    Get the schedule plan for a specific user for a given week.
     The response covers the entire work week (Monday-Friday).
     """
     if start_date.weekday() != 0:
@@ -679,24 +738,44 @@ async def get_student_plan(
             detail="start_date must be a Monday.",
         )
 
+    student = _get_student_with_user_id(db, user_id)
+    employee = _get_employee_with_user_id(db, user_id)
+
+    if not student and not employee:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User is neither a student nor an employee",
+        )
+
     day_configs = _get_academic_day_configs(db, start_date)
     if not day_configs:
         return []
 
-    group_ids = _get_student_group_ids(db, student_id)
+    if student:
+        group_ids = _get_student_group_ids(db, student.id)
 
-    if not group_ids:
-        return []
+        if not group_ids:
+            return []
 
-    result = await neo4j_session.run(
-        STUDY_FIELD_PLAN_ACADEMIC_QUERY,
-        group_ids=group_ids,
-        day_configs=day_configs,
-    )
+        result = await neo4j_session.run(
+            STUDY_FIELD_PLAN_ACADEMIC_QUERY,
+            group_ids=group_ids,
+            day_configs=day_configs,
+        )
 
-    records = await result.data()
+        records = await result.data()
+        return _map_schedule_entries(records)
 
-    return _map_schedule_entries(records)
+    else:
+        # employee
+        result = await neo4j_session.run(
+            EMPLOYEE_SCHEDULE_QUERY,
+            instructor_id=employee.id,
+            day_configs=day_configs,
+        )
+
+        records = await result.data()
+        return _map_schedule_entries(records)
 
 
 def _map_room_plan(records: list[dict]) -> list[schemas.ScheduleEntry]:
