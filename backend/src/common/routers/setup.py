@@ -106,9 +106,9 @@ def initialize_system(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid faculty_id: referenced faculty does not exist.",
             )
-        if (
-                "unique" in error_message or "duplicate" in error_message
-        ) and ("planner_settings" in error_message or "faculty" in error_message):
+        if ("unique" in error_message or "duplicate" in error_message) and (
+            "planner_settings" in error_message or "faculty" in error_message
+        ):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Planner settings already exist for the provided faculty_id.",
