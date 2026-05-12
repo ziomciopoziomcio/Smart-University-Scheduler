@@ -79,11 +79,16 @@ def initialize_system(
 
             faculty_id = ps_data.get("faculty_id")
             if faculty_id is not None:
-                existing_settings = db.execute(
-                    select(settings_models.PlannerSettings.id).where(
-                        settings_models.PlannerSettings.faculty_id == faculty_id
+
+                existing_settings = (
+                    db.execute(
+                        select(settings_models.PlannerSettings.id).where(
+                            settings_models.PlannerSettings.faculty_id == faculty_id
+                        )
                     )
-                ).scalars().first()
+                    .scalars()
+                    .first()
+                )
                 if existing_settings:
                     raise HTTPException(
                         status_code=status.HTTP_409_CONFLICT,
@@ -103,7 +108,8 @@ def initialize_system(
                 detail="Invalid faculty_id: referenced faculty does not exist.",
             )
         if (
-            "unique" in error_message or "duplicate" in error_message
+
+                "unique" in error_message or "duplicate" in error_message
         ) and ("planner_settings" in error_message or "faculty" in error_message):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
