@@ -482,7 +482,7 @@ def _extract_majors_from_file(sourcefile) -> list[tuple[str, int, str]]:
     """
     Extracts unique (study_field_name, degree, major_name) pairs from a JSON file.
     :param sourcefile: path to JSON file containing study field data
-    :return: list of unique (study_field_name, major_name) pairs sorted by study_field_name
+    :return: list of unique (study_field_name, degree, major_name) tuples sorted by study_field_name
     """
     with open(sourcefile, "r", encoding="utf-8") as f:
         data = json.load(f)
