@@ -12,3 +12,9 @@ engines:
   bandit:
     patterns:
       "B311": false
+  eslint:
+    enabled: true
+  jshint:
+    enabled: false
+  tslint:
+    enabled: false
