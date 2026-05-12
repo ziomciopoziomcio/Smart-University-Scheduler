@@ -15,6 +15,7 @@ from sqlalchemy import (
     Integer,
     ForeignKey,
     ForeignKeyConstraint,
+    UniqueConstraint,
     CheckConstraint,
     Enum,
     JSON,
@@ -66,7 +67,7 @@ class Study_fields(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     faculty: Mapped[int] = mapped_column(Integer, ForeignKey("faculties.id"))
-    field_name: Mapped[str] = mapped_column(String(255), unique=True)
+    field_name: Mapped[str] = mapped_column(String(255))
     language: Mapped[CourseLanguage] = mapped_column(
         Enum(CourseLanguage), default=CourseLanguage.POLISH
     )
@@ -75,6 +76,10 @@ class Study_fields(Base):
     )
     degree: Mapped[StudyDegree] = mapped_column(
         Enum(StudyDegree), default=StudyDegree.BACHELOR
+    )
+
+    __table_args__ = (
+        UniqueConstraint("field_name", "degree", name="uq_field_name_degree"),
     )
 
 
