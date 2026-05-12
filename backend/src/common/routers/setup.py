@@ -106,7 +106,6 @@ def initialize_system(
 
             faculty_id = ps_data.get("faculty_id")
             if faculty_id is not None:
-
                 existing_settings = (
                     db.execute(
                         select(settings_models.PlannerSettings.id).where(
