@@ -11,6 +11,8 @@ interface LabTileProps {
     onClick?: () => void;
     onPointerDown?: (event: React.PointerEvent<HTMLDivElement>) => void;
     isDragging?: boolean;
+    onMouseEnter?: () => void;
+    onMouseLeave?: () => void;
 }
 
 export function LabTile(props: LabTileProps) {
