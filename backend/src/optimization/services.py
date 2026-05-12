@@ -9,6 +9,10 @@ from ..settings import models as settings_models
 from ..academics.models import SemesterType
 
 
+class MissingPlannerSettingsError(Exception):
+    pass
+
+
 def _get_rooms(faculty_id: int, db: Session):
     return (
         db.query(
@@ -291,7 +295,7 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
     )
 
     if not planner_config:
-        raise ValueError(
+        raise MissingPlannerSettingsError(
             f"No planner settings found for faculty {faculty_id}. Please configure the planner settings before optimization."
         )
 
