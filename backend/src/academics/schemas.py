@@ -85,6 +85,7 @@ class GroupsBase(BaseSchema):
     study_program: int
     major: Optional[int] = None
     elective_block: Optional[int] = None
+    is_active: bool = True
 
     @model_validator(mode="after")
     def check_major_or_elective(self):
@@ -108,6 +109,7 @@ class GroupsUpdate(BaseModel):
     study_program: Optional[int] = None
     major: Optional[int] = None
     elective_block: Optional[int] = None
+    is_active: Optional[bool] = None
 
     @model_validator(mode="after")
     def check_major_or_elective(self):
