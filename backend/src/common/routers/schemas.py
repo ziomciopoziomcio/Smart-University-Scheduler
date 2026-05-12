@@ -1,5 +1,4 @@
 from pydantic import BaseModel, EmailStr, Field
-from ..academics import models as ac_models
 
 
 class PlannerSettingsPayload(BaseModel):
@@ -19,7 +18,7 @@ class PlannerSettingsPayload(BaseModel):
         description='Planned academic year, e.g. "2025/2026"',
         max_length=20,
     )
-    planned_semester_type: ac_models.SemesterType = Field(
+    planned_semester_type: str = Field(
         ...,
         description="Semester type name (use values from academics.SemesterType enum)",
     )
