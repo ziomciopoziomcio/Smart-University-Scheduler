@@ -16,6 +16,7 @@ from backend.src.courses.models import (
     Major,
     Elective_block,
     FrequencyType,
+    StudyDegree,
 )
 
 
@@ -23,13 +24,13 @@ def generate_study_fields(
     session: Session,
     faculties: dict[str, Faculty],
     sourcefile="../../../helpers/data_collector/final-programy.json",
-) -> dict[str, Study_fields]:
+) -> dict[tuple[str, int], Study_fields]:
     """
     Generates study fields from JSON file and links them to faculties.
     :param session: database session
     :param faculties: dictionary of Faculty objects mapped by faculty_short
     :param sourcefile: path to JSON file containing study field data
-    :return: dictionary mapping field names to Study_fields objects
+    :return: dictionary mapping field names and degree to Study_fields objects
     """
 
     with open(sourcefile, "r", encoding="utf-8") as f:
@@ -41,17 +42,19 @@ def generate_study_fields(
     for short_name, faculty_obj in faculties.items():
         faculty_name_to_short[faculty_obj.faculty_name] = short_name
 
-    study_fields: set[tuple[str, str]] = set()  # tuple(study_field, faculty_full_name)
+    study_fields: set[tuple[str, str, int]] = (
+        set()
+    )  # tuple(study_field, faculty_full_name, study_field_degree)
     for kierunek in data:
-        new_el = (kierunek["nazwa"], kierunek["wydzial"])
+        new_el = (kierunek["nazwa"], kierunek["wydzial"], int(kierunek["stopien"]))
         study_fields.add(new_el)
 
-    db_study_fields: dict[str, Study_fields] = (
+    db_study_fields: dict[tuple[str, int], Study_fields] = (
         {}
-    )  # dict{study_field_name, Study_fields}
+    )  # dict{ (study_field_name, study_field_degree), Study_fields}
 
     for sf_data in study_fields:
-        study_field_name, faculty_full_name = sf_data
+        study_field_name, faculty_full_name, study_field_degree = sf_data
         faculty_short = faculty_name_to_short.get(faculty_full_name)
 
         if not faculty_short:
@@ -60,13 +63,18 @@ def generate_study_fields(
 
         parent_faculty = faculties[faculty_short]
 
+        mapped_degree = StudyDegree.BACHELOR
+        if study_field_degree == 2:
+            mapped_degree = StudyDegree.MASTER
+
         sf = Study_fields(
             faculty=parent_faculty.id,
             field_name=study_field_name,
             mode=StudyMode.FULL_TIME,
+            degree=mapped_degree,
         )
         session.add(sf)
-        db_study_fields[study_field_name] = sf
+        db_study_fields[(study_field_name, study_field_degree)] = sf
 
     session.flush()
     return db_study_fields
@@ -470,11 +478,11 @@ def generate_course_type_details(
     return db_course_type_details
 
 
-def _extract_majors_from_file(sourcefile) -> list[tuple[str, str]]:
+def _extract_majors_from_file(sourcefile) -> list[tuple[str, int, str]]:
     """
-    Extracts unique (study_field_name, major_name) pairs from a JSON file.
+    Extracts unique (study_field_name, degree, major_name) pairs from a JSON file.
     :param sourcefile: path to JSON file containing study field data
-    :return: list of unique (study_field_name, major_name) pairs sorted by study_field_name
+    :return: list of unique (study_field_name, degree, major_name) tuples sorted by study_field_name
     """
     with open(sourcefile, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -482,7 +490,11 @@ def _extract_majors_from_file(sourcefile) -> list[tuple[str, str]]:
     majors = set()
     for kierunek in data:
         if kierunek["specjalizacja"] is not None:
-            new_major = (kierunek["nazwa"], kierunek["specjalizacja"])
+            new_major = (
+                kierunek["nazwa"],
+                kierunek["stopien"],
+                kierunek["specjalizacja"],
+            )
             majors.add(new_major)
 
     majors = list(majors)
@@ -492,25 +504,27 @@ def _extract_majors_from_file(sourcefile) -> list[tuple[str, str]]:
 
 def generate_majors(
     session: Session,
-    study_fields: dict[str, Study_fields],
+    study_fields: dict[tuple[str, int], Study_fields],
     sourcefile="../../../helpers/data_collector/final-programy.json",
-) -> dict[tuple[str, str], Major]:
+) -> dict[tuple[str, int, str], Major]:
     """
     Creates Major objects based on data extracted from a JSON file.
     :param session: database session
-    :param study_fields: dictionary mapping study fields names
+    :param study_fields: dictionary mapping study fields names and degrees
         to their corresponding Study_fields objects.
     :param sourcefile: path to JSON file containing study field data
-    :return: dictionary mapping (study_field_name, major_name) tuples
-        to their corresponding Major objects.
+    :return: dictionary mapping (study_field_name, study_field_degree, major_name)
+        tuples to their corresponding Major objects.
     """
 
-    db_majors: dict[tuple[str, str], Major] = {}
+    db_majors: dict[tuple[str, int, str], Major] = {}
     majors = _extract_majors_from_file(sourcefile)
 
-    for study_field_name, major_name in majors:
+    for study_field_name, study_field_degree, major_name in majors:
         try:
-            study_field_obj: Study_fields = study_fields[study_field_name]
+            study_field_obj: Study_fields = study_fields[
+                (study_field_name, study_field_degree)
+            ]
         except KeyError as e:
             print(
                 f"Could not find study field for major - {e} - {study_field_name} - {major_name}"
@@ -520,7 +534,7 @@ def generate_majors(
 
         major = Major(study_field=study_field_id, major_name=major_name)
         session.add(major)
-        db_majors[(study_field_name, major_name)] = major
+        db_majors[(study_field_name, study_field_degree, major_name)] = major
 
     session.flush()
     return db_majors
@@ -589,12 +603,12 @@ def _get_elective_blocks_names():
 
 def generate_elective_blocks(
     session: Session,
-    study_fields: dict[str, Study_fields],
+    study_fields: dict[tuple[str, int], Study_fields],
 ) -> dict[tuple[str, str], Elective_block]:
     """
     Creates Elective_block objects
     :param session: database session
-    :param study_fields: dictionary mapping study fields names
+    :param study_fields: dictionary mapping study fields names and degree
         to their corresponding Study_fields objects.
     :return: dictionary mapping elective blocks and study field names
         to their corresponding Elective_block objects.
@@ -608,23 +622,24 @@ def generate_elective_blocks(
 
     for sf_name in elective_blocks_names.keys():
         print(f"STUDY FIELD: {sf_name} ==============================")
-        sf_obj = study_fields.get(sf_name, None)
+        for deg in range(1, 3):
+            sf_obj = study_fields.get((sf_name, deg), None)
 
-        if sf_obj is None:
-            print("STUDY FIELD NOT FOUND")
-            continue
+            if sf_obj is None:
+                print(f"STUDY FIELD NOT FOUND: ({sf_name} - {deg})")
+                continue
 
-        sf_id: int = sf_obj.id
+            sf_id: int = sf_obj.id
 
-        for eb_name in elective_blocks_names[sf_name]:
-            eb_obj = Elective_block(study_field=sf_id, elective_block_name=eb_name)
-            db_elective_blocks[(eb_name, sf_name)] = eb_obj
-            session.add(eb_obj)
-            print(f"Added {eb_name}")
+            for eb_name in elective_blocks_names[sf_name]:
+                eb_obj = Elective_block(study_field=sf_id, elective_block_name=eb_name)
+                db_elective_blocks[(eb_name, sf_name)] = eb_obj
+                session.add(eb_obj)
+                print(f"Added {eb_name}")
 
-        print()
-        print()
-        print()
+            print()
+            print()
+            print()
 
     session.flush()
     return db_elective_blocks

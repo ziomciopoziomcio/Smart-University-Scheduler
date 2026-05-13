@@ -221,7 +221,7 @@ def _get_majors_from_study_program(
 
 
 def _get_major_object_by_id(
-    db_majors: dict[tuple[str, str], Major], major_id: int
+    db_majors: dict[tuple[str, int, str], Major], major_id: int
 ) -> Major:
     for m_obj in db_majors.values():
         if m_obj.id == major_id:
@@ -240,7 +240,7 @@ def generate_major_groups(
     session: Session,
     sourcefile: str,
     db_study_programs: dict[tuple[str, str, int], Study_program],
-    db_majors: dict[tuple[str, str], Major],
+    db_majors: dict[tuple[str, int, str], Major],
     db_curr_courses: dict[
         tuple[str | None, int, int, str | None, str | None], Curriculum_course
     ],

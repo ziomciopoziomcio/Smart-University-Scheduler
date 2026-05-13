@@ -574,6 +574,7 @@ def list_groups(
     study_program: int | None = Query(None),
     major: int | None = Query(None),
     elective_block: int | None = Query(None),
+    is_active: bool | None = Query(None),
     group_name: str | None = Query(None, min_length=1),
     limit: int | None = Query(GROUP_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
@@ -589,6 +590,8 @@ def list_groups(
         query = query.filter(models.Groups.major == major)
     if elective_block is not None:
         query = query.filter(models.Groups.elective_block == elective_block)
+    if is_active is not None:
+        query = query.filter(models.Groups.is_active == is_active)
     if group_name is not None:
         query = query.filter(models.Groups.group_name.ilike(f"%{group_name}%"))
     if search:
@@ -606,6 +609,7 @@ def _build_groups_summary_query(
     semester: int,
     specialization_id: int | None,
     elective_block_id: int | None,
+    is_active: bool | None,
 ):
     """
     Builds the base query for fetching study plan groups summary based on the provided filters.
@@ -615,6 +619,7 @@ def _build_groups_summary_query(
     :param semester: Semester number
     :param specialization_id: Specialization id (optional)
     :param elective_block_id: Elective block id (optional)
+    :param is_active: active status of group (optional)
     :return: SQLAlchemy query object
     """
     query = (
@@ -643,6 +648,9 @@ def _build_groups_summary_query(
     elif elective_block_id is not None:
         query = query.filter(models.Groups.elective_block == elective_block_id)
 
+    if is_active is not None:
+        query = query.filter(models.Groups.is_active == is_active)
+
     return query
 
 
@@ -653,6 +661,7 @@ def get_study_plan_groups_summary(
     semester: int = Query(..., gt=0),
     specialization_id: int | None = Query(None),
     elective_block_id: int | None = Query(None),
+    is_active: bool | None = Query(None),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("groups:view")),
 ):
@@ -663,6 +672,7 @@ def get_study_plan_groups_summary(
     :param semester: ID of semester
     :param specialization_id: ID of specialization (optional)
     :param elective_block_id: ID of elective block (optional)
+    :param is_active: active status of group (optional)
     :param db: Session
     :param _current_user: Current user
     :return: List of study plan groups summary
@@ -674,7 +684,13 @@ def get_study_plan_groups_summary(
         )
 
     query = _build_groups_summary_query(
-        db, faculty_id, study_field, semester, specialization_id, elective_block_id
+        db,
+        faculty_id,
+        study_field,
+        semester,
+        specialization_id,
+        elective_block_id,
+        is_active,
     )
 
     return [

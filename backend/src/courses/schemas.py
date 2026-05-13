@@ -8,7 +8,7 @@ from typing import Optional, Annotated
 
 from pydantic import BaseModel, model_validator, Field, StringConstraints, ConfigDict
 
-from .models import CourseLanguage, ClassType, FrequencyType, StudyMode
+from .models import CourseLanguage, ClassType, FrequencyType, StudyMode, StudyDegree
 
 
 class BaseSchema(BaseModel):
@@ -21,6 +21,7 @@ class StudyFieldBase(BaseSchema):
     field_name: Annotated[str, StringConstraints(max_length=255)]
     language: CourseLanguage = CourseLanguage.POLISH
     mode: StudyMode = StudyMode.FULL_TIME
+    degree: StudyDegree = StudyDegree.BACHELOR
 
 
 class StudyFieldCreate(StudyFieldBase):
@@ -36,6 +37,7 @@ class StudyFieldUpdate(BaseModel):
     field_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
     language: Optional[CourseLanguage] = None
     mode: Optional[StudyMode] = None
+    degree: StudyDegree | None = None
 
 
 class StudyFieldListSummary(StudyFieldRead):

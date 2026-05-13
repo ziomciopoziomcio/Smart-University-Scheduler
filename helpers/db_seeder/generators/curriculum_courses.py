@@ -254,13 +254,16 @@ def _parse_course_code(course_code: str) -> int:
 
 def _get_major_id(
     major_name: str | None,
-    db_majors: dict[tuple[str, str], Major],
+    db_majors: dict[tuple[str, int, str], Major],
     study_field_name: str,
+    study_field_degree: int,
 ) -> tuple[int | None, str | None]:
     if major_name is None:
         major_obj = None
     else:
-        major_obj = db_majors.get((study_field_name, major_name), None)
+        major_obj = db_majors.get(
+            (study_field_name, study_field_degree, major_name), None
+        )
         if major_obj is None:
             print(f"Cannot find major with name {major_name}")
             return None, "error"
@@ -383,7 +386,7 @@ def _add_curriculum_course(
         return None
 
     # major
-    major_id, err = _get_major_id(major_name, db_majors, study_field_name)
+    major_id, err = _get_major_id(major_name, db_majors, study_field_name, study_degree)
     if err is not None:
         return None
 
@@ -412,7 +415,7 @@ def _add_unique_to_db(
     study_degree,
     db_study_programs,
     db_courses,
-    db_majors,
+    db_majors: dict[tuple[str, int, str], Major],
     session,
     db_curr_courses,
 ):
@@ -448,7 +451,7 @@ def _add_common_to_db(
     study_degree,
     db_study_programs,
     db_courses,
-    db_majors,
+    db_majors: dict[tuple[str, int, str], Major],
     session,
     db_curr_courses,
 ):
@@ -482,7 +485,7 @@ def _add_common_and_unique_to_db(
     study_degree,
     db_study_programs,
     db_courses,
-    db_majors,
+    db_majors: dict[tuple[str, int, str], Major],
     session,
     db_curr_courses,
 ):
@@ -524,7 +527,7 @@ def generate_curriculum_courses(
     session: Session,
     db_study_programs: dict[tuple[str, str, int], Study_program],
     db_courses: dict[int, Course],
-    db_majors: dict[tuple[str, str], Major],
+    db_majors: dict[tuple[str, int, str], Major],
 ) -> dict[tuple[str | None, int, int, str | None, str | None], Curriculum_course]:
     """
     Generate curriculum courses.

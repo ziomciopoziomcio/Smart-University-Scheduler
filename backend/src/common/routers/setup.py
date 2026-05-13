@@ -13,8 +13,37 @@ from src.database import seeder
 from src.users.models import Users
 from src.users.auth import hash_password as get_password_hash
 from .schemas import SetupPayloadSchema
+from src.settings import models as settings_models
+from src.academics.models import SemesterType as AcademicsSemesterType
 
 router = APIRouter(prefix="/setup", tags=["System Setup"])
+
+
+def _parse_academics_semester_type(value):
+    """
+    Parses a value into AcademicsSemesterType accepting:
+      - an instance of AcademicsSemesterType (returns it),
+      - an enum member name (e.g. "WINTER" / "winter"),
+      - an enum member value (e.g. "Winter" / "winter").
+    Raises ValueError if parsing fails.
+    """
+
+    if isinstance(value, AcademicsSemesterType):
+        return value
+    if not isinstance(value, str):
+        raise ValueError(
+            "planned_semester_type must be a string or AcademicsSemesterType"
+        )
+
+    v = value.strip().lower()
+    for m in AcademicsSemesterType:
+        if m.name.lower() == v:
+            return m
+    for m in AcademicsSemesterType:
+        if str(m.value).lower() == v:
+            return m
+
+    raise ValueError(f"Unknown AcademicsSemesterType: {value!r}")
 
 
 @router.post("/")
@@ -57,13 +86,68 @@ def initialize_system(
             "surname": payload.admin_surname,
         }
         seeder.create_admin_user(db, admin_data, hashed_pwd)
+
+        if payload.planner_settings:
+            ps = payload.planner_settings
+            ps_data = ps.model_dump(exclude_unset=True, exclude_none=True)
+            if (
+                "planned_semester_type" in ps_data
+                and ps_data["planned_semester_type"] is not None
+            ):
+                try:
+                    ps_data["planned_semester_type"] = _parse_academics_semester_type(
+                        ps_data["planned_semester_type"]
+                    )
+                except ValueError:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Invalid planned_semester_type: {ps_data.get('planned_semester_type')}",
+                    )
+
+            faculty_id = ps_data.get("faculty_id")
+            if faculty_id is not None:
+                existing_settings = (
+                    db.execute(
+                        select(settings_models.PlannerSettings.id).where(
+                            settings_models.PlannerSettings.faculty_id == faculty_id
+                        )
+                    )
+                    .scalars()
+                    .first()
+                )
+                if existing_settings:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail=f"Planner settings already exist for faculty_id {faculty_id}.",
+                    )
+
+            settings_obj = settings_models.PlannerSettings(**ps_data)
+            db.add(settings_obj)
+
         db.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
+        error_message = str(getattr(exc, "orig", exc)).lower()
+        if "foreign key" in error_message and "faculty" in error_message:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid faculty_id: referenced faculty does not exist.",
+            )
+
+        if ("unique" in error_message or "duplicate" in error_message) and (
+            "planner_settings" in error_message or "faculty" in error_message
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Planner settings already exist for the provided faculty_id.",
+            )
         raise HTTPException(status_code=409, detail="Database conflict.")
     except SQLAlchemyError:
         db.rollback()
         raise HTTPException(status_code=500, detail="Database error.")
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception:
         db.rollback()
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")

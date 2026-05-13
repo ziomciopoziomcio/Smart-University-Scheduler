@@ -133,6 +133,17 @@ def _expand_roles(num_of_roles: dict[str, int]) -> list[str]:
     return [role for role, count in num_of_roles.items() for _ in range(count)]
 
 
+def _debug_print(debug: bool, text: str) -> None:
+    """
+    Prints a debug message if debugging mode is enabled.
+    :param debug: flag indicating whether to print the message
+    :param text: text to print
+    :return: None
+    """
+    if debug:
+        print(text)
+
+
 def generate_users(
     session: Session,
     roles: dict[str, Roles],
@@ -143,6 +154,7 @@ def generate_users(
     password_hash_func: Callable[[str], str] | None,
     not_teacher_email_domain: str,
     teacher_email_domain: str,
+    debug: bool = False,
 ) -> tuple[
     dict[tuple[str | None, str, str, str, str], Users],
     dict[tuple[str | None, str, str, str, str, bool], Users],
@@ -161,6 +173,7 @@ def generate_users(
         (in case of None, hash is the same as plain password)
     :param not_teacher_email_domain: domain for not teacher email
     :param teacher_email_domain: domain for teacher email
+    :param debug: debug mode
     :return: A tuple containing two dictionaries.
         Each dictionary maps a key, represented as a tuple of
         (degree, name, surname, email, password), to a Users object.
@@ -229,8 +242,9 @@ def generate_users(
         teacher_passwords.append(password)
 
     # adding to db
-    print(
-        "NOT TEACHERS ========================================================================="
+    _debug_print(
+        debug,
+        "NOT TEACHERS =========================================================================",
     )
     not_teacher_roles = _expand_roles(num_of_roles_not_teachers)
     idx = 0
@@ -248,8 +262,9 @@ def generate_users(
         curr_role_str: str = not_teacher_roles[idx]
         idx += 1
         curr_role_obj: Roles = roles[curr_role_str]
-        print(
-            f"{degree} {name} {surname} - {phone} - {mail} - {password} ({password_hash})"
+        _debug_print(
+            debug,
+            f"{degree} {name} {surname} - {phone} - {mail} - {password} ({password_hash})",
         )
 
         user_key: tuple[str | None, str, str, str, str, bool] = (
@@ -274,10 +289,11 @@ def generate_users(
         db_not_teachers[user_key] = user_obj
         # db_not_teachers.append({user_key: user_obj})
 
-    print()
-    print()
-    print(
-        "TEACHERS ========================================================================="
+    _debug_print(debug, "")
+    _debug_print(debug, "")
+    _debug_print(
+        debug,
+        "TEACHERS =========================================================================",
     )
     instructor_role_obj: Roles = roles["Instructor"]
     for person_dict, phone, mail, password in zip(
@@ -287,8 +303,9 @@ def generate_users(
         name = person_dict["first_name"]
         surname = person_dict["last_name"]
         password_hash = password_hash_func(password)
-        print(
-            f"{degree} {name} {surname} - {phone} - {mail} - {password} ({password_hash})"
+        _debug_print(
+            debug,
+            f"{degree} {name} {surname} - {phone} - {mail} - {password} ({password_hash})",
         )
 
         user_key: tuple[str | None, str, str, str, str] = (
