@@ -114,12 +114,16 @@ def generate_common_groups(
         sp_id = sp_obj.id
         sp_name = sp_obj.program_name
 
-        if "2025/26" in sp_name:
+        if "2025/26" in sp_name and "1. stopień" in sp_name:
             semester = 2
-        elif "2024/25" in sp_name:
+        elif "2024/25" in sp_name and "1. stopień" in sp_name:
             semester = 4
-        elif "2023/24" in sp_name:
+        elif "2023/24" in sp_name and "1. stopień" in sp_name:
             semester = 6
+        elif "2025/26" in sp_name and "2. stopień" in sp_name:
+            semester = 1
+        elif "2024/25" in sp_name and "2. stopień" in sp_name:
+            semester = 3
         else:
             semester = 1
 
@@ -287,12 +291,16 @@ def generate_major_groups(
         sp_id = sp_obj.id
         sp_name = sp_obj.program_name
 
-        if "2025/26" in sp_name:
+        if "2025/26" in sp_name and "1. stopień" in sp_name:
             semester = 2
-        elif "2024/25" in sp_name:
+        elif "2024/25" in sp_name and "1. stopień" in sp_name:
             semester = 4
-        elif "2023/24" in sp_name:
+        elif "2023/24" in sp_name and "1. stopień" in sp_name:
             semester = 6
+        elif "2025/26" in sp_name and "2. stopień" in sp_name:
+            semester = 1
+        elif "2024/25" in sp_name and "2. stopień" in sp_name:
+            semester = 3
         else:
             semester = 1
 
@@ -483,12 +491,16 @@ def generate_elective_groups(
         sp_id = sp_obj.id
         sp_name = sp_obj.program_name
 
-        if "2025/26" in sp_name:
+        if "2025/26" in sp_name and "1. stopień" in sp_name:
             semester = 2
-        elif "2024/25" in sp_name:
+        elif "2024/25" in sp_name and "1. stopień" in sp_name:
             semester = 4
-        elif "2023/24" in sp_name:
+        elif "2023/24" in sp_name and "1. stopień" in sp_name:
             semester = 6
+        elif "2025/26" in sp_name and "2. stopień" in sp_name:
+            semester = 1
+        elif "2024/25" in sp_name and "2. stopień" in sp_name:
+            semester = 3
         else:
             semester = 1
 
