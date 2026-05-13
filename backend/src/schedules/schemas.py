@@ -1,7 +1,7 @@
 import re
 import uuid
 from datetime import datetime, date
-from typing import Annotated, Dict, Any, Optional
+from typing import Annotated, Dict, Any
 
 from pydantic import (
     BaseModel,
@@ -39,7 +39,7 @@ class ScheduleSuggestionRead(ScheduleSuggestionBase):
     id: int
     status: SuggestionStatus
     created_at: datetime
-    resolved_at: Optional[datetime]
+    resolved_at: datetime | None
 
 
 class ScheduleSuggestionUpdate(BaseModel):
@@ -62,7 +62,7 @@ class EmployeeAbsenceBase(BaseSchema):
     employee_id: int
     start_date: date
     end_date: date
-    reason: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    reason: Annotated[str, StringConstraints(max_length=255)] | None = None
 
 
 class EmployeeAbsenceCreate(EmployeeAbsenceBase):
@@ -78,14 +78,14 @@ class EmployeeAbsenceRead(EmployeeAbsenceBase):
     event_id: uuid.UUID
     status: AbsenceStatus
     created_at: datetime
-    updated_at: Optional[datetime] = None
+    updated_at: datetime | None = None
 
 
 class EmployeeAbsenceUpdate(BaseModel):
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
-    reason: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    status: Optional[AbsenceStatus] = None
+    start_date: date | None = None
+    end_date: date | None = None
+    reason: Annotated[str, StringConstraints(max_length=255)] | None = None
+    status: AbsenceStatus | None = None
 
     @model_validator(mode="after")
     def validate_dates_if_both_provided(self):
