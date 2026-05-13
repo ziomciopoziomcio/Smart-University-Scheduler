@@ -5,6 +5,12 @@ from collections import defaultdict
 from ..academics import models as ac_mod
 from ..courses import models as course_models
 from ..facilities import models as fac_models
+from ..settings import models as settings_models
+from ..academics.models import SemesterType
+
+
+class MissingPlannerSettingsError(Exception):
+    pass
 
 
 def _get_rooms(faculty_id: int, db: Session):
@@ -99,8 +105,38 @@ def _get_requirements(faculty_id: int, db: Session):
                 == ac_mod.Groups.elective_block,
             )
         )
+        .filter(ac_mod.Groups.is_active.is_(True))
+        .filter(course_models.Curriculum_course.semester == ac_mod.Groups.semester)
         .all()
     )
+
+
+def _check_semester_parity(
+    faculty_id: int, target_semester: SemesterType, db: Session
+) -> list[str]:
+    active_groups = (
+        db.query(ac_mod.Groups.group_name, ac_mod.Groups.semester)
+        .join(
+            course_models.Study_program,
+            ac_mod.Groups.study_program == course_models.Study_program.id,
+        )
+        .join(
+            course_models.Study_fields,
+            course_models.Study_program.study_field == course_models.Study_fields.id,
+        )
+        .filter(course_models.Study_fields.faculty == faculty_id)
+        .filter(ac_mod.Groups.is_active.is_(True))
+        .all()
+    )
+
+    mismatched_groups = []
+    for g_name, semester in active_groups:
+        if target_semester == SemesterType.WINTER and semester % 2 == 0:
+            mismatched_groups.append(f"{g_name} (currently semester: {semester})")
+        elif target_semester == SemesterType.SUMMER and semester % 2 != 0:
+            mismatched_groups.append(f"{g_name} (currently semester: {semester})")
+
+    return mismatched_groups
 
 
 def _calculate_available_workload(competencies) -> dict:
@@ -252,6 +288,19 @@ def _calculate_workload_mismatches(
 
 
 def validate_optimization_data(faculty_id: int, db: Session) -> dict:
+    planner_config: settings_models.PlannerSettings | None = (
+        db.query(settings_models.PlannerSettings)
+        .filter_by(faculty_id=faculty_id)
+        .first()
+    )
+
+    if not planner_config:
+        raise MissingPlannerSettingsError(
+            f"No planner settings found for faculty {faculty_id}. Please configure the planner settings before optimization."
+        )
+
+    target_semester = planner_config.planned_semester_type
+
     rooms = _get_rooms(faculty_id, db)
     competencies = _get_competencies(faculty_id, db)
     requirements = _get_requirements(faculty_id, db)
@@ -264,10 +313,13 @@ def validate_optimization_data(faculty_id: int, db: Session) -> dict:
         required_workload, available_workload
     )
 
+    mismatched_semesters = _check_semester_parity(faculty_id, target_semester, db)
+
     return {
         "total_genes_to_generate": len(processed_reqs),
         "missing_competencies": missing_competencies,
         "workload_mismatch": workload_mismatch,
         "no_suitable_rooms": no_suitable_rooms,
         "oversized_groups": oversized_groups,
+        "semester_parity_warnings": mismatched_semesters,
     }

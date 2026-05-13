@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 
 from src.common.kafka_client import send_event
 from . import schemas
-from .services import validate_optimization_data
+from .services import validate_optimization_data, MissingPlannerSettingsError
 from ..common.require_permission import require_permission
 from ..database.database import get_db
 from sqlalchemy.orm import Session
@@ -67,5 +67,8 @@ def validate_algorithm_data(
     Validates data consistency before running the genetic algorithm.
     Checks for missing instructors, workload discrepancies, and unaccountable group sizes.
     """
-    report_data = validate_optimization_data(faculty_id, db)
-    return report_data
+    try:
+        report_data = validate_optimization_data(faculty_id, db)
+        return report_data
+    except MissingPlannerSettingsError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
