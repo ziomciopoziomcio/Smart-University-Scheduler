@@ -73,6 +73,14 @@ def _get_specified_study_program(
     return matches_per_name[-year]
 
 
+def _get_active(deg: int, semester: int) -> bool:
+    if deg == 1 and semester % 2 != 0:
+        return False
+    if deg == 2 and semester % 2 == 0:
+        return False
+    return True
+
+
 def generate_common_groups(
     session: Session,
     sourcefile: str,
@@ -115,6 +123,8 @@ def generate_common_groups(
         else:
             semester = 1
 
+        is_active = _get_active(deg, semester)
+
         for group_id in range(1, common + 1):
             group_name = _generate_common_group_name(sp_name, group_id)
 
@@ -124,6 +134,7 @@ def generate_common_groups(
                 major=None,
                 elective_block=None,
                 semester=semester,
+                is_active=is_active,
             )
             session.add(group_obj)
             db_common_groups[group_name] = group_obj
@@ -285,6 +296,8 @@ def generate_major_groups(
         else:
             semester = 1
 
+        is_active = _get_active(deg, semester)
+
         for group_id in range(1, major_groups + 1):
 
             for major_id in majors_for_this_sp:
@@ -299,6 +312,7 @@ def generate_major_groups(
                     major=major_id,
                     elective_block=None,
                     semester=semester,
+                    is_active=is_active,
                 )
                 session.add(group_obj)
                 db_major_groups[group_name] = group_obj
@@ -478,6 +492,8 @@ def generate_elective_groups(
         else:
             semester = 1
 
+        is_active = _get_active(deg, semester)
+
         for group_id in range(1, elective_groups + 1):
 
             for eb_id in elective_blocks_for_this_sp:
@@ -492,6 +508,7 @@ def generate_elective_groups(
                     major=None,
                     elective_block=eb_id,
                     semester=semester,
+                    is_active=is_active,
                 )
                 session.add(group_obj)
                 db_elective_groups[group_name] = group_obj
