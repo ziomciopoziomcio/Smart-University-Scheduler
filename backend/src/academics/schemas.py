@@ -109,8 +109,7 @@ class GroupsUpdate(BaseModel):
     study_program: Optional[int] = None
     major: Optional[int] = None
     elective_block: Optional[int] = None
-    is_active: Optional[bool] = None
-
+    is_active: bool | None = None
     @model_validator(mode="after")
     def check_major_or_elective(self):
         if self.major is not None and self.elective_block is not None:
