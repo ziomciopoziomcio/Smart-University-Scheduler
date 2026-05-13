@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -11,17 +10,17 @@ class BaseSchema(BaseModel):
 
 
 class ChatCreate(BaseModel):
-    title: Optional[str] = Field(None, max_length=255)
+    title: str | None = Field(None, max_length=255)
 
 
 class ChatUpdate(BaseModel):
-    title: Optional[str] = Field(None, max_length=255)
+    title: str | None = Field(None, max_length=255)
 
 
 class ChatRead(BaseSchema):
     id: int
     user_id: int
-    title: Optional[str] = None
+    title: str | None = None
     created_at: datetime
 
 
