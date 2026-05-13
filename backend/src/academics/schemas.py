@@ -3,7 +3,7 @@ Data validation schemas
 """
 
 from datetime import date
-from typing import Optional, Annotated
+from typing import Annotated
 
 from pydantic import BaseModel, model_validator, StringConstraints, ConfigDict, Field
 
@@ -20,7 +20,7 @@ class BaseSchema(BaseModel):
 class StudentBase(BaseSchema):
     user_id: int
     study_program: int
-    major: Optional[int] = None
+    major: int | None = None
 
 
 class StudentCreate(StudentBase):
@@ -32,8 +32,8 @@ class StudentRead(StudentBase):
 
 
 class StudentUpdate(BaseModel):
-    study_program: Optional[int] = None
-    major: Optional[int] = None
+    study_program: int | None = None
+    major: int | None = None
 
 
 class EmployeesBase(BaseSchema):
@@ -51,8 +51,8 @@ class EmployeeRead(EmployeesBase):
 
 
 class EmployeeUpdate(BaseModel):
-    faculty_id: Optional[int] = None
-    unit_id: Optional[int] = None
+    faculty_id: int | None = None
+    unit_id: int | None = None
 
 
 class UnitsBase(BaseSchema):
@@ -75,16 +75,16 @@ class UnitsReadWithCount(UnitsRead):
 
 
 class UnitsUpdate(BaseModel):
-    unit_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    faculty_id: Optional[int] = None
-    unit_short: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    unit_name: Annotated[str, StringConstraints(max_length=255)] | None = None
+    faculty_id: int | None = None
+    unit_short: Annotated[str, StringConstraints(max_length=255)] | None = None
 
 
 class GroupsBase(BaseSchema):
     group_name: Annotated[str, StringConstraints(max_length=255)]
     study_program: int
-    major: Optional[int] = None
-    elective_block: Optional[int] = None
+    major: int | None = None
+    elective_block: int | None = None
     is_active: bool = True
 
     @model_validator(mode="after")
@@ -105,10 +105,10 @@ class GroupsRead(GroupsBase):
 
 
 class GroupsUpdate(BaseModel):
-    group_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    study_program: Optional[int] = None
-    major: Optional[int] = None
-    elective_block: Optional[int] = None
+    group_name: Annotated[str, StringConstraints(max_length=255)] | None = None
+    study_program: int | None = None
+    major: int | None = None
+    elective_block: int | None = None
     is_active: bool | None = None
 
     @model_validator(mode="after")
@@ -134,8 +134,8 @@ class GroupMembersRead(GroupMembersBase):
 
 
 class GroupMembersUpdate(BaseModel):
-    group: Optional[int] = None
-    student: Optional[int] = None
+    group: int | None = None
+    student: int | None = None
 
 
 class AcademicCalendarBase(BaseSchema):
@@ -144,7 +144,7 @@ class AcademicCalendarBase(BaseSchema):
     semester_type: SemesterType
     week_number: int = Field(..., ge=1, le=20)  # TODO: Make it dynamic
     academic_day_of_week: int = Field(..., ge=1, le=7)
-    description: Optional[str] = Field(None, max_length=255)
+    description: str | None = Field(None, max_length=255)
 
 
 class AcademicCalendarCreate(AcademicCalendarBase):
@@ -156,28 +156,28 @@ class AcademicCalendarRead(AcademicCalendarBase):
 
 
 class AcademicCalendarUpdate(BaseModel):
-    academic_year: Optional[str] = Field(None, max_length=20, examples=["2025/2026"])
-    semester_type: Optional[SemesterType] = None
-    week_number: Optional[int] = Field(None, ge=1, le=20)
-    academic_day_of_week: Optional[int] = Field(None, ge=1, le=7)
-    description: Optional[str] = Field(None, max_length=255)
+    academic_year: str | None = Field(None, max_length=20, examples=["2025/2026"])
+    semester_type: SemesterType | None = None
+    week_number: int | None = Field(None, ge=1, le=20)
+    academic_day_of_week: int | None = Field(None, ge=1, le=7)
+    description: str | None = Field(None, max_length=255)
 
 
 class StudentNested(BaseSchema):
     id: int
     user: user_schemas.UserRead
     study_program_details: courses_schemas.StudyProgramRead
-    major_details: Optional[courses_schemas.MajorRead] = None
+    major_details: courses_schemas.MajorRead | None = None
     study_program: int
-    major: Optional[int] = None
+    major: int | None = None
     user_id: int
 
 
 class EmployeeNested(BaseSchema):
     id: int
     user: user_schemas.UserRead
-    unit: Optional[UnitsRead] = None
-    faculty: Optional[facilities_schemas.FacultyRead] = None
+    unit: UnitsRead | None = None
+    faculty: facilities_schemas.FacultyRead | None = None
     faculty_id: int
     user_id: int
     unit_id: int
