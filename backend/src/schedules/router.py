@@ -232,7 +232,7 @@ def list_schedule_suggestions(
 
     - status_filter: filter by suggestion status
     - source: exact match on source
-    - target_class_session_id: filter by target session id
+    - source: case-insensitive substring match on source
     - search: case-insensitive substring search across reason, source and JSON states
     """
     query = db.query(models.ScheduleSuggestion)
