@@ -14,7 +14,6 @@ from ..users.auth import get_current_user
 from ..common.pagination.pagination import PaginatedResponse, paginate
 from ..common.require_permission import (
     require_permission,
-    user_has_permission,
 )
 from ..common.router_utils import (
     _get_or_404,
