@@ -1,0 +1,776 @@
+{
+  "common": {
+    "cancel": "Anuluj",
+    "save": "Zapisz"
+  },
+  "login": {
+    "title": "Zaloguj się",
+    "username": "email",
+    "email": "email",
+    "usernamePlaceholder": "example@edu.p.lodz.pl",
+    "emailPlaceholder": "example@edu.p.lodz.pl",
+    "password": "hasło",
+    "passwordPlaceholder": "hasło",
+    "submit": "Zaloguj się",
+    "createAccount": "Utwórz konto",
+    "forgotPassword": "Nie pamiętam hasła",
+    "pageLabel": "Logowanie",
+    "loggingIn": "Logowanie...",
+    "validation": {
+      "error": "Niepoprawny email lub hasło",
+      "success": "Pomyślnie zalogowano",
+      "providerError": "Błąd dostawcy uwierzytelniania",
+      "2fa": {
+        "2faRequired": "Wymagana weryfikacja dwuetapowa",
+        "2faDescription": "Wpisz poniżej kod Weryfikacji dwuetapowej."
+      }
+    }
+  },
+  "register": {
+    "title": "Utwórz nowe konto",
+    "submit": "Utwórz konto",
+    "backToLogin": "Powrót do logowania",
+    "name": "imię",
+    "namePlaceholder": "wpisz imię",
+    "surname": "nazwisko",
+    "surnamePlaceholder": "wpisz nazwisko",
+    "confirmPassword": "potwierdź hasło",
+    "confirmPasswordPlaceholder": "hasło",
+    "phone": "numer telefonu",
+    "phonePlaceholder": "wpisz numer telefonu",
+    "degree": "stopień/tytuł",
+    "degreePlaceholder": "wybierz stopień",
+    "validation": {
+      "passwordsDontMatch": "Hasła nie są identyczne.",
+      "length": "Zawierać co najmniej 8 znaków",
+      "match": "Być identyczne z powtórzonym hasłem"
+    },
+    "titleSuccess": "Konto utworzone!",
+    "successMessage": "Rejestracja zakończona sukcesem. Sprawdź swoją skrzynkę e-mail, aby aktywować konto.",
+    "redirectingToLogin": "Przekierowywanie do strony logowania...",
+    "degrees": {
+      "none": "Brak",
+      "inz": "Inżynier",
+      "mgr": "Magister",
+      "dr": "Doktor (Ph.D.)",
+      "dr_hab": "Doktor habilitowany",
+      "prof": "Profesor"
+    }
+  },
+  "activate": {
+    "title": "Aktywuj swoje konto",
+    "description": "Link aktywacyjny został wysłany na Twój adres e-mail. Sprawdź skrzynkę odbiorczą i kliknij w link, aby aktywować konto.",
+    "resend": "Wyślij ponownie e-mail aktywacyjny",
+    "cancel": "Anuluj",
+    "loading": "Weryfikowanie adresu e-mail...",
+    "success": "Konto zostało pomyślnie aktywowane! Możesz się teraz zalogować.",
+    "backToLogin": "Powrót do logowania",
+    "goToLogin": "Przejdź do logowania",
+    "error": {
+      "incomplete": "Link aktywacyjny jest niekompletny (brak tokenu).",
+      "generic": "Wystąpił błąd podczas aktywacji.",
+      "invalidOrExpired": "Link jest nieaktywny, wygasł lub został już wykorzystany.",
+      "tooShort": "Token aktywacyjny jest za krótki.",
+      "invalid": "Nieprawidłowy token aktywacyjny.",
+      "expired": "Token aktywacyjny wygasł.",
+      "alreadyActivated": "Konto jest już aktywne."
+    }
+  },
+  "forgotPassword": {
+    "title": "Resetowanie hasła",
+    "description": "Wprowadź swój adres e-mail, a wyślemy Ci link do zresetowania hasła.",
+    "instruction": "Twoje nowe hasło powinno:",
+    "newPassword": "nowe hasło",
+    "confirmNewPassword": "powtórz nowe hasło",
+    "submitNew": "Utwórz nowe hasło",
+    "sendResetLink": "Wyślij link do resetowania",
+    "successMailSent": "Jeśli konto istnieje, link do resetowania został wysłany.",
+    "errorSending": "Błąd podczas wysyłania kodu resetującego.",
+    "errorInvalidToken": "Link resetujący jest nieprawidłowy lub wygasł."
+  },
+  "sidebar": {
+    "myPlan": "Mój plan",
+    "plans": "Plany",
+    "chat": "Czat",
+    "suggestions": "Sugestie",
+    "settings": "Ustawienia",
+    "employees": "Pracownicy",
+    "permissions": "Uprawnienia",
+    "facilities": "Obiekty",
+    "students": "Studenci",
+    "structures": "Struktury",
+    "users": "Użytkownicy",
+    "didactics": "Dydaktyka",
+    "generateSchedule": "Generuj plan",
+    "programs": "Programy"
+  },
+  "navbar": {
+    "guest": "Gość",
+    "logout": "Wyloguj się"
+  },
+  "calendar": {
+    "month": "Miesiąc",
+    "week": "Tydzień",
+    "day": "Dzień",
+    "agenda": "Terminarz",
+    "today": "Dzisiaj",
+    "monday": "Poniedziałek",
+    "tuesday": "Wtorek",
+    "wednesday": "Środa",
+    "thursday": "Czwartek",
+    "friday": "Piątek",
+    "saturday": "Sobota",
+    "sunday": "Niedziela",
+    "january": "Styczeń",
+    "february": "Luty",
+    "march": "Marzec",
+    "april": "Kwiecień",
+    "may": "Maj",
+    "june": "Czerwiec",
+    "july": "Lipiec",
+    "august": "Sierpień",
+    "september": "Wrzesień",
+    "october": "Październik",
+    "november": "Listopad",
+    "december": "Grudzień",
+    "mondayShort": "Pon",
+    "tuesdayShort": "Wt",
+    "wednesdayShort": "Śr",
+    "thursdayShort": "Czw",
+    "fridayShort": "Pt",
+    "saturdayShort": "Sob",
+    "sundayShort": "Niedz"
+  },
+  "facilities": {
+    "common": {
+      "searchPlaceholder": "Szukaj...",
+      "noData": "Brak danych do wyświetlenia.",
+      "noName": "Brak nazwy",
+      "seats": "miejsc",
+      "pcs": "PC",
+      "cancel": "Anuluj",
+      "save": "Zapisz zmiany",
+      "deleteConfirm": "Usuń",
+      "yes": "Tak",
+      "no": "Nie"
+    },
+    "breadcrumbs": {
+      "main": "Obiekty",
+      "campus": "Kampus",
+      "building": "Budynek"
+    },
+    "campus": {
+      "searchPlaceholder": "Szukaj kampusu...",
+      "add": "Dodaj kampus",
+      "edit": "Edytuj kampus",
+      "delete": "Usuń kampus",
+      "deleteTitle": "Usuwanie kampusu",
+      "deleteDesc": "Czy na pewno chcesz usunąć ten kampus? Tej operacji nie można cofnąć.",
+      "nameLabel": "Nazwa kampusu",
+      "namePlaceholder": "Wpisz nazwę kampusu (opcjonalnie)",
+      "shortLabel": "Identyfikator kampusu",
+      "shortPlaceholder": "Wpisz identyfikator kampusu",
+      "errors": {
+        "add": "Błąd podczas dodawania kampusu.",
+        "delete": "Błąd podczas usuwania kampusu."
+      }
+    },
+    "building": {
+      "roomsCount": "{count, plural, one {# sala} few {# sale} many {# sal} other {# sal}}",
+      "searchPlaceholder": "Szukaj budynku...",
+      "add": "Dodaj budynek",
+      "edit": "Edytuj budynek",
+      "delete": "Usuń budynek",
+      "deleteTitle": "Usuwanie budynku",
+      "deleteDesc": "Czy na pewno chcesz usunąć ten budynek? Tej operacji nie można cofnąć.",
+      "nameLabel": "Nazwa budynku",
+      "namePlaceholder": "Wpisz nazwę (opcjonalnie)",
+      "numberLabel": "Numer budynku",
+      "numberPlaceholder": "Wpisz numer (np. B18)",
+      "errors": {
+        "add": "Błąd podczas dodawania budynku.",
+        "delete": "Błąd podczas usuwania budynku."
+      }
+    },
+    "room": {
+      "searchPlaceholder": "Szukaj sali...",
+      "rooms": "Sale",
+      "add": "Dodaj salę",
+      "edit": "Edytuj salę",
+      "delete": "Usuń salę",
+      "deleteTitle": "Usuwanie sali",
+      "deleteDesc": "Czy na pewno chcesz usunąć tę salę? Tej operacji nie można cofnąć.",
+      "nameLabel": "Nazwa sali",
+      "namePlaceholder": "np. 101, Aula Główna",
+      "capacityLabel": "Liczba miejsc",
+      "pcLabel": "Liczba stanowisk PC",
+      "assignment": "PRZYPISANIE SALI DO:",
+      "faculty": "Wydziału",
+      "unit": "Jednostki",
+      "selectFaculty": "Wybierz wydział",
+      "selectUnit": "Wybierz jednostkę",
+      "projectorLabel": "Projektor dostępny",
+      "errors": {
+        "add": "Błąd podczas dodawania sali.",
+        "delete": "Błąd podczas usuwania sali."
+      },
+      "stations": "stanowisk",
+      "station": "stanowisko",
+      "computer": {
+        "computer": "komputer",
+        "computers": "komputery",
+        "computers2": "komputerów"
+      }
+    }
+  },
+  "structures": {
+    "common": {
+      "cancel": "Anuluj",
+      "save": "Zapisz zmiany"
+    },
+    "breadcrumbs": {
+      "main": "Struktury",
+      "faculty": "Wydział",
+      "unit": "Jednostka"
+    },
+    "faculty": {
+      "searchPlaceholder": "Szukaj wydziału...",
+      "add": "Dodaj wydział",
+      "edit": "Edytuj wydział",
+      "delete": "Usuń wydział",
+      "deleteTitle": "Usuwanie wydziału",
+      "deleteDesc": "Czy na pewno chcesz usunąć ten wydział? Operacji nie można cofnąć.",
+      "nameLabel": "Pełna nazwa wydziału",
+      "namePlaceholder": "np. Wydział Fizyki Technicznej",
+      "shortLabel": "Skrót",
+      "shortPlaceholder": "np. WFTiMS",
+      "errors": {
+        "add": "Błąd podczas dodawania wydziału.",
+        "delete": "Błąd podczas usuwania wydziału."
+      }
+    },
+    "unit": {
+      "searchPlaceholder": "Szukaj jednostki...",
+      "add": "Dodaj jednostkę",
+      "edit": "Edytuj jednostkę",
+      "delete": "Usuń jednostkę",
+      "deleteTitle": "Usuwanie jednostki",
+      "deleteDesc": "Czy na pewno chcesz usunąć tę jednostkę? Operacji nie można cofnąć.",
+      "nameLabel": "Nazwa jednostki",
+      "namePlaceholder": "np. Instytut Informatyki",
+      "shortLabel": "Skrót",
+      "shortPlaceholder": "np. I24",
+      "facultyLabel": "Wydział nadrzędny",
+      "errors": {
+        "add": "Błąd podczas dodawania jednostki.",
+        "delete": "Błąd podczas usuwania jednostki."
+      }
+    }
+  },
+  "schedule": {
+    "details": {
+      "close": "Zamknij",
+      "time": "Czas",
+      "location": "Lokalizacja",
+      "lecturer": "Prowadzi",
+      "audience": "Dla",
+      "edit": "Edytuj"
+    },
+    "subjectType": {
+      "lecture": "Wykład",
+      "lab": "Laboratorium",
+      "exercise": "Ćwiczenia",
+      "project": "Projekt",
+      "seminar": "Seminarium"
+    },
+    "edit": {
+      "title": "Edytuj zajęcia",
+      "dayOfWeek": "Dzień tygodnia",
+      "startTime": "Godzina rozpoczęcia",
+      "endTime": "Godzina zakończenia",
+      "instructor": "Prowadzący",
+      "room": "Sala",
+      "applyOnce": "Zastosuj tylko jednorazowo",
+      "conflict": "Ta zmiana powoduje konflikt w planie.",
+      "error": "Nie udało się zaktualizować zajęć."
+    }
+  },
+  "academics": {
+    "common": {
+      "cancel": "Anuluj",
+      "deleteConfirm": "Usuń",
+      "save": "Zapisz"
+    },
+    "errors": {
+      "save": "Błąd podczas zapisywania profilu.",
+      "loadDictionaries": "Błąd podczas pobierania list wyboru."
+    },
+    "students": {
+      "students": "Studenci",
+      "searchPlaceholder": "Szukaj studenta...",
+      "add": "Przypisz profil studenta",
+      "edit": "Edytuj profil",
+      "delete": "Usuń ze studentów",
+      "deleteTitle": "Usuń profil studenta",
+      "deleteDesc": "Czy na pewno chcesz usunąć profil studencki dla {name}? (Konto użytkownika pozostanie nienaruszone, straci tylko przypisanie do uczelni).",
+      "empty": "Brak przypisanych studentów w systemie.",
+      "titleAdd": "Utwórz profil studenta",
+      "titleEdit": "Edytuj profil studenta",
+      "userLabel": "Użytkownik",
+      "chooseUser": "Wybierz użytkownika",
+      "programLabel": "Kierunek Studiów",
+      "chooseProgram": "Wybierz kierunek",
+      "majorLabel": "Specjalizacja",
+      "majorNone": "Brak specjalizacji",
+      "errors": {
+        "delete": "Błąd podczas usuwania przypisania studenta."
+      },
+      "modal": {
+        "noResults": "Brak wyników",
+        "searchPrompt": "Zacznij pisać, aby szukać...",
+        "userSearchLabel": "Wyszukaj użytkownika (imię, nazwisko lub email)",
+        "loading": "Pobieranie danych...",
+        "user": "Użytkownik",
+        "studyProgram": "Program studiów",
+        "major": "Specjalizacja (opcjonalnie)"
+      }
+    },
+    "employees": {
+      "employees": "Pracownicy",
+      "searchPlaceholder": "Szukaj pracownika...",
+      "add": "Przypisz profil pracownika",
+      "edit": "Edytuj przypisanie",
+      "delete": "Usuń profil pracowniczy",
+      "deleteTitle": "Usuń profil pracowniczy",
+      "deleteDesc": "Czy na pewno chcesz usunąć powiązanie pracownicze dla {name}? (Konto użytkownika pozostanie nienaruszone).",
+      "empty": "Brak pracowników w systemie.",
+      "unassigned": "Brak przypisania",
+      "titleAdd": "Utwórz profil pracownika",
+      "titleEdit": "Edytuj przypisanie",
+      "userLabel": "Użytkownik",
+      "facultyLabel": "Wydział",
+      "unitLabel": "Jednostka",
+      "errors": {
+        "delete": "Błąd podczas usuwania przypisania pracownika."
+      },
+      "modal": {
+        "noResults": "Brak wyników",
+        "searchPrompt": "Zacznij pisać, aby szukać...",
+        "userSearchLabel": "Wyszukaj użytkownika (imię, nazwisko lub email)",
+        "loading": "Pobieranie danych..."
+      }
+    }
+  },
+  "users": {
+    "users": "Użytkownicy",
+    "common": {
+      "cancel": "Anuluj",
+      "save": "Zapisz",
+      "deleteConfirm": "Usuń"
+    },
+    "page": {
+      "searchPlaceholder": "Szukaj użytkownika po imieniu, nazwisku lub emailu...)"
+    },
+    "view": {
+      "add": "Dodaj użytkownika",
+      "edit": "Edytuj użytkownika",
+      "delete": "Usuń konto",
+      "deleteTitle": "Usuń użytkownika",
+      "deleteDesc": "Czy na pewno chcesz usunąć konto użytkownika {name}? Tej operacji nie można cofnąć.",
+      "empty": "Brak użytkowników w systemie.",
+      "noRoles": "Brak ról",
+      "2faEnabled": "Weryfikacja dwuetapowa włączona",
+      "2faDisabled": "Brak 2FA"
+    },
+    "modal": {
+      "titleAdd": "Dodaj nowego użytkownika",
+      "titleEdit": "Edytuj użytkownika",
+      "nameLabel": "Imię",
+      "surnameLabel": "Nazwisko",
+      "emailLabel": "Adres e-mail",
+      "phoneLabel": "Numer telefonu",
+      "degreeLabel": "Stopień / Tytuł naukowy",
+      "passwordLabel": "Hasło",
+      "passwordEditLabel": "Nowe hasło (zostaw puste, aby nie zmieniać)",
+      "password2Label": "Powtórz hasło",
+      "resetPasswordTitle": "Bezpieczeństwo konta",
+      "resetPasswordDesc": "Ze względów bezpieczeństwa hasło może zostać zmienione tylko przez właściciela konta.",
+      "sendResetLink": "Wyślij link do resetu hasła",
+      "initialPassword": "Hasło początkowe",
+      "generate": "Generuj",
+      "copySuccess": "Hasło skopiowane do schowka!",
+      "forceChangeLabel": "Wymuś zmianę hasła przy pierwszym logowaniu",
+      "sendEmailLabel": "Wyślij dane logowania na e-mail użytkownika",
+      "copyTooltip": "Kopiuj hasło",
+      "passwordCopied": "Hasło zostało skopiowane"
+    },
+    "errors": {
+      "save": "Błąd podczas zapisywania użytkownika.",
+      "delete": "Błąd podczas usuwania użytkownika.",
+      "passwordMismatch": "Podane hasła nie są identyczne!"
+    }
+  },
+  "roles": {
+    "usersCount": "{count, plural, =0 {Brak użytkowników} one {1 użytkownik} few {# użytkowników} many {# użytkowników} other {# użytkownika}}",
+    "title": "Role systemowe",
+    "searchPlaceholder": "Szukaj roli...",
+    "add": "Dodaj rolę",
+    "edit": "Zmień nazwę",
+    "delete": "Usuń rolę",
+    "deleteTitle": "Usuwanie roli",
+    "deleteDesc": "Czy na pewno chcesz usunąć rolę {name}? Odbierze to uprawnienia wszystkim przypisanym do niej użytkownikom.",
+    "usersCountPending": "Liczba użytkowników: ?",
+    "titleAdd": "Utwórz nową rolę",
+    "titleEdit": "Edytuj nazwę roli",
+    "nameLabel": "Nazwa roli",
+    "tabs": {
+      "users": "Użytkownicy",
+      "permissions": "Uprawnienia"
+    },
+    "dashboard": {
+      "usersDesc": "Zarządzaj przypisaniami użytkowników do tej roli",
+      "permissionsDesc": "Konfiguruj dostęp do poszczególnych modułów systemu"
+    },
+    "permissions": {
+      "title": "Uprawnienia: {name}",
+      "save": "Zapisz uprawnienia",
+      "success": "Zapisano pomyślnie!",
+      "ungrouped": "Pozostałe"
+    },
+    "errors": {
+      "save": "Błąd zapisywania roli",
+      "delete": "Błąd usuwania roli"
+    }
+  },
+  "plans": {
+    "common": {
+      "emptyValue": "—",
+      "loadingBreadcrumb": "..."
+    },
+    "plans": "Plany",
+    "campuses": "Kampusy",
+    "roomsPlan": {
+      "title": "Plany sal",
+      "description": "Sprawdź plan dowolnej sali na kampusie uczelni."
+    },
+    "lecturerPlan": {
+      "title": "Plany wykładowców",
+      "description": "Sprawdź plan prowadzącego zajęcia.",
+      "departmentSelect": {
+        "lecturersCountValue": "{count, plural, one {# prowadzący} few {# prowadzących} many {# prowadzących} other {# prowadzącego}}",
+        "searchPlaceholder": "Wyszukaj jednostkę lub wydział...",
+        "show": "Pokaż:",
+        "units": "Jednostki",
+        "faculties": "Wydziały",
+        "lecturersCount": "Liczba prowadzących",
+        "noData": "Brak danych",
+        "selectAtLeastOne": "Zaznacz co najmniej jeden filtr"
+      },
+      "lecturerSelect": {
+        "searchPlaceholder": "Wyszukaj prowadzącego...",
+        "errors": {
+          "invalidFacultyId": "Nieprawidłowe id wydziału",
+          "fetchFacultyFailed": "Nie udało się pobrać wydziału"
+        },
+        "noData": "Brak danych"
+      }
+    },
+    "studentsPlan": {
+      "title": "Plany studentów",
+      "description": "Sprawdź plan dowolnej grupy studentów.",
+      "checkFaculty": "Sprawdź plany studentów z wydziału ",
+      "noFields": "Brak informacji o kierunkach studiów dla tego wydziału.",
+      "noFaculties": "Brak wydziałów do wyświetlenia.",
+      "studySchedule": {
+        "title": "Plan zajęć",
+        "electiveBlocks": "Bloki obieralne"
+      },
+      "studyField": {
+        "errors": {
+          "invalidFacultyId": "Nieprawidłowe id wydziału.",
+          "fetchFailed": "Nie udało się pobrać kierunków studiów."
+        },
+        "studyMode": {
+          "fullTime": "stacjonarnie",
+          "partTime": "niestacjonarnie"
+        },
+        "semestersCount": "{count, plural, one {# semestr} few {# semestry} many {# semestrów} other {# semestru}}",
+        "specializations": {
+          "none": "bez specjalizacji",
+          "count": "{count, plural, one {# specjalizacja} few {# specjalizacje} many {# specjalizacji} other {# specjalizacji}}"
+        }
+      },
+      "studySemester": {
+        "semester": "Semestr",
+        "searchPlaceholder": "Wyszukaj semestr...",
+        "semesterLabel": "Semestr {number}",
+        "groupsCount": "{count, plural, one {# grupa} few {# grupy} many {# grup} other {# grupy}}",
+        "specializationsCount": "{count, plural, one {# specjalizacja} few {# specjalizacje} many {# specjalizacji} other {# specjalizacji}}",
+        "electiveBlocksCount": "{count, plural, one {# blok obieralny} few {# bloki obieralne} many {# bloków obieralnych} other {# bloku obieralnego}}",
+        "noSemesters": "Brak semestrów do wyświetlenia.",
+        "errors": {
+          "invalidParams": "Nieprawidłowe parametry.",
+          "fetchFailed": "Nie udało się pobrać semestrów."
+        }
+      },
+      "studySpecialization": {
+        "searchPlaceholder": "Wyszukaj specjalizację...",
+        "groupsCount": "{count, plural, one {# grupa} few {# grupy} many {# grup} other {# grupy}}",
+        "noSpecializations": "Brak specjalizacji do wyświetlenia.",
+        "errors": {
+          "invalidParams": "Nieprawidłowe parametry.",
+          "fetchFailed": "Nie udało się pobrać specjalizacji."
+        }
+      },
+      "studyGroup": {
+        "searchPlaceholder": "Wyszukaj grupę...",
+        "noGroups": "Brak grup do wyświetlenia.",
+        "errors": {
+          "invalidParams": "Nieprawidłowe parametry.",
+          "fetchFailed": "Nie udało się pobrać grup."
+        }
+      },
+      "studyBlock": {
+        "title": "Bloki obieralne",
+        "searchPlaceholder": "Wyszukaj...",
+        "chooseSingle": "Wybierz blok obieralny",
+        "chooseNth": "Wybierz blok obieralny {current} z {total}",
+        "chooseGroupInBlock": "Wybierz grupę w wybranym bloku obieralnym",
+        "alreadySelected": "Wybrane bloki: {count}",
+        "noBlocks": "Brak bloków obieralnych do wyświetlenia.",
+        "noGroups": "Brak grup do wyświetlenia.",
+        "errors": {
+          "invalidParams": "Nieprawidłowe parametry.",
+          "fetchFailed": "Nie udało się pobrać bloków obieralnych."
+        }
+      }
+    }
+  },
+  "table": {
+    "rowsPerPage": "Wierszy na stronę",
+    "of": "z"
+  },
+  "didactics": {
+    "breadcrumbs": {
+      "main": "Dydaktyka",
+      "fields": "Kierunki",
+      "courses": "Przedmioty",
+      "majors": "Specjalizacje",
+      "blocks": "Bloki Obieralne"
+    },
+    "dashboard": {
+      "fieldsTitle": "Kierunki i Specjalizacje",
+      "fieldsDesc": "Zarządzaj ofertą edukacyjną, kierunkami studiów i podziałem na specjalizacje oraz bloki obieralne.",
+      "coursesTitle": "Katalog Przedmiotów",
+      "coursesDesc": "Globalna baza wszystkich przedmiotów uczelnianych. Dodawaj, edytuj nazwy, punkty ECTS i języki."
+    },
+    "fieldDashboard": {
+      "majorsTitle": "Specjalizacje",
+      "majorsDesc": "Zarządzaj specjalizacjami.",
+      "blocksTitle": "Bloki Obieralne",
+      "blocksDesc": "Konfiguruj bloki obieralne."
+    },
+    "common": {
+      "search": "Szukaj...",
+      "edit": "Edytuj",
+      "delete": "Usuń",
+      "cancel": "Anuluj",
+      "save": "Zapisz",
+      "saveChanges": "Zapisz zmiany",
+      "noData": "Brak danych.",
+      "faculty": "Wydział",
+      "unit": "Jednostka",
+      "errorRequired": "To pole jest wymagane.",
+      "errorSave": "Wystąpił błąd podczas zapisywania."
+    },
+    "fields": {
+      "add": "Dodaj Kierunek",
+      "edit": "Edytuj Kierunek",
+      "deleteTitle": "Usuń kierunek",
+      "deleteDesc": "Czy na pewno chcesz usunąć kierunek \"{name}\"? Tej operacji nie można cofnąć.",
+      "empty": "Brak kierunków studiów na tym wydziale.",
+      "nameLabel": "Nazwa Kierunku",
+      "namePlaceholder": "np. Informatyka Stosowana",
+      "majorsCount": "Specjalizacji",
+      "blocksCount": "{count, plural, =0 {Brak bloków} one {1 blok} few {# bloki} many {# bloków} other {# bloku}}"
+    },
+    "majors": {
+      "add": "Dodaj Specjalizację",
+      "edit": "Edytuj Specjalizację",
+      "deleteTitle": "Usuń Specjalizację",
+      "deleteDesc": "Czy na pewno chcesz usunąć specjalizację \"{name}\"? Operacji nie można cofnąć.",
+      "empty": "Brak przypisanych specjalizacji.",
+      "nameLabel": "Nazwa specjalizacji",
+      "namePlaceholder": "np. Inżynieria Oprogramowania",
+      "groupsCount": "Grupy"
+    },
+    "blocks": {
+      "add": "Dodaj Blok Obieralny",
+      "edit": "Edytuj Blok Obieralny",
+      "deleteTitle": "Usuń blok obieralny",
+      "deleteDesc": "Czy na pewno chcesz usunąć blok \"{name}\"? Operacji nie można cofnąć.",
+      "empty": "Brak przypisanych bloków obieralnych.",
+      "nameLabel": "Nazwa Bloku",
+      "namePlaceholder": "np. Testowanie Oprogramowania"
+    },
+    "units": {
+      "empty": "Brak jednostek dla tego wydziału."
+    },
+    "courses": {
+      "add": "Dodaj Przedmiot",
+      "edit": "Edytuj Przedmiot",
+      "deleteTitle": "Usuń przedmiot",
+      "deleteDesc": "Czy na pewno chcesz usunąć przedmiot \"{name}\"? Tej operacji nie można cofnąć.",
+      "empty": "Brak przypisanych przedmiotów do tej jednostki.",
+      "nameLabel": "Nazwa Przedmiotu",
+      "namePlaceholder": "np. Analiza Matematyczna 1",
+      "codeLabel": "Kod Przedmiotu",
+      "codePlaceholder": "np. 1024",
+      "ectsLabel": "Punkty ECTS",
+      "languageLabel": "Język Wykładowy",
+      "coordinatorLabel": "Koordynator przedmiotu",
+      "coordinatorPlaceholder": "Wybierz koordynatora",
+      "coordinatorLoading": "Ładowanie pracowników...",
+      "noEmployees": "Brak dostępnych pracowników",
+      "languagePolish": "Polski",
+      "languageEnglish": "Angielski",
+      "languageFrench": "Francuski"
+    },
+    "instructors": {
+      "title": "Prowadzący przedmiot: {course}",
+      "add": "Przypisz",
+      "employeeLabel": "Prowadzący",
+      "classTypeLabel": "Typ zajęć",
+      "hoursLabel": "Liczba godzin",
+      "empty": "Brak przypisanych prowadzących.",
+      "deleteTitle": "Usuń przypisanie",
+      "deleteDesc": "Czy na pewno chcesz usunąć to przypisanie prowadzącego?",
+      "manage": "Zarządzaj prowadzącymi"
+    }
+  },
+  "generateSchedule": {
+    "hero": {
+      "title": "Generuj plany",
+      "description": "Generowanie planu może potrwać dłuższą chwilę. Po zakończeniu zobaczysz najważniejsze informacje, ostrzeżenia oraz problemy wymagające sprawdzenia.",
+      "button": "Generuj",
+      "generating": "Generowanie...",
+      "facultyLabel": "Wydział",
+      "facultyPlaceholder": "Wybierz wydział"
+    },
+    "notifications": {
+      "title": "Powiadomienia",
+      "description": "Po wygenerowaniu planu zobaczysz tutaj najważniejsze informacje, ostrzeżenia i problemy wymagające sprawdzenia.",
+      "loading": "Generowanie planu i pobieranie powiadomień...",
+      "emptyTitle": "Brak powiadomień",
+      "emptyDescription": "Po wygenerowaniu planu nie zwrócono żadnych dodatkowych informacji.",
+      "successTitle": "Plan wygenerowany poprawnie",
+      "successDescription": "Nie wykryto żadnych ostrzeżeń ani problemów krytycznych. Plan wygląda poprawnie.",
+      "warningTitle": "Ostrzeżenie",
+      "errorTitle": "Problem krytyczny",
+      "infoTitle": "Informacja",
+      "statusSuccess": "Brak problemów",
+      "statusWarnings": "Wymaga sprawdzenia",
+      "statusErrors": "Wykryto problemy"
+    }
+  },
+  "programs": {
+    "title": "Programy",
+    "semester": "Semestr",
+    "searchPlaceholder": "Szukaj...",
+    "noData": "Brak danych do wyświetlenia.",
+    "addProgram": "Dodaj rocznik",
+    "addCourse": "Dodaj przedmiot",
+    "errorLoading": "Błąd ładowania danych",
+    "faculties": {
+      "title": "Wydział"
+    },
+    "fields": {
+      "title": "Kierunek",
+      "programsCount": "{count, plural, =0 {Brak roczników} one {1 rocznik} few {# roczniki} many {# roczników} other {# rocznika}}"
+    },
+    "list": {
+      "title": "Program studiów",
+      "semestersCount": "{count, plural, =0 {Brak semestrów} one {1 semestr} few {# semestry} many {# semestrów} other {# semestru}}",
+      "recruitment": "Nabór: {year}"
+    },
+    "semesters": {
+      "title": "Semestry",
+      "coursesCount": "{count, plural, =0 {Brak przedmiotów} one {1 przedmiot} few {# przedmioty} many {# przedmiotów} other {# przedmiotu}}"
+    },
+    "dashboard": {
+      "curriculumTitle": "Siatka zajęć",
+      "curriculumDesc": "Zarządzaj przedmiotami w tym semestrze",
+      "groupsTitle": "Grupy dziekańskie",
+      "groupsDesc": "Zarządzaj grupami i przypisuj studentów"
+    },
+    "curriculum": {
+      "courseIdFallback": "ID Przedmiotu: {id}",
+      "majorIdFallback": "Spec. ID: {id}",
+      "blockIdFallback": "Blok ID: {id}"
+    },
+    "modal": {
+      "editProgram": "Edytuj rocznik",
+      "addProgram": "Dodaj nowy rocznik",
+      "startYear": "Rok akademicki (np. 2024/2025)",
+      "programName": "Nazwa własna programu (opcjonalnie)",
+      "yearFrom": "Rok od",
+      "yearTo": "Rok do",
+      "yearErrorFormat": "Lata muszą być liczbami 4-cyfrowymi",
+      "yearErrorDiff": "Różnica między latami musi wynosić dokładnie 1 rok",
+      "yearErrorOrder": "Pierwszy rok musi być mniejszy od drugiego",
+      "yearFromPlaceholder": "2023",
+      "yearToPlaceholder": "2024",
+      "programNamePlaceholder": "np. Profil praktyczny"
+    },
+    "curriculumModal": {
+      "title": "Dodaj przedmiot do siatki",
+      "course": "Wybierz przedmiot",
+      "coursePlaceholder": "Wpisz kod lub nazwę przedmiotu...",
+      "courseNoOptions": "Nie znaleziono przedmiotu",
+      "major": "Specjalność (opcjonalnie)",
+      "electiveBlock": "Blok obieralny (opcjonalnie)",
+      "none": "Brak",
+      "exclusivityHint": "Przedmiot może należeć do specjalności ALBO do bloku."
+    },
+    "groups": {
+      "title": "Grupy",
+      "add": "Dodaj grupę",
+      "edit": "Edytuj grupę",
+      "deleteTitle": "Usuń grupę",
+      "deleteDesc": "Czy na pewno chcesz usunąć grupę {name}?",
+      "empty": "Brak grup w tym semestrze",
+      "studentsCount": "Studenci: {count}",
+      "chip": {
+        "major": "Specjalność: {name}",
+        "block": "Blok: {name}",
+        "general": "Rocznik (Ogólna)"
+      },
+      "modal": {
+        "nameLabel": "Nazwa grupy",
+        "namePlaceholder": "np. W1, L2, AI-1",
+        "majorLabel": "Specjalność",
+        "blockLabel": "Blok obieralny",
+        "none": "Brak",
+        "exclusivityHint": "* Grupa może być przypisana do całego rocznika, specjalności ALBO bloku obieralnego."
+      }
+    },
+    "groupStudents": {
+      "title": "Studenci w grupie",
+      "empty": "Brak studentów przypisanych do tej grupy",
+      "index": "Indeks: {id}"
+    }
+  },
+  "chat": {
+    "title": "Chat",
+    "searchChats": "Szukaj rozmów...",
+    "subtitle": "Asystent planu zajęć",
+    "newChat": "Nowy czat",
+    "newChatTitle": "Nowy czat",
+    "history": "Historia rozmów",
+    "emptyHistory": "Brak rozmów.",
+    "untitled": "Bez tytułu",
+    "emptyTitle": "Zacznij nową rozmowę",
+    "emptyDescription": "Zapytaj o plan, zmianę terminu albo dostępność zajęć.",
+    "placeholder": "Napisz wiadomość..."
+  }
+}
