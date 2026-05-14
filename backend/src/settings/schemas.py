@@ -1,7 +1,7 @@
 import re
 from typing import Annotated
 from datetime import date
-from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
+from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator, Field
 from ..academics import models as ac_models
 
 
