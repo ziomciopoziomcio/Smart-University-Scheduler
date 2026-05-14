@@ -134,27 +134,28 @@ def _get_requirements(faculty_id: int, db: Session):
 def _check_semester_parity(
     faculty_id: int, target_semester: SemesterType, db: Session
 ) -> list[str]:
-    active_groups = (
-        db.query(ac_mod.Groups.group_name, ac_mod.Groups.semester)
-        .join(
-            course_models.Study_program,
-            ac_mod.Groups.study_program == course_models.Study_program.id,
-        )
-        .join(
-            course_models.Study_fields,
-            course_models.Study_program.study_field == course_models.Study_fields.id,
-        )
-        .filter(course_models.Study_fields.faculty == faculty_id)
-        .filter(ac_mod.Groups.is_active.is_(True))
-        .all()
-    )
+    print(faculty_id, target_semester, db)  # todo: Handle II cycle
+    # active_groups = (
+    #     db.query(ac_mod.Groups.group_name, ac_mod.Groups.semester)
+    #     .join(
+    #         course_models.Study_program,
+    #         ac_mod.Groups.study_program == course_models.Study_program.id,
+    #     )
+    #     .join(
+    #         course_models.Study_fields,
+    #         course_models.Study_program.study_field == course_models.Study_fields.id,
+    #     )
+    #     .filter(course_models.Study_fields.faculty == faculty_id)
+    #     .filter(ac_mod.Groups.is_active.is_(True))
+    #     .all()
+    # )
 
     mismatched_groups = []
-    for g_name, semester in active_groups:
-        if target_semester == SemesterType.WINTER and semester % 2 == 0:
-            mismatched_groups.append(f"{g_name} (currently semester: {semester})")
-        elif target_semester == SemesterType.SUMMER and semester % 2 != 0:
-            mismatched_groups.append(f"{g_name} (currently semester: {semester})")
+    # for g_name, semester in active_groups:
+    #     if target_semester == SemesterType.WINTER and semester % 2 == 0:
+    #         mismatched_groups.append(f"{g_name} (currently semester: {semester})")
+    #     elif target_semester == SemesterType.SUMMER and semester % 2 != 0:
+    #         mismatched_groups.append(f"{g_name} (currently semester: {semester})")
 
     return mismatched_groups
 
