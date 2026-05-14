@@ -10,6 +10,7 @@ from . import models
 from . import schemas
 from ..academics import models as ac_mod
 from ..common.kafka_client import send_event
+from ..users.auth import get_current_user
 from ..common.pagination.pagination import PaginatedResponse, paginate
 from ..common.require_permission import (
     require_permission,
@@ -729,7 +730,7 @@ async def get_user_plan(
     ),
     db: Session = Depends(get_db),
     neo4j_session=Depends(get_neo4j_session),
-    _current_user: user_models.Users = Depends(require_permission("schedule:view")),
+    _current_user: user_models.Users = Depends(get_current_user),
 ):
     """
     Get the schedule plan for a specific user for a given week.
@@ -742,7 +743,7 @@ async def get_user_plan(
         )
 
     if _current_user.id != user_id and not user_has_permission(
-        _current_user, "schedule:view"
+        _current_user, "users:view"
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
