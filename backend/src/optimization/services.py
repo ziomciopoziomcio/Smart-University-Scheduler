@@ -70,6 +70,8 @@ def _get_requirements(faculty_id: int, db: Session):
             course_models.Course_type_detail.max_group_participants_number,
             ac_mod.Groups.group_name,
             func.coalesce(member_count_sq.c.members_amount, 0).label("members_amount"),
+            course_models.Study_fields.mode.label("study_mode"),
+            course_models.Study_fields.degree.label("study_degree"),
         )
         .select_from(course_models.Study_program)
         .join(
@@ -94,13 +96,13 @@ def _get_requirements(faculty_id: int, db: Session):
         .filter(course_models.Study_fields.faculty == faculty_id)
         .filter(
             or_(
-                course_models.Curriculum_course.major is None,
+                course_models.Curriculum_course.major.is_(None),
                 course_models.Curriculum_course.major == ac_mod.Groups.major,
             )
         )
         .filter(
             or_(
-                course_models.Curriculum_course.elective_block is None,
+                course_models.Curriculum_course.elective_block.is_(None),
                 course_models.Curriculum_course.elective_block
                 == ac_mod.Groups.elective_block,
             )
@@ -202,7 +204,7 @@ def _bin_pack_requirements(requirements) -> tuple[list, list]:
             req.class_type.value if hasattr(req.class_type, "value") else req.class_type
         )
         norm_type = c_type.split(".")[-1].strip().upper()
-        req_key = (req.course_code, norm_type)
+        req_key = (req.course_code, norm_type, req.study_mode, req.study_degree)
         grouped_requirements[req_key].append(req)
 
     processed_reqs = []
