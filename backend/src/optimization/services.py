@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, and_
 from collections import defaultdict
 
 from ..academics import models as ac_mod
@@ -27,17 +27,29 @@ def _get_rooms(faculty_id: int, db: Session):
 
 
 def _get_competencies(faculty_id: int, db: Session):
+    faculty_courses_sq = (
+        db.query(course_models.Curriculum_course.course)
+        .join(
+            course_models.Study_program,
+            course_models.Curriculum_course.study_program
+            == course_models.Study_program.id,
+        )
+        .join(
+            course_models.Study_fields,
+            course_models.Study_program.study_field == course_models.Study_fields.id,
+        )
+        .filter(course_models.Study_fields.faculty == faculty_id)
+        .distinct()
+        .subquery()
+    )
+
     return (
         db.query(
             course_models.Courses_instructors.course,
             course_models.Courses_instructors.class_type,
             func.sum(course_models.Courses_instructors.hours).label("total_hours"),
         )
-        .join(
-            ac_mod.Employees,
-            course_models.Courses_instructors.employee == ac_mod.Employees.id,
-        )
-        .filter(ac_mod.Employees.faculty_id == faculty_id)
+        .filter(course_models.Courses_instructors.course.in_(faculty_courses_sq))
         .group_by(
             course_models.Courses_instructors.course,
             course_models.Courses_instructors.class_type,
@@ -96,13 +108,19 @@ def _get_requirements(faculty_id: int, db: Session):
         .filter(course_models.Study_fields.faculty == faculty_id)
         .filter(
             or_(
-                course_models.Curriculum_course.major.is_(None),
+                and_(
+                    course_models.Curriculum_course.major.is_(None),
+                    ac_mod.Groups.major.is_(None),
+                ),
                 course_models.Curriculum_course.major == ac_mod.Groups.major,
             )
         )
         .filter(
             or_(
-                course_models.Curriculum_course.elective_block.is_(None),
+                and_(
+                    course_models.Curriculum_course.elective_block.is_(None),
+                    ac_mod.Groups.elective_block.is_(None),
+                ),
                 course_models.Curriculum_course.elective_block
                 == ac_mod.Groups.elective_block,
             )
