@@ -44,8 +44,6 @@ REQUIREMENTS_QUERY = """
         g.id AS group_id,
         g.group_name,
         sp.program_name,
-        sf.mode AS study_mode,
-        sf.degree AS study_degree,
         COALESCE(gm.members_amount, 0) AS members_amount
     FROM study_programs sp
     JOIN study_fields sf ON sp.study_field = sf.id
@@ -60,15 +58,8 @@ REQUIREMENTS_QUERY = """
     ) gm ON gm.group_id = g.id
 
     WHERE sf.faculty = %(faculty_id)s
-      AND (
-          (cc.major IS NULL AND g.major IS NULL)
-          OR cc.major = g.major
-      )
-      AND (
-          (cc.elective_block IS NULL AND g.elective_block IS NULL)
-          OR cc.elective_block = g.elective_block
-      )
-      AND cc.semester = g.semester
+      AND (cc.major IS NULL OR cc.major = g.major)
+      AND (cc.elective_block IS NULL OR cc.elective_block = g.elective_block)
       AND g.is_active = true
 """
 COMPETENCIES_QUERY = """
@@ -78,13 +69,8 @@ COMPETENCIES_QUERY = """
         ci.class_type,
         ci.hours
     FROM courses_instructors ci
-    WHERE ci.course IN (
-        SELECT DISTINCT cc.course
-        FROM curriculum_courses cc
-        JOIN study_programs sp ON cc.study_program = sp.id
-        JOIN study_fields sf ON sp.study_field = sf.id
-        WHERE sf.faculty = %(faculty_id)s
-    )
+    JOIN employees e ON ci.employee = e.id
+    WHERE e.faculty_id = %(faculty_id)s
 """
 CONFLICTING_GROUPS_QUERY = """
     SELECT DISTINCT gm1."group" AS group_a, gm2."group" AS group_b
@@ -241,12 +227,7 @@ class DataProvider:
 
         for _, row in requirements_df.iterrows():
             c_type = str(row["class_type"]).split(".")[-1].strip().upper()
-            req_key = (
-                row["course_code"],
-                c_type,
-                row["study_mode"],
-                row["study_degree"],
-            )
+            req_key = (row["course_code"], c_type)
             grouped_requirements[req_key].append(row)
 
         processed_bins = []
