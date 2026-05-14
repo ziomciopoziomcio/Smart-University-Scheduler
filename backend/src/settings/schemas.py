@@ -18,6 +18,18 @@ def default_academic_year() -> str:
     return f"{year - 1}/{year}"
 
 
+def default_semester_type() -> ac_models.SemesterType:
+    """
+    Default semester type based on current month:
+    - month >= 9 -> WINTER
+    - else -> SUMMER
+    """
+    today = date.today()
+    if today.month >= 9:
+        return ac_models.SemesterType.WINTER
+    return ac_models.SemesterType.SUMMER
+
+
 class BaseSchema(BaseModel):
     """Base Pydantic schema enabling ORM <-> Pydantic conversion (from_attributes=True)."""
 
@@ -39,7 +51,9 @@ class PlannerSettingsBase(BaseSchema):
     planned_academic_year: Annotated[str, StringConstraints(max_length=20)] = Field(
         default_factory=default_academic_year
     )
-    planned_semester_type: ac_models.SemesterType
+    planned_semester_type: ac_models.SemesterType = Field(
+        default_factory=default_semester_type
+    )
     is_planning_active: bool = True
 
     @field_validator("planned_academic_year")
