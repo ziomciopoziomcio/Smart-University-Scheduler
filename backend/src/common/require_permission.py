@@ -25,3 +25,9 @@ def require_permission(permission_code: str):
         return current_user
 
     return dependency
+
+
+def user_has_permission(user: models.Users, permission_code: str) -> bool:
+    return any(
+        perm.code == permission_code for role in user.roles for perm in role.permissions
+    )

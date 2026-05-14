@@ -11,7 +11,10 @@ from . import schemas
 from ..academics import models as ac_mod
 from ..common.kafka_client import send_event
 from ..common.pagination.pagination import PaginatedResponse, paginate
-from ..common.require_permission import require_permission
+from ..common.require_permission import (
+    require_permission,
+    user_has_permission,
+)
 from ..common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
@@ -736,6 +739,14 @@ async def get_user_plan(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="start_date must be a Monday.",
+        )
+
+    if _current_user.id != user_id and not user_has_permission(
+        _current_user, "schedule:view:others"
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to view other users' schedules",
         )
 
     student = _get_student_with_user_id(db, user_id)
