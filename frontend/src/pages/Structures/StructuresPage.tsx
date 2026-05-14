@@ -99,7 +99,7 @@ export default function StructuresPage({view}: StructuresPageProps) {
         } finally {
             setLoading(false);
         }
-    }, [view, facultyId, page, pageSize, debouncedSearch]);
+    }, [intl, view, facultyId, page, pageSize, debouncedSearch]);
 
     useEffect(() => {
         void loadData();
