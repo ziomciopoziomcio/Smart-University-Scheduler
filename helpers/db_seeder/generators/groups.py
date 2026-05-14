@@ -73,6 +73,14 @@ def _get_specified_study_program(
     return matches_per_name[-year]
 
 
+def _get_active(deg: int, semester: int) -> bool:
+    if deg == 1 and semester % 2 != 0:
+        return False
+    if deg == 2 and semester % 2 == 0:
+        return False
+    return True
+
+
 def generate_common_groups(
     session: Session,
     sourcefile: str,
@@ -106,14 +114,20 @@ def generate_common_groups(
         sp_id = sp_obj.id
         sp_name = sp_obj.program_name
 
-        if "2025/26" in sp_name:
+        if "2025/26" in sp_name and "1. stopień" in sp_name:
             semester = 2
-        elif "2024/25" in sp_name:
+        elif "2024/25" in sp_name and "1. stopień" in sp_name:
             semester = 4
-        elif "2023/24" in sp_name:
+        elif "2023/24" in sp_name and "1. stopień" in sp_name:
             semester = 6
+        elif "2025/26" in sp_name and "2. stopień" in sp_name:
+            semester = 1
+        elif "2024/25" in sp_name and "2. stopień" in sp_name:
+            semester = 3
         else:
             semester = 1
+
+        is_active = _get_active(deg, semester)
 
         for group_id in range(1, common + 1):
             group_name = _generate_common_group_name(sp_name, group_id)
@@ -124,6 +138,7 @@ def generate_common_groups(
                 major=None,
                 elective_block=None,
                 semester=semester,
+                is_active=is_active,
             )
             session.add(group_obj)
             db_common_groups[group_name] = group_obj
@@ -276,14 +291,20 @@ def generate_major_groups(
         sp_id = sp_obj.id
         sp_name = sp_obj.program_name
 
-        if "2025/26" in sp_name:
+        if "2025/26" in sp_name and "1. stopień" in sp_name:
             semester = 2
-        elif "2024/25" in sp_name:
+        elif "2024/25" in sp_name and "1. stopień" in sp_name:
             semester = 4
-        elif "2023/24" in sp_name:
+        elif "2023/24" in sp_name and "1. stopień" in sp_name:
             semester = 6
+        elif "2025/26" in sp_name and "2. stopień" in sp_name:
+            semester = 1
+        elif "2024/25" in sp_name and "2. stopień" in sp_name:
+            semester = 3
         else:
             semester = 1
+
+        is_active = _get_active(deg, semester)
 
         for group_id in range(1, major_groups + 1):
 
@@ -299,6 +320,7 @@ def generate_major_groups(
                     major=major_id,
                     elective_block=None,
                     semester=semester,
+                    is_active=is_active,
                 )
                 session.add(group_obj)
                 db_major_groups[group_name] = group_obj
@@ -469,14 +491,20 @@ def generate_elective_groups(
         sp_id = sp_obj.id
         sp_name = sp_obj.program_name
 
-        if "2025/26" in sp_name:
+        if "2025/26" in sp_name and "1. stopień" in sp_name:
             semester = 2
-        elif "2024/25" in sp_name:
+        elif "2024/25" in sp_name and "1. stopień" in sp_name:
             semester = 4
-        elif "2023/24" in sp_name:
+        elif "2023/24" in sp_name and "1. stopień" in sp_name:
             semester = 6
+        elif "2025/26" in sp_name and "2. stopień" in sp_name:
+            semester = 1
+        elif "2024/25" in sp_name and "2. stopień" in sp_name:
+            semester = 3
         else:
             semester = 1
+
+        is_active = _get_active(deg, semester)
 
         for group_id in range(1, elective_groups + 1):
 
@@ -492,6 +520,7 @@ def generate_elective_groups(
                     major=None,
                     elective_block=eb_id,
                     semester=semester,
+                    is_active=is_active,
                 )
                 session.add(group_obj)
                 db_elective_groups[group_name] = group_obj
