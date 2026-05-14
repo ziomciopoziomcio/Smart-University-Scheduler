@@ -1,6 +1,21 @@
+import re
 from typing import Annotated
-from pydantic import BaseModel, ConfigDict, StringConstraints
+from datetime import date
+from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
 from ..academics import models as ac_models
+
+
+def default_academic_year() -> str:
+    """
+    Compute current academic year string in format 'YYYY/YYYY' using the rule:
+    - if month >= 9 (September..December): current_year / current_year+1
+    - else: (current_year-1) / current_year
+    """
+    today = date.today()
+    year = today.year
+    if today.month >= 9:
+        return f"{year}/{year + 1}"
+    return f"{year - 1}/{year}"
 
 
 class BaseSchema(BaseModel):
@@ -21,9 +36,18 @@ class PlannerSettingsBase(BaseSchema):
     """
 
     faculty_id: int
-    planned_academic_year: Annotated[str, StringConstraints(max_length=20)]
+    planned_academic_year: Annotated[str, StringConstraints(max_length=20)] = Field(
+        default_factory=default_academic_year
+    )
     planned_semester_type: ac_models.SemesterType
     is_planning_active: bool = True
+
+    @field_validator("planned_academic_year")
+    @classmethod
+    def _validate_planned_academic_year(cls, v: str) -> str:
+        if not re.fullmatch(r"\d{4}/\d{4}", v):
+            raise ValueError("planned_academic_year must be in format YYYY/YYYY")
+        return v
 
 
 class PlannerSettingsCreate(PlannerSettingsBase):
