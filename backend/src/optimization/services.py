@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, and_
 from collections import defaultdict
 
 from ..academics import models as ac_mod
@@ -27,17 +27,29 @@ def _get_rooms(faculty_id: int, db: Session):
 
 
 def _get_competencies(faculty_id: int, db: Session):
+    faculty_courses_sq = (
+        db.query(course_models.Curriculum_course.course)
+        .join(
+            course_models.Study_program,
+            course_models.Curriculum_course.study_program
+            == course_models.Study_program.id,
+        )
+        .join(
+            course_models.Study_fields,
+            course_models.Study_program.study_field == course_models.Study_fields.id,
+        )
+        .filter(course_models.Study_fields.faculty == faculty_id)
+        .distinct()
+        .subquery()
+    )
+
     return (
         db.query(
             course_models.Courses_instructors.course,
             course_models.Courses_instructors.class_type,
             func.sum(course_models.Courses_instructors.hours).label("total_hours"),
         )
-        .join(
-            ac_mod.Employees,
-            course_models.Courses_instructors.employee == ac_mod.Employees.id,
-        )
-        .filter(ac_mod.Employees.faculty_id == faculty_id)
+        .filter(course_models.Courses_instructors.course.in_(faculty_courses_sq))
         .group_by(
             course_models.Courses_instructors.course,
             course_models.Courses_instructors.class_type,
@@ -70,6 +82,8 @@ def _get_requirements(faculty_id: int, db: Session):
             course_models.Course_type_detail.max_group_participants_number,
             ac_mod.Groups.group_name,
             func.coalesce(member_count_sq.c.members_amount, 0).label("members_amount"),
+            course_models.Study_fields.mode.label("study_mode"),
+            course_models.Study_fields.degree.label("study_degree"),
         )
         .select_from(course_models.Study_program)
         .join(
@@ -94,13 +108,19 @@ def _get_requirements(faculty_id: int, db: Session):
         .filter(course_models.Study_fields.faculty == faculty_id)
         .filter(
             or_(
-                course_models.Curriculum_course.major is None,
+                and_(
+                    course_models.Curriculum_course.major.is_(None),
+                    ac_mod.Groups.major.is_(None),
+                ),
                 course_models.Curriculum_course.major == ac_mod.Groups.major,
             )
         )
         .filter(
             or_(
-                course_models.Curriculum_course.elective_block is None,
+                and_(
+                    course_models.Curriculum_course.elective_block.is_(None),
+                    ac_mod.Groups.elective_block.is_(None),
+                ),
                 course_models.Curriculum_course.elective_block
                 == ac_mod.Groups.elective_block,
             )
@@ -114,27 +134,28 @@ def _get_requirements(faculty_id: int, db: Session):
 def _check_semester_parity(
     faculty_id: int, target_semester: SemesterType, db: Session
 ) -> list[str]:
-    active_groups = (
-        db.query(ac_mod.Groups.group_name, ac_mod.Groups.semester)
-        .join(
-            course_models.Study_program,
-            ac_mod.Groups.study_program == course_models.Study_program.id,
-        )
-        .join(
-            course_models.Study_fields,
-            course_models.Study_program.study_field == course_models.Study_fields.id,
-        )
-        .filter(course_models.Study_fields.faculty == faculty_id)
-        .filter(ac_mod.Groups.is_active.is_(True))
-        .all()
-    )
+    print(faculty_id, target_semester, db)  # todo: Handle II cycle
+    # active_groups = (
+    #     db.query(ac_mod.Groups.group_name, ac_mod.Groups.semester)
+    #     .join(
+    #         course_models.Study_program,
+    #         ac_mod.Groups.study_program == course_models.Study_program.id,
+    #     )
+    #     .join(
+    #         course_models.Study_fields,
+    #         course_models.Study_program.study_field == course_models.Study_fields.id,
+    #     )
+    #     .filter(course_models.Study_fields.faculty == faculty_id)
+    #     .filter(ac_mod.Groups.is_active.is_(True))
+    #     .all()
+    # )
 
     mismatched_groups = []
-    for g_name, semester in active_groups:
-        if target_semester == SemesterType.WINTER and semester % 2 == 0:
-            mismatched_groups.append(f"{g_name} (currently semester: {semester})")
-        elif target_semester == SemesterType.SUMMER and semester % 2 != 0:
-            mismatched_groups.append(f"{g_name} (currently semester: {semester})")
+    # for g_name, semester in active_groups:
+    #     if target_semester == SemesterType.WINTER and semester % 2 == 0:
+    #         mismatched_groups.append(f"{g_name} (currently semester: {semester})")
+    #     elif target_semester == SemesterType.SUMMER and semester % 2 != 0:
+    #         mismatched_groups.append(f"{g_name} (currently semester: {semester})")
 
     return mismatched_groups
 
@@ -202,7 +223,7 @@ def _bin_pack_requirements(requirements) -> tuple[list, list]:
             req.class_type.value if hasattr(req.class_type, "value") else req.class_type
         )
         norm_type = c_type.split(".")[-1].strip().upper()
-        req_key = (req.course_code, norm_type)
+        req_key = (req.course_code, norm_type, req.study_mode, req.study_degree)
         grouped_requirements[req_key].append(req)
 
     processed_reqs = []
