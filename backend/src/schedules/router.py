@@ -742,7 +742,7 @@ async def get_user_plan(
         )
 
     if _current_user.id != user_id and not user_has_permission(
-        _current_user, "schedule:view:others"
+        _current_user, "schedule:view"
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
