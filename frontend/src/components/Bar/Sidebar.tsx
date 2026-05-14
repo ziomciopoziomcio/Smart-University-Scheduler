@@ -1,0 +1,265 @@
+import {useState} from 'react';
+// @ts-expect-error: some internal issue with svgr types, but it works
+import backpack_icon from '@assets/icons/backpack.svg?react';
+// @ts-expect-error: some internal issue with svgr types, but it works
+import building_icon from '@assets/icons/building.svg?react';
+// @ts-expect-error: some internal issue with svgr types, but it works
+import key_icon from '@assets/icons/key.svg?react';
+// @ts-expect-error: some internal issue with svgr types, but it works
+import diagram_icon from '@assets/icons/diagram.svg?react';
+// @ts-expect-error: some internal issue with svgr types, but it works
+import easel_icon from '@assets/icons/easel.svg?react';
+import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
+import GenerateScheduleIcon from '@mui/icons-material/EditCalendarOutlined';
+import StarBorderPurple500OutlinedIcon from '@mui/icons-material/StarBorderPurple500Outlined';
+
+
+import {
+    Drawer,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Box,
+    IconButton,
+    SvgIcon
+} from '@mui/material';
+import {
+    PersonOutlined,
+    SettingsOutlined,
+    ChatBubbleOutline,
+    ArrowBack,
+    ArrowForward,
+    GroupsOutlined,
+    InboxOutlined,
+} from '@mui/icons-material';
+import {useIntl} from 'react-intl';
+import SidebarClock from './SidebarClock';
+import SidebarCalendar from './SidebarCalendar';
+import {NavLink} from 'react-router-dom';
+import {theme} from "../../theme/theme";
+import {useAuthStore} from "@store/useAuthStore";
+import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
+
+interface SidebarMenuItem {
+    id: string;
+    icon: React.ReactNode;
+    path: string;
+    allowedRoles?: string[];
+}
+
+const menuConfig: SidebarMenuItem[] = [
+    {
+        id: 'sidebar.myPlan',
+        icon: <PersonOutlined/>,
+        path: '/plan', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.employees', // employees or maybe "staff"?
+        icon: <SvgIcon component={easel_icon} inheritViewBox/>,
+        path: '/employees', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.facilities', // facilities (buildings, rooms, campuses)
+        icon: <SvgIcon component={building_icon} inheritViewBox/>,
+        path: '/facilities', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.structures', // structures (units, faculties)
+        icon: <SvgIcon component={diagram_icon} inheritViewBox/>,
+        path: '/structures', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.didactics',
+        icon: <SchoolOutlinedIcon/>,
+        path: '/didactics', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.programs',
+        icon: <StarBorderPurple500OutlinedIcon/>,
+        path: '/programs', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.students', // students
+        icon: <SvgIcon component={backpack_icon} inheritViewBox/>,
+        path: '/students', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.plans', // plans (study plans, course plans)
+        icon: <GroupsOutlined/>,
+        path: '/schedules',  // TODO:  add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.chat',
+        icon: <ChatBubbleOutline/>,
+        path: '/chat',  // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.suggestions',
+        icon: <InboxOutlined/>,
+        path: '/',  // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.permissions',
+        icon: <SvgIcon component={key_icon} inheritViewBox/>,
+        path: '/roles', // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.users',
+        icon: <AlternateEmailIcon/>,
+        path: '/users',  // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.settings',
+        icon: <SettingsOutlined/>,
+        path: '/',  // TODO: change to real path and add allowedRoles
+        allowedRoles: []
+    },
+    {
+        id: 'sidebar.generateSchedule',
+        icon: <GenerateScheduleIcon/>,
+        path: '/generate',
+        allowedRoles: []
+    },
+
+
+];
+
+export function Sidebar() {
+    const [open, setOpen] = useState(false);
+    const drawerWidth = open ? 310 : 80;
+    const intl = useIntl();
+
+    const {user} = useAuthStore();
+
+    const canView = (allowedRoles?: string[]) => {
+        if (!allowedRoles || allowedRoles.length === 0) return true;
+        if (!user?.roles) return false;
+        return user.roles.some((role) => allowedRoles.includes(role));
+    };
+
+    return (
+        <Drawer
+            variant="permanent"
+            sx={{
+                width: drawerWidth,
+                flexShrink: 0,
+                transition: 'width 0.3s ease',
+                '& .MuiDrawer-paper': {
+                    width: drawerWidth,
+                    transition: 'width 0.3s ease',
+                    overflowX: 'hidden',
+                    background: theme.palette.background.default,
+                    borderRight: 'none',
+                    pt: '100px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: open ? 'flex-start' : 'center',
+                    px: open ? 2 : 0,
+                    boxShadow: 'none',
+                    overflowY: 'auto',
+                    msOverflowStyle: 'none',
+                    scrollbarWidth: 'none',
+                    '&::-webkit-scrollbar': {
+                        display: 'none',
+                    },
+                },
+            }}
+        >
+            <Box sx={{
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2,
+                mb: open ? 0 : 2,
+                px: open ? 1 : 0
+            }}>
+                <SidebarClock open={open}/>
+                <SidebarCalendar open={open}/>
+            </Box>
+
+            <List sx={{width: '100%', px: open ? 0 : 1}}>
+                {menuConfig
+                    .filter((item) => canView(item.allowedRoles))
+                    .map((item) => (
+                        <ListItem key={item.id} disablePadding sx={{display: 'block', mb: open ? 0.5 : 1.5}}>
+                            <NavLink
+                                to={item.path}
+                                style={{textDecoration: 'none', display: 'block'}}
+                            >
+                                {({isActive}) => (
+                                    <ListItemButton
+                                        sx={{
+                                            minHeight: 44,
+                                            justifyContent: open ? 'initial' : 'center',
+                                            px: 2.5,
+                                            borderRadius: '12px',
+                                            backgroundColor: isActive ? '#FFF' : 'transparent',
+                                            color: isActive ? '#045f8d' : '#555',
+                                            transition: 'all 0.2s ease-in-out',
+                                            '&:hover': {
+                                                backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                                            },
+                                        }}
+                                    >
+                                        <ListItemIcon
+                                            sx={{
+                                                minWidth: 0,
+                                                mr: open ? 2 : 'auto',
+                                                justifyContent: 'center',
+                                                color: 'inherit',
+                                                '& svg': {
+                                                    fontSize: open ? 20 : 25,
+                                                }
+                                            }}
+                                        >
+                                            {item.icon}
+                                        </ListItemIcon>
+
+                                        {open && (
+                                            <ListItemText
+                                                primary={intl.formatMessage({id: item.id})}
+                                                primaryTypographyProps={{
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: isActive ? 600 : 500,
+                                                }}
+                                            />
+                                        )}
+                                    </ListItemButton>
+                                )}
+                            </NavLink>
+                        </ListItem>
+                    ))}
+            </List>
+
+            <Box sx={{mt: 'auto', mb: open ? 1 : 4, width: '100%', display: 'flex', justifyContent: 'center'}}>
+                <IconButton
+                    onClick={() => {
+                        setOpen(!open)
+                    }}
+                    sx={{
+                        background: 'white',
+                        boxShadow: '0px 4px 10px rgba(0,0,0,0.05)',
+                        '&:hover': {bgcolor: '#fff'}
+                    }}
+                >
+                    {open ? <ArrowBack/> : <ArrowForward/>}
+                </IconButton>
+            </Box>
+        </Drawer>
+    );
+}

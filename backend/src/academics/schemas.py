@@ -85,6 +85,8 @@ class GroupsBase(BaseSchema):
     study_program: int
     major: int | None = None
     elective_block: int | None = None
+    semester: int
+
     is_active: bool = True
 
     @model_validator(mode="after")

@@ -1,0 +1,194 @@
+import {useState, useEffect, useCallback} from 'react';
+import {useParams} from 'react-router-dom';
+import {Box, Paper, CircularProgress, Alert} from '@mui/material';
+import {useIntl} from 'react-intl';
+
+import {CampusView, BuildingView, RoomView} from '@components/Facilities';
+
+import {type BreadcrumbItem, PageBreadcrumbs, SearchBar, ListPagination} from '@components/Common';
+import {
+    fetchCampuses,
+    fetchBuildings,
+    fetchRooms,
+    getBuilding,
+    getCampus,
+    type Campus,
+    type Building,
+    type Room
+} from '@api';
+
+
+interface FacilitiesPageProps {
+    view: 'campuses' | 'buildings' | 'rooms';
+}
+
+export default function FacilitiesPage({view}: FacilitiesPageProps) {
+    const {campusId, buildingId} = useParams();
+    const intl = useIntl();
+
+    const [data, setData] = useState<(Campus | Building | Room)[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
+
+    const [currentCampus, setCurrentCampus] = useState<Campus | null>(null);
+    const [currentBuilding, setCurrentBuilding] = useState<Building | null>(null);
+
+    useEffect(() => {
+        setPage(1);
+        setSearch('');
+        setDebouncedSearch('');
+    }, [view, campusId, buildingId]);
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1);
+        }, 300);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [search]);
+
+    const getSearchPlaceholder = () => {
+        switch (view) {
+            case 'campuses':
+                return intl.formatMessage({id: 'facilities.campus.searchPlaceholder'});
+            case 'buildings':
+                return intl.formatMessage({id: 'facilities.building.searchPlaceholder'});
+            case 'rooms':
+                return intl.formatMessage({id: 'facilities.room.searchPlaceholder'});
+            default:
+                return intl.formatMessage({id: 'facilities.common.searchPlaceholder'});
+        }
+    };
+
+    const getBreadcrumbs = () => {
+        const items: BreadcrumbItem[] = [{
+            label: intl.formatMessage({id: 'facilities.breadcrumbs.main'}),
+            path: '/facilities'
+        }];
+
+        if (campusId) {
+            items.push({
+                label: currentCampus ?
+                    `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${currentCampus.campus_short}` :
+                    `${intl.formatMessage({id: 'facilities.breadcrumbs.campus'})} ${campusId}`,
+                path: `/facilities/campus/${campusId}`
+            });
+        }
+
+        if (buildingId) {
+            items.push({
+                label: currentBuilding ?
+                    `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${currentBuilding.building_number}` :
+                    `${intl.formatMessage({id: 'facilities.breadcrumbs.building'})} ${buildingId}`
+            });
+        }
+        return items;
+    };
+
+    const loadData = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            if (view === 'campuses') {
+                const res = await fetchCampuses(page, pageSize, debouncedSearch);
+                setData(res.items);
+                setTotalItems(res.total);
+                setCurrentCampus(null);
+                setCurrentBuilding(null);
+
+            } else if (view === 'buildings' && campusId) {
+                const [buildingsRes, campusData] = await Promise.all([
+                    fetchBuildings(Number(campusId), page, pageSize, debouncedSearch),
+                    getCampus(Number(campusId))
+                ]);
+                setData(buildingsRes.items);
+                setTotalItems(buildingsRes.total);
+                setCurrentCampus(campusData);
+                setCurrentBuilding(null);
+
+            } else if (view === 'rooms' && buildingId && campusId) {
+                const [roomsRes, campusData, buildingData] = await Promise.all([
+                    fetchRooms(Number(buildingId), page, pageSize, debouncedSearch),
+                    getCampus(Number(campusId)),
+                    getBuilding(Number(buildingId))
+                ]);
+                setData(roomsRes.items);
+                setTotalItems(roomsRes.total);
+                setCurrentCampus(campusData);
+                setCurrentBuilding(buildingData);
+            }
+
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, [view, campusId, buildingId, page, pageSize, debouncedSearch]);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
+    return (
+        <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, width: '100%'}}>
+            <SearchBar
+                placeholder={getSearchPlaceholder()}
+                value={search}
+                onChange={setSearch}
+            />
+
+            <PageBreadcrumbs items={getBreadcrumbs()}/>
+
+            <Paper elevation={0} sx={{p: 3, border: '1px solid rgba(0,0,0,0.05)', flexGrow: 1, mb: 3}}>
+
+                {loading && <Box sx={{display: 'flex', justifyContent: 'center', py: 4}}><CircularProgress/></Box>}
+                {error && <Alert severity="error">{error}</Alert>}
+                {!loading && !error && (
+                    <>
+                        {view === 'campuses' &&
+                            <CampusView
+                                data={data as Campus[]}
+                                onRefresh={() => loadData()}
+                            />}
+                        {view === 'buildings' && (
+                            <BuildingView
+                                data={data as Building[]}
+                                campusId={Number(campusId)}
+                                onRefresh={() => loadData()}
+                            />
+                        )}
+                        {view === 'rooms' && (
+                            <RoomView
+                                data={data as Room[]}
+                                buildingId={Number(buildingId)}
+                                onRefresh={() => loadData()}
+                            />
+                        )}
+
+                        {totalItems > 0 && (
+                            <ListPagination
+                                page={page}
+                                totalItems={totalItems}
+                                pageSize={pageSize}
+                                onPageChange={setPage}
+                                onPageSizeChange={(size) => {
+                                    setPageSize(size);
+                                    setPage(1);
+                                }}
+                            />
+                        )}
+                    </>
+                )}
+            </Paper>
+        </Box>
+    );
+}
