@@ -742,9 +742,7 @@ async def get_user_plan(
             detail="start_date must be a Monday.",
         )
 
-    if _current_user.id != user_id and not user_has_permission(
-        _current_user, "users:view"
-    ):
+    if _current_user.id != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions to view other users' schedules",
