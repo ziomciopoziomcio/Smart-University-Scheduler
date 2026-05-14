@@ -17,7 +17,7 @@ import {
     SuggestionsQueuePanel,
     SuggestionDetails,
     type SuggestionStatusFilter,
-} from '@components/suggestions';
+} from '@components/Suggestions';
 
 export default function SuggestionsPage() {
     const intl = useIntl();
