@@ -1,12 +1,11 @@
 import os
-from typing import Optional
 
 from .email_client import (
     send_email,
 )
 
 
-def _build_verify_link(token: str, base_url: Optional[str] = None) -> str:
+def _build_verify_link(token: str, base_url: str | None = None) -> str:
     base = (base_url or os.getenv("PUBLIC_BASE_URL", "")).rstrip("/")
     if not base:
         raise RuntimeError("PUBLIC_BASE_URL is not configured")
@@ -14,7 +13,7 @@ def _build_verify_link(token: str, base_url: Optional[str] = None) -> str:
 
 
 def send_verification_email(
-    user_email: str, token: str, base_url: Optional[str] = None
+    user_email: str, token: str, base_url: str | None = None
 ) -> None:
     """
     Build verification link and send the verification email.
@@ -38,7 +37,7 @@ def send_verification_email(
 def send_password_reset_email(
     user_email: str,
     token: str,
-    base_url: Optional[str] = None,
+    base_url: str | None = None,
     expire_minutes: int = 30,
 ) -> None:
     """
@@ -62,7 +61,7 @@ def send_password_reset_email(
 def send_login_credentials_email(
     user_email: str,
     temporary_password: str,
-    base_url: Optional[str] = None,
+    base_url: str | None = None,
 ) -> None:
     base = (base_url or os.getenv("PUBLIC_BASE_URL", "")).rstrip("/")
     if not base:

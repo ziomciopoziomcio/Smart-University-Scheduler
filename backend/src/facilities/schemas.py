@@ -2,7 +2,7 @@
 Data validation schemas
 """
 
-from typing import Optional, Annotated
+from typing import Annotated
 
 from pydantic import BaseModel, Field, StringConstraints, ConfigDict
 
@@ -13,7 +13,7 @@ class BaseSchema(BaseModel):
 
 class CampusBase(BaseSchema):
     campus_short: Annotated[str, StringConstraints(max_length=255)]
-    campus_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    campus_name: Annotated[str, StringConstraints(max_length=255)] | None = None
 
 
 class CampusCreate(CampusBase):
@@ -25,15 +25,15 @@ class CampusRead(CampusBase):
 
 
 class CampusUpdate(BaseModel):
-    campus_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    campus_short: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    campus_name: Annotated[str, StringConstraints(max_length=255)] | None = None
+    campus_short: Annotated[str, StringConstraints(max_length=255)] | None = None
 
 
 # Buildings
 class BuildingBase(BaseSchema):
     building_number: Annotated[str, StringConstraints(max_length=255)]
     campus_id: int
-    building_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    building_name: Annotated[str, StringConstraints(max_length=255)] | None = None
 
 
 class BuildingCreate(BuildingBase):
@@ -46,9 +46,9 @@ class BuildingRead(BuildingBase):
 
 
 class BuildingUpdate(BaseModel):
-    building_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    building_number: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    campus_id: Optional[int] = None
+    building_name: Annotated[str, StringConstraints(max_length=255)] | None = None
+    building_number: Annotated[str, StringConstraints(max_length=255)] | None = None
+    campus_id: int | None = None
 
 
 # Rooms
@@ -58,7 +58,7 @@ class RoomBase(BaseSchema):
     faculty_id: int
     pc_amount: Annotated[int, Field(ge=0)] = 0
     room_capacity: Annotated[int, Field(gt=0)] = 15
-    unit_id: Optional[int] = None
+    unit_id: int | None = None
     projector_availability: bool = False
 
 
@@ -71,12 +71,12 @@ class RoomRead(RoomBase):
 
 
 class RoomUpdate(BaseModel):
-    room_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    projector_availability: Optional[bool] = None
-    pc_amount: Optional[Annotated[int, Field(ge=0)]] = None
-    room_capacity: Optional[Annotated[int, Field(gt=0)]] = None
-    building_id: Optional[int] = None
-    unit_id: Optional[int] = None
+    room_name: Annotated[str, StringConstraints(max_length=255)] | None = None
+    projector_availability: bool | None = None
+    pc_amount: Annotated[int, Field(ge=0)] | None = None
+    room_capacity: Annotated[int, Field(gt=0)] | None = None
+    building_id: int | None = None
+    unit_id: int | None = None
     faculty_id: int | None = None
 
 
@@ -100,5 +100,5 @@ class FacultyReadWithCounter(FacultyRead):
 
 
 class FacultyUpdate(BaseModel):
-    faculty_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    faculty_short: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    faculty_name: Annotated[str, StringConstraints(max_length=255)] | None = None
+    faculty_short: Annotated[str, StringConstraints(max_length=255)] | None = None

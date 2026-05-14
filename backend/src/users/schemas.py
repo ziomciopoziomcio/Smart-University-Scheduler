@@ -3,7 +3,7 @@ Data validation schemas
 """
 
 from datetime import datetime
-from typing import Optional, Annotated, List, Any
+from typing import Annotated, List, Any
 
 from pydantic import (
     BaseModel,
@@ -23,17 +23,17 @@ class BaseSchema(BaseModel):
 class PermissionRead(BaseSchema):
     id: int
     code: Annotated[str, StringConstraints(max_length=100)]
-    name: Optional[Annotated[str, StringConstraints(max_length=100)]]
-    description: Optional[Annotated[str, StringConstraints(max_length=200)]]
-    group: Optional[Annotated[str, StringConstraints(max_length=50)]]
+    name: Annotated[str, StringConstraints(max_length=100)] | None
+    description: Annotated[str, StringConstraints(max_length=200)] | None
+    group: Annotated[str, StringConstraints(max_length=50)] | None
 
 
 class UserBase(BaseSchema):
     email: Annotated[EmailStr, StringConstraints(max_length=255)]
-    phone_number: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
+    phone_number: Annotated[str, StringConstraints(max_length=20)] | None = None
     name: Annotated[str, StringConstraints(max_length=255)]
     surname: Annotated[str, StringConstraints(max_length=255)]
-    degree: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    degree: Annotated[str, StringConstraints(max_length=255)] | None = None
 
 
 class UserCreate(UserBase):
@@ -96,12 +96,12 @@ class UserRead(UserBase):
 
 
 class UserUpdate(BaseModel):
-    email: Optional[Annotated[EmailStr, StringConstraints(max_length=255)]] = None
-    phone_number: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
-    name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    surname: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    degree: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    password: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    email: Annotated[EmailStr, StringConstraints(max_length=255)] | None = None
+    phone_number: Annotated[str, StringConstraints(max_length=20)] | None = None
+    name: Annotated[str, StringConstraints(max_length=255)] | None = None
+    surname: Annotated[str, StringConstraints(max_length=255)] | None = None
+    degree: Annotated[str, StringConstraints(max_length=255)] | None = None
+    password: Annotated[str, StringConstraints(max_length=255)] | None = None
     roles: list[Annotated[str, StringConstraints(max_length=255)]] | None = Field(
         default=None
     )
@@ -125,8 +125,8 @@ class RoleReadWithCount(RoleRead):
 
 
 class RoleUpdate(BaseModel):
-    role_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    permissions: Optional[List[int]] = None
+    role_name: Annotated[str, StringConstraints(max_length=255)] | None = None
+    permissions: List[int] | None = None
 
 
 class Token(BaseModel):
@@ -139,7 +139,7 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    sub: Optional[str] = None
+    sub: str | None = None
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -184,8 +184,8 @@ class SignupRequest(BaseModel):
     password2: Annotated[str, StringConstraints(min_length=8, max_length=255)]
     name: Annotated[str, StringConstraints(max_length=255)]
     surname: Annotated[str, StringConstraints(max_length=255)]
-    phone_number: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
-    degree: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    phone_number: Annotated[str, StringConstraints(max_length=20)] | None = None
+    degree: Annotated[str, StringConstraints(max_length=255)] | None = None
 
     @model_validator(mode="after")
     def passwords_match(self):
