@@ -8,7 +8,7 @@ from ..academics import models as ac_models
 def default_academic_year() -> str:
     """
     Compute current academic year string in format 'YYYY/YYYY' using the rule:
-    - if month >= 9 (September..December): current_year / current_year+1
+    - if month >= 9 (September...December): current_year / current_year+1
     - else: (current_year-1) / current_year
     """
     today = date.today()
@@ -21,11 +21,11 @@ def default_academic_year() -> str:
 def default_semester_type() -> ac_models.SemesterType:
     """
     Default semester type based on current month:
-    - month >= 9 -> WINTER
-    - else -> SUMMER
+     - September...February -> WINTER
+     - March...August -> SUMMER
     """
     today = date.today()
-    if today.month >= 9:
+    if today.month >= 9 or today.month <= 2:
         return ac_models.SemesterType.WINTER
     return ac_models.SemesterType.SUMMER
 
