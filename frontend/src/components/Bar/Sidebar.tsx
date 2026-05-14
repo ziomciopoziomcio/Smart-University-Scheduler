@@ -107,7 +107,7 @@ const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.suggestions',
         icon: <InboxOutlined/>,
-        path: '/',  // TODO: change to real path and add allowedRoles
+        path: '/suggestions',  // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {

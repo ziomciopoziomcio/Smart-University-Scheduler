@@ -772,5 +772,69 @@
     "emptyTitle": "Zacznij nową rozmowę",
     "emptyDescription": "Zapytaj o plan, zmianę terminu albo dostępność zajęć.",
     "placeholder": "Napisz wiadomość..."
+  },
+  "suggestions": {
+    "hero": {
+      "title": "Sugestie",
+      "description": "Przejrzyj proponowane zmiany w planie, porównaj wersje i zaakceptuj albo odrzuć aktualizacje."
+    },
+    "filters": {
+      "status": "Status"
+    },
+    "status": {
+      "all": "Wszystkie",
+      "pending": "Oczekujące",
+      "accepted": "Zaakceptowane",
+      "rejected": "Odrzucone",
+      "failed": "Nieudane"
+    },
+    "queue": {
+      "title": "Kolejka",
+      "itemsCount": "{count, plural, one {# element} few {# elementy} many {# elementów} other {# elementu}}",
+      "changesCount": "{count, plural, one {# zmiana} few {# zmiany} many {# zmian} other {# zmiany}}",
+      "searchPlaceholder": "Szukaj sugestii..."
+    },
+    "fields": {
+      "dayOfWeek": "Dzień tygodnia",
+      "startTime": "Godzina rozpoczęcia",
+      "endTime": "Godzina zakończenia",
+      "instructor": "Prowadzący",
+      "room": "Sala",
+      "timeslot": "Termin"
+    },
+    "details": {
+      "reason": "Powód",
+      "noReason": "Nie podano powodu",
+      "source": "Źródło: {source}",
+      "changedFields": "{count, plural, one {# zmienione pole} few {# zmienione pola} many {# zmienionych pól} other {# zmienionego pola}}",
+      "targetSession": "Docelowe zajęcia: {id}",
+      "previewPrevious": "Podgląd poprzedniej wersji",
+      "previewProposed": "Podgląd sugerowanej wersji",
+      "previousVersion": "Poprzednia wersja",
+      "suggestedVersion": "Sugerowana wersja",
+      "previousValue": "Poprzednio: {value}",
+      "created": "Utworzono",
+      "resolved": "Rozwiązano",
+      "alreadyResolved": "Ta sugestia została już rozpatrzona i nie można jej zmienić z tego widoku.",
+      "unrecognizedPayload": "Ta sugestia nie zawiera rozpoznawalnych pól planu."
+    },
+    "empty": {
+      "selectTitle": "Wybierz sugestię",
+      "selectDescription": "Wybierz element z listy, aby porównać proponowane zmiany w planie.",
+      "noSuggestionsTitle": "Brak sugestii",
+      "noSuggestionsDescription": "Brak sugestii planu dla wybranego statusu."
+    },
+    "actions": {
+      "refresh": "Odśwież",
+      "reject": "Odrzuć",
+      "accept": "Zaakceptuj",
+      "saving": "Zapisywanie...",
+      "rejectTooltip": "Odrzuć tę sugestię planu",
+      "acceptTooltip": "Zaakceptuj i zastosuj tę sugestię planu"
+    },
+    "errors": {
+      "load": "Nie udało się pobrać sugestii",
+      "resolve": "Nie udało się rozpatrzyć sugestii"
+    }
   }
 }
