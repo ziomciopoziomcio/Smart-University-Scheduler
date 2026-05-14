@@ -43,6 +43,7 @@ export interface ScheduleSuggestionsQuery {
     status?: ScheduleSuggestionStatus;
     source?: string;
     targetClassSessionId?: string;
+    search?: string;
     limit?: number;
     offset?: number;
 }
@@ -51,6 +52,7 @@ export interface ScheduleSuggestionsApiQuery {
     status?: ScheduleSuggestionStatus;
     source?: string;
     target_class_session_id?: string;
+    search?: string;
     limit?: number;
     offset?: number;
 }

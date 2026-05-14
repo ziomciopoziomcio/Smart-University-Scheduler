@@ -29,6 +29,7 @@ function mapQuery(query: ScheduleSuggestionsQuery = {}): ScheduleSuggestionsApiQ
         status: query.status,
         source: query.source,
         target_class_session_id: query.targetClassSessionId,
+        search: query.search,
         limit: query.limit,
         offset: query.offset,
     };
