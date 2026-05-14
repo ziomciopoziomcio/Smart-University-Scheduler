@@ -17,7 +17,6 @@ from ..common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
-    _get_by_fields_or_404,
     apply_search_to_queries,
 )
 from ..database.database import get_db
