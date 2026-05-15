@@ -14,6 +14,7 @@ from ..users.auth import get_current_user
 from ..common.pagination.pagination import PaginatedResponse, paginate
 from ..common.require_permission import (
     require_permission,
+    user_has_permission,
 )
 from ..common.router_utils import (
     _get_or_404,
@@ -741,7 +742,9 @@ async def get_user_plan(
             detail="start_date must be a Monday.",
         )
 
-    if _current_user.id != user_id:
+    if _current_user.id != user_id and not user_has_permission(
+        _current_user, "schedule:view_others"
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions to view other users' schedules",
