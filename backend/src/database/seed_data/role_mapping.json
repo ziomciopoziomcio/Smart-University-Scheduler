@@ -30,7 +30,8 @@
     "chat:create", "chats:view", "chat:view", "chat:update", "chat:delete",
     "message:create", "messages:view",
     "user:signup", "user:password-forgot", "user:password-reset", "user:password-change", "user:verify-email",
-    "settings:create", "settings:view", "settings:update", "settings:delete"
+    "settings:create", "settings:view", "settings:update", "settings:delete",
+    "optimization:run", "optimization:view"
   ],
   "Schedule Manager": [
     "employees:view", "employee:view",
@@ -55,7 +56,8 @@
     "class-sessions:view", "class-session:view", "class-session:update", "class-session:delete", "class-session:create",
     "suggestions:view", "suggestion:view", "suggestion:create", "suggestion:update", "suggestion:delete", "suggestion:approve", "suggestion:reject",
     "absences:view", "absence:view",
-    "settings:create", "settings:view", "settings:update", "settings:delete"
+    "settings:create", "settings:view", "settings:update", "settings:delete",
+    "optimization:run", "optimization:view"
   ],
   "Deans Office": [
     "students:view", "student:view", "student:create", "student:update", "student:delete",
