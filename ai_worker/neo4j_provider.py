@@ -25,9 +25,15 @@ SAVE_SCHEDULE_QUERY = Query("""
         MERGE (s)-[:OF_COURSE]->(c)
 
         WITH s, row, matched_groups, b
+
         OPTIONAL MATCH (i:Instructor {instructorId: row.instructor_id})
+        WHERE row.instructor_id IS NULL OR i IS NOT NULL
+
         OPTIONAL MATCH (r:Room {roomId: row.room_id})
+        WHERE row.room_id IS NULL OR r IS NOT NULL
+
         OPTIONAL MATCH (t:TimeSlot {timeSlotId: row.timeslot_id})
+        WHERE row.timeslot_id IS NULL OR t IS NOT NULL
 
         FOREACH (_ IN CASE WHEN i IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:TAUGHT_BY]->(i))
         FOREACH (_ IN CASE WHEN r IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:HELD_IN]->(r))
