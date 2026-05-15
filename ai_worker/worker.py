@@ -334,19 +334,29 @@ async def process_task(
             run_ai_optimizer_sync, faculty_id, data, base_genes
         )
 
-        await neo4j_prov.save_best_schedule(best_schedule, faculty_id)
+        incomplete_genes = await neo4j_prov.save_best_schedule(
+            best_schedule, faculty_id
+        )
+
+        status_msg = "COMPLETED" if not incomplete_genes else "PARTIAL_SUCCESS"
+        info_msg = (
+            "Optimisation successful."
+            if not incomplete_genes
+            else f"Optimisation finished. {len(incomplete_genes)} sessions require manual scheduling."
+        )
 
         await producer.send_and_wait(
             result_topic,
             {
                 "task_id": task_id,
                 "faculty_id": faculty_id,
-                "status": "COMPLETED",
+                "status": status_msg,
                 "fitness": float(best_schedule.fitness_score),
-                "message": "Optimisation successful.",
+                "message": info_msg,
+                "incomplete_genes": incomplete_genes,
             },
         )
-        logger.info(f"Task {task_id} completed successfully")
+        logger.info(f"Task {task_id} completed. Status: {status_msg}")
 
     except asyncio.CancelledError:
         logger.warning(f"Task {task_id} cancelled during execution")
