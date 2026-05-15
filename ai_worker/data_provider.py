@@ -24,11 +24,22 @@ ROOMS_QUERY = """
     WHERE r.faculty_id = %(faculty_id)s
 """
 EMPLOYEES_QUERY = """
-            SELECT e.id, u.name, u.surname, u.degree, e.unit_id
-            FROM employees e
-            JOIN users u ON e.user_id = u.id
-            WHERE e.faculty_id = %(faculty_id)s
-        """
+    SELECT DISTINCT e.id, u.name, u.surname, u.degree, e.unit_id
+    FROM employees e
+    JOIN users u ON e.user_id = u.id
+    WHERE e.faculty_id = %(faculty_id)s
+       OR e.id IN (
+           SELECT ci.employee
+           FROM courses_instructors ci
+           WHERE ci.course IN (
+               SELECT DISTINCT cc.course
+               FROM curriculum_courses cc
+               JOIN study_programs sp ON cc.study_program = sp.id
+               JOIN study_fields sf ON sp.study_field = sf.id
+               WHERE sf.faculty = %(faculty_id)s
+           )
+       )
+"""
 REQUIREMENTS_QUERY = """
     SELECT
         ctd.course AS course_code,
