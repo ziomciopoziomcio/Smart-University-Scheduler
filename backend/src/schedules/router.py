@@ -10,7 +10,6 @@ from . import models
 from . import schemas
 from ..academics import models as ac_mod
 from ..common.kafka_client import send_event
-from ..users.auth import get_current_user
 from ..common.pagination.pagination import PaginatedResponse, paginate
 from ..common.require_permission import (
     require_permission,
