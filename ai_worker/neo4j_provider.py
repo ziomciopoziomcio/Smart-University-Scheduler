@@ -371,9 +371,11 @@ class Neo4jProvider:
     def _get_incomplete_genes(best_chromosome: models.ScheduleChromosome) -> list[dict]:
         return [
             {
+                "gene_index": i,
                 "course_code": g.course_code,
                 "class_type": g.class_type,
                 "group_size": g.group_size,
+                "group_ids": g.group_ids,
                 "missing": [
                     res
                     for res, val in [
@@ -384,7 +386,7 @@ class Neo4jProvider:
                     if val is None
                 ],
             }
-            for g in best_chromosome.genes
+            for i, g in enumerate(best_chromosome.genes)
             if None in (g.instructor_id, g.room_id, g.timeslot_id)
         ]
 
