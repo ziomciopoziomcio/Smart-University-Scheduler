@@ -730,7 +730,7 @@ async def get_user_plan(
     ),
     db: Session = Depends(get_db),
     neo4j_session=Depends(get_neo4j_session),
-    _current_user: user_models.Users = Depends(get_current_user),
+    _current_user: user_models.Users = Depends(require_permission("schedule:view")),
 ):
     """
     Get the schedule plan for a specific user for a given week.
