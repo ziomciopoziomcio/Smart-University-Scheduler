@@ -40,7 +40,6 @@ def _get_competencies(faculty_id: int, db: Session):
         )
         .filter(course_models.Study_fields.faculty == faculty_id)
         .distinct()
-        .subquery()
     )
 
     return (
