@@ -47,11 +47,7 @@ export function ProgramGroupModal({
 
     useEffect(() => {
         if (open && fieldId) {
-            fetchMajors(1, 100, undefined,
-                {
-                    study_field: fieldId
-                }
-            )
+            fetchMajors(1, 100, undefined, {study_field: fieldId})
                 .then(res => {
                     setMajors(res.items || []);
                 }).catch(console.error);

@@ -37,7 +37,7 @@ export function ProgramGroupView({data, facultyId, programId, semesterId, fieldI
 
     useEffect(() => {
         if (fieldId) {
-            fetchMajors(1, 100, {study_field: fieldId})
+            fetchMajors(1, 100, undefined, {study_field: fieldId})
                 .then(res => {
                     setMajors(res.items || []);
                 })

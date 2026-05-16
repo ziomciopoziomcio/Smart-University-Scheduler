@@ -111,7 +111,7 @@ export default function DidacticsPage({view}: { view: string }) {
                     debouncedSearch || undefined,
                 );
             } else if (view === 'majors') {
-                res = await fetchMajors(page, pageSize, {study_field: Number(fieldId)}, debouncedSearch);
+                res = await fetchMajors(page, pageSize, debouncedSearch, {study_field: Number(fieldId)});
             } else if (view === 'blocks') {
                 res = await fetchElectiveBlocks(page, pageSize, debouncedSearch, {study_field: Number(fieldId)});
             } else if (view === 'catalog') {
