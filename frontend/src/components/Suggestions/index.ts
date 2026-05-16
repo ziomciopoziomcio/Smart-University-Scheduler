@@ -7,15 +7,17 @@ export {SuggestionMetaPanel} from './SuggestionMetaPanel';
 export {SuggestionSearchField} from './SuggestionSearchField';
 export {SuggestionsHero} from './SuggestionsHero';
 export {SuggestionsQueuePanel} from './SuggestionsQueuePanel';
-export {StatusChip, getStatusLabel, type SuggestionStatusFilter} from './StatusChip';
+export {StatusChip} from './StatusChip';
 
 export {
     formatDate,
     getAllDisplayFields,
     getChangedFields,
+    getStatusLabel,
     getSuggestionSearchText,
     matchesSuggestionSearch,
     normalizeSnapshot,
     type NormalizedSuggestionSnapshot,
     type SuggestionField,
+    type SuggestionStatusFilter,
 } from './suggestionUtils';
