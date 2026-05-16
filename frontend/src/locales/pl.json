@@ -669,15 +669,19 @@
         "deleteDesc": "Czy na pewno chcesz usunąć grupę {name}?",
         "empty": "Brak grup w tym semestrze",
         "studentsCount": "Studenci: {count}",
+        "active": "Aktywna (ma zajęcia)",
+        "inactive": "Nieaktywna (brak zajęć)",
         "chip": {
           "major": "{name}",
           "block": "{name}",
           "general": "Rocznik (Ogólna)"
-        },        "modal": {
+        },
+        "modal": {
           "nameLabel": "Nazwa grupy",
           "namePlaceholder": "np. W1, L2, AI-1",
           "majorLabel": "Specjalność",
           "blockLabel": "Blok obieralny",
+          "activeLabel": "Grupa ma zajęcia w tym semestrze",
           "none": "Brak",
           "exclusivityHint": "* Grupa może być przypisana do całego rocznika, specjalności ALBO bloku obieralnego."
         }

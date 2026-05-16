@@ -674,17 +674,21 @@
         "deleteDesc": "Are you sure you want to delete group {name}?",
         "empty": "No groups in this semester",
         "studentsCount": "Students: {count}",
+        "active": "Active (has classes)",
+        "inactive": "Inactive (no classes)",
         "chip": {
           "major": "{name}",
           "block": "{name}",
           "general": "Cohort (General)"
-        },        "modal": {
+        },
+        "modal": {
           "nameLabel": "Group name",
-          "namePlaceholder": "e.g., W1, L2, AI-1",
+          "namePlaceholder": "e.g., L1, W2, AI-1",
           "majorLabel": "Specialization",
           "blockLabel": "Elective block",
+          "activeLabel": "Group has classes this semester",
           "none": "None",
-          "exclusivityHint": "* A group can be assigned to the entire cohort, a specialization OR an elective block."
+          "exclusivityHint": "* A group can be assigned to the whole cohort, a specialization OR an elective block."
         }
       },
       "groupStudents": {

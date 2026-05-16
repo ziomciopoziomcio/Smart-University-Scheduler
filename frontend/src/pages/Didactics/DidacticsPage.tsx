@@ -60,7 +60,9 @@ export default function DidacticsPage({view}: { view: string }) {
         setLoading(true);
         setError(null);
         try {
-            // Fetch metadata if missing or changed
+            // Fetch metadata and keep in local variables for immediate use in current cycle
+            let activeProgram = currentProgram;
+
             if (facultyId) {
                 const fid = Number(facultyId);
                 if (!currentFaculty || currentFaculty.id !== fid) {
@@ -92,8 +94,8 @@ export default function DidacticsPage({view}: { view: string }) {
             if (programId) {
                 const pid = Number(programId);
                 if (!currentProgram || currentProgram.id !== pid) {
-                    const res = await getStudyProgram(pid);
-                    setCurrentProgram(res);
+                    activeProgram = await getStudyProgram(pid);
+                    setCurrentProgram(activeProgram);
                 }
             }
             if (groupId) {
@@ -128,8 +130,8 @@ export default function DidacticsPage({view}: { view: string }) {
                 res = await fetchCourseInstructors(Number(courseCode), page, pageSize);
             } else if (view === 'programs') {
                 res = await fetchStudyPrograms(page, pageSize, debouncedSearch, {study_field: Number(fieldId)});
-            } else if (view === 'semesters' && currentProgram) {
-                const summary = currentProgram.semester_summary || [];
+            } else if (view === 'semesters' && activeProgram) {
+                const summary = activeProgram.semester_summary || [];
                 const semestersList = summary.map(s => ({
                     id: s.semester_number,
                     name: `${intl.formatMessage({id: 'didactics.semesters.title'})} ${s.semester_number}`,

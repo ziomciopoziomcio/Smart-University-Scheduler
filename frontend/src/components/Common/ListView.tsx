@@ -23,7 +23,7 @@ interface ListViewProps<T> {
     addLabel?: string;
     emptyMessage?: string;
     hideDividerOnLastItem?: boolean;
-    rowSx?: object;
+    rowSx?: object | ((item: T) => object);
     titleSx?: object;
 }
 
@@ -66,7 +66,7 @@ export function ListView<T extends { id: number | string }>({
                             '&:hover': {
                                 bgcolor: onItemClick ? '#F3F5F8' : 'transparent',
                             },
-                            ...rowSx,
+                            ...(typeof rowSx === 'function' ? rowSx(item) : rowSx),
                         }}
                     >
                         {Icon && (

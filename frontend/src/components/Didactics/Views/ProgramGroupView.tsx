@@ -1,11 +1,13 @@
 import {useState, useEffect} from "react";
-import {Box, Typography} from '@mui/material';
+import {Box, Typography, Tooltip} from '@mui/material';
 import {useIntl} from 'react-intl';
 import {useNavigate} from 'react-router-dom';
 import GroupsIcon from '@mui/icons-material/Groups';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import ExtensionOutlinedIcon from '@mui/icons-material/ExtensionOutlined';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import {ListView, ActionMenu, DeleteConfirmDialog} from '@components/Common';
 import {
     type Group,
@@ -72,6 +74,10 @@ export function ProgramGroupView({data, facultyId, programId, semesterId, fieldI
                 items={data}
                 icon={GroupsIcon}
                 getTitle={(item) => item.group_name}
+                rowSx={(item) => ({
+                    opacity: item.is_active ? 1 : 0.5,
+                    transition: 'opacity 0.2s ease-in-out'
+                })}
                 columns={[
                     {
                         render: (item) => {
@@ -106,13 +112,26 @@ export function ProgramGroupView({data, facultyId, programId, semesterId, fieldI
                                 </Box>
                             );
                         },
-                        width: '350px'
+                        width: '300px'
                     },
                     {
-                        // TODO: change to real students count when endpoint is ready - for now it is set to 0 to avoid confusion
-                        render: () => intl.formatMessage({id: 'didactics.programs.groups.studentsCount'}, {count: 0}),
+                        render: (item) => (
+                            <Tooltip title={intl.formatMessage({id: item.is_active ? 'didactics.programs.groups.active' : 'didactics.programs.groups.inactive'})}>
+                                <Box sx={{display: 'flex', alignItems: 'center'}}>
+                                    {item.is_active ?
+                                        <CheckCircleOutlineIcon sx={{color: 'success.main', fontSize: 20}}/> :
+                                        <HighlightOffIcon sx={{color: 'error.main', fontSize: 20}}/>
+                                    }
+                                </Box>
+                            </Tooltip>
+                        ),
+                        width: '80px',
+                        align: 'center'
+                    },
+                    {
+                        render: (item) => intl.formatMessage({id: 'didactics.programs.groups.studentsCount'}, {count: item.students_count ?? 0}),
                         variant: 'secondary',
-                        width: '150px',
+                        width: '120px',
                         align: 'right'
                     }
                 ]}
