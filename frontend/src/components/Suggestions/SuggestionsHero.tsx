@@ -13,7 +13,7 @@ import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined';
 import RefreshRoundedIcon from '@mui/icons-material/RefreshRounded';
 import {useIntl} from 'react-intl';
 
-import {getStatusLabel, type SuggestionStatusFilter} from './StatusChip';
+import {getStatusLabel, type SuggestionStatusFilter} from './suggestionUtils';
 
 const statusOptions: SuggestionStatusFilter[] = [
     'ALL',

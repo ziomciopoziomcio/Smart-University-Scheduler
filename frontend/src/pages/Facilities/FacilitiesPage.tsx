@@ -127,7 +127,7 @@ export default function FacilitiesPage({view}: FacilitiesPageProps) {
                 setCurrentBuilding(buildingData);
             }
 
-        } catch (err) {
+        } catch (err: any) {
             setError(err.message);
         } finally {
             setLoading(false);
