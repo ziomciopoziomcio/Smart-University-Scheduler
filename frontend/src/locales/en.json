@@ -108,6 +108,13 @@
     "guest": "Guest",
     "logout": "Logout"
   },
+  "auth": {
+    "sessionExpired": {
+      "title": "Session expired",
+      "message": "Your session has expired. Please log in again to continue.",
+      "button": "Log in"
+    }
+  },
   "calendar": {
     "month": "Month",
     "week": "Week",
