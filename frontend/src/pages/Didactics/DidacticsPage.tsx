@@ -162,7 +162,7 @@ export default function DidacticsPage({view}: { view: string }) {
         } finally {
             setLoading(false);
         }
-    }, [view, facultyId, fieldId, unitId, courseCode, programId, semesterId, groupId, page, pageSize, debouncedSearch, intl]);
+    }, [view, facultyId, fieldId, unitId, courseCode, programId, semesterId, groupId, page, pageSize, debouncedSearch, currentFaculty, currentField, currentUnit, currentCourse, intl]);
 
     useEffect(() => {
         void loadData();
