@@ -1,7 +1,4 @@
-from typing import Optional
-
-
-def mask_email(email: Optional[str]) -> str:
+def mask_email(email: str | None) -> str:
     """
     Mask email for safe logging.
     Examples:

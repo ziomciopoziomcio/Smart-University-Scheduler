@@ -20,7 +20,7 @@
     "user:me", "user-2fa:setup", "user-2fa:confirm", "user-2fa:verify",
     "roles:view", "role:view", "role:create", "role:update", "role:delete",
     "users:view", "user:view", "user:create", "user:update", "user:delete",
-    "schedule:generate", "schedules:view", "schedule:view", "schedule:delete", "schedule:publish", "schedule:export",
+    "schedule:generate", "schedules:view", "schedule:view_others", "schedule:view", "schedule:delete", "schedule:publish", "schedule:export",
     "course-instructor:view", "course-instructor:create", "course-instructor:delete",
     "class-sessions:view", "class-session:view", "class-session:update", "class-session:delete", "class-session:create",
     "suggestions:view", "suggestion:view", "suggestion:create", "suggestion:update", "suggestion:delete", "suggestion:approve", "suggestion:reject",
@@ -29,7 +29,9 @@
     "calendar-bulk:create", "calendar-day:create", "calendar-days:view", "calendar-day:view", "calendar-day:update", "calendar-day:delete",
     "chat:create", "chats:view", "chat:view", "chat:update", "chat:delete",
     "message:create", "messages:view",
-    "user:signup", "user:password-forgot", "user:password-reset", "user:password-change", "user:verify-email"
+    "user:signup", "user:password-forgot", "user:password-reset", "user:password-change", "user:verify-email",
+    "settings:create", "settings:view", "settings:update", "settings:delete",
+    "optimization:run", "optimization:view"
   ],
   "Schedule Manager": [
     "employees:view", "employee:view",
@@ -49,11 +51,13 @@
     "rooms:view", "room:view", "room:create", "room:update", "room:delete",
     "faculties:view", "faculty:view",
     "user:me", "user-2fa:setup", "user-2fa:confirm", "user-2fa:verify",
-    "schedule:generate", "schedules:view", "schedule:view", "schedule:delete", "schedule:publish", "schedule:export",
+    "schedule:generate", "schedules:view", "schedule:view_others", "schedule:view", "schedule:delete", "schedule:publish", "schedule:export",
     "course-instructor:view",
     "class-sessions:view", "class-session:view", "class-session:update", "class-session:delete", "class-session:create",
     "suggestions:view", "suggestion:view", "suggestion:create", "suggestion:update", "suggestion:delete", "suggestion:approve", "suggestion:reject",
-    "absences:view", "absence:view"
+    "absences:view", "absence:view",
+    "settings:create", "settings:view", "settings:update", "settings:delete",
+    "optimization:run", "optimization:view"
   ],
   "Deans Office": [
     "students:view", "student:view", "student:create", "student:update", "student:delete",
@@ -75,11 +79,12 @@
     "faculties:view", "faculty:view",
     "user:me", "user-2fa:setup", "user-2fa:confirm", "user-2fa:verify",
     "users:view", "user:view", "user:create", "user:update", "user:delete",
-    "schedule:generate", "schedules:view", "schedule:view", "schedule:delete", "schedule:publish", "schedule:export",
+    "schedule:generate", "schedules:view", "schedule:view_others", "schedule:view", "schedule:delete", "schedule:publish", "schedule:export",
     "course-instructor:view", "course-instructor:create", "course-instructor:delete",
     "class-sessions:view", "class-session:view", "class-session:update", "class-session:delete", "class-session:create",
     "suggestions:view", "suggestion:view", "suggestion:create", "suggestion:update", "suggestion:delete", "suggestion:approve", "suggestion:reject",
-    "absences:view", "absence:view", "absence:create", "absence:update", "absence:delete"
+    "absences:view", "absence:view", "absence:create", "absence:update", "absence:delete",
+    "settings:view"
   ],
   "Unit head": [
     "students:view", "student:view",
@@ -100,11 +105,12 @@
     "rooms:view", "room:view",
     "faculties:view", "faculty:view",
     "user:me", "user-2fa:setup", "user-2fa:confirm", "user-2fa:verify",
-    "schedules:view", "schedule:view", "schedule:export",
+    "schedules:view", "schedule:view_others", "schedule:view", "schedule:export",
     "course-instructor:view", "course-instructor:create", "course-instructor:delete",
     "class-sessions:view", "class-session:view",
     "suggestions:view", "suggestion:view", "suggestion:create",
-    "absences:view", "absence:view", "absence:create", "absence:update"
+    "absences:view", "absence:view", "absence:create", "absence:update",
+    "settings:view"
   ],
   "Instructor": [
     "students:view", "student:view",
@@ -125,11 +131,12 @@
     "rooms:view", "room:view",
     "faculties:view", "faculty:view",
     "user:me", "user-2fa:setup", "user-2fa:confirm", "user-2fa:verify",
-    "schedules:view", "schedule:view", "schedule:export",
+    "schedules:view", "schedule:view_others", "schedule:view", "schedule:export",
     "course-instructor:view",
     "class-sessions:view", "class-session:view",
     "suggestions:view", "suggestion:view", "suggestion:create",
-    "absences:view", "absence:view", "absence:create", "absence:update"
+    "absences:view", "absence:view", "absence:create", "absence:update",
+    "settings:view"
   ],
   "Student": [
     "student:view", "student:update",

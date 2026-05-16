@@ -4,7 +4,7 @@ Data validation schemas
 
 from __future__ import annotations
 
-from typing import Optional, Annotated
+from typing import Annotated
 
 from pydantic import BaseModel, model_validator, Field, StringConstraints, ConfigDict
 
@@ -33,10 +33,10 @@ class StudyFieldRead(StudyFieldBase):
 
 
 class StudyFieldUpdate(BaseModel):
-    faculty: Optional[int] = None
-    field_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    language: Optional[CourseLanguage] = None
-    mode: Optional[StudyMode] = None
+    faculty: int | None = None
+    field_name: Annotated[str, StringConstraints(max_length=255)] | None = None
+    language: CourseLanguage | None = None
+    mode: StudyMode | None = None
     degree: StudyDegree | None = None
 
 
@@ -49,7 +49,7 @@ class StudyFieldListSummary(StudyFieldRead):
 
 # Major
 class MajorBase(BaseSchema):
-    study_field: Optional[int] = None
+    study_field: int | None = None
     major_name: Annotated[str, StringConstraints(max_length=255)]
 
 
@@ -63,8 +63,8 @@ class MajorRead(MajorBase):
 
 
 class MajorUpdate(BaseModel):
-    study_field: Optional[int] = None
-    major_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    study_field: int | None = None
+    major_name: Annotated[str, StringConstraints(max_length=255)] | None = None
 
 
 # Elective Block
@@ -82,10 +82,8 @@ class ElectiveBlockRead(ElectiveBlockBase):
 
 
 class ElectiveBlockUpdate(BaseModel):
-    study_field: Optional[int] = None
-    elective_block_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = (
-        None
-    )
+    study_field: int | None = None
+    elective_block_name: Annotated[str, StringConstraints(max_length=255)] | None = None
 
 
 # Course
@@ -108,11 +106,11 @@ class CourseRead(CourseBase):
 
 class CourseUpdate(BaseModel):
     # Editing course_code is unsafe
-    ects_points: Optional[Annotated[int, Field(ge=0)]] = None
-    course_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
-    course_language: Optional[CourseLanguage] = None
-    leading_unit: Optional[int] = None
-    course_coordinator: Optional[int] = None
+    ects_points: Annotated[int, Field(ge=0)] | None = None
+    course_name: Annotated[str, StringConstraints(max_length=255)] | None = None
+    course_language: CourseLanguage | None = None
+    leading_unit: int | None = None
+    course_coordinator: int | None = None
 
 
 # Course Type Detail
@@ -122,7 +120,7 @@ class CourseTypeDetailBase(BaseSchema):
     class_hours: Annotated[int, Field(ge=0)] = 0
     slots_per_class: Annotated[int, Field(ge=1, le=10)] = 2
     frequency: FrequencyType = FrequencyType.EVERY_WEEK
-    manual_weeks: Optional[list[int]] = None
+    manual_weeks: list[int] | None = None
     pc_needed: bool = False
     projector_needed: bool = True
     max_group_participants_number: Annotated[int, Field(gt=0)] = 15
@@ -137,13 +135,13 @@ class CourseTypeDetailRead(CourseTypeDetailBase):
 
 
 class CourseTypeDetailUpdate(BaseModel):
-    class_hours: Optional[Annotated[int, Field(ge=0)]] = None
-    slots_per_class: Optional[Annotated[int, Field(ge=1, le=10)]] = None
-    frequency: Optional[FrequencyType] = None
-    manual_weeks: Optional[FrequencyType] = None
-    pc_needed: Optional[bool] = None
-    projector_needed: Optional[bool] = None
-    max_group_participants_number: Optional[Annotated[int, Field(gt=0)]] = None
+    class_hours: Annotated[int, Field(ge=0)] | None = None
+    slots_per_class: Annotated[int, Field(ge=1, le=10)] | None = None
+    frequency: FrequencyType | None = None
+    manual_weeks: FrequencyType | None = None
+    pc_needed: bool | None = None
+    projector_needed: bool | None = None
+    max_group_participants_number: Annotated[int, Field(gt=0)] | None = None
 
 
 # Courses Instructors
@@ -163,14 +161,14 @@ class CourseInstructorRead(CourseInstructorBase):
 
 
 class CourseInstructorUpdate(BaseModel):
-    hours: Optional[Annotated[int, Field(ge=0)]] = None
+    hours: Annotated[int, Field(ge=0)] | None = None
 
 
 # Study Programs
 class StudyProgramBase(BaseSchema):
     study_field: int
     start_year: Annotated[str, StringConstraints(max_length=20)]
-    program_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    program_name: Annotated[str, StringConstraints(max_length=255)] | None = None
 
 
 class StudyProgramCreate(StudyProgramBase):
@@ -187,9 +185,9 @@ class StudyProgramDetailRead(StudyProgramRead):
 
 
 class StudyProgramUpdate(StudyProgramBase):
-    study_field: Optional[int] = None
-    start_year: Optional[Annotated[str, StringConstraints(max_length=20)]] = None
-    program_name: Optional[Annotated[str, StringConstraints(max_length=255)]] = None
+    study_field: int | None = None
+    start_year: Annotated[str, StringConstraints(max_length=20)] | None = None
+    program_name: Annotated[str, StringConstraints(max_length=255)] | None = None
 
 
 # Curriculum Courses
@@ -197,8 +195,8 @@ class CurriculumCourseBase(BaseSchema):
     study_program: int
     course: int
     semester: Annotated[int, Field(gt=0)]
-    major: Optional[int] = None
-    elective_block: Optional[int] = None
+    major: int | None = None
+    elective_block: int | None = None
 
     @model_validator(mode="after")
     def check_major_and_elective(self):
@@ -218,8 +216,8 @@ class CurriculumCourseRead(CurriculumCourseBase):
 
 
 class CurriculumCourseUpdate(BaseModel):
-    major: Optional[int] = None
-    elective_block: Optional[int] = None
+    major: int | None = None
+    elective_block: int | None = None
 
     @model_validator(mode="after")
     def check_major_and_elective(self):

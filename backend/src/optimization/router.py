@@ -61,7 +61,7 @@ async def trigger_optimization(
 def validate_algorithm_data(
     faculty_id: int,
     db: Session = Depends(get_db),
-    # _current_user: user_models.Users = Depends(require_permission("optimization:view")),
+    _current_user=Depends(require_permission("optimization:view")),
 ):
     """
     Validates data consistency before running the genetic algorithm.

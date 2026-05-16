@@ -12,16 +12,16 @@ def require_permission(permission_code: str):
     def dependency(
         current_user: models.Users = Depends(get_current_user),
     ):
-        has_permission = any(
-            perm.code == permission_code
-            for role in current_user.roles
-            for perm in role.permissions
-        )
-
-        if not has_permission:
+        if not user_has_permission(current_user, permission_code):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
             )
         return current_user
 
     return dependency
+
+
+def user_has_permission(user: models.Users, permission_code: str) -> bool:
+    return any(
+        perm.code == permission_code for role in user.roles for perm in role.permissions
+    )

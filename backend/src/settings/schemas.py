@@ -1,6 +1,38 @@
+import re
 from typing import Annotated
-from pydantic import BaseModel, ConfigDict, StringConstraints
+from datetime import date
+from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator, Field
 from ..academics import models as ac_models
+
+
+def default_academic_year() -> str:
+    """
+    Compute current academic year string in shortened format 'YYYY/YY'.
+    Rule:
+    - if month >= 9 (September...December): start = current_year -> "YYYY/(YY of current_year+1)"
+      e.g. Sep 2025 -> "2025/26"
+    - else: start = current_year - 1 -> "YYYY/(YY of start+1)"
+      e.g. May 2026 -> "2025/26"
+    """
+    today = date.today()
+    if today.month >= 9:
+        start = today.year
+    else:
+        start = today.year - 1
+    end_two_digits = (start + 1) % 100
+    return f"{start}/{end_two_digits:02d}"
+
+
+def default_semester_type() -> ac_models.SemesterType:
+    """
+    Default semester type based on current month:
+     - September...February -> WINTER
+     - March...August -> SUMMER
+    """
+    today = date.today()
+    if today.month >= 9 or today.month <= 2:
+        return ac_models.SemesterType.WINTER
+    return ac_models.SemesterType.SUMMER
 
 
 class BaseSchema(BaseModel):
@@ -15,15 +47,28 @@ class PlannerSettingsBase(BaseSchema):
 
     Fields:
     - faculty_id: foreign key identifying faculty this settings row belongs to.
-    - planned_academic_year: human-readable academic year (e.g. "2025/2026").
+    - planned_academic_year: human-readable academic year in shortened form (e.g. "2025/26").
     - planned_semester_type: enum value describing semester type (from academics.models).
     - is_planning_active: whether planner/GA is currently active for this faculty.
     """
 
     faculty_id: int
-    planned_academic_year: Annotated[str, StringConstraints(max_length=20)]
-    planned_semester_type: ac_models.SemesterType
+    planned_academic_year: Annotated[str, StringConstraints(max_length=7)] = Field(
+        default_factory=default_academic_year
+    )
+    planned_semester_type: ac_models.SemesterType = Field(
+        default_factory=default_semester_type
+    )
     is_planning_active: bool = True
+
+    @field_validator("planned_academic_year")
+    @classmethod
+    def _validate_planned_academic_year(cls, v: str) -> str:
+        if not re.fullmatch(r"\d{4}/\d{2}", v):
+            raise ValueError(
+                "planned_academic_year must be in format YYYY/YY (e.g. 2025/26)"
+            )
+        return v
 
 
 class PlannerSettingsCreate(PlannerSettingsBase):
@@ -45,9 +90,7 @@ class PlannerSettingsUpdate(BaseModel):
     """
 
     faculty_id: int | None = None
-    planned_academic_year: Annotated[str, StringConstraints(max_length=20)] | None = (
-        None
-    )
+    planned_academic_year: Annotated[str, StringConstraints(max_length=7)] | None = None
     planned_semester_type: ac_models.SemesterType | None = None
     is_planning_active: bool | None = None
 

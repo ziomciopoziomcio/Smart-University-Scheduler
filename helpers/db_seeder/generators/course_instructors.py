@@ -320,6 +320,9 @@ def _add_course_instructors_to_db(
     db_course_instructors: dict[tuple[str, str, str, int, str], Courses_instructors] = (
         {}
     )
+
+    add_more_workload = True
+
     for k, v in zip(entries.keys(), entries.values()):
         name, lastname, degree, cc, form = k
         # get course
@@ -344,6 +347,11 @@ def _add_course_instructors_to_db(
 
         # get hours
         hours: int = v
+
+        # more workload
+        if add_more_workload and course_id == 135031000:
+            hours += 45
+            add_more_workload = False  # todo fix in other way
 
         # map user to employee
         teacher_id = teacher_obj.id

@@ -4,6 +4,7 @@ from datetime import timezone, datetime, date, timedelta
 
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import cast, String
 
 from ..academics.models import Students, Employees
 from . import models
@@ -11,11 +12,15 @@ from . import schemas
 from ..academics import models as ac_mod
 from ..common.kafka_client import send_event
 from ..common.pagination.pagination import PaginatedResponse, paginate
-from ..common.require_permission import require_permission
+from ..common.require_permission import (
+    require_permission,
+    user_has_permission,
+)
 from ..common.router_utils import (
     _get_or_404,
     _commit_or_rollback,
     _apply_patch_or_reject_nulls,
+    apply_search_to_queries,
 )
 from ..database.database import get_db
 from ..database.neo4j import get_neo4j_session
@@ -218,23 +223,56 @@ def list_schedule_suggestions(
         None, description='Filter by suggestion source (e.g. "RAG")'
     ),
     target_class_session_id: uuid.UUID | None = Query(None),
+    search: str | None = Query(
+        None, description="Full-text search (reason, source, states)"
+    ),
     limit: int = Query(SUGGESTION_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
+    """
+    List schedule suggestions with optional filters and search.
+
+    - status_filter: filter by suggestion status
+    - source: exact match on source
+    - source: case-insensitive substring match on source
+    - search: case-insensitive substring search across reason, source and JSON states
+    """
     query = db.query(models.ScheduleSuggestion)
+    count_query = db.query(models.ScheduleSuggestion.id)
 
     if status_filter:
-        query = query.filter(models.ScheduleSuggestion.status == status_filter)
+        filter_stmt = models.ScheduleSuggestion.status == status_filter
+        query = query.filter(filter_stmt)
+        count_query = count_query.filter(filter_stmt)
+
     if source:
-        query = query.filter(models.ScheduleSuggestion.source == source)
+        f = models.ScheduleSuggestion.source.ilike(f"%{source}%")
+        query = query.filter(f)
+        count_query = count_query.filter(f)
+
     if target_class_session_id:
-        query = query.filter(
-            models.ScheduleSuggestion.target_class_session_id == target_class_session_id
+        f = models.ScheduleSuggestion.target_class_session_id == target_class_session_id
+        query = query.filter(f)
+        count_query = count_query.filter(f)
+
+    if search:
+        columns = [
+            models.ScheduleSuggestion.reason,
+            models.ScheduleSuggestion.source,
+            cast(models.ScheduleSuggestion.state_before, String),
+            cast(models.ScheduleSuggestion.state_after, String),
+        ]
+        query, count_query = apply_search_to_queries(
+            search=search, query=query, count_query=count_query, columns=columns
         )
 
     return paginate(
-        query, limit, offset, order_by=models.ScheduleSuggestion.created_at.desc()
+        query,
+        limit,
+        offset,
+        order_by=models.ScheduleSuggestion.created_at.desc(),
+        count_query=count_query,
     )
 
 
@@ -736,6 +774,14 @@ async def get_user_plan(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="start_date must be a Monday.",
+        )
+
+    if _current_user.id != user_id and not user_has_permission(
+        _current_user, "schedule:view_others"
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to view other users' schedules",
         )
 
     student = _get_student_with_user_id(db, user_id)

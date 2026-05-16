@@ -16,28 +16,34 @@ SAVE_SCHEDULE_QUERY = Query("""
         WITH count(*) as _
 
         UNWIND $batch AS row
-        MATCH (i:Instructor {instructorId: row.instructor_id})
-        MATCH (r:Room {roomId: row.room_id})
-        MATCH (t:TimeSlot {timeSlotId: row.timeslot_id})
         MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
-
         MATCH (g:Group) WHERE g.groupId IN row.group_ids
-        WITH row, i, r, t, c, collect(g) AS matched_groups, $faculty_id AS faculty_id, $batch AS b
-
+        WITH row, c, collect(g) AS matched_groups, $faculty_id AS faculty_id, $batch AS b
         WHERE size(matched_groups) = size(row.group_ids)
 
         CREATE (s:ClassSession {sessionId: row.session_id, weeks: row.weeks, facultyId: faculty_id, createdAt: datetime()})
-        MERGE (s)-[:TAUGHT_BY]->(i)
-        MERGE (s)-[:HELD_IN]->(r)
-        MERGE (s)-[:AT_TIME]->(t)
         MERGE (s)-[:OF_COURSE]->(c)
+
+        WITH s, row, matched_groups, b
+
+        OPTIONAL MATCH (i:Instructor {instructorId: row.instructor_id})
+        WHERE row.instructor_id IS NULL OR i IS NOT NULL
+
+        OPTIONAL MATCH (r:Room {roomId: row.room_id})
+        WHERE row.room_id IS NULL OR r IS NOT NULL
+
+        OPTIONAL MATCH (t:TimeSlot {timeSlotId: row.timeslot_id})
+        WHERE row.timeslot_id IS NULL OR t IS NOT NULL
+
+        FOREACH (_ IN CASE WHEN i IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:TAUGHT_BY]->(i))
+        FOREACH (_ IN CASE WHEN r IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:HELD_IN]->(r))
+        FOREACH (_ IN CASE WHEN t IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:AT_TIME]->(t))
 
         WITH s, matched_groups, b
         UNWIND matched_groups AS mg
         MERGE (s)-[:FOR_GROUP]->(mg)
 
         WITH count(DISTINCT s) as created_count, size(b) as total_size
-
         RETURN
             CASE
                 WHEN created_count = total_size THEN created_count
@@ -362,43 +368,44 @@ class Neo4jProvider:
             raise RuntimeError("Critical error: Failed to load competencies.")
 
     @staticmethod
-    def _validate_schedule(
-        best_chromosome: models.ScheduleChromosome, faculty_id: int
-    ) -> None:
-        """
-        Validate the best chromosome before saving
-        :param best_chromosome: The best ScheduleChromosome to validate
-        :param faculty_id: The faculty for which the schedule is being saved
-        :return: None
-        """
-        incomplete_genes = [
-            {"index": i, "course": g.course_code, "type": g.class_type}
+    def _get_incomplete_genes(best_chromosome: models.ScheduleChromosome) -> list[dict]:
+        return [
+            {
+                "gene_index": i,
+                "course_code": g.course_code,
+                "class_type": g.class_type,
+                "group_size": g.group_size,
+                "group_ids": g.group_ids,
+                "missing": [
+                    res
+                    for res, val in [
+                        ("instructor", g.instructor_id),
+                        ("room", g.room_id),
+                        ("timeslot", g.timeslot_id),
+                    ]
+                    if val is None
+                ],
+            }
             for i, g in enumerate(best_chromosome.genes)
             if None in (g.instructor_id, g.room_id, g.timeslot_id)
         ]
 
-        if incomplete_genes:
-            logger.error(
-                f"Refusing to save partial schedule for faulty {faculty_id}: {len(incomplete_genes)}/{len(best_chromosome.genes)} genes are incomplete. "
-            )
-            raise ValueError(
-                f"Cannot save schedule for faculty {faculty_id}: {len(incomplete_genes)} genes are missing assignments."
-            )
-
     @staticmethod
     def _prepare_batch(best_chromosome: models.ScheduleChromosome) -> list[dict]:
         """
-        Prepare batch data for saving the best chromosome
-        :param best_chromosome: The best ScheduleChromosome to prepare
-        :return: A list of dictionaries representing the batch data
+        Prepare batch data for saving the best chromosome.
         """
         return [
             {
                 "session_id": str(uuid.uuid4()),
-                "instructor_id": int(gene.instructor_id),
-                "room_id": int(gene.room_id),
+                "instructor_id": (
+                    int(gene.instructor_id) if gene.instructor_id is not None else None
+                ),
+                "room_id": int(gene.room_id) if gene.room_id is not None else None,
                 "group_ids": [int(g_id) for g_id in gene.group_ids],
-                "timeslot_id": int(gene.timeslot_id),
+                "timeslot_id": (
+                    int(gene.timeslot_id) if gene.timeslot_id is not None else None
+                ),
                 "course_code": str(gene.course_code),
                 "class_type": str(gene.class_type).upper(),
                 "weeks": gene.active_weeks,
@@ -408,14 +415,16 @@ class Neo4jProvider:
 
     async def save_best_schedule(
         self, best_chromosome: models.ScheduleChromosome, faculty_id: int
-    ) -> None:
+    ) -> list[dict]:
         """
-        Save the best chromosome
-        :param best_chromosome: The best ScheduleChromosome to save
-        :param faculty_id: The faculty to save the best chromosome
-        :return: None
+        Save the best chromosome and return incomplete genes.
         """
-        self._validate_schedule(best_chromosome, faculty_id)
+        incomplete_genes = self._get_incomplete_genes(best_chromosome)
+        if incomplete_genes:
+            logger.warning(
+                f"Saving schedule: {len(incomplete_genes)} class sessions have missing assignments. Details: {incomplete_genes}"
+            )
+
         data_to_save = self._prepare_batch(best_chromosome)
 
         try:
@@ -425,6 +434,7 @@ class Neo4jProvider:
                 )
                 await result.consume()
                 logger.info(f"Successfully exported schedule for faculty {faculty_id}")
+                return incomplete_genes
         except Exception as e:
             logger.error(f"Failed to save schedule: {e}")
             raise ValueError(f"Neo4j Transaction Failed: {e}")
