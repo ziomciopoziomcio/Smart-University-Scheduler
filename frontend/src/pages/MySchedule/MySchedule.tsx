@@ -43,7 +43,7 @@ export default function MySchedule() {
                 if (!isCancelled) {
                     setEntries(response);
                 }
-            } catch (error) {
+            } catch {
                 if (!isCancelled) {
                     setEntries([]);
                 }

@@ -7,7 +7,7 @@ import {ListView, ActionMenu, DeleteConfirmDialog, UserAvatar} from '@components
 import {type User, deleteUser} from '@api';
 import UserModal from './UserModal';
 
-export const DEGREES_SHORT_MAP = new Map<string, string>([
+const DEGREES_SHORT_MAP = new Map<string, string>([
     ['inz', 'inż.'],
     ['mgr', 'mgr'],
     ['dr', 'dr'],

@@ -21,7 +21,7 @@ export default function DidacticsPage({view}: { view: string }) {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [data, setData] = useState<any[]>([]);
+    const [data, setData] = useState<unknown[]>([]);
 
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -91,13 +91,13 @@ export default function DidacticsPage({view}: { view: string }) {
                 setData(res.items || []);
                 setTotalItems(res.total || 0);
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
             setError(intl.formatMessage({id: 'didactics.common.noData'}));
         } finally {
             setLoading(false);
         }
-    }, [view, facultyId, fieldId, unitId, courseCode, page, pageSize, debouncedSearch]);
+    }, [view, facultyId, fieldId, unitId, courseCode, page, pageSize, debouncedSearch, currentFaculty, currentField, currentUnit, currentCourse, intl]);
 
     useEffect(() => {
         void loadData();
