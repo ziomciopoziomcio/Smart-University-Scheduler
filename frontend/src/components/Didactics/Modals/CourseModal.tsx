@@ -60,11 +60,10 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
 
     // Class types state
     const [selectedTypes, setSelectedTypes] = useState<Record<ClassType, { enabled: boolean; hours: number; original?: CourseTypeDetail }>>(() => {
-        const initial: any = {};
-        CLASS_TYPES.forEach(t => {
-            initial[t] = {enabled: false, hours: 0};
-        });
-        return initial;
+        return CLASS_TYPES.reduce((acc, t) => {
+            acc[t] = {enabled: false, hours: 0};
+            return acc;
+        }, {} as Record<ClassType, { enabled: boolean; hours: number; original?: CourseTypeDetail }>);
     });
 
     useEffect(() => {
@@ -113,16 +112,16 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
             }
 
             // Reset class types
-            const initialTypes: any = {};
-            CLASS_TYPES.forEach(t => {
-                initialTypes[t] = {enabled: false, hours: 0};
-            });
+            const initialTypes = CLASS_TYPES.reduce((acc, t) => {
+                acc[t] = {enabled: false, hours: 0};
+                return acc;
+            }, {} as Record<ClassType, { enabled: boolean; hours: number; original?: CourseTypeDetail }>);
             setSelectedTypes(initialTypes);
 
             if (course) {
                 void fetchCourseTypes(course.course_code)
                     .then(res => {
-                        const types: any = {...initialTypes};
+                        const types = {...initialTypes};
                         res.items.forEach(item => {
                             types[item.class_type] = {enabled: true, hours: item.class_hours, original: item};
                         });
@@ -153,6 +152,21 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
             ...prev,
             [type]: {...prev[type], hours: Math.max(0, numericHours)}
         }));
+    };
+
+    const getDefaultConfigForType = (type: ClassType) => {
+        switch (type) {
+            case 'Lecture':
+                return {pc_needed: false, max_group_participants_number: 150};
+            case 'Laboratory':
+                return {pc_needed: true, max_group_participants_number: 15};
+            case 'Tutorials':
+                return {pc_needed: false, max_group_participants_number: 30};
+            case 'Seminar':
+                return {pc_needed: false, max_group_participants_number: 20};
+            default:
+                return {pc_needed: false, max_group_participants_number: 15};
+        }
     };
 
     const handleSubmit = async () => {
@@ -192,7 +206,8 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
                             await updateCourseType(finalCourseCode, type, {class_hours: state.hours});
                         }
                     } else {
-                        // Create new
+                        // Create new with context-aware defaults
+                        const config = getDefaultConfigForType(type);
                         await createCourseType({
                             course: finalCourseCode,
                             class_type: type,
@@ -200,9 +215,8 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
                             slots_per_class: 2,
                             frequency: 'Every_week',
                             manual_weeks: null,
-                            pc_needed: false,
                             projector_needed: true,
-                            max_group_participants_number: 15
+                            ...config
                         });
                     }
                 } else if (state.original) {
@@ -363,7 +377,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
                                         sx={{color: '#2b5073', '&.Mui-checked': {color: '#2b5073'}}}
                                     />
                                 }
-                                label={intl.formatMessage({id: `classTypes.${type}`})}
+                                label={intl.formatMessage({id: `didactics.classTypes.${type}`})}
                                 sx={{flex: 1}}
                             />
                             <TextField

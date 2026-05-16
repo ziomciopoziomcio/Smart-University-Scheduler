@@ -131,9 +131,14 @@ export function CourseInstructorModal({open, course, instructor, facultyId, onCl
                     >
                         {availableTypes.map(t => (
                             <MenuItem key={t.class_type} value={t.class_type}>
-                                {intl.formatMessage({id: `classTypes.${t.class_type}`})} ({t.class_hours}h)
+                                {intl.formatMessage({id: `didactics.classTypes.${t.class_type}`})} ({t.class_hours}h)
                             </MenuItem>
                         ))}
+                        {isEdit && instructor && !availableTypes.some(t => t.class_type === instructor.class_type) && (
+                            <MenuItem key={instructor.class_type} value={instructor.class_type} disabled>
+                                {intl.formatMessage({id: `didactics.classTypes.${instructor.class_type}`})} (usunięty z przedmiotu)
+                            </MenuItem>
+                        )}
                     </TextField>
 
                     <TextField

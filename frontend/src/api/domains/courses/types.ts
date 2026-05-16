@@ -108,8 +108,10 @@ export interface CourseTypeDetail {
     max_group_participants_number: number;
 }
 
-export type CourseTypeDetailCreate = CourseTypeDetail;
-export type CourseTypeDetailUpdate = Partial<Omit<CourseTypeDetail, 'course' | 'class_type'>>;
+export type CourseTypeDetailCreate = Omit<CourseTypeDetail, 'slots_per_class' | 'manual_weeks' | 'pc_needed' | 'projector_needed' | 'max_group_participants_number'> &
+    Partial<Pick<CourseTypeDetail, 'slots_per_class' | 'manual_weeks' | 'pc_needed' | 'projector_needed' | 'max_group_participants_number'>>;
+
+export type CourseTypeDetailUpdate = Partial<Omit<CourseTypeDetailCreate, 'course' | 'class_type'>>;
 
 export interface CurriculumCourse {
     study_program: number;
