@@ -87,7 +87,7 @@ export default function RoomSchedulePage() {
                     currentWeekStart,
                 );
                 if (!isCancelled) setEntries(response);
-            } catch (error) {
+            } catch {
                 if (!isCancelled) setEntries([]);
             } finally {
                 if (!isCancelled) setIsScheduleLoading(false);

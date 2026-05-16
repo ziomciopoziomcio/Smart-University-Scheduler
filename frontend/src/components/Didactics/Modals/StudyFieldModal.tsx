@@ -48,8 +48,9 @@ export function StudyFieldModal({open, studyField, facultyId, onClose, onSuccess
             }
             onSuccess();
             onClose();
-        } catch (err: any) {
-            setError(err.message || intl.formatMessage({id: 'didactics.common.errorSave'}));
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : intl.formatMessage({id: 'didactics.common.errorSave'});
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

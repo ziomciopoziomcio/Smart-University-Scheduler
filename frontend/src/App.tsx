@@ -6,16 +6,16 @@ import plMessages from './locales/pl.json';
 import {useAuthStore} from '@store/useAuthStore';
 import './App.css';
 
-const flattenMessages = (nestedMessages: any, prefix = '') => {
+const flattenMessages = (nestedMessages: Record<string, unknown> | null, prefix = '') => {
   if (nestedMessages === null) return {};
-  return Object.keys(nestedMessages).reduce((messages: any, key) => {
+  return Object.keys(nestedMessages).reduce((messages: Record<string, string>, key) => {
     const value = nestedMessages[key];
     const prefixedKey = prefix ? `${prefix}.${key}` : key;
 
     if (typeof value === 'string') {
       messages[prefixedKey] = value;
-    } else {
-      Object.assign(messages, flattenMessages(value, prefixedKey));
+    } else if (typeof value === 'object' && value !== null) {
+      Object.assign(messages, flattenMessages(value as Record<string, unknown>, prefixedKey));
     }
     return messages;
   }, {});

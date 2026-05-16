@@ -130,7 +130,7 @@ export default function StudentSchedulePage() {
                 ...prev,
                 [blockId]: groups,
             }));
-        } catch (err) {
+        } catch {
             setBlockGroups((prev) => ({
                 ...prev,
                 [blockId]: [],
