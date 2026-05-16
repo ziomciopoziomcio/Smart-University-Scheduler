@@ -675,11 +675,10 @@
         "empty": "No groups in this semester",
         "studentsCount": "Students: {count}",
         "chip": {
-          "major": "Specialization: {name}",
-          "block": "Block: {name}",
+          "major": "{name}",
+          "block": "{name}",
           "general": "Cohort (General)"
-        },
-        "modal": {
+        },        "modal": {
           "nameLabel": "Group name",
           "namePlaceholder": "e.g., W1, L2, AI-1",
           "majorLabel": "Specialization",

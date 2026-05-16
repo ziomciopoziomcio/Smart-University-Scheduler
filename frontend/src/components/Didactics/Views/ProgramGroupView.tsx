@@ -1,8 +1,11 @@
 import {useState, useEffect} from "react";
-import {Box, Chip} from '@mui/material';
+import {Box, Typography} from '@mui/material';
 import {useIntl} from 'react-intl';
 import {useNavigate} from 'react-router-dom';
 import GroupsIcon from '@mui/icons-material/Groups';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
+import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
+import ExtensionOutlinedIcon from '@mui/icons-material/ExtensionOutlined';
 import {ListView, ActionMenu, DeleteConfirmDialog} from '@components/Common';
 import {
     type Group,
@@ -20,10 +23,11 @@ interface ProgramGroupViewProps {
     programId: number;
     semesterId: number;
     fieldId: number;
+    fieldName: string;
     onRefresh: () => void;
 }
 
-export function ProgramGroupView({data, facultyId, programId, semesterId, fieldId, onRefresh}: ProgramGroupViewProps) {
+export function ProgramGroupView({data, facultyId, programId, semesterId, fieldId, fieldName, onRefresh}: ProgramGroupViewProps) {
     const intl = useIntl();
     const navigate = useNavigate();
 
@@ -73,20 +77,36 @@ export function ProgramGroupView({data, facultyId, programId, semesterId, fieldI
                         render: (item) => {
                             if (item.major) {
                                 const majorName = majors.find(m => m.id === item.major)?.major_name || item.major.toString();
-                                return <Chip size="small"
-                                             label={intl.formatMessage({id: 'didactics.programs.groups.chip.major'}, {name: majorName})}
-                                             color="primary" variant="outlined"/>;
+                                return (
+                                    <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
+                                        <ClassOutlinedIcon sx={{fontSize: 18, color: 'primary.main', opacity: 0.8}}/>
+                                        <Typography variant="body2">
+                                            {intl.formatMessage({id: 'didactics.programs.groups.chip.major'}, {name: majorName})}
+                                        </Typography>
+                                    </Box>
+                                );
                             }
                             if (item.elective_block) {
                                 const blockName = blocks.find(b => b.id === item.elective_block)?.elective_block_name || item.elective_block.toString();
-                                return <Chip size="small"
-                                             label={intl.formatMessage({id: 'didactics.programs.groups.chip.block'}, {name: blockName})}
-                                             color="secondary" variant="outlined"/>;
+                                return (
+                                    <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
+                                        <ExtensionOutlinedIcon sx={{fontSize: 18, color: 'secondary.main', opacity: 0.8}}/>
+                                        <Typography variant="body2">
+                                            {intl.formatMessage({id: 'didactics.programs.groups.chip.block'}, {name: blockName})}
+                                        </Typography>
+                                    </Box>
+                                );
                             }
-                            return <Chip size="small" label={intl.formatMessage({id: 'didactics.programs.groups.chip.general'})}
-                                         variant="outlined" sx={{color: 'text.secondary', borderColor: 'divider'}}/>;
+                            return (
+                                <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
+                                    <AutoStoriesIcon sx={{fontSize: 18, color: 'text.secondary', opacity: 0.6}}/>
+                                    <Typography variant="body2" color="text.secondary">
+                                        {fieldName || intl.formatMessage({id: 'didactics.programs.groups.chip.general'})}
+                                    </Typography>
+                                </Box>
+                            );
                         },
-                        width: '300px'
+                        width: '350px'
                     },
                     {
                         // TODO: change to real students count when endpoint is ready - for now it is set to 0 to avoid confusion

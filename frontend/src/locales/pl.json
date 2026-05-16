@@ -670,11 +670,10 @@
         "empty": "Brak grup w tym semestrze",
         "studentsCount": "Studenci: {count}",
         "chip": {
-          "major": "Specjalność: {name}",
-          "block": "Blok: {name}",
+          "major": "{name}",
+          "block": "{name}",
           "general": "Rocznik (Ogólna)"
-        },
-        "modal": {
+        },        "modal": {
           "nameLabel": "Nazwa grupy",
           "namePlaceholder": "np. W1, L2, AI-1",
           "majorLabel": "Specjalność",

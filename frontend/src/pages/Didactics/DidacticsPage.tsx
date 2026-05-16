@@ -317,6 +317,7 @@ export default function DidacticsPage({view}: { view: string }) {
                                 semesterId={Number(semesterId)}
                                 fieldId={Number(fieldId)}
                                 facultyId={Number(facultyId)}
+                                fieldName={currentField?.field_name || ''}
                                 onRefresh={loadData}
                             />
                         )}
