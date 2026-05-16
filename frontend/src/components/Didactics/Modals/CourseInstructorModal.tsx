@@ -35,14 +35,24 @@ export function CourseInstructorModal({open, course, instructor, facultyId, onCl
     useEffect(() => {
         if (open) {
             setError(null);
-            void fetchFacultyInstructors(facultyId).then(setEmployees);
-            if (course) {
-                void fetchCourseTypes(course.course_code).then(res => {
-                    setAvailableTypes(res.items);
-                    if (!instructor && res.items.length > 0) {
-                        setForm(f => ({...f, class_type: res.items[0].class_type}));
-                    }
+            void fetchFacultyInstructors(facultyId)
+                .then(setEmployees)
+                .catch(() => {
+                    setEmployees([]);
+                    setError('Failed to load instructors.');
                 });
+            if (course) {
+                void fetchCourseTypes(course.course_code)
+                    .then(res => {
+                        setAvailableTypes(res.items);
+                        if (!instructor && res.items.length > 0) {
+                            setForm(f => ({...f, class_type: res.items[0].class_type}));
+                        }
+                    })
+                    .catch(() => {
+                        setAvailableTypes([]);
+                        setError('Failed to load course types.');
+                    });
             }
             if (instructor) {
                 setForm({
