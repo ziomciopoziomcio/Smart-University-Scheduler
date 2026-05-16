@@ -177,7 +177,7 @@ def twofa_disable(
     payload: schemas.TwoFactorDisableRequest,
     current_user: models.Users = Depends(get_current_user),
     db: Session = Depends(get_db),
-    # _current_user: user_models.Users = Depends(require_permission("user-2fa:disable")),
+    _current_user: user_models.Users = Depends(require_permission("user-2fa:disable")),
 ):
     """
     Disable 2FA for the currently authenticated user.
