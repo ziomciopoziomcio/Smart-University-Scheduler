@@ -40,7 +40,7 @@ export default function SessionExpiredDialog() {
                     variant="contained"
                     fullWidth
                     onClick={handleLogin}
-                    sx={{borderRadius: '12px', py: 1.5, fontWeight: 700}}
+                    sx={{borderRadius: '12px', py: 1.5}}
                 >
                     {intl.formatMessage({id: 'auth.sessionExpired.button', defaultMessage: 'Przejdź do logowania'})}
                 </Button>
