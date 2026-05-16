@@ -19,6 +19,7 @@ import {
     createCourse,
     updateCourse,
     fetchEmployees,
+    getEmployee,
     fetchCourseTypes,
     createCourseType,
     updateCourseType,
@@ -102,9 +103,14 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
             setEcts(course?.ects_points || '');
             setLanguage(course?.course_language || 'Polish');
             setCoordinator(course?.course_coordinator || '');
-            setSelectedCoordinator(null);
             setEmployeeSearchInput('');
             setError(null);
+
+            if (course?.course_coordinator) {
+                void getEmployee(course.course_coordinator).then(setSelectedCoordinator).catch(console.error);
+            } else {
+                setSelectedCoordinator(null);
+            }
 
             // Reset class types
             const initialTypes: any = {};
