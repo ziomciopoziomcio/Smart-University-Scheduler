@@ -12,8 +12,8 @@ export type ClassType =
     | 'Tutorials'
     | 'Laboratory'
     | 'Seminar'
-    | 'Other'
-    | 'E-learning';
+    | 'E-learning'
+    | 'Other';
 
 export type FrequencyType =
     | 'Every_week'

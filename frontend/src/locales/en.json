@@ -639,7 +639,9 @@
       "noEmployees": "No employees available",
       "languagePolish": "Polish",
       "languageEnglish": "English",
-      "languageFrench": "French"
+      "languageFrench": "French",
+      "classTypesTitle": "Class types and hours:",
+      "hoursLabel": "Hours"
     },
     "instructors": {
       "title": "Course instructors",
@@ -650,8 +652,17 @@
       "empty": "No instructors assigned to this course.",
       "deleteTitle": "Delete instructor assignment",
       "deleteDesc": "Are you sure you want to delete the assignment of {employee} as an instructor for {course}? This action cannot be undone.",
-      "manage": "Manage instructors"
+      "manage": "Manage instructors",
+      "noTypesWarning": "This course has no class types defined. Please add them first in the course catalog."
     }
+  },
+  "classTypes": {
+    "Lecture": "Lecture",
+    "Tutorials": "Tutorials",
+    "Laboratory": "Laboratory",
+    "Seminar": "Seminar",
+    "Other": "Other",
+    "E-learning": "E-learning"
   },
   "generateSchedule": {
     "hero": {

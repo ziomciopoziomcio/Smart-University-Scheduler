@@ -634,7 +634,9 @@
       "noEmployees": "Brak dostępnych pracowników",
       "languagePolish": "Polski",
       "languageEnglish": "Angielski",
-      "languageFrench": "Francuski"
+      "languageFrench": "Francuski",
+      "classTypesTitle": "Typy zajęć i godziny:",
+      "hoursLabel": "Godziny"
     },
     "instructors": {
       "title": "Prowadzący przedmiot: {course}",
@@ -645,8 +647,17 @@
       "empty": "Brak przypisanych prowadzących.",
       "deleteTitle": "Usuń przypisanie",
       "deleteDesc": "Czy na pewno chcesz usunąć to przypisanie prowadzącego?",
-      "manage": "Zarządzaj prowadzącymi"
+      "manage": "Zarządzaj prowadzącymi",
+      "noTypesWarning": "Przedmiot nie ma zdefiniowanych typów zajęć. Dodaj je najpierw w katalogu przedmiotów."
     }
+  },
+  "classTypes": {
+    "Lecture": "Wykład",
+    "Tutorials": "Ćwiczenia",
+    "Laboratory": "Laboratorium",
+    "Seminar": "Seminarium",
+    "Other": "Inne",
+    "E-learning": "E-learning"
   },
   "generateSchedule": {
     "hero": {

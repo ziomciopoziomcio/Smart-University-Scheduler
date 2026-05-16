@@ -9,11 +9,25 @@ import {
     Alert,
     CircularProgress,
     MenuItem,
-    Autocomplete
+    Autocomplete,
+    Checkbox,
+    FormControlLabel,
+    Divider
 } from '@mui/material';
 import {useIntl} from 'react-intl';
-import {createCourse, updateCourse, fetchEmployees, type Course, type Employee} from '@api';
-import type {CourseLanguage} from '@api/core';
+import {
+    createCourse,
+    updateCourse,
+    fetchEmployees,
+    fetchCourseTypes,
+    createCourseType,
+    updateCourseType,
+    deleteCourseType,
+    type Course,
+    type Employee,
+    type CourseTypeDetail
+} from '@api';
+import type {CourseLanguage, ClassType} from '@api/core';
 
 interface CourseModalProps {
     open: boolean;
@@ -22,6 +36,8 @@ interface CourseModalProps {
     onClose: () => void;
     onSuccess: () => void;
 }
+
+const CLASS_TYPES: ClassType[] = ['Lecture', 'Tutorials', 'Laboratory', 'Seminar', 'E-learning', 'Other'];
 
 export default function CourseModal({open, course, unitId, onClose, onSuccess}: CourseModalProps) {
     const intl = useIntl();
@@ -40,6 +56,15 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
     const [loadingEmployees, setLoadingEmployees] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Class types state
+    const [selectedTypes, setSelectedTypes] = useState<Record<ClassType, { enabled: boolean; hours: number; original?: CourseTypeDetail }>>(() => {
+        const initial: any = {};
+        CLASS_TYPES.forEach(t => {
+            initial[t] = {enabled: false, hours: 0};
+        });
+        return initial;
+    });
 
     useEffect(() => {
         if (!open) return;
@@ -80,8 +105,40 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
             setSelectedCoordinator(null);
             setEmployeeSearchInput('');
             setError(null);
+
+            // Reset class types
+            const initialTypes: any = {};
+            CLASS_TYPES.forEach(t => {
+                initialTypes[t] = {enabled: false, hours: 0};
+            });
+            setSelectedTypes(initialTypes);
+
+            if (course) {
+                void fetchCourseTypes(course.course_code).then(res => {
+                    const types: any = {...initialTypes};
+                    res.items.forEach(item => {
+                        types[item.class_type] = {enabled: true, hours: item.class_hours, original: item};
+                    });
+                    setSelectedTypes(types);
+                });
+            }
         }
     }, [open, course]);
+
+    const handleTypeToggle = (type: ClassType) => {
+        setSelectedTypes(prev => ({
+            ...prev,
+            [type]: {...prev[type], enabled: !prev[type].enabled}
+        }));
+    };
+
+    const handleHoursChange = (type: ClassType, hours: string) => {
+        const numericHours = hours === '' ? 0 : Number(hours);
+        setSelectedTypes(prev => ({
+            ...prev,
+            [type]: {...prev[type], hours: Math.max(0, numericHours)}
+        }));
+    };
 
     const handleSubmit = async () => {
         if (!name.trim() || code === '' || ects === '' || coordinator === '') {
@@ -102,11 +159,45 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
         };
 
         try {
+            let finalCourseCode = Number(code);
             if (isEdit && course) {
                 await updateCourse(course.course_code, payload);
             } else {
-                await createCourse(payload as any);
+                const newCourse = await createCourse(payload as any);
+                finalCourseCode = newCourse.course_code;
             }
+
+            // Sync class types
+            const promises = CLASS_TYPES.map(async (type) => {
+                const state = selectedTypes[type];
+                if (state.enabled) {
+                    if (state.original) {
+                        // Update existing
+                        if (state.hours !== state.original.class_hours) {
+                            await updateCourseType(finalCourseCode, type, {class_hours: state.hours});
+                        }
+                    } else {
+                        // Create new
+                        await createCourseType({
+                            course: finalCourseCode,
+                            class_type: type,
+                            class_hours: state.hours,
+                            slots_per_class: 2,
+                            frequency: 'Every_week',
+                            manual_weeks: null,
+                            pc_needed: false,
+                            projector_needed: true,
+                            max_group_participants_number: 15
+                        });
+                    }
+                } else if (state.original) {
+                    // Delete removed
+                    await deleteCourseType(finalCourseCode, type);
+                }
+            });
+
+            await Promise.all(promises);
+
             onSuccess();
             onClose();
         } catch (err: any) {
@@ -120,7 +211,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
         <Dialog
             open={open}
             onClose={onClose}
-            PaperProps={{sx: {borderRadius: '24px', p: 1, minWidth: 450}}}
+            PaperProps={{sx: {borderRadius: '24px', p: 1, minWidth: 500}}}
         >
             <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 3, mt: 2}}>
                 <Typography variant="h5" fontWeight="bold" textAlign="center" mb={1}>
@@ -239,6 +330,40 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
                         {intl.formatMessage({id: 'didactics.courses.languageFrench'})}
                     </MenuItem>
                 </TextField>
+
+                <Divider sx={{my: 1}} />
+
+                <Typography variant="subtitle1" fontWeight="bold">
+                    {intl.formatMessage({id: 'didactics.courses.classTypesTitle'})}
+                </Typography>
+
+                <Box sx={{display: 'flex', flexDirection: 'column', gap: 1}}>
+                    {CLASS_TYPES.map(type => (
+                        <Box key={type} sx={{display: 'flex', alignItems: 'center', gap: 2}}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={selectedTypes[type].enabled}
+                                        onChange={() => handleTypeToggle(type)}
+                                        sx={{color: '#2b5073', '&.Mui-checked': {color: '#2b5073'}}}
+                                    />
+                                }
+                                label={intl.formatMessage({id: `classTypes.${type}`})}
+                                sx={{flex: 1}}
+                            />
+                            <TextField
+                                size="small"
+                                type="number"
+                                label={intl.formatMessage({id: 'didactics.courses.hoursLabel'})}
+                                value={selectedTypes[type].hours}
+                                onChange={(e) => handleHoursChange(type, e.target.value)}
+                                disabled={!selectedTypes[type].enabled}
+                                sx={{width: '120px'}}
+                                InputProps={{sx: {borderRadius: '8px'}}}
+                            />
+                        </Box>
+                    ))}
+                </Box>
 
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
                     <Button
