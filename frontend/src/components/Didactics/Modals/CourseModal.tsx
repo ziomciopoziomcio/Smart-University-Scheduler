@@ -26,7 +26,8 @@ import {
     deleteCourseType,
     type Course,
     type Employee,
-    type CourseTypeDetail
+    type CourseTypeDetail,
+    type CourseCreate
 } from '@api';
 import type {CourseLanguage, ClassType} from '@api/core';
 
@@ -178,7 +179,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
         setLoading(true);
         setError(null);
 
-        const payload = {
+        const payload: CourseCreate = {
             course_code: Number(code),
             course_name: name.trim(),
             ects_points: Number(ects),
@@ -192,7 +193,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
             if (isEdit && course) {
                 await updateCourse(course.course_code, payload);
             } else {
-                const newCourse = await createCourse(payload as any);
+                const newCourse = await createCourse(payload);
                 finalCourseCode = newCourse.course_code;
             }
 
@@ -229,8 +230,9 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
 
             onSuccess();
             onClose();
-        } catch (err: any) {
-            setError(err.message || intl.formatMessage({id: 'didactics.common.errorSave'}));
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : intl.formatMessage({id: 'didactics.common.errorSave'});
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

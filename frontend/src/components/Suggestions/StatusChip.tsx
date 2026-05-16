@@ -1,11 +1,10 @@
 import {Chip} from '@mui/material';
-import {useIntl, type IntlShape} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import {
     type ScheduleSuggestionStatus,
 } from '@api/domains/schedules/suggestions';
-
-export type SuggestionStatusFilter = ScheduleSuggestionStatus | 'ALL';
+import {getStatusLabel} from './suggestionUtils';
 
 const statusColors: Record<ScheduleSuggestionStatus, {
     color: string;
@@ -33,18 +32,6 @@ const statusColors: Record<ScheduleSuggestionStatus, {
         border: '#F2B6D0',
     },
 };
-
-export function getStatusLabel(status: SuggestionStatusFilter, intl: IntlShape): string {
-    const labels: Record<SuggestionStatusFilter, string> = {
-        ALL: intl.formatMessage({id: 'suggestions.status.all'}),
-        PENDING: intl.formatMessage({id: 'suggestions.status.pending'}),
-        ACCEPTED: intl.formatMessage({id: 'suggestions.status.accepted'}),
-        REJECTED: intl.formatMessage({id: 'suggestions.status.rejected'}),
-        FAILED: intl.formatMessage({id: 'suggestions.status.failed'}),
-    };
-
-    return labels[status];
-}
 
 export function StatusChip({status}: { status: ScheduleSuggestionStatus }) {
     const intl = useIntl();

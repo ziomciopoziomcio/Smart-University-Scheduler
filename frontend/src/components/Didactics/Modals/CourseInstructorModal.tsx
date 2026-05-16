@@ -85,8 +85,9 @@ export function CourseInstructorModal({open, course, instructor, facultyId, onCl
             }
             onSuccess();
             onClose();
-        } catch (err: any) {
-            setError(err.message || (isEdit ? "Błąd aktualizacji" : "Błąd przypisania"));
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : (isEdit ? "Błąd aktualizacji" : "Błąd przypisania");
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
