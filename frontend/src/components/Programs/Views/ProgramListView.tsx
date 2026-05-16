@@ -13,9 +13,10 @@ interface ProgramListViewProps {
     fieldId: number;
     onRefresh: () => void;
     fieldName: string;
+    basePath?: string;
 }
 
-export function ProgramListView({data, facultyId, fieldId, onRefresh, fieldName}: ProgramListViewProps) {
+export function ProgramListView({data, facultyId, fieldId, onRefresh, fieldName, basePath = '/programs'}: ProgramListViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,7 +48,7 @@ export function ProgramListView({data, facultyId, fieldId, onRefresh, fieldName}
                     }
                 ]}
                 onItemClick={(item) => {
-                    navigate(`/programs/faculty/${facultyId}/field/${fieldId}/program/${item.id}`);
+                    navigate(`${basePath}/${facultyId}/field/${fieldId}/program/${item.id}`);
                 }}
                 onAddClick={() => {
                     setIsModalOpen(true);

@@ -10,17 +10,19 @@ interface ProgramSemesterDashboardProps {
     fieldId: number;
     programId: number;
     semesterId: number;
+    basePath?: string;
 }
 
 export function ProgramSemesterDashboardView({
                                                  facultyId,
                                                  fieldId,
                                                  programId,
-                                                 semesterId
+                                                 semesterId,
+                                                 basePath: customBasePath
                                              }: ProgramSemesterDashboardProps) {
     const navigate = useNavigate();
     const intl = useIntl();
-    const basePath = `/programs/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${semesterId}`;
+    const basePath = customBasePath || `/programs/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${semesterId}`;
 
     const options = [
         {

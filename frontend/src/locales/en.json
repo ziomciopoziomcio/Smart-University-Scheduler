@@ -571,9 +571,11 @@
     },
     "fieldDashboard": {
       "majorsTitle": "Majors",
-      "majorsDesc": "Manage majors for this field of study.",
-      "blocksTitle": "Elective Blocks",
-      "blocksDesc": "Manage elective blocks for this field of study."
+      "majorsDesc": "Manage majors and groups",
+      "blocksTitle": "Elective blocks",
+      "blocksDesc": "Configure elective courses",
+      "programsTitle": "Study programs",
+      "programsDesc": "Manage cycles and curriculum"
     },
     "common": {
       "search": "Search...",
@@ -594,10 +596,27 @@
       "deleteTitle": "Delete field of study",
       "deleteDesc": "Are you sure you want to delete the field of study \"{name}\"? This action cannot be undone.",
       "empty": "No fields of study in the system.",
-      "nameLabel": "Field of study name",
-      "namePlaceholder": "e.g. Computer Science",
-      "majorsCount": "{count, plural, one {# major} other {# majors}}",
-      "blocksCount": "{count, plural, =0 {No blocks} one {1 block} few {# blocks} many {# blocks} other {# blocks}}"
+      "nameLabel": "Field of Study Name",
+      "namePlaceholder": "e.g., Computer Science",
+      "degreeLabel": "Study Degree",
+      "modeLabel": "Study Mode",
+      "majorsCount": "{count, plural, =0 {No specializations} one {1 specialization} other {# specializations}}",
+      "blocksCount": "{count, plural, =0 {No blocks} one {1 block} other {# blocks}}",
+      "degrees": {
+        "Bachelor": "Bachelor",
+        "Master": "Master",
+        "Uniform_Master": "Uniform Master",
+        "Doctoral": "Doctoral"
+      },
+      "modes": {
+        "Full-time": "Full-time",
+        "Part-time": "Part-time"
+      }
+    },
+    "semesters": {
+      "title": "Semesters",
+      "coursesCount": "{count, plural, =0 {No courses} one {1 course} other {# courses}}",
+      "ectsSum": "{count} ECTS"
     },
     "majors": {
       "add": "Add Major",

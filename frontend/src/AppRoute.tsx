@@ -146,6 +146,18 @@ function AppRoute() {
                                    element={<DidacticsPage view="majors"/>}/>
                             <Route path="fields/faculty/:facultyId/field/:fieldId/blocks"
                                    element={<DidacticsPage view="blocks"/>}/>
+                            <Route path="fields/faculty/:facultyId/field/:fieldId/programs"
+                                   element={<DidacticsPage view="programs"/>}/>
+                            <Route path="fields/faculty/:facultyId/field/:fieldId/program/:programId"
+                                   element={<DidacticsPage view="semesters"/>}/>
+                            <Route path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId"
+                                   element={<DidacticsPage view="semester-dashboard"/>}/>
+                            <Route
+                                path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/curriculum"
+                                element={<DidacticsPage view="curriculum"/>}/>
+                            <Route
+                                path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/groups"
+                                element={<DidacticsPage view="groups"/>}/>
 
                             <Route path="courses" element={<DidacticsPage view="faculties_for_courses"/>}/>
                             <Route path="courses/faculty/:facultyId"

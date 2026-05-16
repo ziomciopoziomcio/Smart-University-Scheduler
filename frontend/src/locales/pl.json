@@ -565,10 +565,12 @@
       "coursesDesc": "Globalna baza wszystkich przedmiotów uczelnianych. Dodawaj, edytuj nazwy, punkty ECTS i języki."
     },
     "fieldDashboard": {
-      "majorsTitle": "Specjalizacje",
-      "majorsDesc": "Zarządzaj specjalizacjami.",
-      "blocksTitle": "Bloki Obieralne",
-      "blocksDesc": "Konfiguruj bloki obieralne."
+      "majorsTitle": "Specjalności",
+      "majorsDesc": "Zarządzaj specjalnościami i grupami",
+      "blocksTitle": "Bloki obieralne",
+      "blocksDesc": "Konfiguruj przedmioty do wyboru",
+      "programsTitle": "Programy studiów",
+      "programsDesc": "Zarządzaj cyklami i siatką zajęć"
     },
     "common": {
       "search": "Szukaj...",
@@ -591,8 +593,25 @@
       "empty": "Brak kierunków studiów na tym wydziale.",
       "nameLabel": "Nazwa Kierunku",
       "namePlaceholder": "np. Informatyka Stosowana",
-      "majorsCount": "Specjalizacji",
-      "blocksCount": "{count, plural, =0 {Brak bloków} one {1 blok} few {# bloki} many {# bloków} other {# bloku}}"
+      "degreeLabel": "Stopień studiów",
+      "modeLabel": "Tryb studiów",
+      "majorsCount": "{count, plural, =0 {Brak specjalizacji} one {1 specjalizacja} few {# specjalizacje} many {# specjalizacji} other {# specjalizacji}}",
+      "blocksCount": "{count, plural, =0 {Brak bloków} one {1 blok} few {# bloki} many {# bloków} other {# bloku}}",
+      "degrees": {
+        "Bachelor": "Inżynierskie",
+        "Master": "Magisterskie",
+        "Uniform_Master": "Jednolite Magisterskie",
+        "Doctoral": "Doktoranckie"
+      },
+      "modes": {
+        "Full-time": "Stacjonarne",
+        "Part-time": "Niestacjonarne"
+      }
+    },
+    "semesters": {
+      "title": "Semestry",
+      "coursesCount": "{count, plural, =0 {Brak przedmiotów} one {1 przedmiot} few {# przedmioty} many {# przedmiotów} other {# przedmiotów}}",
+      "ectsSum": "{count} ECTS"
     },
     "majors": {
       "add": "Dodaj Specjalizację",

@@ -16,9 +16,10 @@ interface ProgramSemesterViewProps {
     facultyId: number;
     fieldId: number;
     programId: number;
+    basePath?: string;
 }
 
-export function ProgramSemesterView({data, facultyId, fieldId, programId}: ProgramSemesterViewProps) {
+export function ProgramSemesterView({data, facultyId, fieldId, programId, basePath = '/programs'}: ProgramSemesterViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
 
@@ -40,18 +41,16 @@ export function ProgramSemesterView({data, facultyId, fieldId, programId}: Progr
                     },
                     {
                         render: (item) => (
-                            <Box sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
-                                <Typography variant="body2" fontWeight={600}>
-                                    {item.ects_sum ?? 0} ECTS
-                                </Typography>
-                            </Box>
+                            <Typography variant="body2" fontWeight={600}>
+                                {item.ects_sum ?? 0} ECTS
+                            </Typography>
                         ),
                         width: '120px',
                         align: 'right'
                     }
                 ]}
                 onItemClick={(item) => {
-                    navigate(`/programs/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${item.id}`);
+                    navigate(`${basePath}/${facultyId}/field/${fieldId}/program/${programId}/semester/${item.id}`);
                 }}
                 emptyMessage={intl.formatMessage({id: 'programs.noData'})}
                 hideDividerOnLastItem

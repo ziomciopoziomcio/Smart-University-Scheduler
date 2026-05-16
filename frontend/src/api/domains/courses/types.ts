@@ -20,12 +20,16 @@ export interface ElectiveBlock {
 export type ElectiveBlockCreate = Omit<ElectiveBlock, 'id'>;
 export type ElectiveBlockUpdate = Partial<ElectiveBlockCreate>;
 
+export type StudyMode = 'Full-time' | 'Part-time';
+export type StudyDegree = 'Bachelor' | 'Master' | 'Uniform_Master' | 'Doctoral';
+
 export interface StudyField {
     id: number;
     faculty: number;
     field_name: string;
-    language?: string;
-    mode?: string;
+    language: CourseLanguage;
+    mode: StudyMode;
+    degree: StudyDegree;
     semesters_count?: number;
     specializations_count?: number;
     elective_blocks_count?: number;
@@ -48,8 +52,6 @@ export interface Course {
     leading_unit: number;
     course_language: CourseLanguage;
     course_coordinator: number;
-    major?: number | null;
-    elective_block?: number | null;
 }
 
 export type CourseCreate = Course;

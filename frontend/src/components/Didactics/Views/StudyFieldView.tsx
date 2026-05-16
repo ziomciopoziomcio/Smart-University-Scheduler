@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {Box} from '@mui/material';
-import {AutoStories, ClassOutlined, ExtensionOutlined} from '@mui/icons-material';
+import {Box, Typography} from '@mui/material';
+import {AutoStories, ClassOutlined, ExtensionOutlined, FolderSpecialOutlined} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 
 import {ListView, ActionMenu, DeleteConfirmDialog} from '@components/Common';
@@ -46,9 +46,23 @@ export function DidacticsStudyFieldView({data, facultyId, onRefresh}: DidacticsS
                 getTitle={(item) => item.field_name}
                 columns={[
                     {
+                        render: (item: StudyField) => (
+                            <Box sx={{display: 'flex', gap: 1}}>
+                                <Typography variant="body2" color="text.secondary">
+                                    {item.degree ? intl.formatMessage({id: `didactics.fields.degrees.${item.degree}`}) : '—'}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">•</Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    {item.mode ? intl.formatMessage({id: `didactics.fields.modes.${item.mode}`}) : '—'}
+                                </Typography>
+                            </Box>
+                        ),
+                        width: '220px'
+                    },
+                    {
                         render: (item: StudyField) => intl.formatMessage(
-                            {id: 'plans.studentsPlan.studyField.specializations.count'},
-                            {count: item.specializations_count || 0}
+                            {id: 'didactics.fields.majorsCount'},
+                            {count: item.specializations_count ?? 0}
                         ),
                         icon: ClassOutlined,
                         variant: 'secondary',
@@ -62,6 +76,15 @@ export function DidacticsStudyFieldView({data, facultyId, onRefresh}: DidacticsS
                         icon: ExtensionOutlined,
                         variant: 'secondary',
                         width: '150px'
+                    },
+                    {
+                        render: (item: StudyField) => intl.formatMessage(
+                            {id: 'programs.fields.programsCount'},
+                            {count: item.programs_count ?? 0}
+                        ),
+                        icon: FolderSpecialOutlined,
+                        variant: 'secondary',
+                        width: '120px'
                     }
                 ]}
                 onItemClick={(item) => navigate(`/didactics/fields/faculty/${facultyId}/field/${item.id}`)}
