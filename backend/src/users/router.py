@@ -172,6 +172,49 @@ def twofa_verify(
     }
 
 
+@router.post("/2fa/disable", response_model=schemas.MessageResponse)
+def twofa_disable(
+    payload: schemas.TwoFactorDisableRequest,
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    # _current_user: user_models.Users = Depends(require_permission("user-2fa:disable")),
+):
+    """
+    Disable 2FA for the currently authenticated user.
+    """
+    # is 2fa active?
+    if not current_user.two_factor_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="2FA is not enabled",
+        )
+
+    # password validation
+    if not verify_password(payload.password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect password",
+        )
+
+    # code validation
+    ok = verify_2fa_code(db, current_user, payload.code)
+
+    if not ok:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid 2FA code",
+        )
+
+    current_user.two_factor_enabled = False
+    current_user.two_factor_secret = None
+    current_user.backup_codes = None
+
+    db.add(current_user)
+    _commit_or_rollback(db)
+
+    return {"detail": "2FA has been disabled"}
+
+
 # Permissions
 @router.get("/permissions", response_model=PaginatedResponse[schemas.PermissionRead])
 def get_permissions(
