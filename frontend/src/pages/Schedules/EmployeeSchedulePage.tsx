@@ -67,7 +67,7 @@ export default function EmployeeSchedulePage() {
                     );
                     setUnitName(unit.unit_short)
                 }
-            } catch (error) {
+            } catch {
                 if (!cancelled) {
                     setFacultyName('');
                     setUnitName('');

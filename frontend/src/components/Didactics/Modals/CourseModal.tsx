@@ -9,11 +9,27 @@ import {
     Alert,
     CircularProgress,
     MenuItem,
-    Autocomplete
+    Autocomplete,
+    Checkbox,
+    FormControlLabel,
+    Divider
 } from '@mui/material';
 import {useIntl} from 'react-intl';
-import {createCourse, updateCourse, fetchEmployees, type Course, type Employee} from '@api';
-import type {CourseLanguage} from '@api/core';
+import {
+    createCourse,
+    updateCourse,
+    fetchEmployees,
+    getEmployee,
+    fetchCourseTypes,
+    createCourseType,
+    updateCourseType,
+    deleteCourseType,
+    type Course,
+    type Employee,
+    type CourseTypeDetail,
+    type CourseCreate
+} from '@api';
+import type {CourseLanguage, ClassType} from '@api/core';
 
 interface CourseModalProps {
     open: boolean;
@@ -22,6 +38,8 @@ interface CourseModalProps {
     onClose: () => void;
     onSuccess: () => void;
 }
+
+const CLASS_TYPES: ClassType[] = ['Lecture', 'Tutorials', 'Laboratory', 'Seminar', 'E-learning', 'Other'];
 
 export default function CourseModal({open, course, unitId, onClose, onSuccess}: CourseModalProps) {
     const intl = useIntl();
@@ -40,6 +58,14 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
     const [loadingEmployees, setLoadingEmployees] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Class types state
+    const [selectedTypes, setSelectedTypes] = useState<Record<ClassType, { enabled: boolean; hours: number; original?: CourseTypeDetail }>>(() => {
+        return CLASS_TYPES.reduce((acc, t) => {
+            acc[t] = {enabled: false, hours: 0};
+            return acc;
+        }, {} as Record<ClassType, { enabled: boolean; hours: number; original?: CourseTypeDetail }>);
+    });
 
     useEffect(() => {
         if (!open) return;
@@ -77,11 +103,72 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
             setEcts(course?.ects_points || '');
             setLanguage(course?.course_language || 'Polish');
             setCoordinator(course?.course_coordinator || '');
-            setSelectedCoordinator(null);
             setEmployeeSearchInput('');
             setError(null);
+
+            if (course?.course_coordinator) {
+                void getEmployee(course.course_coordinator).then(setSelectedCoordinator).catch(console.error);
+            } else {
+                setSelectedCoordinator(null);
+            }
+
+            // Reset class types
+            const initialTypes = CLASS_TYPES.reduce((acc, t) => {
+                acc[t] = {enabled: false, hours: 0};
+                return acc;
+            }, {} as Record<ClassType, { enabled: boolean; hours: number; original?: CourseTypeDetail }>);
+            setSelectedTypes(initialTypes);
+
+            if (course) {
+                void fetchCourseTypes(course.course_code)
+                    .then(res => {
+                        const types = {...initialTypes};
+                        res.items.forEach(item => {
+                            types[item.class_type] = {enabled: true, hours: item.class_hours, original: item};
+                        });
+                        setSelectedTypes(types);
+                    })
+                    .catch(() => {
+                        const message = intl.formatMessage({
+                            defaultMessage: 'Failed to load existing class types for this course. The editor will be closed to prevent saving incomplete data.'
+                        });
+                        setError(message);
+                        window.alert(message);
+                        onClose();
+                    });
+            }
         }
-    }, [open, course]);
+    }, [open, course, intl, onClose]);
+
+    const handleTypeToggle = (type: ClassType) => {
+        setSelectedTypes(prev => ({
+            ...prev,
+            [type]: {...prev[type], enabled: !prev[type].enabled}
+        }));
+    };
+
+    const handleHoursChange = (type: ClassType, hours: string) => {
+        const numericHours = hours === '' ? 0 : Number(hours);
+        setSelectedTypes(prev => ({
+            ...prev,
+            [type]: {...prev[type], hours: Math.max(0, numericHours)}
+        }));
+    };
+
+    const getDefaultConfigForType = (type: ClassType) => {
+        switch (type) {
+            case 'Lecture':
+                return {pc_needed: false, max_group_participants_number: 150};
+            case 'Laboratory':
+                return {pc_needed: true, max_group_participants_number: 15};
+            case 'Tutorials':
+                return {pc_needed: false, max_group_participants_number: 30};
+            case 'Seminar':
+                return {pc_needed: false, max_group_participants_number: 20};
+            default:
+                return {pc_needed: false, max_group_participants_number: 15};
+        }
+    };
 
     const handleSubmit = async () => {
         if (!name.trim() || code === '' || ects === '' || coordinator === '') {
@@ -92,7 +179,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
         setLoading(true);
         setError(null);
 
-        const payload = {
+        const payload: CourseCreate = {
             course_code: Number(code),
             course_name: name.trim(),
             ects_points: Number(ects),
@@ -102,15 +189,50 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
         };
 
         try {
+            let finalCourseCode = Number(code);
             if (isEdit && course) {
                 await updateCourse(course.course_code, payload);
             } else {
-                await createCourse(payload as any);
+                const newCourse = await createCourse(payload);
+                finalCourseCode = newCourse.course_code;
             }
+
+            // Sync class types
+            const promises = CLASS_TYPES.map(async (type) => {
+                const state = selectedTypes[type];
+                if (state.enabled) {
+                    if (state.original) {
+                        // Update existing
+                        if (state.hours !== state.original.class_hours) {
+                            await updateCourseType(finalCourseCode, type, {class_hours: state.hours});
+                        }
+                    } else {
+                        // Create new with context-aware defaults
+                        const config = getDefaultConfigForType(type);
+                        await createCourseType({
+                            course: finalCourseCode,
+                            class_type: type,
+                            class_hours: state.hours,
+                            slots_per_class: 2,
+                            frequency: 'Every_week',
+                            manual_weeks: null,
+                            projector_needed: true,
+                            ...config
+                        });
+                    }
+                } else if (state.original) {
+                    // Delete removed
+                    await deleteCourseType(finalCourseCode, type);
+                }
+            });
+
+            await Promise.all(promises);
+
             onSuccess();
             onClose();
-        } catch (err: any) {
-            setError(err.message || intl.formatMessage({id: 'didactics.common.errorSave'}));
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : intl.formatMessage({id: 'didactics.common.errorSave'});
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -120,7 +242,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
         <Dialog
             open={open}
             onClose={onClose}
-            PaperProps={{sx: {borderRadius: '24px', p: 1, minWidth: 450}}}
+            PaperProps={{sx: {borderRadius: '24px', p: 1, minWidth: 500}}}
         >
             <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 3, mt: 2}}>
                 <Typography variant="h5" fontWeight="bold" textAlign="center" mb={1}>
@@ -239,6 +361,40 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
                         {intl.formatMessage({id: 'didactics.courses.languageFrench'})}
                     </MenuItem>
                 </TextField>
+
+                <Divider sx={{my: 1}} />
+
+                <Typography variant="subtitle1" fontWeight="bold">
+                    {intl.formatMessage({id: 'didactics.courses.classTypesTitle'})}
+                </Typography>
+
+                <Box sx={{display: 'flex', flexDirection: 'column', gap: 1}}>
+                    {CLASS_TYPES.map(type => (
+                        <Box key={type} sx={{display: 'flex', alignItems: 'center', gap: 2}}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={selectedTypes[type].enabled}
+                                        onChange={() => handleTypeToggle(type)}
+                                        sx={{color: '#2b5073', '&.Mui-checked': {color: '#2b5073'}}}
+                                    />
+                                }
+                                label={intl.formatMessage({id: `didactics.classTypes.${type}`})}
+                                sx={{flex: 1}}
+                            />
+                            <TextField
+                                size="small"
+                                type="number"
+                                label={intl.formatMessage({id: 'didactics.courses.hoursLabel'})}
+                                value={selectedTypes[type].hours}
+                                onChange={(e) => handleHoursChange(type, e.target.value)}
+                                disabled={!selectedTypes[type].enabled}
+                                sx={{width: '120px'}}
+                                InputProps={{sx: {borderRadius: '8px'}}}
+                            />
+                        </Box>
+                    ))}
+                </Box>
 
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
                     <Button

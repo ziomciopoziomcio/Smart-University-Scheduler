@@ -44,3 +44,19 @@ export interface Role {
     permissions: Permission[];
     users_count?: number;
 }
+
+export interface UserRegistrationData {
+    email: string;
+    password: string;
+    confirmPassword: string;
+    name: string;
+    surname: string;
+    phone_number: string;
+    degree: string;
+}
+
+export interface PasswordResetPayload {
+    token: string;
+    password: string;
+    password2: string;
+}

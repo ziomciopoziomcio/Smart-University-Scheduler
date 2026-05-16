@@ -96,6 +96,23 @@ export interface CourseSummary {
     ects_points: number;
 }
 
+export interface CourseTypeDetail {
+    course: number;
+    class_type: ClassType;
+    class_hours: number;
+    slots_per_class: number;
+    frequency: string;
+    manual_weeks: number[] | null;
+    pc_needed: boolean;
+    projector_needed: boolean;
+    max_group_participants_number: number;
+}
+
+export type CourseTypeDetailCreate = Omit<CourseTypeDetail, 'slots_per_class' | 'manual_weeks' | 'pc_needed' | 'projector_needed' | 'max_group_participants_number'> &
+    Partial<Pick<CourseTypeDetail, 'slots_per_class' | 'manual_weeks' | 'pc_needed' | 'projector_needed' | 'max_group_participants_number'>>;
+
+export type CourseTypeDetailUpdate = Partial<Omit<CourseTypeDetailCreate, 'course' | 'class_type'>>;
+
 export interface CurriculumCourse {
     study_program: number;
     course: number;
