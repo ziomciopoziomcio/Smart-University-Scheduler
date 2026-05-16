@@ -120,16 +120,25 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
             setSelectedTypes(initialTypes);
 
             if (course) {
-                void fetchCourseTypes(course.course_code).then(res => {
-                    const types: any = {...initialTypes};
-                    res.items.forEach(item => {
-                        types[item.class_type] = {enabled: true, hours: item.class_hours, original: item};
+                void fetchCourseTypes(course.course_code)
+                    .then(res => {
+                        const types: any = {...initialTypes};
+                        res.items.forEach(item => {
+                            types[item.class_type] = {enabled: true, hours: item.class_hours, original: item};
+                        });
+                        setSelectedTypes(types);
+                    })
+                    .catch(() => {
+                        const message = intl.formatMessage({
+                            defaultMessage: 'Failed to load existing class types for this course. The editor will be closed to prevent saving incomplete data.'
+                        });
+                        setError(message);
+                        window.alert(message);
+                        onClose();
                     });
-                    setSelectedTypes(types);
-                });
             }
         }
-    }, [open, course]);
+    }, [open, course, intl, onClose]);
 
     const handleTypeToggle = (type: ClassType) => {
         setSelectedTypes(prev => ({
