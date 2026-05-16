@@ -7,7 +7,6 @@ export interface User {
     phone_number: string | null;
     created_at: string;
     roles?: string[];
-    permissions?: string[];
     two_factor_enabled?: boolean;
 }
 
@@ -60,13 +59,4 @@ export interface PasswordResetPayload {
     token: string;
     password: string;
     password2: string;
-}
-
-export interface TwoFactorSetupResponse {
-    provisioning_uri: string;
-    secret: string;
-}
-
-export interface BackupCodesResponse {
-    backup_codes: string[];
 }
