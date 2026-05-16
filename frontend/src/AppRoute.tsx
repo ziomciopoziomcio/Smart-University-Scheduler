@@ -157,6 +157,9 @@ function AppRoute() {
                             <Route
                                 path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/groups"
                                 element={<DidacticsPage view="groups"/>}/>
+                            <Route
+                                path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/groups/:groupId"
+                                element={<DidacticsPage view="group_members"/>}/>
 
                             <Route path="courses" element={<DidacticsPage view="faculties_for_courses"/>}/>
                             <Route path="courses/faculty/:facultyId"

@@ -19,3 +19,4 @@ export {ProgramSemesterView} from './Views/ProgramSemesterView.tsx';
 export {ProgramCurriculumView} from './Views/ProgramCurriculumView.tsx';
 export {ProgramSemesterDashboardView} from './Views/ProgramSemesterDashboardView.tsx';
 export {ProgramGroupView} from './Views/ProgramGroupView.tsx';
+export {ProgramGroupStudentsView} from './Views/ProgramGroupStudentsView.tsx';

@@ -9,18 +9,18 @@ import {
     type Faculty, type Unit, type StudyField, getCourse, type Course,
     fetchMajors, fetchElectiveBlocks, fetchCourses, fetchCourseInstructors,
     fetchStudyPrograms, getStudyProgram, type StudyProgram,
-    fetchCurriculum, fetchGroups
+    fetchCurriculum, fetchGroups, getGroup, type Group
 } from '@api';
 
 import {
     DidacticsDashboardView, FieldDashboardView, MajorView, BlockView, DidacticsFacultyView,
     DidacticsStudyFieldView, DidacticsUnitView, DidacticsCourseView, CourseInstructorsView,
     ProgramListView, ProgramSemesterView, ProgramCurriculumView,
-    ProgramSemesterDashboardView, ProgramGroupView
+    ProgramSemesterDashboardView, ProgramGroupView, ProgramGroupStudentsView
 } from '@components/Didactics';
 
 export default function DidacticsPage({view}: { view: string }) {
-    const {facultyId, fieldId, unitId, courseCode, programId, semesterId} = useParams();
+    const {facultyId, fieldId, unitId, courseCode, programId, semesterId, groupId} = useParams();
     const intl = useIntl();
 
     const [loading, setLoading] = useState(true);
@@ -38,12 +38,13 @@ export default function DidacticsPage({view}: { view: string }) {
     const [currentUnit, setCurrentUnit] = useState<Unit | null>(null);
     const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
     const [currentProgram, setCurrentProgram] = useState<StudyProgram | null>(null);
+    const [currentGroup, setCurrentGroup] = useState<Group | null>(null);
 
     useEffect(() => {
         setPage(1);
         setSearch('');
         setDebouncedSearch('');
-    }, [view, facultyId, fieldId, unitId, courseCode, programId, semesterId]);
+    }, [view, facultyId, fieldId, unitId, courseCode, programId, semesterId, groupId]);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -93,6 +94,13 @@ export default function DidacticsPage({view}: { view: string }) {
                 if (!currentProgram || currentProgram.id !== pid) {
                     const res = await getStudyProgram(pid);
                     setCurrentProgram(res);
+                }
+            }
+            if (groupId) {
+                const gid = Number(groupId);
+                if (!currentGroup || currentGroup.id !== gid) {
+                    const res = await getGroup(gid);
+                    setCurrentGroup(res);
                 }
             }
 
@@ -151,7 +159,7 @@ export default function DidacticsPage({view}: { view: string }) {
         } finally {
             setLoading(false);
         }
-    }, [view, facultyId, fieldId, unitId, courseCode, programId, semesterId, page, pageSize, debouncedSearch, intl]);
+    }, [view, facultyId, fieldId, unitId, courseCode, programId, semesterId, groupId, page, pageSize, debouncedSearch, intl]);
 
     useEffect(() => {
         void loadData();
@@ -162,7 +170,7 @@ export default function DidacticsPage({view}: { view: string }) {
             {label: intl.formatMessage({id: 'didactics.breadcrumbs.main'}), path: '/didactics'}
         ];
 
-        const isFieldsPath = ['faculties_for_fields', 'fields', 'field_dashboard', 'majors', 'blocks', 'programs', 'semesters', 'semester-dashboard', 'curriculum', 'groups'].includes(view);
+        const isFieldsPath = ['faculties_for_fields', 'fields', 'field_dashboard', 'majors', 'blocks', 'programs', 'semesters', 'semester-dashboard', 'curriculum', 'groups', 'group_members'].includes(view);
 
         if (isFieldsPath) {
             breadcrumbs.push({
@@ -181,7 +189,7 @@ export default function DidacticsPage({view}: { view: string }) {
             if (view === 'blocks') breadcrumbs.push({label: intl.formatMessage({id: 'didactics.breadcrumbs.blocks'})});
             if (view === 'programs') breadcrumbs.push({label: intl.formatMessage({id: 'didactics.fieldDashboard.programsTitle'})});
 
-            if (['semesters', 'semester-dashboard', 'curriculum', 'groups'].includes(view)) {
+            if (['semesters', 'semester-dashboard', 'curriculum', 'groups', 'group_members'].includes(view)) {
                 breadcrumbs.push({
                     label: intl.formatMessage({id: 'didactics.fieldDashboard.programsTitle'}),
                     path: `/didactics/fields/faculty/${facultyId}/field/${fieldId}/programs`
@@ -192,7 +200,7 @@ export default function DidacticsPage({view}: { view: string }) {
                 });
             }
 
-            if (['semester-dashboard', 'curriculum', 'groups'].includes(view) && semesterId) {
+            if (['semester-dashboard', 'curriculum', 'groups', 'group_members'].includes(view) && semesterId) {
                 breadcrumbs.push({
                     label: `${intl.formatMessage({id: 'didactics.programs.semester'})} ${semesterId}`,
                     path: view !== 'semester-dashboard' ? `/didactics/fields/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${semesterId}` : undefined
@@ -200,7 +208,15 @@ export default function DidacticsPage({view}: { view: string }) {
             }
 
             if (view === 'curriculum') breadcrumbs.push({label: intl.formatMessage({id: 'didactics.programs.dashboard.curriculumTitle'})});
-            if (view === 'groups') breadcrumbs.push({label: intl.formatMessage({id: 'didactics.programs.dashboard.groupsTitle'})});
+            if (['groups', 'group_members'].includes(view)) {
+                breadcrumbs.push({
+                    label: intl.formatMessage({id: 'didactics.programs.dashboard.groupsTitle'}),
+                    path: view === 'group_members' ? `/didactics/fields/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${semesterId}/groups` : undefined
+                });
+            }
+            if (view === 'group_members' && currentGroup) {
+                breadcrumbs.push({label: currentGroup.group_name});
+            }
         }
 
         if (['faculties_for_courses', 'units_for_courses', 'catalog', 'course_instructors'].includes(view)) {
@@ -236,18 +252,18 @@ export default function DidacticsPage({view}: { view: string }) {
             <PageBreadcrumbs items={getBreadcrumbs()}/>
 
             <Box sx={{flexGrow: 1}}>
-                {loading ? (
+                {loading && !['group_members'].includes(view) ? (
                     <Box sx={{display: 'flex', justifyContent: 'center', py: 8}}><CircularProgress/></Box>
                 ) : (
                     <Box sx={{
                         width: '100%',
                         display: 'flex',
                         flexDirection: 'column',
-                        background: '#ffffff',
-                        boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
+                        background: view === 'group_members' ? 'transparent' : '#ffffff',
+                        boxShadow: view === 'group_members' ? 'none' : '0 2px 12px rgba(0, 0, 0, 0.06)',
                         borderRadius: 2,
                         overflow: 'hidden',
-                        p: {xs: 1, md: 2}
+                        p: view === 'group_members' ? 0 : {xs: 1, md: 2}
                     }}>
                         {error && <Alert severity="error" sx={{mb: 3}}>{error}</Alert>}
 
@@ -322,11 +338,18 @@ export default function DidacticsPage({view}: { view: string }) {
                             />
                         )}
 
+                        {view === 'group_members' && (
+                            <ProgramGroupStudentsView
+                                groupId={Number(groupId)}
+                                programId={Number(programId)}
+                            />
+                        )}
+
                         {view === 'faculties_for_courses' &&
                             <DidacticsFacultyView data={data} basePath="/didactics/courses/faculty"/>}
                         {view === 'units_for_courses' && <DidacticsUnitView data={data} facultyId={Number(facultyId)}/>}
 
-                        {!['dashboard', 'field_dashboard', 'semester-dashboard'].includes(view) && totalItems > 0 && (
+                        {!['dashboard', 'field_dashboard', 'semester-dashboard', 'group_members'].includes(view) && totalItems > 0 && (
                             <ListPagination
                                 page={page}
                                 totalItems={totalItems}
