@@ -1,5 +1,5 @@
 import {USERS_URL} from '@api/core';
-import type {User, AuthResponse} from './types';
+import type {User, AuthResponse, UserRegistrationData, PasswordResetPayload} from './types';
 
 const extractErrorMessage = async (response: Response, fallback: string): Promise<string> => {
     const contentType = response.headers.get('content-type') ?? '';
@@ -41,7 +41,7 @@ export const loginUser = async (email: string, password: string): Promise<AuthRe
     return response.json() as Promise<AuthResponse>;
 };
 
-export const registerUser = async (userData: any): Promise<void> => {
+export const registerUser = async (userData: UserRegistrationData): Promise<void> => {
     const response = await fetch(`${USERS_URL}/signup`, {
         method: 'POST',
         headers: {
@@ -117,7 +117,7 @@ export const forgotPassword = async (email: string): Promise<void> => {
     return;
 };
 
-export const resetPassword = async (payload: any): Promise<void> => {
+export const resetPassword = async (payload: PasswordResetPayload): Promise<void> => {
     const response = await fetch(`${USERS_URL}/password/reset`, {
         method: 'POST',
         headers: {

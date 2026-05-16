@@ -12,8 +12,6 @@ export default function SidebarClock({open}: { open: boolean }) {
             return;
         }
 
-        setCurrentTime(new Date());
-
         const timer = setInterval(() => {
             setCurrentTime(new Date());
         }, 60000);

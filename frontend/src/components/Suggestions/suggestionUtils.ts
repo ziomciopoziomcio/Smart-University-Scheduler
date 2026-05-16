@@ -4,12 +4,23 @@ import {
 
 import {
     type ScheduleSuggestion,
+    type ScheduleSuggestionStatus,
     type SuggestionState,
 } from '@api/domains/schedules/suggestions';
 
-import {
-    getStatusLabel,
-} from './StatusChip';
+export type SuggestionStatusFilter = ScheduleSuggestionStatus | 'ALL';
+
+export function getStatusLabel(status: SuggestionStatusFilter, intl: IntlShape): string {
+    const labels: Record<SuggestionStatusFilter, string> = {
+        ALL: intl.formatMessage({id: 'suggestions.status.all'}),
+        PENDING: intl.formatMessage({id: 'suggestions.status.pending'}),
+        ACCEPTED: intl.formatMessage({id: 'suggestions.status.accepted'}),
+        REJECTED: intl.formatMessage({id: 'suggestions.status.rejected'}),
+        FAILED: intl.formatMessage({id: 'suggestions.status.failed'}),
+    };
+
+    return labels[status];
+}
 
 export interface NormalizedSuggestionSnapshot {
     title: string;
