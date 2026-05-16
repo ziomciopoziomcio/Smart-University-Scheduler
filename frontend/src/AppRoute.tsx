@@ -28,6 +28,7 @@ import DidacticsPage from "./pages/Didactics/DidacticsPage.tsx";
 import GenerateSchedulePage from "./pages/GenerateSchedule/GenerateSchedulePage.tsx";
 import ProgramsPage from "./pages/Programs/ProgramsPage.tsx";
 import ChatPage from "./pages/Chat/ChatPage.tsx";
+import SuggestionsPage from "./pages/Suggestions/SuggestionsPage.tsx";
 
 function AppRoute() {
     const isAuthenticated = useAuthStore((state) => state.token !== null);
@@ -50,6 +51,9 @@ function AppRoute() {
 
                         {/*==================== CHAT ====================*/}
                         <Route path="/chat" element={<ChatPage/>}/>
+
+                        {/*==================== SUGGESTIONS ====================*/}
+                        <Route path="/suggestions" element={<SuggestionsPage/>}/>
 
                         {/*==================== EDIT FACILITIES ====================*/}
                         <Route path="/facilities" element={<FacilitiesPage view="campuses"/>}/>

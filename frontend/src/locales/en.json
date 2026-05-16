@@ -777,5 +777,69 @@
     "emptyTitle": "Start a new conversation",
     "emptyDescription": "Ask about your schedule, rescheduling, or class availability.",
     "placeholder": "Type a message..."
+  },
+  "suggestions": {
+    "hero": {
+      "title": "Suggestions",
+      "description": "Review proposed schedule changes, compare versions, and accept or reject updates."
+    },
+    "filters": {
+      "status": "Status"
+    },
+    "status": {
+      "all": "All",
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "failed": "Failed"
+    },
+    "queue": {
+      "title": "Queue",
+      "itemsCount": "{count, plural, one {# item} other {# items}}",
+      "changesCount": "{count, plural, one {# change} other {# changes}}",
+      "searchPlaceholder": "Search suggestions..."
+    },
+    "fields": {
+      "dayOfWeek": "Day of week",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "instructor": "Instructor",
+      "room": "Room",
+      "timeslot": "Timeslot"
+    },
+    "details": {
+      "reason": "Reason",
+      "noReason": "No reason provided",
+      "source": "Source: {source}",
+      "changedFields": "{count, plural, one {# changed field} other {# changed fields}}",
+      "targetSession": "Target session: {id}",
+      "previewPrevious": "Previewing previous version",
+      "previewProposed": "Previewing suggested version",
+      "previousVersion": "Previous version",
+      "suggestedVersion": "Suggested version",
+      "previousValue": "Previous: {value}",
+      "created": "Created",
+      "resolved": "Resolved",
+      "alreadyResolved": "This suggestion has already been resolved and cannot be changed from this screen.",
+      "unrecognizedPayload": "This suggestion does not contain recognizable schedule fields."
+    },
+    "empty": {
+      "selectTitle": "Select a suggestion",
+      "selectDescription": "Choose an item from the list to compare proposed schedule changes.",
+      "noSuggestionsTitle": "No suggestions",
+      "noSuggestionsDescription": "There are no schedule suggestions for the selected status."
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "reject": "Reject",
+      "accept": "Accept",
+      "saving": "Saving...",
+      "rejectTooltip": "Reject this schedule suggestion",
+      "acceptTooltip": "Accept and apply this schedule suggestion"
+    },
+    "errors": {
+      "load": "Failed to load suggestions",
+      "resolve": "Failed to resolve suggestion"
+    }
   }
 }
