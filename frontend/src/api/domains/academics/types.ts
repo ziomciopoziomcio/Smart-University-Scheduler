@@ -38,8 +38,8 @@ export interface Group {
     elective_block: number | null;
     semester: number;
     is_active: boolean;
-    // TODO: add students count to backend and uncomment this - issue #347
-    // students_count?: number;
+    /** Number of students in this group (calculated by backend) */
+    students_count?: number;
 }
 
 export type GroupCreate = Omit<Group, 'id'>;

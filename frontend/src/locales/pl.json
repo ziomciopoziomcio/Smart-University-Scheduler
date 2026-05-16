@@ -582,6 +582,10 @@
       "noData": "Brak danych.",
       "faculty": "Wydział",
       "unit": "Jednostka",
+      "languageLabel": "Język wykładowy",
+      "languagePolish": "Polski",
+      "languageEnglish": "Angielski",
+      "languageFrench": "Francuski",
       "errorRequired": "To pole jest wymagane.",
       "errorSave": "Wystąpił błąd podczas zapisywania."
     },
