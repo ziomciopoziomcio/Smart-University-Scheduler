@@ -108,13 +108,13 @@ export function ProgramGroupModal({
         <Dialog open={open} onClose={isSubmitting ? undefined : onClose} maxWidth="sm" fullWidth
                 PaperProps={{sx: {borderRadius: '16px'}}}>
             <DialogTitle fontWeight={700}>
-                {isEditMode ? intl.formatMessage({id: 'programs.groups.edit'}) : intl.formatMessage({id: 'programs.groups.add'})}
+                {isEditMode ? intl.formatMessage({id: 'didactics.programs.groups.edit'}) : intl.formatMessage({id: 'didactics.programs.groups.add'})}
             </DialogTitle>
 
             <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1}}>
                 <TextField
-                    label={intl.formatMessage({id: 'programs.groups.modal.nameLabel'})}
-                    placeholder={intl.formatMessage({id: 'programs.groups.modal.namePlaceholder'})}
+                    label={intl.formatMessage({id: 'didactics.programs.groups.modal.nameLabel'})}
+                    placeholder={intl.formatMessage({id: 'didactics.programs.groups.modal.namePlaceholder'})}
                     value={groupName}
                     onChange={(e) => {
                         setGroupName(e.target.value);
@@ -128,51 +128,51 @@ export function ProgramGroupModal({
                 <Box sx={{display: 'flex', gap: 2}}>
                     <FormControl fullWidth disabled={isSubmitting || blockId !== ''}>
                         <InputLabel
-                            id="major-label">{intl.formatMessage({id: 'programs.groups.modal.majorLabel'})}</InputLabel>
+                            id="major-label">{intl.formatMessage({id: 'didactics.programs.groups.modal.majorLabel'})}</InputLabel>
                         <Select
                             labelId="major-label"
                             value={majorId}
-                            label={intl.formatMessage({id: 'programs.groups.modal.majorLabel'})}
+                            label={intl.formatMessage({id: 'didactics.programs.groups.modal.majorLabel'})}
                             onChange={(e) => {
                                 setMajorId(e.target.value as number | '');
                             }}
                         >
                             <MenuItem
-                                value=""><em>{intl.formatMessage({id: 'programs.groups.modal.none'})}</em></MenuItem>
+                                value=""><em>{intl.formatMessage({id: 'didactics.programs.groups.modal.none'})}</em></MenuItem>
                             {majors.map(m => <MenuItem key={m.id} value={m.id}>{m.major_name}</MenuItem>)}
                         </Select>
                     </FormControl>
 
                     <FormControl fullWidth disabled={isSubmitting || majorId !== ''}>
                         <InputLabel
-                            id="block-label">{intl.formatMessage({id: 'programs.groups.modal.blockLabel'})}</InputLabel>
+                            id="block-label">{intl.formatMessage({id: 'didactics.programs.groups.modal.blockLabel'})}</InputLabel>
                         <Select
                             labelId="block-label"
                             value={blockId}
-                            label={intl.formatMessage({id: 'programs.groups.modal.blockLabel'})}
+                            label={intl.formatMessage({id: 'didactics.programs.groups.modal.blockLabel'})}
                             onChange={(e) => {
                                 setBlockId(e.target.value as number | '');
                             }}
                         >
                             <MenuItem
-                                value=""><em>{intl.formatMessage({id: 'programs.groups.modal.none'})}</em></MenuItem>
+                                value=""><em>{intl.formatMessage({id: 'didactics.programs.groups.modal.none'})}</em></MenuItem>
                             {blocks.map(b => <MenuItem key={b.id} value={b.id}>{b.elective_block_name}</MenuItem>)}
                         </Select>
                     </FormControl>
                 </Box>
                 <Typography variant="caption" color="text.secondary" sx={{mt: -1}}>
-                    {intl.formatMessage({id: 'programs.groups.modal.exclusivityHint'})}
+                    {intl.formatMessage({id: 'didactics.programs.groups.modal.exclusivityHint'})}
                 </Typography>
             </DialogContent>
 
             <DialogActions sx={{p: 3}}>
                 <Button onClick={onClose} disabled={isSubmitting} sx={{fontWeight: 600, color: 'text.secondary'}}>
-                    {intl.formatMessage({id: 'common.cancel'})}
+                    {intl.formatMessage({id: 'didactics.common.cancel'})}
                 </Button>
                 <Button onClick={handleSubmit} variant="contained" disabled={isSubmitting || !groupName}
                         sx={{borderRadius: '10px', px: 4, fontWeight: 600}}>
                     {isSubmitting ?
-                        <CircularProgress size={24} color="inherit"/> : intl.formatMessage({id: 'common.save'})}
+                        <CircularProgress size={24} color="inherit"/> : intl.formatMessage({id: 'didactics.common.save'})}
                 </Button>
             </DialogActions>
         </Dialog>

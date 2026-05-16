@@ -135,23 +135,20 @@ export function ListView<T extends { id: number | string }>({
                                         />
                                     )}
 
-                                    <Typography
-                                        variant="body2"
-                                        color={
-                                            col.variant === 'primary'
-                                                ? 'text.primary'
-                                                : 'text.secondary'
-                                        }
+                                    <Box
                                         sx={{
                                             fontSize: '15px',
                                             color: col.variant === 'primary' ? '#111111' : '#8A8A8A',
                                             whiteSpace: 'nowrap',
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 0.5
                                         }}
                                     >
                                         {col.render(item)}
-                                    </Typography>
+                                    </Box>
                                 </Box>
                             ))}
 

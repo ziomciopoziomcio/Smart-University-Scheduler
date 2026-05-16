@@ -79,7 +79,7 @@ export function DidacticsStudyFieldView({data, facultyId, onRefresh}: DidacticsS
                     },
                     {
                         render: (item: StudyField) => intl.formatMessage(
-                            {id: 'programs.fields.programsCount'},
+                            {id: 'didactics.fields.programsCount'},
                             {count: item.programs_count ?? 0}
                         ),
                         icon: FolderSpecialOutlined,

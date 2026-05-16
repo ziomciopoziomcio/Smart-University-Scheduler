@@ -74,30 +74,30 @@ export function ProgramGroupView({data, facultyId, programId, semesterId, fieldI
                             if (item.major) {
                                 const majorName = majors.find(m => m.id === item.major)?.major_name || item.major.toString();
                                 return <Chip size="small"
-                                             label={intl.formatMessage({id: 'programs.groups.chip.major'}, {name: majorName})}
+                                             label={intl.formatMessage({id: 'didactics.programs.groups.chip.major'}, {name: majorName})}
                                              color="primary" variant="outlined"/>;
                             }
                             if (item.elective_block) {
                                 const blockName = blocks.find(b => b.id === item.elective_block)?.elective_block_name || item.elective_block.toString();
                                 return <Chip size="small"
-                                             label={intl.formatMessage({id: 'programs.groups.chip.block'}, {name: blockName})}
+                                             label={intl.formatMessage({id: 'didactics.programs.groups.chip.block'}, {name: blockName})}
                                              color="secondary" variant="outlined"/>;
                             }
-                            return <Chip size="small" label={intl.formatMessage({id: 'programs.groups.chip.general'})}
+                            return <Chip size="small" label={intl.formatMessage({id: 'didactics.programs.groups.chip.general'})}
                                          variant="outlined" sx={{color: 'text.secondary', borderColor: 'divider'}}/>;
                         },
                         width: '300px'
                     },
                     {
                         // TODO: change to real students count when endpoint is ready - for now it is set to 0 to avoid confusion
-                        render: () => intl.formatMessage({id: 'programs.groups.studentsCount'}, {count: 0}),
+                        render: () => intl.formatMessage({id: 'didactics.programs.groups.studentsCount'}, {count: 0}),
                         variant: 'secondary',
                         width: '150px',
                         align: 'right'
                     }
                 ]}
                 onItemClick={(item) => {
-                    navigate(`/programs/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${semesterId}/groups/${item.id}`);
+                    navigate(`/didactics/fields/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${semesterId}/groups/${item.id}`);
                 }}
                 onMenuOpen={(e, item) => {
                     setAnchorEl(e.currentTarget);
@@ -107,8 +107,8 @@ export function ProgramGroupView({data, facultyId, programId, semesterId, fieldI
                     setSelectedGroup(null);
                     setIsModalOpen(true);
                 }}
-                addLabel={intl.formatMessage({id: 'programs.groups.add'})}
-                emptyMessage={intl.formatMessage({id: 'programs.groups.empty'})}
+                addLabel={intl.formatMessage({id: 'didactics.programs.groups.add'})}
+                emptyMessage={intl.formatMessage({id: 'didactics.programs.groups.empty'})}
                 hideDividerOnLastItem
             />
 
@@ -125,20 +125,20 @@ export function ProgramGroupView({data, facultyId, programId, semesterId, fieldI
                     setIsDeleteOpen(true);
                     setAnchorEl(null);
                 }}
-                editLabel={intl.formatMessage({id: 'common.edit'})}
-                deleteLabel={intl.formatMessage({id: 'common.delete'})}
+                editLabel={intl.formatMessage({id: 'didactics.common.edit'})}
+                deleteLabel={intl.formatMessage({id: 'didactics.common.delete'})}
             />
 
             <DeleteConfirmDialog
                 open={isDeleteOpen}
-                title={intl.formatMessage({id: 'programs.groups.deleteTitle'})}
-                description={intl.formatMessage({id: 'programs.groups.deleteDesc'}, {name: selectedGroup?.group_name})}
+                title={intl.formatMessage({id: 'didactics.programs.groups.deleteTitle'})}
+                description={intl.formatMessage({id: 'didactics.programs.groups.deleteDesc'}, {name: selectedGroup?.group_name})}
                 onClose={() => {
                     setIsDeleteOpen(false);
                 }}
                 onConfirm={handleConfirmDelete}
-                cancelButtonLabel={intl.formatMessage({id: 'common.cancel'})}
-                confirmButtonLabel={intl.formatMessage({id: 'common.delete'})}
+                cancelButtonLabel={intl.formatMessage({id: 'didactics.common.cancel'})}
+                confirmButtonLabel={intl.formatMessage({id: 'didactics.common.delete'})}
             />
 
             <ProgramGroupModal

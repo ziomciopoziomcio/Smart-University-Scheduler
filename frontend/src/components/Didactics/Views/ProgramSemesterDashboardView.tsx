@@ -27,9 +27,9 @@ export function ProgramSemesterDashboardView({
     const options = [
         {
             id: 'curriculum',
-            title: intl.formatMessage({id: 'programs.dashboard.curriculumTitle', defaultMessage: 'Siatka zajęć'}),
+            title: intl.formatMessage({id: 'didactics.programs.dashboard.curriculumTitle', defaultMessage: 'Siatka zajęć'}),
             description: intl.formatMessage({
-                id: 'programs.dashboard.curriculumDesc',
+                id: 'didactics.programs.dashboard.curriculumDesc',
                 defaultMessage: 'Zarządzaj przedmiotami w tym semestrze'
             }),
             icon: MenuBookIcon,
@@ -37,9 +37,9 @@ export function ProgramSemesterDashboardView({
         },
         {
             id: 'groups',
-            title: intl.formatMessage({id: 'programs.dashboard.groupsTitle', defaultMessage: 'Grupy dziekańskie'}),
+            title: intl.formatMessage({id: 'didactics.programs.dashboard.groupsTitle', defaultMessage: 'Grupy dziekańskie'}),
             description: intl.formatMessage({
-                id: 'programs.dashboard.groupsDesc',
+                id: 'didactics.programs.dashboard.groupsDesc',
                 defaultMessage: 'Zarządzaj grupami i przypisuj studentów'
             }),
             icon: GroupsIcon,

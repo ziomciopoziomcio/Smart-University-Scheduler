@@ -14,15 +14,10 @@ import {
 
 import {
     DidacticsDashboardView, FieldDashboardView, MajorView, BlockView, DidacticsFacultyView,
-    DidacticsStudyFieldView, DidacticsUnitView, DidacticsCourseView, CourseInstructorsView
+    DidacticsStudyFieldView, DidacticsUnitView, DidacticsCourseView, CourseInstructorsView,
+    ProgramListView, ProgramSemesterView, ProgramCurriculumView,
+    ProgramSemesterDashboardView, ProgramGroupView
 } from '@components/Didactics';
-import {
-    ProgramListView,
-    ProgramSemesterView,
-    ProgramCurriculumView,
-    ProgramSemesterDashboardView,
-    ProgramGroupView
-} from "@components/Programs";
 
 export default function DidacticsPage({view}: { view: string }) {
     const {facultyId, fieldId, unitId, courseCode, programId, semesterId} = useParams();
@@ -156,7 +151,7 @@ export default function DidacticsPage({view}: { view: string }) {
         } finally {
             setLoading(false);
         }
-    }, [view, facultyId, fieldId, unitId, courseCode, programId, semesterId, page, pageSize, debouncedSearch, intl, currentFaculty, currentField, currentUnit, currentCourse, currentProgram]);
+    }, [view, facultyId, fieldId, unitId, courseCode, programId, semesterId, page, pageSize, debouncedSearch, intl]);
 
     useEffect(() => {
         void loadData();
@@ -199,13 +194,13 @@ export default function DidacticsPage({view}: { view: string }) {
 
             if (['semester-dashboard', 'curriculum', 'groups'].includes(view) && semesterId) {
                 breadcrumbs.push({
-                    label: `${intl.formatMessage({id: 'programs.semester'})} ${semesterId}`,
+                    label: `${intl.formatMessage({id: 'didactics.programs.semester'})} ${semesterId}`,
                     path: view !== 'semester-dashboard' ? `/didactics/fields/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${semesterId}` : undefined
                 });
             }
 
-            if (view === 'curriculum') breadcrumbs.push({label: intl.formatMessage({id: 'programs.dashboard.curriculumTitle'})});
-            if (view === 'groups') breadcrumbs.push({label: intl.formatMessage({id: 'programs.dashboard.groupsTitle'})});
+            if (view === 'curriculum') breadcrumbs.push({label: intl.formatMessage({id: 'didactics.programs.dashboard.curriculumTitle'})});
+            if (view === 'groups') breadcrumbs.push({label: intl.formatMessage({id: 'didactics.programs.dashboard.groupsTitle'})});
         }
 
         if (['faculties_for_courses', 'units_for_courses', 'catalog', 'course_instructors'].includes(view)) {
@@ -310,6 +305,7 @@ export default function DidacticsPage({view}: { view: string }) {
                                 programId={Number(programId)}
                                 semesterId={Number(semesterId)}
                                 fieldId={Number(fieldId)}
+                                fieldName={currentField?.field_name || ''}
                                 onRefresh={loadData}
                             />
                         )}

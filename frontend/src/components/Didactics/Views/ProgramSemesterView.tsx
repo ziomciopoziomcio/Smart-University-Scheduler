@@ -33,7 +33,7 @@ export function ProgramSemesterView({data, facultyId, fieldId, programId, basePa
                 columns={[
                     {
                         render: (item) => intl.formatMessage(
-                            {id: 'programs.semesters.coursesCount'},
+                            {id: 'didactics.programs.semesters.coursesCount'},
                             {count: item.courses_count ?? 0}
                         ),
                         variant: 'secondary',
@@ -52,7 +52,7 @@ export function ProgramSemesterView({data, facultyId, fieldId, programId, basePa
                 onItemClick={(item) => {
                     navigate(`${basePath}/${facultyId}/field/${fieldId}/program/${programId}/semester/${item.id}`);
                 }}
-                emptyMessage={intl.formatMessage({id: 'programs.noData'})}
+                emptyMessage={intl.formatMessage({id: 'didactics.programs.noData'})}
                 hideDividerOnLastItem
             />
         </Box>
