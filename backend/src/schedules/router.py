@@ -60,9 +60,11 @@ COURSE_DETAIL_QUERY = """
 """
 
 LECTURER_PLAN_ACADEMIC_QUERY = """
-    UNWIND $day_configs AS config
     MATCH (i:Instructor {instructorId: $instructor_id})
     WHERE ($unit_id IS NULL OR i.unitId = $unit_id)
+    WITH i
+
+    UNWIND $day_configs AS config
 
     MATCH (s:ClassSession)-[:TAUGHT_BY]->(i)
     MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
@@ -81,9 +83,12 @@ LECTURER_PLAN_ACADEMIC_QUERY = """
 """
 
 STUDY_FIELD_PLAN_ACADEMIC_QUERY = """
-    UNWIND $day_configs AS config
-
     MATCH (g:Group) WHERE g.groupId IN $group_ids
+    WITH collect(g) AS groups
+
+    UNWIND $day_configs AS config
+    UNWIND groups AS g
+
     MATCH (s:ClassSession)-[:FOR_GROUP]->(g)
     MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
     MATCH (s)-[:OF_COURSE]->(c:Course)
@@ -103,11 +108,13 @@ STUDY_FIELD_PLAN_ACADEMIC_QUERY = """
 """
 
 ROOM_PLAN_QUERY = """
+    MATCH (r:Room {roomId: $room_id})
+    MATCH (r)-[:IN_BUILDING]->(b:Building {buildingId: $building_id})-[:IN_CAMPUS]->(c:Campus {campusId: $campus_id})
+    WITH r
+
     UNWIND $day_configs AS config
 
-    MATCH (r:Room {roomId: $room_id})
     MATCH (s:ClassSession)-[:HELD_IN]->(r)
-    MATCH (r)-[:IN_BUILDING]->(b:Building {buildingId: $building_id})-[:IN_CAMPUS]->(c:Campus {campusId: $campus_id})
     MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
     MATCH (s)-[:OF_COURSE]->(course:Course)
 
@@ -125,8 +132,10 @@ ROOM_PLAN_QUERY = """
 
 
 EMPLOYEE_SCHEDULE_QUERY = """
-    UNWIND $day_configs AS config
     MATCH (i:Instructor {instructorId: $instructor_id})
+    WITH i
+
+    UNWIND $day_configs AS config
 
     MATCH (s:ClassSession)-[:TAUGHT_BY]->(i)
     MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
