@@ -9,7 +9,8 @@ import {
     type Faculty, type Unit, type StudyField, getCourse, type Course,
     fetchMajors, fetchElectiveBlocks, fetchCourses, fetchCourseInstructors,
     fetchStudyPrograms, getStudyProgram, type StudyProgram,
-    fetchCurriculum, fetchGroups, getGroup, type Group
+    fetchCurriculum, fetchGroups, getGroup, type Group,
+    type Major, type ElectiveBlock, type CourseInstructor, type CurriculumCourse
 } from '@api';
 
 import {
@@ -134,7 +135,7 @@ export default function DidacticsPage({view}: { view: string }) {
                 const summary = activeProgram.semester_summary || [];
                 const semestersList = summary.map(s => ({
                     id: s.semester_number,
-                    name: `${intl.formatMessage({id: 'didactics.semesters.title'})} ${s.semester_number}`,
+                    name: `${intl.formatMessage({id: 'didactics.programs.semester'})} ${s.semester_number}`,
                     courses_count: s.courses_count,
                     ects_sum: s.ects_sum
                 }));
@@ -273,17 +274,21 @@ export default function DidacticsPage({view}: { view: string }) {
                         {view === 'field_dashboard' && <FieldDashboardView/>}
 
                         {view === 'faculties_for_fields' &&
-                            <DidacticsFacultyView data={data} basePath="/didactics/fields/faculty"/>}
+                            <DidacticsFacultyView data={data as Faculty[]} basePath="/didactics/fields/faculty"/>}
                         {view === 'fields' &&
-                            <DidacticsStudyFieldView data={data} facultyId={Number(facultyId)} onRefresh={loadData}/>}
+                            <DidacticsStudyFieldView data={data as StudyField[]} facultyId={Number(facultyId)}
+                                                     onRefresh={loadData}/>}
 
-                        {view === 'majors' && <MajorView data={data} fieldId={Number(fieldId)} onRefresh={loadData}/>}
-                        {view === 'blocks' && <BlockView data={data} fieldId={Number(fieldId)} onRefresh={loadData}/>}
+                        {view === 'majors' &&
+                            <MajorView data={data as Major[]} fieldId={Number(fieldId)} onRefresh={loadData}/>}
+                        {view === 'blocks' &&
+                            <BlockView data={data as ElectiveBlock[]} fieldId={Number(fieldId)} onRefresh={loadData}/>}
                         {view === 'catalog' &&
-                            <DidacticsCourseView data={data} unitId={Number(unitId)} facultyId={Number(facultyId)}
+                            <DidacticsCourseView data={data as Course[]} unitId={Number(unitId)}
+                                                 facultyId={Number(facultyId)}
                                                  onRefresh={loadData}/>}
                         {view === 'course_instructors' &&
-                            <CourseInstructorsView data={data} courseCode={Number(courseCode)}
+                            <CourseInstructorsView data={data as CourseInstructor[]} courseCode={Number(courseCode)}
                                                    facultyId={Number(facultyId)} onRefresh={loadData}/>}
 
                         {view === 'programs' && (
@@ -319,7 +324,7 @@ export default function DidacticsPage({view}: { view: string }) {
 
                         {view === 'curriculum' && (
                             <ProgramCurriculumView
-                                data={data as any[]}
+                                data={data as CurriculumCourse[]}
                                 programId={Number(programId)}
                                 semesterId={Number(semesterId)}
                                 fieldId={Number(fieldId)}
@@ -330,7 +335,7 @@ export default function DidacticsPage({view}: { view: string }) {
 
                         {view === 'groups' && (
                             <ProgramGroupView
-                                data={data as any[]}
+                                data={data as Group[]}
                                 programId={Number(programId)}
                                 semesterId={Number(semesterId)}
                                 fieldId={Number(fieldId)}
@@ -348,8 +353,9 @@ export default function DidacticsPage({view}: { view: string }) {
                         )}
 
                         {view === 'faculties_for_courses' &&
-                            <DidacticsFacultyView data={data} basePath="/didactics/courses/faculty"/>}
-                        {view === 'units_for_courses' && <DidacticsUnitView data={data} facultyId={Number(facultyId)}/>}
+                            <DidacticsFacultyView data={data as Faculty[]} basePath="/didactics/courses/faculty"/>}
+                        {view === 'units_for_courses' &&
+                            <DidacticsUnitView data={data as Unit[]} facultyId={Number(facultyId)}/>}
 
                         {!['dashboard', 'field_dashboard', 'semester-dashboard', 'group_members'].includes(view) && totalItems > 0 && (
                             <ListPagination
