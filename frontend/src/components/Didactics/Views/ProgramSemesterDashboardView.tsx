@@ -10,24 +10,26 @@ interface ProgramSemesterDashboardProps {
     fieldId: number;
     programId: number;
     semesterId: number;
+    basePath?: string;
 }
 
 export function ProgramSemesterDashboardView({
                                                  facultyId,
                                                  fieldId,
                                                  programId,
-                                                 semesterId
+                                                 semesterId,
+                                                 basePath: customBasePath
                                              }: ProgramSemesterDashboardProps) {
     const navigate = useNavigate();
     const intl = useIntl();
-    const basePath = `/programs/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${semesterId}`;
+    const basePath = customBasePath || `/programs/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${semesterId}`;
 
     const options = [
         {
             id: 'curriculum',
-            title: intl.formatMessage({id: 'programs.dashboard.curriculumTitle', defaultMessage: 'Siatka zajęć'}),
+            title: intl.formatMessage({id: 'didactics.programs.dashboard.curriculumTitle', defaultMessage: 'Siatka zajęć'}),
             description: intl.formatMessage({
-                id: 'programs.dashboard.curriculumDesc',
+                id: 'didactics.programs.dashboard.curriculumDesc',
                 defaultMessage: 'Zarządzaj przedmiotami w tym semestrze'
             }),
             icon: MenuBookIcon,
@@ -35,9 +37,9 @@ export function ProgramSemesterDashboardView({
         },
         {
             id: 'groups',
-            title: intl.formatMessage({id: 'programs.dashboard.groupsTitle', defaultMessage: 'Grupy dziekańskie'}),
+            title: intl.formatMessage({id: 'didactics.programs.dashboard.groupsTitle', defaultMessage: 'Grupy dziekańskie'}),
             description: intl.formatMessage({
-                id: 'programs.dashboard.groupsDesc',
+                id: 'didactics.programs.dashboard.groupsDesc',
                 defaultMessage: 'Zarządzaj grupami i przypisuj studentów'
             }),
             icon: GroupsIcon,

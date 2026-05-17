@@ -156,10 +156,9 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                 setData(filtered.slice(offset, offset + pageSize));
                 setTotalItems(filtered.length);
             } else if (view === 'majors' && fieldOfStudyId && semesterId) {
-                const res = await fetchMajors(page, pageSize, {
+                const res = await fetchMajors(page, pageSize, search.trim() || undefined, {
                     study_field: Number(fieldOfStudyId),
-                    semester: Number(semesterId),
-                    major_name: search.trim() || undefined
+                    semester: Number(semesterId)
                 });
 
                 const mapped = res.items.map((m) => ({

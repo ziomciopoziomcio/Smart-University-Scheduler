@@ -7,6 +7,7 @@ export const fetchStudyFields = async (
     filters: {
         faculty?: number;
         field_name?: string;
+        degree?: string;
     } = {},
     search?: string,
 ): Promise<PaginatedResponse<StudyField>> => {
@@ -16,6 +17,7 @@ export const fetchStudyFields = async (
         offset: offset.toString(),
         ...(filters.faculty !== undefined && {faculty: filters.faculty.toString()}),
         ...(filters.field_name && {field_name: filters.field_name}),
+        ...(filters.degree && {degree: filters.degree}),
     });
 
     if (search) query.append('search', search);
@@ -24,7 +26,7 @@ export const fetchStudyFields = async (
         headers: getHeaders(),
     });
 
-    if (!response.ok) throw new Error('Nie udało się pobrać listy kierunków');
+    if (!response.ok) throw new Error('Nie udało się pobrać listy kierunków studiów');
     return response.json();
 };
 
@@ -33,7 +35,7 @@ export const getStudyField = async (id: number): Promise<StudyField> => {
         headers: getHeaders(),
     });
 
-    if (!response.ok) throw new Error('Nie udało się pobrać szczegółów kierunku');
+    if (!response.ok) throw new Error('Nie udało się pobrać szczegółów kierunku studiów');
     return response.json();
 };
 
@@ -44,7 +46,7 @@ export const createStudyField = async (payload: StudyFieldCreate): Promise<Study
         body: JSON.stringify(payload),
     });
 
-    if (!response.ok) throw new Error('Nie udało się utworzyć kierunku');
+    if (!response.ok) throw new Error('Nie udało się utworzyć kierunku studiów');
     return response.json();
 };
 
@@ -55,7 +57,7 @@ export const updateStudyField = async (id: number, payload: StudyFieldUpdate): P
         body: JSON.stringify(payload),
     });
 
-    if (!response.ok) throw new Error('Nie udało się zaktualizować kierunku');
+    if (!response.ok) throw new Error('Nie udało się zaktualizować kierunku studiów');
     return response.json();
 };
 
@@ -65,7 +67,7 @@ export const deleteStudyField = async (id: number): Promise<void> => {
         headers: getHeaders(),
     });
 
-    if (!response.ok) throw new Error('Nie udało się usunąć kierunku');
+    if (!response.ok) throw new Error('Nie udało się usunąć kierunku studiów');
 };
 
 export const fetchStudyPlanGroups = async (
