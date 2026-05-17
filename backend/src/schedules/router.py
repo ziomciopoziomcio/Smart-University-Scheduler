@@ -42,21 +42,20 @@ SUGGESTION_LIMIT = 50
 COURSE_DETAIL_QUERY = """
     MATCH (s:ClassSession {sessionId: $session_id})
     MATCH (s)-[:OF_COURSE]->(c:Course)
-    MATCH (s)-[:AT_TIME]->(t:TimeSlot)
-    MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
-    MATCH (s)-[:HELD_IN]->(r:Room)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(cp:Campus)
-
     MATCH (s)-[:FOR_GROUP]->(g:Group)
+
+    OPTIONAL MATCH (s)-[:AT_TIME]->(t:TimeSlot)
+    OPTIONAL MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
+    OPTIONAL MATCH (s)-[:HELD_IN]->(r:Room)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(cp:Campus)
 
     RETURN
         c.courseName AS course_name,
         c.classType AS class_type,
-        t.startTime + " - " + t.endTime AS time_range,
-        cp.campusShort AS campus,
-        b.buildingNumber AS building,
-        r.roomName AS room,
-        (CASE WHEN i.degree IS NOT NULL THEN i.degree + " " ELSE "" END)
-        + i.firstName + " " + i.lastName AS lecturer,
+        COALESCE(t.startTime + " - " + t.endTime, "TBA") AS time_range,
+        COALESCE(cp.campusShort, "TBA") AS campus,
+        COALESCE(b.buildingNumber, "TBA") AS building,
+        COALESCE(r.roomName, "TBA") AS room,
+        COALESCE((CASE WHEN i.degree IS NOT NULL THEN i.degree + " " ELSE "" END) + i.firstName + " " + i.lastName, "TBA") AS lecturer,
         collect(DISTINCT g.programName + " | " + g.groupName) AS audience_list
 """
 
@@ -82,13 +81,9 @@ LECTURER_PLAN_ACADEMIC_QUERY = """
 """
 
 STUDY_FIELD_PLAN_ACADEMIC_QUERY = """
-    MATCH (g:Group)
-    WHERE g.groupId IN $group_ids
-
-    WITH collect(g) AS groups
     UNWIND $day_configs AS config
-    UNWIND groups AS g
 
+    MATCH (g:Group) WHERE g.groupId IN $group_ids
     MATCH (s:ClassSession)-[:FOR_GROUP]->(g)
     MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
     MATCH (s)-[:OF_COURSE]->(c:Course)
@@ -110,14 +105,13 @@ STUDY_FIELD_PLAN_ACADEMIC_QUERY = """
 ROOM_PLAN_QUERY = """
     UNWIND $day_configs AS config
 
-    MATCH (s:ClassSession)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
-    MATCH (s)-[:HELD_IN]->(r:Room)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(c:Campus)
+    MATCH (r:Room {roomId: $room_id})
+    MATCH (s:ClassSession)-[:HELD_IN]->(r)
+    MATCH (r)-[:IN_BUILDING]->(b:Building {buildingId: $building_id})-[:IN_CAMPUS]->(c:Campus {campusId: $campus_id})
+    MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
     MATCH (s)-[:OF_COURSE]->(course:Course)
 
-    WHERE c.campusId = $campus_id
-      AND b.buildingId = $building_id
-      AND r.roomId = $room_id
-      AND config.week_number IN s.weeks
+    WHERE config.week_number IN s.weeks
 
     RETURN
         s.sessionId AS session_id,
@@ -131,17 +125,17 @@ ROOM_PLAN_QUERY = """
 
 
 EMPLOYEE_SCHEDULE_QUERY = """
-    MATCH (i:Instructor {instructorId: $instructor_id})
-    WITH i
     UNWIND $day_configs AS config
-    
+    MATCH (i:Instructor {instructorId: $instructor_id})
+
     MATCH (s:ClassSession)-[:TAUGHT_BY]->(i)
     MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
-    MATCH (s)-[:HELD_IN]->(r:Room)
     MATCH (s)-[:OF_COURSE]->(course:Course)
-    
+
+    OPTIONAL MATCH (s)-[:HELD_IN]->(r:Room)
+
     WHERE config.week_number IN s.weeks
-    
+
     RETURN
         s.sessionId AS session_id,
         course.courseName AS title,
@@ -149,7 +143,7 @@ EMPLOYEE_SCHEDULE_QUERY = """
         config.physical_date AS physical_date,
         t.startTime AS start_time,
         t.endTime AS end_time,
-        r.roomName AS room_name
+        COALESCE(r.roomName, "TBA") AS room_name
     ORDER BY config.physical_date, t.startTime
 """
 
