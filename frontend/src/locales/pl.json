@@ -501,6 +501,12 @@
           "fullTime": "stacjonarnie",
           "partTime": "niestacjonarnie"
         },
+        "studyDegree": {
+          "bachelor": "inżynierskie",
+          "master": "magisterskie",
+          "uniformMaster": "jednolite magisterskie",
+          "doctoral": "doktoranckie"
+        },
         "semestersCount": "{count, plural, one {# semestr} few {# semestry} many {# semestrów} other {# semestru}}",
         "specializations": {
           "none": "bez specjalizacji",

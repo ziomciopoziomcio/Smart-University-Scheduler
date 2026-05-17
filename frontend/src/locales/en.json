@@ -506,6 +506,12 @@
           "fullTime": "full-time",
           "partTime": "part-time"
         },
+        "studyDegree": {
+          "bachelor": "Bachelor",
+          "master": "Master",
+          "uniformMaster": "Uniform Master",
+          "doctoral": "Doctoral"
+        },
         "semestersCount": "{count, plural, one {# semester} other {# semesters}}",
         "specializations": {
           "none": "no specializations",
