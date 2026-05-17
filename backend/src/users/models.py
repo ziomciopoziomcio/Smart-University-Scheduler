@@ -74,6 +74,15 @@ class Users(Base):
         secondary=user_roles, back_populates="users"
     )
 
+    @property
+    def permissions(self) -> list[str]:
+        perms = set()
+        for role in self.roles:
+            for perm in role.permissions:
+                if perm.code:
+                    perms.add(perm.code)
+        return list(perms)
+
 
 role_permissions = Table(
     "role_permissions",
