@@ -8,6 +8,8 @@ export const fetchStudents = async (
     filters: {
         study_program?: number;
         major?: number;
+        group_id?: number;
+        exclude_group_id?: number;
     } = {}
 ): Promise<PaginatedResponse<Student>> => {
     const offset = (page - 1) * limit;
@@ -15,7 +17,9 @@ export const fetchStudents = async (
         limit: limit.toString(),
         offset: offset.toString(),
         ...(filters.study_program !== undefined && {study_program: filters.study_program.toString()}),
-        ...(filters.major !== undefined && {major: filters.major.toString()})
+        ...(filters.major !== undefined && {major: filters.major.toString()}),
+        ...(filters.group_id !== undefined && {group_id: filters.group_id.toString()}),
+        ...(filters.exclude_group_id !== undefined && {exclude_group_id: filters.exclude_group_id.toString()})
     });
 
     if (search) query.append('search', search);

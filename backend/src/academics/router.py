@@ -55,6 +55,8 @@ def list_students(
     user_id: int | None = Query(None),
     study_program: int | None = Query(None),
     major: int | None = Query(None),
+    group_id: int | None = Query(None),
+    exclude_group_id: int | None = Query(None),
     limit: int = Query(STUDENT_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
@@ -68,6 +70,22 @@ def list_students(
         filters.append(models.Students.study_program == study_program)
     if major is not None:
         filters.append(models.Students.major == major)
+    if group_id is not None:
+        filters.append(
+            models.Students.id.in_(
+                db.query(models.Group_members.student).filter(
+                    models.Group_members.group == group_id
+                )
+            )
+        )
+    if exclude_group_id is not None:
+        filters.append(
+            ~models.Students.id.in_(
+                db.query(models.Group_members.student).filter(
+                    models.Group_members.group == exclude_group_id
+                )
+            )
+        )
 
     count_q = db.query(models.Students)
     if filters:
