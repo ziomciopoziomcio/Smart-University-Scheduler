@@ -107,7 +107,17 @@ export default function RolesPage({view}: RolesPageProps) {
 
             <PageBreadcrumbs items={getBreadcrumbs()}/>
 
-            <Paper elevation={0} sx={{p: 3, border: '1px solid rgba(0,0,0,0.05)', flexGrow: 1, mb: 3}}>
+            <Box sx={{
+                flexGrow: 1,
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                background: view === 'users' ? 'transparent' : '#ffffff',
+                boxShadow: view === 'users' ? 'none' : '0 2px 12px rgba(0, 0, 0, 0.06)',
+                borderRadius: 2,
+                overflow: 'hidden',
+                p: view === 'users' ? 0 : {xs: 1, md: 2}
+            }}>
                 {loading && <Box sx={{display: 'flex', justifyContent: 'center', py: 4}}><CircularProgress/></Box>}
                 {error && <Alert severity="error">{error}</Alert>}
                 {!loading && !error && (
@@ -121,7 +131,7 @@ export default function RolesPage({view}: RolesPageProps) {
                         {view === 'users' && currentRole && <RoleUsersView role={currentRole}/>}
                     </>
                 )}
-            </Paper>
+            </Box>
         </Box>
     );
 }
