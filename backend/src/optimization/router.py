@@ -8,6 +8,8 @@ from .services import validate_optimization_data, MissingPlannerSettingsError
 from ..common.require_permission import require_permission
 from ..database.database import get_db
 from sqlalchemy.orm import Session
+from ..users import models as user_models
+from ..academics import models as ac_mod
 
 logger = logging.getLogger(__name__)
 
@@ -22,23 +24,58 @@ router = APIRouter(prefix="/optimize", tags=["optimization"])
 async def trigger_optimization(
     payload: schemas.OptimizationRequest | None = None,
     faculty_id: int | None = Query(None, gt=0),
-    _current_user=Depends(require_permission("optimization:run")),
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("optimization:run")),
 ):
     """
     Triggers the AI schedule optimization worker via Kafka.
     """
-    # allow passing faculty_id either in JSON body (payload) or as query param
-    if payload is None and faculty_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Missing required parameter: faculty_id (body or query)",
+    requested_fid = payload.faculty_id if payload is not None else faculty_id
+
+    privileged_roles = {"Administrator", "Schedule Manager"}
+    is_privileged = any(
+        role.role_name in privileged_roles for role in _current_user.roles
+    )
+
+    if is_privileged:
+        if not requested_fid:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Administrators and Schedule Managers must explicitly provide a faculty_id.",
+            )
+        final_fid = requested_fid
+    else:
+        employees = (
+            db.query(ac_mod.Employees)
+            .filter(ac_mod.Employees.user_id == _current_user.id)
+            .all()
         )
+        allowed_fids = [emp.faculty_id for emp in employees if emp.faculty_id]
+
+        if not allowed_fids:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User is not assigned to any faculty. Cannot trigger optimization.",
+            )
+
+        if requested_fid:
+            if requested_fid not in allowed_fids:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"You do not have permission to run optimization for faculty {requested_fid}.",
+                )
+            final_fid = requested_fid
+        else:
+            if len(allowed_fids) == 1:
+                final_fid = allowed_fids[0]
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="You are assigned to multiple faculties. Please explicitly provide a faculty_id.",
+                )
 
     task_id = uuid.uuid4()
-
-    fid = payload.faculty_id if payload is not None else faculty_id
-
-    kafka_message = {"task_id": str(task_id), "faculty_id": fid}
+    kafka_message = {"task_id": str(task_id), "faculty_id": final_fid}
 
     success = await send_event(
         topic="schedule.optimization.requests", msg=kafka_message
