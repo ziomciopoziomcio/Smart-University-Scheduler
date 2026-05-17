@@ -582,24 +582,61 @@ def list_groups(
     _current_user: user_models.Users = Depends(require_permission("groups:view")),
     search: str | None = Query(None),
 ):
-    query = db.query(models.Groups)
+    members_subq = (
+        db.query(func.count(models.Group_members.student))
+        .filter(models.Group_members.group == models.Groups.id)
+        .scalar_subquery()
+    )
+
+    query = db.query(
+        models.Groups, func.coalesce(members_subq, 0).label("students_count")
+    )
+    count_query = db.query(models.Groups.id)
 
     if study_program is not None:
         query = query.filter(models.Groups.study_program == study_program)
+        count_query = count_query.filter(models.Groups.study_program == study_program)
     if major is not None:
         query = query.filter(models.Groups.major == major)
+        count_query = count_query.filter(models.Groups.major == major)
     if elective_block is not None:
         query = query.filter(models.Groups.elective_block == elective_block)
+        count_query = count_query.filter(models.Groups.elective_block == elective_block)
     if is_active is not None:
         query = query.filter(models.Groups.is_active == is_active)
+        count_query = count_query.filter(models.Groups.is_active == is_active)
     if group_name is not None:
         query = query.filter(models.Groups.group_name.ilike(f"%{group_name}%"))
+        count_query = count_query.filter(
+            models.Groups.group_name.ilike(f"%{group_name}%")
+        )
     if search:
         f = build_ilike_search_filter(search, columns=[models.Groups.group_name])
         if f is not None:
             query = query.filter(f)
+            count_query = count_query.filter(f)
 
-    return paginate(query, limit, offset, models.Groups.id)
+    pagination_result = paginate(
+        query, limit, offset, models.Groups.id, count_query=count_query
+    )
+
+    items = []
+    for row in pagination_result.items:
+        group_obj, students_count = row
+        items.append(
+            schemas.GroupsRead(
+                id=group_obj.id,
+                group_name=group_obj.group_name,
+                study_program=group_obj.study_program,
+                major=group_obj.major,
+                elective_block=group_obj.elective_block,
+                semester=group_obj.semester,
+                is_active=group_obj.is_active,
+                students_count=int(students_count or 0),
+            )
+        )
+    pagination_result.items = items
+    return pagination_result
 
 
 def _build_groups_summary_query(
@@ -709,7 +746,33 @@ def get_group(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("group:view")),
 ):
-    return _get_or_404(db, models.Groups, group_id, "Group")
+    members_subq = (
+        db.query(func.count(models.Group_members.student))
+        .filter(models.Group_members.group == models.Groups.id)
+        .scalar_subquery()
+    )
+
+    row = (
+        db.query(models.Groups, func.coalesce(members_subq, 0).label("students_count"))
+        .filter(models.Groups.id == group_id)
+        .one_or_none()
+    )
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Group not found"
+        )
+
+    group_obj, students_count = row
+    return schemas.GroupsRead(
+        id=group_obj.id,
+        group_name=group_obj.group_name,
+        study_program=group_obj.study_program,
+        major=group_obj.major,
+        elective_block=group_obj.elective_block,
+        semester=group_obj.semester,
+        is_active=group_obj.is_active,
+        students_count=int(students_count or 0),
+    )
 
 
 @router.patch("/groups/{group_id}", response_model=schemas.GroupsRead)
