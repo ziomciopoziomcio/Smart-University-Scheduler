@@ -16,3 +16,6 @@ cffi>=2.0.0
 wheel
 groq
 neo4j>=5,<6
+openpyxl
+pandas
+faker
