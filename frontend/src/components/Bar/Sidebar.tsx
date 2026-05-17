@@ -12,7 +12,8 @@ import easel_icon from '@assets/icons/easel.svg?react';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import GenerateScheduleIcon from '@mui/icons-material/EditCalendarOutlined';
 import StarBorderPurple500OutlinedIcon from '@mui/icons-material/StarBorderPurple500Outlined';
-
+import {SIDEBAR_PERMISSIONS, type PermissionCode} from '@constants/permissions';
+import {usePermissionStore} from '@store/usePermissionStore';
 
 import {
     Drawer,
@@ -46,90 +47,88 @@ interface SidebarMenuItem {
     id: string;
     icon: React.ReactNode;
     path: string;
-    allowedRoles?: string[];
+    requiredPermissions: readonly PermissionCode[];
 }
 
 const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.myPlan',
         icon: <PersonOutlined/>,
-        path: '/plan', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/plan',
+        requiredPermissions: SIDEBAR_PERMISSIONS.MY_PLAN,
     },
     {
-        id: 'sidebar.employees', // employees or maybe "staff"?
+        id: 'sidebar.employees',
         icon: <SvgIcon component={easel_icon} inheritViewBox/>,
-        path: '/employees', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/employees',
+        requiredPermissions: SIDEBAR_PERMISSIONS.EMPLOYEES,
     },
     {
-        id: 'sidebar.facilities', // facilities (buildings, rooms, campuses)
+        id: 'sidebar.facilities',
         icon: <SvgIcon component={building_icon} inheritViewBox/>,
-        path: '/facilities', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/facilities',
+        requiredPermissions: SIDEBAR_PERMISSIONS.FACILITIES,
     },
     {
-        id: 'sidebar.structures', // structures (units, faculties)
+        id: 'sidebar.structures',
         icon: <SvgIcon component={diagram_icon} inheritViewBox/>,
-        path: '/structures', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/structures',
+        requiredPermissions: SIDEBAR_PERMISSIONS.STRUCTURES,
     },
     {
         id: 'sidebar.didactics',
         icon: <SchoolOutlinedIcon/>,
-        path: '/didactics', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/didactics',
+        requiredPermissions: SIDEBAR_PERMISSIONS.DIDACTICS,
     },
     {
-        id: 'sidebar.students', // students
+        id: 'sidebar.students',
         icon: <SvgIcon component={backpack_icon} inheritViewBox/>,
-        path: '/students', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/students',
+        requiredPermissions: SIDEBAR_PERMISSIONS.STUDENTS,
     },
     {
-        id: 'sidebar.plans', // plans (study plans, course plans)
+        id: 'sidebar.plans',
         icon: <GroupsOutlined/>,
-        path: '/schedules',  // TODO:  add allowedRoles
-        allowedRoles: []
+        path: '/schedules',
+        requiredPermissions: SIDEBAR_PERMISSIONS.PLANS,
     },
     {
         id: 'sidebar.chat',
         icon: <ChatBubbleOutline/>,
-        path: '/chat',  // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/chat',
+        requiredPermissions: SIDEBAR_PERMISSIONS.CHAT,
     },
     {
         id: 'sidebar.suggestions',
         icon: <InboxOutlined/>,
-        path: '/suggestions',  // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/suggestions',
+        requiredPermissions: SIDEBAR_PERMISSIONS.SUGGESTIONS,
     },
     {
         id: 'sidebar.permissions',
         icon: <SvgIcon component={key_icon} inheritViewBox/>,
-        path: '/roles', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/roles',
+        requiredPermissions: SIDEBAR_PERMISSIONS.PERMISSIONS,
     },
     {
         id: 'sidebar.users',
         icon: <AlternateEmailIcon/>,
-        path: '/users',  // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/users',
+        requiredPermissions: SIDEBAR_PERMISSIONS.USERS,
     },
     {
         id: 'sidebar.settings',
         icon: <SettingsOutlined/>,
-        path: '/settings',  // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/settings',
+        requiredPermissions: SIDEBAR_PERMISSIONS.SETTINGS,
     },
     {
         id: 'sidebar.generateSchedule',
         icon: <GenerateScheduleIcon/>,
         path: '/generate',
-        allowedRoles: []
+        requiredPermissions: SIDEBAR_PERMISSIONS.GENERATE_SCHEDULE,
     },
-
-
 ];
 
 export function Sidebar() {
@@ -139,10 +138,10 @@ export function Sidebar() {
 
     const {user} = useAuthStore();
 
-    const canView = (allowedRoles?: string[]) => {
-        if (!allowedRoles || allowedRoles.length === 0) return true;
+    const canView = (requiredPermissions?: string[]) => {
+        if (!requiredPermissions || requiredPermissions.length === 0) return true;
         if (!user?.roles) return false;
-        return user.roles.some((role) => allowedRoles.includes(role));
+        return user.roles.some((role) => requiredPermissions.includes(role));
     };
 
     return (
@@ -188,7 +187,7 @@ export function Sidebar() {
 
             <List sx={{width: '100%', px: open ? 0 : 1}}>
                 {menuConfig
-                    .filter((item) => canView(item.allowedRoles))
+                    .filter((item) => canView(item.requiredPermissions))
                     .map((item) => (
                         <ListItem key={item.id} disablePadding sx={{display: 'block', mb: open ? 0.5 : 1.5}}>
                             <NavLink

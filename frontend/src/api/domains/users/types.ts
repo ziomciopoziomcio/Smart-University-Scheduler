@@ -1,3 +1,11 @@
+export interface Permission {
+    id: number;
+    code: string;
+    name: string | null;
+    description: string | null;
+    group: string | null;
+}
+
 export interface User {
     id: number;
     email: string;
@@ -7,6 +15,7 @@ export interface User {
     phone_number: string | null;
     created_at: string;
     roles?: string[];
+    permissions?: Permission[];
     two_factor_enabled?: boolean;
 }
 
