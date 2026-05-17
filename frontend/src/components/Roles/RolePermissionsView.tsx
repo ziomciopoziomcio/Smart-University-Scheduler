@@ -85,6 +85,16 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                     <Paper
                         elevation={0}
                         onClick={() => toggleGroup(groupName)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                toggleGroup(groupName);
+                            }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={!collapsedGroups.has(groupName)}
+                        aria-controls={`permissions-group-${groupName}`}
                         sx={{
                             px: 3,
                             py: 1.5,
@@ -97,7 +107,12 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                             boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
                             cursor: 'pointer',
                             transition: 'background-color 0.2s',
-                            '&:hover': {bgcolor: '#f8fafc'}
+                            '&:hover': {bgcolor: '#f8fafc'},
+                            '&:focus-visible': {
+                                outline: '2px solid',
+                                outlineColor: 'primary.main',
+                                outlineOffset: '2px'
+                            }
                         }}
                     >
                         <Typography
@@ -114,6 +129,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                         </Typography>
                         <IconButton
                             size="small"
+                            component="div" // Prevent button inside button
                             sx={{
                                 transform: collapsedGroups.has(groupName) ? 'rotate(-90deg)' : 'rotate(0deg)',
                                 transition: 'transform 0.3s'
@@ -124,7 +140,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                     </Paper>
 
                     {/* PERMISSIONS LIST COLLAPSE */}
-                    <Collapse in={!collapsedGroups.has(groupName)}>
+                    <Collapse in={!collapsedGroups.has(groupName)} id={`permissions-group-${groupName}`}>
                         <Paper
                             elevation={0}
                             sx={{

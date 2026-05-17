@@ -12,6 +12,7 @@ import {
     Divider,
     ListItemAvatar,
     ListItemButton,
+    Tooltip,
 } from '@mui/material';
 import {
     ArrowForward,
@@ -93,12 +94,12 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
     const loadRight = useCallback(async () => {
         setLoadingRight(true);
         try {
-            // Fetch users with NO roles at all
+            // Fetch users who do NOT have this specific role
             const res = await fetchUsers(
                 rightPageSize,
                 (rightPage - 1) * rightPageSize,
                 debouncedRightSearch,
-                {has_roles: false}
+                {exclude_roles: [role.role_name]}
             );
             setRightUsers(res.items || []);
             setRightTotal(res.total || 0);
@@ -107,7 +108,7 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
         } finally {
             setLoadingRight(false);
         }
-    }, [rightPage, rightPageSize, debouncedRightSearch]);
+    }, [role.role_name, rightPage, rightPageSize, debouncedRightSearch]);
 
     useEffect(() => {
         void loadLeft();
@@ -301,34 +302,40 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
 
                 {/* CONTROLS */}
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, justifyContent: 'center'}}>
-                    <IconButton
-                        color="primary"
-                        onClick={handleMoveLeft}
-                        disabled={selectedRight.size === 0 || loadingLeft || loadingRight}
-                        sx={{
-                            width: 56, height: 80, borderRadius: '12px',
-                            bgcolor: 'primary.main', color: 'white',
-                            boxShadow: '0 4px 12px rgba(43, 80, 115, 0.2)',
-                            '&:hover': {bgcolor: 'primary.dark'},
-                            '&.Mui-disabled': {bgcolor: 'action.disabledBackground'}
-                        }}
-                    >
-                        <ArrowBack/>
-                    </IconButton>
-                    <IconButton
-                        color="primary"
-                        onClick={handleMoveRight}
-                        disabled={selectedLeft.size === 0 || loadingLeft || loadingRight}
-                        sx={{
-                            width: 56, height: 80, borderRadius: '12px',
-                            bgcolor: 'primary.main', color: 'white',
-                            boxShadow: '0 4px 12px rgba(43, 80, 115, 0.2)',
-                            '&:hover': {bgcolor: 'primary.dark'},
-                            '&.Mui-disabled': {bgcolor: 'action.disabledBackground'}
-                        }}
-                    >
-                        <ArrowForward/>
-                    </IconButton>
+                    <Tooltip title={intl.formatMessage({id: 'roles.assignTooltip', defaultMessage: 'Assign selected users to role'})}>
+                        <IconButton
+                            color="primary"
+                            onClick={handleMoveLeft}
+                            aria-label={intl.formatMessage({id: 'roles.assignAction', defaultMessage: 'Assign role'})}
+                            disabled={selectedRight.size === 0 || loadingLeft || loadingRight}
+                            sx={{
+                                width: 56, height: 80, borderRadius: '12px',
+                                bgcolor: 'primary.main', color: 'white',
+                                boxShadow: '0 4px 12px rgba(43, 80, 115, 0.2)',
+                                '&:hover': {bgcolor: 'primary.dark'},
+                                '&.Mui-disabled': {bgcolor: 'action.disabledBackground'}
+                            }}
+                        >
+                            <ArrowBack/>
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title={intl.formatMessage({id: 'roles.removeTooltip', defaultMessage: 'Remove selected users from role'})}>
+                        <IconButton
+                            color="primary"
+                            onClick={handleMoveRight}
+                            aria-label={intl.formatMessage({id: 'roles.removeAction', defaultMessage: 'Remove role'})}
+                            disabled={selectedLeft.size === 0 || loadingLeft || loadingRight}
+                            sx={{
+                                width: 56, height: 80, borderRadius: '12px',
+                                bgcolor: 'primary.main', color: 'white',
+                                boxShadow: '0 4px 12px rgba(43, 80, 115, 0.2)',
+                                '&:hover': {bgcolor: 'primary.dark'},
+                                '&.Mui-disabled': {bgcolor: 'action.disabledBackground'}
+                            }}
+                        >
+                            <ArrowForward/>
+                        </IconButton>
+                    </Tooltip>
                 </Box>
 
                 {/* RIGHT LIST */}
