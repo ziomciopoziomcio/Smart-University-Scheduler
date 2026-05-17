@@ -32,13 +32,19 @@ async def trigger_optimization(
     """
     requested_fid = payload.faculty_id if payload is not None else faculty_id
 
+    if requested_fid is not None and requested_fid <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="faculty_id must be strictly greater than 0.",
+        )
+
     privileged_roles = {"Administrator", "Schedule Manager"}
     is_privileged = any(
         role.role_name in privileged_roles for role in _current_user.roles
     )
 
     if is_privileged:
-        if not requested_fid:
+        if requested_fid is None:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Administrators and Schedule Managers must explicitly provide a faculty_id.",
@@ -58,7 +64,7 @@ async def trigger_optimization(
                 detail="User is not assigned to any faculty. Cannot trigger optimization.",
             )
 
-        if requested_fid:
+        if requested_fid is not None:
             if requested_fid not in allowed_fids:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
