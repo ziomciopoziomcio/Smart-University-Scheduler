@@ -104,6 +104,7 @@ class GroupsCreate(GroupsBase):
 
 class GroupsRead(GroupsBase):
     id: int
+    students_count: int = 0
 
 
 class GroupsUpdate(BaseModel):
