@@ -112,11 +112,11 @@ export default function RolesPage({view}: RolesPageProps) {
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                background: ['users', 'permissions'].includes(view) ? 'transparent' : '#ffffff',
-                boxShadow: ['users', 'permissions'].includes(view) ? 'none' : '0 2px 12px rgba(0, 0, 0, 0.06)',
+                background: view === 'users' ? 'transparent' : '#ffffff',
+                boxShadow: view === 'users' ? 'none' : '0 2px 12px rgba(0, 0, 0, 0.06)',
                 borderRadius: 2,
                 overflow: 'hidden',
-                p: ['users', 'permissions'].includes(view) ? 0 : {xs: 1, md: 2}
+                p: view === 'users' ? 0 : {xs: 1, md: 2}
             }}>
                 {loading && <Box sx={{display: 'flex', justifyContent: 'center', py: 4}}><CircularProgress/></Box>}
                 {error && <Alert severity="error">{error}</Alert>}
