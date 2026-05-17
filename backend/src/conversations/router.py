@@ -1,7 +1,8 @@
 import asyncio
+import logging
 import uuid
 
-from fastapi import APIRouter, Depends, status, Query, HTTPException
+from fastapi import APIRouter, Depends, status, Query, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from src.common.pagination.pagination import paginate
@@ -12,24 +13,25 @@ from src.common.router_utils import (
     _apply_patch_or_reject_nulls,
     apply_search_to_queries,
 )
+from src.database.database import SessionLocal
+from src.rag.llm_agent import process_chat_message, get_system_prompt
+from src.schedules import models as schedule_models
 from . import models, schemas
+from ..academics import models as academics_models
+from ..common.require_permission import require_permission
 from ..database.database import get_db
 from ..database.neo4j import get_neo4j_session, check_availability_in_neo4j
 from ..rag.retriever import get_user_schedule_context
+from ..users import models as user_models
 from ..users.auth import get_current_user
 from ..users.models import Users
-from ..common.require_permission import require_permission
-from ..users import models as user_models
-from ..academics import models as academics_models
-
-from src.rag.llm_agent import process_chat_message, get_system_prompt
-from src.database.database import SessionLocal
-from src.schedules import models as schedule_models
 
 router = APIRouter(prefix="/chats", tags=["chats"])
 
 CHAT_LIMIT = 50
 MESSAGE_LIMIT = 100
+
+logger = logging.getLogger(__name__)
 
 
 # Chats
@@ -144,7 +146,7 @@ def delete_chat(
 
 def _save_user_msg_sync(
     chat_id: int, user_id: int, payload: schemas.MessageCreate
-) -> tuple[schemas.MessageRead, int]:
+) -> tuple[schemas.MessageRead, int, str | None]:
     """
     Save the user's message to the database and return the saved message along with the user ID to be used for scheduling context retrieval.
     :param chat_id: Value of the chat_id path parameter from the API endpoint
@@ -171,7 +173,11 @@ def _save_user_msg_sync(
         )
         schedule_user_id = employee.id if employee is not None else user_id
 
-        return schemas.MessageRead.model_validate(user_msg), schedule_user_id
+        return (
+            schemas.MessageRead.model_validate(user_msg),
+            schedule_user_id,
+            chat.title,
+        )
 
 
 def _save_ai_msg_sync(
@@ -274,6 +280,38 @@ async def _process_llm_tool_chain(
     return final_content, suggestion_data
 
 
+def _generate_and_save_title_sync(chat_id: int, initial_message: str):
+    """
+    Generates a concise title using the LLM and updates the chat in the DB.
+    Runs in a background thread.
+    """
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are an assistant whose sole purpose is to generate titles for conversations. "
+                "Generate a very short, concise title (maximum of 3-5 words) summarizing the intent "
+                "of the message below. Return ONLY the title itself, without quotes or any additional text."
+            ),
+        },
+        {"role": "user", "content": initial_message},
+    ]
+
+    try:
+        resp = process_chat_message(messages)
+
+        if resp.get("type") == "text":
+            title = resp["content"].strip(" \t\n\r\"'")
+
+            with SessionLocal() as db:
+                chat = db.query(models.Chats).filter(models.Chats.id == chat_id).first()
+                if chat and not chat.title:
+                    chat.title = title[:255]
+                    db.commit()
+    except Exception as e:
+        logger.error(f"Failed to generate chat title for chat_id {chat_id}: {e}")
+
+
 # Messages
 @router.post(
     "/{chat_id}/messages",
@@ -283,13 +321,23 @@ async def _process_llm_tool_chain(
 async def create_message(
     chat_id: int,
     payload: schemas.MessageCreate,
+    background_tasks: BackgroundTasks,
     neo4j_session=Depends(get_neo4j_session),
     current_user: Users = Depends(get_current_user),
     _current_user: user_models.Users = Depends(require_permission("message:create")),
 ):
-    user_msg_schema, schedule_user_id = await asyncio.to_thread(
+    user_msg_schema, schedule_user_id, chat_title = await asyncio.to_thread(
         _save_user_msg_sync, chat_id, current_user.id, payload
     )
+
+    if chat_title is None:
+        background_tasks.add_task(
+            asyncio.to_thread,
+            _generate_and_save_title_sync,
+            chat_id,
+            payload.content,
+        )
+
     user_context = await get_user_schedule_context(schedule_user_id, neo4j_session)
 
     messages = [
