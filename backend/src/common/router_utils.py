@@ -75,7 +75,7 @@ def _apply_patch_or_reject_nulls(
         setattr(obj, k, v)
 
 
-def serialize_student_nested(row: tuple[Any, Any, Any, Any, Any]) -> dict:
+def serialize_student_nested(row: tuple[Any, Any, Any, Any, Any], groups: list) -> dict:
     """
     Row shape expected from academics.router:
     (student, user, study_program, study_field, major_obj)
@@ -109,6 +109,22 @@ def serialize_student_nested(row: tuple[Any, Any, Any, Any, Any]) -> dict:
     if major_obj is not None:
         major_details = {"id": major_obj.id, "major_name": major_obj.major_name}
 
+    serialized_groups = []
+    if groups:
+        for g in groups:
+            serialized_groups.append(
+                {
+                    "id": g.id,
+                    "group_name": g.group_name,
+                    "study_program": g.study_program,
+                    "major": getattr(g, "major", None),
+                    "elective_block": getattr(g, "elective_block", None),
+                    "semester": g.semester,
+                    "is_active": g.is_active,
+                    "students_count": 0,
+                }
+            )
+
     return {
         "id": student.id,
         "user_id": student.user_id,
@@ -117,6 +133,7 @@ def serialize_student_nested(row: tuple[Any, Any, Any, Any, Any]) -> dict:
         "user": user_obj,
         "study_program_details": study_program_details,
         "major_details": major_details,
+        "groups": serialized_groups,
     }
 
 

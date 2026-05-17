@@ -174,6 +174,7 @@ class StudentNested(BaseSchema):
     study_program: int
     major: int | None = None
     user_id: int
+    groups: list[GroupsRead] = Field(default_factory=list)
 
 
 class EmployeeNested(BaseSchema):
