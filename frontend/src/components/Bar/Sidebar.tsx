@@ -81,12 +81,6 @@ const menuConfig: SidebarMenuItem[] = [
         allowedRoles: []
     },
     {
-        id: 'sidebar.programs',
-        icon: <StarBorderPurple500OutlinedIcon/>,
-        path: '/programs', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
-    },
-    {
         id: 'sidebar.students', // students
         icon: <SvgIcon component={backpack_icon} inheritViewBox/>,
         path: '/students', // TODO: change to real path and add allowedRoles

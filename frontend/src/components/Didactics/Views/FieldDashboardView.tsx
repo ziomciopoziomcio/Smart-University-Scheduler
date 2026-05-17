@@ -1,5 +1,5 @@
 import {Box} from '@mui/material';
-import {ClassOutlined, ExtensionOutlined} from '@mui/icons-material';
+import {ClassOutlined, ExtensionOutlined, StarBorderPurple500Outlined} from '@mui/icons-material';
 import {useNavigate, useParams} from 'react-router-dom';
 import {TileView} from '@components/Common';
 import {useIntl} from "react-intl";
@@ -10,6 +10,13 @@ export function FieldDashboardView() {
     const intl = useIntl();
 
     const options = [
+        {
+            id: 'programs',
+            title: intl.formatMessage({id: 'didactics.fieldDashboard.programsTitle'}),
+            description: intl.formatMessage({id: 'didactics.fieldDashboard.programsDesc'}),
+            icon: StarBorderPurple500Outlined,
+            path: `/didactics/fields/faculty/${facultyId}/field/${fieldId}/programs`
+        },
         {
             id: 'majors',
             title: intl.formatMessage({id: 'didactics.fieldDashboard.majorsTitle'}),
