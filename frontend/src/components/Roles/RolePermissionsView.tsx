@@ -28,8 +28,8 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
 
     const hasChanges = useMemo(() => {
         if (selectedPermIds.length !== initialPermIds.length) return true;
-        const sortedInitial = [...initialPermIds].sort();
-        const sortedSelected = [...selectedPermIds].sort();
+        const sortedInitial = [...initialPermIds].sort((a, b) => a - b);
+        const sortedSelected = [...selectedPermIds].sort((a, b) => a - b);
         return !sortedInitial.every((val, index) => val === sortedSelected[index]);
     }, [selectedPermIds, initialPermIds]);
 
