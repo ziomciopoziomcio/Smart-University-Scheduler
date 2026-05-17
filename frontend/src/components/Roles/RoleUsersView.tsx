@@ -263,7 +263,7 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
                                                 primary={
                                                     <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
                                                         <Typography variant="body2" color="text.primary">
-                                                            {user.name} {user.surname} {isSelf && `(${intl.formatMessage({id: 'navbar.guest'}).toLowerCase() === 'guest' ? 'You' : 'Ty'})`}
+                                                            {user.name} {user.surname} {isSelf && `(${intl.locale.toLowerCase().startsWith('pl') ? 'Ty' : 'You'})`}
                                                         </Typography>
                                                         <Box component="span" sx={{display: 'flex', alignItems: 'center', gap: 0.3, color: 'text.secondary'}}>
                                                             <Tag sx={{fontSize: 14}}/>
