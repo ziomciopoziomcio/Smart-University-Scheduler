@@ -181,7 +181,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
 
                                         <Box sx={{display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2}}>
                                             {isDirty(perm.id) && (
-                                                <Tooltip title={intl.formatMessage({id: 'roles.permissions.unsaved'})}>
+                                                <Tooltip title={intl.formatMessage({id: 'roles.permissions.unsaved', defaultMessage: 'Unsaved changes'})}>
                                                     <HourglassEmpty sx={{fontSize: 18, color: '#f59e0b', animation: 'spin 2s linear infinite'}} />
                                                 </Tooltip>
                                             )}
