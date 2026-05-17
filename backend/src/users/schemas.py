@@ -178,6 +178,11 @@ class TwoFactorSetupResponse(BaseModel):
     secret: str
 
 
+class TwoFactorDisableRequest(BaseModel):
+    password: str
+    code: str
+
+
 class SignupRequest(BaseModel):
     email: Annotated[EmailStr, StringConstraints(max_length=255)]
     password: Annotated[str, StringConstraints(min_length=8, max_length=255)]
