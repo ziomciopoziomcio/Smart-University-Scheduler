@@ -60,6 +60,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
             setShowSuccess(true);
         } catch (error) {
             console.error('Error saving permissions:', error);
+            window.alert(intl.formatMessage({id: 'roles.errors.save'}));
         } finally {
             setSaving(false);
         }
