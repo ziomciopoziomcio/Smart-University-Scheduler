@@ -1,5 +1,5 @@
 import {COURSES_URL, type PaginatedResponse, getHeaders} from '@api/core';
-import type {Course, CourseFilters} from './types';
+import type {Course, CourseFilters, CourseCreate, CourseUpdate} from './types';
 
 
 export const fetchCourses = async (
@@ -37,7 +37,7 @@ export const getCourse = async (courseCode: number): Promise<Course> => {
     return response.json();
 };
 
-export const createCourse = async (payload: Course): Promise<Course> => {
+export const createCourse = async (payload: CourseCreate): Promise<Course> => {
     const response = await fetch(`${COURSES_URL}`, {
         method: 'POST',
         headers: getHeaders(),
@@ -48,7 +48,7 @@ export const createCourse = async (payload: Course): Promise<Course> => {
     return response.json();
 };
 
-export const updateCourse = async (courseCode: number, payload: Course): Promise<Course> => {
+export const updateCourse = async (courseCode: number, payload: CourseUpdate): Promise<Course> => {
     const response = await fetch(`${COURSES_URL}/${courseCode}`, {
         method: 'PATCH',
         headers: getHeaders(),

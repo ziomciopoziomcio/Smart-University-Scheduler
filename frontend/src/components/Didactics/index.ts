@@ -1,6 +1,9 @@
 export {BlockModal} from './Modals/BlockModal.tsx';
 export {MajorModal} from './Modals/MajorModal.tsx';
 export {StudyFieldModal} from './Modals/StudyFieldModal.tsx';
+export {CurriculumModal} from './Modals/CurriculumModal.tsx';
+export {ProgramGroupModal} from './Modals/ProgramGroupModal.tsx';
+export {StudyProgramModal} from './Modals/StudyProgramModal.tsx';
 
 export {BlockView} from './Views/BlockView.tsx';
 export {DidacticsDashboardView} from './Views/DidacticsDashboardView.tsx';
@@ -11,3 +14,9 @@ export {DidacticsStudyFieldView} from './Views/StudyFieldView.tsx';
 export {DidacticsUnitView} from './Views/DidacticsUnitView.tsx';
 export {DidacticsCourseView} from './Views/DidacticsCourseView.tsx';
 export {CourseInstructorsView} from './Views/CourseInstructorView.tsx';
+export {ProgramListView} from './Views/ProgramListView.tsx';
+export {ProgramSemesterView} from './Views/ProgramSemesterView.tsx';
+export {ProgramCurriculumView} from './Views/ProgramCurriculumView.tsx';
+export {ProgramSemesterDashboardView} from './Views/ProgramSemesterDashboardView.tsx';
+export {ProgramGroupView} from './Views/ProgramGroupView.tsx';
+export {ProgramGroupStudentsView} from './Views/ProgramGroupStudentsView.tsx';

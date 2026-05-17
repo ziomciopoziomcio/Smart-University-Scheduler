@@ -13,9 +13,10 @@ interface ProgramListViewProps {
     fieldId: number;
     onRefresh: () => void;
     fieldName: string;
+    basePath?: string;
 }
 
-export function ProgramListView({data, facultyId, fieldId, onRefresh, fieldName}: ProgramListViewProps) {
+export function ProgramListView({data, facultyId, fieldId, onRefresh, fieldName, basePath = '/programs'}: ProgramListViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,16 +30,12 @@ export function ProgramListView({data, facultyId, fieldId, onRefresh, fieldName}
                 titleWidth="400px"
                 columns={[
                     {
-                        render: (item) => (
-                            <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                                {intl.formatMessage({id: 'programs.list.recruitment'}, {year: item.start_year})}
-                            </Typography>
-                        ),
+                        render: (item) => intl.formatMessage({id: 'didactics.programs.list.recruitment'}, {year: item.start_year}),
                         width: '150px'
                     },
                     {
                         render: (item) => intl.formatMessage(
-                            {id: 'programs.list.semestersCount'},
+                            {id: 'didactics.programs.list.semestersCount'},
                             {count: item.semesters_count ?? 0}
                         ),
                         variant: 'secondary',
@@ -47,13 +44,13 @@ export function ProgramListView({data, facultyId, fieldId, onRefresh, fieldName}
                     }
                 ]}
                 onItemClick={(item) => {
-                    navigate(`/programs/faculty/${facultyId}/field/${fieldId}/program/${item.id}`);
+                    navigate(`${basePath}/${facultyId}/field/${fieldId}/program/${item.id}`);
                 }}
                 onAddClick={() => {
                     setIsModalOpen(true);
                 }}
-                addLabel={intl.formatMessage({id: 'programs.addProgram'})}
-                emptyMessage={intl.formatMessage({id: 'programs.noData'})}
+                addLabel={intl.formatMessage({id: 'didactics.programs.addProgram'})}
+                emptyMessage={intl.formatMessage({id: 'didactics.programs.noData'})}
                 hideDividerOnLastItem
             />
 

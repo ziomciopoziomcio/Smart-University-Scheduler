@@ -571,9 +571,11 @@
     },
     "fieldDashboard": {
       "majorsTitle": "Majors",
-      "majorsDesc": "Manage majors for this field of study.",
-      "blocksTitle": "Elective Blocks",
-      "blocksDesc": "Manage elective blocks for this field of study."
+      "majorsDesc": "Manage majors and groups",
+      "blocksTitle": "Elective blocks",
+      "blocksDesc": "Configure elective courses",
+      "programsTitle": "Study programs",
+      "programsDesc": "Manage cycles and curriculum"
     },
     "common": {
       "search": "Search...",
@@ -594,10 +596,111 @@
       "deleteTitle": "Delete field of study",
       "deleteDesc": "Are you sure you want to delete the field of study \"{name}\"? This action cannot be undone.",
       "empty": "No fields of study in the system.",
-      "nameLabel": "Field of study name",
-      "namePlaceholder": "e.g. Computer Science",
-      "majorsCount": "{count, plural, one {# major} other {# majors}}",
-      "blocksCount": "{count, plural, =0 {No blocks} one {1 block} few {# blocks} many {# blocks} other {# blocks}}"
+      "nameLabel": "Field of Study Name",
+      "namePlaceholder": "e.g., Computer Science",
+      "degreeLabel": "Study Degree",
+      "modeLabel": "Study Mode",
+      "majorsCount": "{count, plural, =0 {No specializations} one {1 specialization} other {# specializations}}",
+      "blocksCount": "{count, plural, =0 {No blocks} one {1 block} other {# blocks}}",
+      "programsCount": "{count, plural, =0 {No cohorts} one {1 cohort} other {# cohorts}}",
+      "degrees": {
+        "Bachelor": "Bachelor",
+        "Master": "Master",
+        "Uniform_Master": "Uniform Master",
+        "Doctoral": "Doctoral"
+      },
+      "modes": {
+        "Full-time": "Full-time",
+        "Part-time": "Part-time"
+      }
+    },
+    "programs": {
+      "title": "Programs",
+      "semester": "Semester",
+      "searchPlaceholder": "Search...",
+      "noData": "No data to display.",
+      "addProgram": "Add cohort",
+      "addCourse": "Add course",
+      "errorLoading": "Error loading data",
+      "list": {
+        "title": "Study program",
+        "semestersCount": "{count, plural, =0 {No semesters} one {1 semester} other {# semesters}}",
+        "recruitment": "Recruitment: {year}"
+      },
+      "semesters": {
+        "title": "Semesters",
+        "coursesCount": "{count, plural, =0 {No courses} one {1 course} other {# courses}}"
+      },
+      "dashboard": {
+        "curriculumTitle": "Curriculum",
+        "curriculumDesc": "Manage courses in this semester",
+        "groupsTitle": "Student Groups",
+        "groupsDesc": "Manage groups and assign students"
+      },
+      "curriculum": {
+        "courseIdFallback": "Course ID: {id}",
+        "majorIdFallback": "Spec. ID: {id}",
+        "blockIdFallback": "Block ID: {id}"
+      },
+      "modal": {
+        "editProgram": "Edit cohort",
+        "addProgram": "Add new cohort",
+        "startYear": "Academic year (e.g., 2024/2025)",
+        "programName": "Custom program name (optional)",
+        "yearFrom": "From",
+        "yearTo": "To",
+        "yearErrorFormat": "Years must be 4-digit numbers",
+        "yearErrorDiff": "The difference between years must be exactly 1 year",
+        "yearErrorOrder": "The first year must be less than the second",
+        "yearFromPlaceholder": "2023",
+        "yearToPlaceholder": "2024",
+        "programNamePlaceholder": "e.g., Practical profile"
+      },
+      "curriculumModal": {
+        "title": "Add course to curriculum",
+        "course": "Select course",
+        "coursePlaceholder": "Type course code or name...",
+        "courseNoOptions": "No courses found",
+        "major": "Specialization (optional)",
+        "electiveBlock": "Elective block (optional)",
+        "none": "None",
+        "exclusivityHint": "Course can belong to a specialization OR to a block."
+      },
+      "groups": {
+        "title": "Groups",
+        "add": "Add group",
+        "edit": "Edit group",
+        "deleteTitle": "Delete group",
+        "deleteDesc": "Are you sure you want to delete group {name}?",
+        "empty": "No groups in this semester",
+        "studentsCount": "Students: {count}",
+        "active": "Active (has classes)",
+        "inactive": "Inactive (no classes)",
+        "chip": {
+          "major": "{name}",
+          "block": "{name}",
+          "general": "Cohort (General)"
+        },
+        "modal": {
+          "nameLabel": "Group name",
+          "namePlaceholder": "e.g., L1, W2, AI-1",
+          "majorLabel": "Specialization",
+          "blockLabel": "Elective block",
+          "activeLabel": "Group has classes this semester",
+          "none": "None",
+          "exclusivityHint": "* A group can be assigned to the whole cohort, a specialization OR an elective block."
+        }
+      },
+      "groupStudents": {
+        "title": "Students in group",
+        "empty": "No students assigned to this group",
+        "index": "Index: {id}"
+      }
+    },
+    "semesters": {
+      "title": "Semesters",
+      "coursesCount": "{count, plural, =0 {No courses} one {1 course} other {# courses}}",
+      "ectsSum": "{count} ECTS"
     },
     "majors": {
       "add": "Add Major",
@@ -687,93 +790,6 @@
       "statusSuccess": "No issues",
       "statusWarnings": "Requires review",
       "statusErrors": "Issues detected"
-    }
-  },
-  "programs": {
-    "title": "Study Programs & Curriculums",
-    "semester": "Semester",
-    "searchPlaceholder": "Search...",
-    "noData": "No data available.",
-    "addProgram": "Add study program",
-    "addCourse": "Add course",
-    "errorLoading": "Error loading data",
-    "faculties": {
-      "title": "Faculty"
-    },
-    "fields": {
-      "title": "Field of Study",
-      "programsCount": "{count, plural, =0 {No programs} one {1 program} other {# programs}}"
-    },
-    "list": {
-      "title": "Study Program",
-      "semestersCount": "{count, plural, =0 {No semesters} one {1 semester} other {# semesters}}",
-      "recruitment": "Enrollment: {year}"
-    },
-    "semesters": {
-      "title": "Semesters",
-      "coursesCount": "{count, plural, =0 {No courses} one {1 course} other {# courses}}"
-    },
-    "dashboard": {
-      "curriculumTitle": "Curriculum",
-      "curriculumDesc": "Manage courses in this semester",
-      "groupsTitle": "Student Groups",
-      "groupsDesc": "Manage groups and assign students"
-    },
-    "curriculum": {
-      "courseIdFallback": "Course ID: {id}",
-      "majorIdFallback": "Major ID: {id}",
-      "blockIdFallback": "Block ID: {id}"
-    },
-    "modal": {
-      "editProgram": "Edit study program",
-      "addProgram": "Add new study program",
-      "startYear": "Academic year (e.g., 2024/2025)",
-      "programName": "Custom program name (optional)",
-      "yearFrom": "Year from",
-      "yearTo": "Year to",
-      "yearErrorFormat": "Years must be 4-digit numbers",
-      "yearErrorDiff": "The difference must be exactly 1 year",
-      "yearErrorOrder": "The first year must be earlier than the second",
-      "yearFromPlaceholder": "2023",
-      "yearToPlaceholder": "2024",
-      "programNamePlaceholder": "e.g., Practical profile"
-    },
-    "curriculumModal": {
-      "title": "Add course to curriculum",
-      "course": "Select course",
-      "coursePlaceholder": "Type course code or name...",
-      "courseNoOptions": "Course not found",
-      "major": "Major (optional)",
-      "electiveBlock": "Elective block (optional)",
-      "none": "None",
-      "exclusivityHint": "A course can belong to a major OR an elective block."
-    },
-    "groups": {
-      "title": "Groups",
-      "add": "Add group",
-      "edit": "Edit group",
-      "deleteTitle": "Delete group",
-      "deleteDesc": "Are you sure you want to delete group {name}?",
-      "empty": "No groups in this semester",
-      "studentsCount": "Students: {count}",
-      "chip": {
-        "major": "Major: {name}",
-        "block": "Block: {name}",
-        "general": "Year (General)"
-      },
-      "modal": {
-        "nameLabel": "Group name",
-        "namePlaceholder": "e.g., L1, W2, AI-1",
-        "majorLabel": "Major",
-        "blockLabel": "Elective block",
-        "none": "None",
-        "exclusivityHint": "* A group can be assigned to the whole year, a major OR an elective block."
-      }
-    },
-    "groupStudents": {
-      "title": "Students in group",
-      "empty": "No students assigned to this group",
-      "index": "Index: {id}"
     }
   },
   "chat": {

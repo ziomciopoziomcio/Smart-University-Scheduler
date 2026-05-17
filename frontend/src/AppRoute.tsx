@@ -26,7 +26,6 @@ import StudentSchedulePage from "./pages/Schedules/StudentSchedulePage.tsx";
 import StudentsSchedulesPage from "./pages/Schedules/StudentsSchedulesPage.tsx";
 import DidacticsPage from "./pages/Didactics/DidacticsPage.tsx";
 import GenerateSchedulePage from "./pages/GenerateSchedule/GenerateSchedulePage.tsx";
-import ProgramsPage from "./pages/Programs/ProgramsPage.tsx";
 import ChatPage from "./pages/Chat/ChatPage.tsx";
 import SuggestionsPage from "./pages/Suggestions/SuggestionsPage.tsx";
 
@@ -146,6 +145,21 @@ function AppRoute() {
                                    element={<DidacticsPage view="majors"/>}/>
                             <Route path="fields/faculty/:facultyId/field/:fieldId/blocks"
                                    element={<DidacticsPage view="blocks"/>}/>
+                            <Route path="fields/faculty/:facultyId/field/:fieldId/programs"
+                                   element={<DidacticsPage view="programs"/>}/>
+                            <Route path="fields/faculty/:facultyId/field/:fieldId/program/:programId"
+                                   element={<DidacticsPage view="semesters"/>}/>
+                            <Route path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId"
+                                   element={<DidacticsPage view="semester-dashboard"/>}/>
+                            <Route
+                                path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/curriculum"
+                                element={<DidacticsPage view="curriculum"/>}/>
+                            <Route
+                                path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/groups"
+                                element={<DidacticsPage view="groups"/>}/>
+                            <Route
+                                path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/groups/:groupId"
+                                element={<DidacticsPage view="group_members"/>}/>
 
                             <Route path="courses" element={<DidacticsPage view="faculties_for_courses"/>}/>
                             <Route path="courses/faculty/:facultyId"
@@ -154,26 +168,6 @@ function AppRoute() {
                                    element={<DidacticsPage view="catalog"/>}/>
                             <Route path="courses/faculty/:facultyId/unit/:unitId/course/:courseCode/instructors"
                                    element={<DidacticsPage view="course_instructors"/>}/>
-                        </Route>
-
-                        {/* ==================== PROGRAMS ==================== */}
-                        <Route path="/programs">
-                            <Route index element={<ProgramsPage view="faculties"/>}/>
-                            <Route path="faculty/:facultyId" element={<ProgramsPage view="fields"/>}/>
-                            <Route path="faculty/:facultyId/field/:fieldId" element={<ProgramsPage view="programs"/>}/>
-                            <Route path="faculty/:facultyId/field/:fieldId/program/:programId"
-                                   element={<ProgramsPage view="semesters"/>}/>
-
-                            <Route path="faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId"
-                                   element={<ProgramsPage view="semester-dashboard"/>}/>
-
-                            <Route
-                                path="faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/curriculum"
-                                element={<ProgramsPage view="curriculum"/>}/>
-
-                            <Route
-                                path="faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/groups"
-                                element={<ProgramsPage view="groups"/>}/>
                         </Route>
                     </Route>
 

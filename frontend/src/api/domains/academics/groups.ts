@@ -111,3 +111,28 @@ export const deleteGroup = async (id: number): Promise<void> => {
     });
     if (!response.ok) throw new Error('Nie udało się usunąć grupy');
 };
+
+export const fetchGroupMembers = async (groupId: number, limit = 200, offset = 0): Promise<PaginatedResponse<{ group: number; student: number }>> => {
+    const response = await fetch(`${ACADEMICS_URL}/group-members?group=${groupId}&limit=${limit}&offset=${offset}`, {
+        headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Nie udało się pobrać członków grupy');
+    return response.json();
+};
+
+export const addGroupMember = async (groupId: number, studentId: number): Promise<void> => {
+    const response = await fetch(`${ACADEMICS_URL}/group-members`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({group: groupId, student: studentId}),
+    });
+    if (!response.ok) throw new Error('Nie udało się dodać studenta do grupy');
+};
+
+export const removeGroupMember = async (groupId: number, studentId: number): Promise<void> => {
+    const response = await fetch(`${ACADEMICS_URL}/group-members/${groupId}/${studentId}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+    });
+    if (!response.ok) throw new Error('Nie udało się usunąć studenta z grupy');
+};
