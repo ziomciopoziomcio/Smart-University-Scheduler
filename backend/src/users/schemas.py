@@ -55,7 +55,6 @@ class UserRead(UserBase):
     id: int
     created_at: datetime
     roles: list[str] = Field(default_factory=list)
-    permissions: list[str] = Field(default_factory=list)
     two_factor_enabled: bool
 
     @classmethod
@@ -94,6 +93,10 @@ class UserRead(UserBase):
             raise ValueError("roles must be provided as a list")
 
         return [cls._parse_single_role(role) for role in v]
+
+
+class UserMeRead(UserRead):
+    permissions: list[str] = Field(default_factory=list)
 
 
 class UserUpdate(BaseModel):

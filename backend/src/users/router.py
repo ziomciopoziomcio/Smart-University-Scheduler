@@ -77,7 +77,7 @@ def login_for_access_token(
     }
 
 
-@router.get("/me", response_model=schemas.UserRead)
+@router.get("/me", response_model=schemas.UserMeRead)
 def read_own_user(
     current_user: models.Users = Depends(get_current_user),
     _current_user: user_models.Users = Depends(require_permission("user:me")),
