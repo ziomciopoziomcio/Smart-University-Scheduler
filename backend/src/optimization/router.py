@@ -56,7 +56,8 @@ async def trigger_optimization(
             .filter(ac_mod.Employees.user_id == _current_user.id)
             .all()
         )
-        allowed_fids = [emp.faculty_id for emp in employees if emp.faculty_id]
+
+        allowed_fids = list({emp.faculty_id for emp in employees if emp.faculty_id})
 
         if not allowed_fids:
             raise HTTPException(
