@@ -1,6 +1,6 @@
 import {useState, useEffect, useCallback} from 'react';
 import {useParams} from 'react-router-dom';
-import {Box, Paper, CircularProgress, Alert} from '@mui/material';
+import {Box, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
 
 import {PageBreadcrumbs, type BreadcrumbItem, SearchBar} from '@components/Common';
