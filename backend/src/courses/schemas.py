@@ -138,7 +138,7 @@ class CourseTypeDetailUpdate(BaseModel):
     class_hours: Annotated[int, Field(ge=0)] | None = None
     slots_per_class: Annotated[int, Field(ge=1, le=10)] | None = None
     frequency: FrequencyType | None = None
-    manual_weeks: FrequencyType | None = None
+    manual_weeks: list[int] | None = None
     pc_needed: bool | None = None
     projector_needed: bool | None = None
     max_group_participants_number: Annotated[int, Field(gt=0)] | None = None

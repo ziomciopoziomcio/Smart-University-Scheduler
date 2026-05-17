@@ -616,6 +616,17 @@ def create_course_instructor(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("instructor:create")),
 ):
+    ctd = (
+        db.query(models.Course_type_detail)
+        .filter_by(course=payload.course, class_type=payload.class_type)
+        .one_or_none()
+    )
+    if ctd is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot assign instructor: class type {payload.class_type} is not defined for course {payload.course}",
+        )
+
     obj = models.Courses_instructors(**payload.model_dump())
     db.add(obj)
     _commit_or_rollback(db)
