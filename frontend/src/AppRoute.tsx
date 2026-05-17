@@ -28,12 +28,14 @@ import DidacticsPage from "./pages/Didactics/DidacticsPage.tsx";
 import GenerateSchedulePage from "./pages/GenerateSchedule/GenerateSchedulePage.tsx";
 import ChatPage from "./pages/Chat/ChatPage.tsx";
 import SuggestionsPage from "./pages/Suggestions/SuggestionsPage.tsx";
+import SessionExpiredDialog from '@components/Login/SessionExpiredDialog';
 
 function AppRoute() {
     const isAuthenticated = useAuthStore((state) => state.token !== null);
 
     return (
         <BrowserRouter>
+            <SessionExpiredDialog />
             <Routes>
                 {/*==================== AUTHENTICATION ====================*/}
                 <Route path="/login" element={<LoginPage/>}/>
