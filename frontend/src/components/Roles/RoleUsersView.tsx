@@ -217,7 +217,10 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
                 <Card sx={{flex: 1, borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)'}}>
                     <Box sx={{p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                         <Typography variant="subtitle1" fontWeight={700} color="primary.main">
-                            {intl.formatMessage({id: 'sidebar.users'})} (Bez ról)
+                            {intl.formatMessage({id: 'sidebar.users'})} {intl.formatMessage({
+                                id: 'roles.usersWithoutRolesSuffix',
+                                defaultMessage: '(No roles)'
+                            })}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" fontWeight={600}>
                             {intl.formatMessage({id: 'roles.usersCount'}, {count: rightTotal})}
