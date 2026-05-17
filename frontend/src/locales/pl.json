@@ -108,6 +108,13 @@
     "guest": "Gość",
     "logout": "Wyloguj się"
   },
+  "auth": {
+    "sessionExpired": {
+      "title": "Sesja wygasła",
+      "message": "Twoja sesja dobiegła końca. Zaloguj się ponownie, aby kontynuować pracę.",
+      "button": "Przejdź do logowania"
+    }
+  },
   "calendar": {
     "month": "Miesiąc",
     "week": "Tydzień",
