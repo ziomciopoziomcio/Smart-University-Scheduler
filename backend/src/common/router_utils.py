@@ -121,7 +121,6 @@ def serialize_student_nested(row: tuple[Any, Any, Any, Any, Any], groups: list) 
                     "elective_block": getattr(g, "elective_block", None),
                     "semester": g.semester,
                     "is_active": g.is_active,
-                    "students_count": 0,
                 }
             )
 
