@@ -4,16 +4,14 @@ import {type PermissionCode} from '@constants/permissions';
 
 interface PermissionState {
     getPermissionCodes: () => string[];
-    hasPermission: (permission: PermissionCode) => boolean;
-    hasAnyPermission: (permissions: readonly PermissionCode[]) => boolean;
-    hasAllPermissions: (permissions: readonly PermissionCode[]) => boolean;
+    hasPermission: (permission: PermissionCode | string) => boolean;
+    hasAnyPermission: (permissions: readonly (PermissionCode | string)[]) => boolean;
+    hasAllPermissions: (permissions: readonly (PermissionCode | string)[]) => boolean;
 }
 
 export const usePermissionStore = create<PermissionState>()((_, get) => ({
     getPermissionCodes: () => {
-        const user = useAuthStore.getState().user;
-
-        return user?.permissions?.map((permission) => permission.code) ?? [];
+        return useAuthStore.getState().user?.permissions ?? [];
     },
 
     hasPermission: (permission) => {
