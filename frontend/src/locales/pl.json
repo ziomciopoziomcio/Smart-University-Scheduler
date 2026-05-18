@@ -439,6 +439,7 @@
         "disable": "Wyłącz 2FA",
         "setupTitle": "Konfiguracja 2FA",
         "setupDesc": "Zeskanuj poniższy kod QR w swojej aplikacji uwierzytelniającej (np. Google Authenticator).",
+        "manualEntry": "Jeśli nie możesz zeskanować kodu, wprowadź ten klucz ręcznie w aplikacji:",
         "confirmCode": "Wprowadź kod z aplikacji",
         "backupCodesTitle": "Kody zapasowe",
         "backupCodesDesc": "Zapisz poniższe kody w bezpiecznym miejscu. Pozwolą Ci one zalogować się w przypadku utraty dostępu do aplikacji.",

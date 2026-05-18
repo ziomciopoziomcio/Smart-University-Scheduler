@@ -444,6 +444,7 @@
         "disable": "Disable 2FA",
         "setupTitle": "2FA Setup",
         "setupDesc": "Scan the QR code below in your authenticator app (e.g., Google Authenticator).",
+        "manualEntry": "If you cannot scan the code, enter this key manually in the app:",
         "confirmCode": "Enter code from app",
         "backupCodesTitle": "Backup codes",
         "backupCodesDesc": "Save the codes below in a safe place. They will allow you to log in if you lose access to the app.",

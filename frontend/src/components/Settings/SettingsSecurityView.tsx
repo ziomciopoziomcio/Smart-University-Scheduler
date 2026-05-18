@@ -21,7 +21,8 @@ import {
     LockOutlined,
     SecurityOutlined,
     CheckCircleOutline,
-    ContentCopy
+    ContentCopy,
+    HelpOutline
 } from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 import {useAuthStore} from '@store/useAuthStore';
@@ -136,14 +137,14 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
 
     const copyBackupCodes = () => {
         if (backupCodes) {
-            navigator.clipboard.writeText(backupCodes.join('\n'));
+            navigator.clipboard.writeText(backupCodes.join('\n')).catch(() => {});
             setShowSuccess(intl.formatMessage({id: 'users.modal.copySuccess'}));
         }
     };
 
     const copySecret = () => {
         if (setupData?.secret) {
-            navigator.clipboard.writeText(setupData.secret);
+            navigator.clipboard.writeText(setupData.secret).catch(() => {});
             setShowSuccess(intl.formatMessage({id: 'users.modal.copySuccess'}));
         }
     };
@@ -160,7 +161,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                     variant="outlined" 
                     onClick={() => setPasswordDialogOpen(true)}
                     startIcon={<LockOutlined />}
-                    sx={{borderRadius: '8px'}}
+                    sx={{borderRadius: '8px', width: '200px'}}
                 >
                     {intl.formatMessage({id: 'settings.security.password.changeButton'})}
                 </Button>
@@ -175,7 +176,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                     variant="outlined" 
                     color="error" 
                     onClick={() => setDisableDialogOpen(true)}
-                    sx={{borderRadius: '8px'}}
+                    sx={{borderRadius: '8px', width: '200px'}}
                 >
                     {intl.formatMessage({id: 'settings.security.twoFactor.disable'})}
                 </Button>
@@ -184,7 +185,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                     variant="contained" 
                     onClick={handleEnable2FA}
                     startIcon={<SecurityOutlined />}
-                    sx={{borderRadius: '8px', bgcolor: '#2b5073'}}
+                    sx={{borderRadius: '8px', bgcolor: '#2b5073', width: '200px'}}
                 >
                     {intl.formatMessage({id: 'settings.security.twoFactor.setup'})}
                 </Button>
@@ -232,7 +233,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                                         key={item.id}
                                         sx={{
                                             display: 'grid',
-                                            gridTemplateColumns: 'minmax(350px, 450px) 1fr auto',
+                                            gridTemplateColumns: 'minmax(250px, 300px) 1fr auto',
                                             alignItems: 'center',
                                             gap: 4,
                                             py: 2.5,
@@ -241,10 +242,10 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                                             '&:hover': {bgcolor: '#f8fafc'}
                                         }}
                                     >
-                                        <Typography variant="body2" fontWeight={600} color="#1e293b">
+                                        <Typography variant="body2" fontWeight={600} color="#1e293b" sx={{textAlign: 'left'}}>
                                             {item.name}
                                         </Typography>
-                                        <Typography variant="body2" color="#64748b">
+                                        <Typography variant="body2" color="#64748b" sx={{textAlign: 'left'}}>
                                             {item.description}
                                         </Typography>
                                         <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
@@ -299,30 +300,57 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                 </DialogActions>
             </Dialog>
 
-            {/* 2FA Setup Dialog */}
-            <Dialog open={setupDialogOpen} onClose={() => !backupCodes && setSetupDialogOpen(false)} maxWidth="sm" fullWidth>
-                <DialogTitle sx={{color: 'black', fontWeight: 700}}>
+            <Dialog 
+                open={setupDialogOpen} 
+                onClose={() => !backupCodes && setSetupDialogOpen(false)} 
+                maxWidth="sm" 
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: '20px',
+                        minHeight: '450px'
+                    }
+                }}
+            >
+                <DialogTitle sx={{color: 'black', fontWeight: 700, pb: 1}}>
                     {intl.formatMessage({id: 'settings.security.twoFactor.setupTitle'})}
                 </DialogTitle>
-                <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 3, mt: 1, alignItems: 'center'}}>
+                <DialogContent sx={{
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: 3, 
+                    mt: 1, 
+                    alignItems: 'center',
+                    overflowY: 'auto',
+                    scrollbarWidth: 'none',
+                    '&::-webkit-scrollbar': {
+                        display: 'none'
+                    },
+                    msOverflowStyle: 'none'
+                }}>
                     {!backupCodes ? (
                         <>
                             <Typography variant="body2" textAlign="center">
                                 {intl.formatMessage({id: 'settings.security.twoFactor.setupDesc'})}
                             </Typography>
                             {setupData && (
-                                <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2}}>
+                                <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, width: '100%'}}>
                                     <Box sx={{p: 2, bgcolor: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.05)'}}>
                                         <QRCodeSVG value={setupData.qr} size={180} />
                                     </Box>
-                                    <Box sx={{display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#f8fafc', px: 2, py: 1, borderRadius: '8px', border: '1px dashed #cbd5e1'}}>
-                                        <Typography variant="mono" sx={{fontFamily: 'monospace', fontWeight: 700, letterSpacing: '1px', color: '#334155'}}>
-                                            {setupData.secret}
-                                        </Typography>
-                                        <Tooltip title={intl.formatMessage({id: 'users.modal.copyTooltip'})}>
-                                            <IconButton size="small" onClick={copySecret}>
-                                                <ContentCopy fontSize="small" />
-                                            </IconButton>
+                                    <Box sx={{display: 'flex', alignItems: 'center', gap: 1.5}}>
+                                        <Box sx={{display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#f8fafc', px: 2, py: 1, borderRadius: '8px', border: '1px dashed #cbd5e1'}}>
+                                            <Typography sx={{fontFamily: 'monospace', fontWeight: 700, letterSpacing: '1px', color: '#334155'}}>
+                                                {setupData.secret}
+                                            </Typography>
+                                            <Tooltip title={intl.formatMessage({id: 'users.modal.copyTooltip'})}>
+                                                <IconButton size="small" onClick={copySecret}>
+                                                    <ContentCopy fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </Box>
+                                        <Tooltip title={intl.formatMessage({id: 'settings.security.twoFactor.manualEntry'})}>
+                                            <HelpOutline sx={{fontSize: '1.4rem', color: 'text.secondary', cursor: 'help'}} />
                                         </Tooltip>
                                     </Box>
                                 </Box>
@@ -346,7 +374,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                             <Typography variant="subtitle2" fontWeight={700} gutterBottom>
                                 {intl.formatMessage({id: 'settings.security.twoFactor.backupCodesTitle'})}
                             </Typography>
-                            <Typography variant="body2" color="text.secondary" paragraph>
+                            <Typography variant="body2" color="text.secondary" sx={{mb: 2}}>
                                 {intl.formatMessage({id: 'settings.security.twoFactor.backupCodesDesc'})}
                             </Typography>
                             <Paper variant="outlined" sx={{p: 2, bgcolor: '#f8fafc', position: 'relative'}}>
@@ -359,7 +387,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                                 </IconButton>
                                 <Box sx={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1}}>
                                     {backupCodes.map((code) => (
-                                        <Typography key={code} variant="mono" sx={{fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 600}}>
+                                        <Typography key={code} sx={{fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 600}}>
                                             {code}
                                         </Typography>
                                     ))}
@@ -403,8 +431,8 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                 <DialogTitle sx={{color: 'black', fontWeight: 700}}>
                     {intl.formatMessage({id: 'settings.security.twoFactor.disableTitle'})}
                 </DialogTitle>
-                <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 2, mt: 1}}>
-                    <Typography variant="body2">
+                <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 2, mt: 1, alignItems: 'center'}}>
+                    <Typography variant="body2" textAlign="center">
                         {intl.formatMessage({id: 'settings.security.twoFactor.disableDesc'})}
                     </Typography>
                     <TextField
@@ -414,8 +442,8 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                         value={disablePassword}
                         onChange={(e) => setDisablePassword(e.target.value)}
                     />
-                    <Box sx={{mt: 1}}>
-                        <Typography variant="caption" color="text.secondary" sx={{display: 'block', mb: 1, fontWeight: 600}}>
+                    <Box sx={{mt: 1, width: '100%'}}>
+                        <Typography variant="caption" color="text.secondary" sx={{display: 'block', mb: 1, fontWeight: 600, textAlign: 'center'}}>
                             {intl.formatMessage({id: 'settings.security.twoFactor.codeLabel'})}
                         </Typography>
                         <OtpInput 
