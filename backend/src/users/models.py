@@ -81,7 +81,7 @@ class Users(Base):
             for perm in role.permissions:
                 if perm.code:
                     perms.add(perm.code)
-        return list(perms)
+        return sorted(perms)
 
 
 role_permissions = Table(
