@@ -422,6 +422,45 @@
       "passwordMismatch": "Passwords do not match!"
     }
   },
+  "settings": {
+    "title": "System Settings",
+    "searchPlaceholder": "Search settings...",
+    "security": {
+      "title": "Security",
+      "password": {
+        "name": "Password",
+        "description": "Change your system access password.",
+        "changeButton": "Change password",
+        "title": "Change password",
+        "oldPassword": "Old password",
+        "newPassword": "New password",
+        "confirmPassword": "Repeat new password",
+        "success": "Password has been changed"
+      },
+      "twoFactor": {
+        "name": "Two-factor authentication (2FA)",
+        "description": "Increase account security by requiring a code from an app when logging in.",
+        "setup": "Set up 2FA",
+        "disable": "Disable 2FA",
+        "setupTitle": "2FA Setup",
+        "setupDesc": "Scan the QR code below in your authenticator app (e.g., Google Authenticator).",
+        "confirmCode": "Enter code from app",
+        "backupCodesTitle": "Backup codes",
+        "backupCodesDesc": "Save the codes below in a safe place. They will allow you to log in if you lose access to the app.",
+        "disableTitle": "Disabling 2FA",
+        "disableDesc": "To disable 2FA, enter your password and current code.",
+        "passwordLabel": "Password",
+        "codeLabel": "2FA Code",
+        "successEnabled": "2FA has been enabled",
+        "successDisabled": "2FA has been disabled"
+      }
+    },
+    "errors": {
+      "load": "Error loading settings",
+      "save": "Error saving settings"
+    },
+    "success": "Settings saved successfully"
+  },
   "roles": {
     "usersCount": "{count, plural, =0 {No users} one {1 user} other {# users}}",
     "title": "Roles",

@@ -417,6 +417,45 @@
       "passwordMismatch": "Podane hasła nie są identyczne!"
     }
   },
+  "settings": {
+    "title": "Ustawienia systemowe",
+    "searchPlaceholder": "Szukaj ustawień...",
+    "security": {
+      "title": "Bezpieczeństwo",
+      "password": {
+        "name": "Hasło",
+        "description": "Zmień swoje hasło dostępu do systemu.",
+        "changeButton": "Zmień hasło",
+        "title": "Zmiana hasła",
+        "oldPassword": "Stare hasło",
+        "newPassword": "Nowe hasło",
+        "confirmPassword": "Powtórz nowe hasło",
+        "success": "Hasło zostało zmienione"
+      },
+      "twoFactor": {
+        "name": "Uwierzytelnianie dwuetapowe (2FA)",
+        "description": "Zwiększ bezpieczeństwo konta, wymagając kodu z aplikacji przy logowaniu.",
+        "setup": "Skonfiguruj 2FA",
+        "disable": "Wyłącz 2FA",
+        "setupTitle": "Konfiguracja 2FA",
+        "setupDesc": "Zeskanuj poniższy kod QR w swojej aplikacji uwierzytelniającej (np. Google Authenticator).",
+        "confirmCode": "Wprowadź kod z aplikacji",
+        "backupCodesTitle": "Kody zapasowe",
+        "backupCodesDesc": "Zapisz poniższe kody w bezpiecznym miejscu. Pozwolą Ci one zalogować się w przypadku utraty dostępu do aplikacji.",
+        "disableTitle": "Wyłączanie 2FA",
+        "disableDesc": "Aby wyłączyć 2FA, podaj hasło i aktualny kod.",
+        "passwordLabel": "Hasło",
+        "codeLabel": "Kod 2FA",
+        "successEnabled": "2FA zostało włączone",
+        "successDisabled": "2FA zostało wyłączone"
+      }
+    },
+    "errors": {
+      "load": "Błąd podczas ładowania ustawień",
+      "save": "Błąd podczas zapisywania ustawień"
+    },
+    "success": "Ustawienia zostały zapisane pomyślnie"
+  },
   "roles": {
     "usersCount": "{count, plural, =0 {Brak użytkowników} one {1 użytkownik} few {# użytkowników} many {# użytkowników} other {# użytkownika}}",
     "title": "Role systemowe",
