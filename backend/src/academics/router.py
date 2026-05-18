@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import date
 from typing import List, Any
 
@@ -128,7 +129,23 @@ def list_students(
     rows = paginated.items
     total = paginated.total
 
-    items = [serialize_student_nested(row) for row in rows]
+    student_ids = [row[0].id for row in rows]
+    student_groups_map = defaultdict(list)
+
+    if student_ids:
+        groups_data = (
+            db.query(models.Group_members.student, models.Groups)
+            .join(models.Groups, models.Group_members.group == models.Groups.id)
+            .filter(models.Group_members.student.in_(student_ids))
+            .all()
+        )
+        for student_id, group_obj in groups_data:
+            student_groups_map[student_id].append(group_obj)
+
+    items = [
+        serialize_student_nested(row, student_groups_map.get(row[0].id, []))
+        for row in rows
+    ]
     return PaginatedResponse(items=items, total=total, limit=limit, offset=offset)
 
 
@@ -164,7 +181,14 @@ def get_student(
             status_code=status.HTTP_404_NOT_FOUND, detail="Student not found"
         )
 
-    return serialize_student_nested(row)
+    groups_data = (
+        db.query(models.Groups)
+        .join(models.Group_members, models.Group_members.group == models.Groups.id)
+        .filter(models.Group_members.student == student_id)
+        .all()
+    )
+
+    return serialize_student_nested(row, groups_data)
 
 
 @router.patch("/students/{student_id}", response_model=schemas.StudentRead)
