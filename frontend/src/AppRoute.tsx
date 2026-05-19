@@ -20,6 +20,7 @@ import StudentsPage from "./pages/Students/StudentsPage.tsx";
 import EmployeesPage from "./pages/Employees/EmployeesPage.tsx";
 import UsersPage from "./pages/Users/UsersPage.tsx";
 import RolesPage from "./pages/Roles/RolesPage.tsx";
+import SettingsPage from "./pages/Settings/SettingsPage.tsx";
 import SchedulesFacilitiesPage from "./pages/Schedules/FacilitiesSchedulesPage.tsx";
 import RoomSchedulePage from "./pages/Schedules/RoomSchedulePage.tsx";
 import StudentSchedulePage from "./pages/Schedules/StudentSchedulePage.tsx";
@@ -68,6 +69,9 @@ function AppRoute() {
 
                         {/*==================== EDIT USERS ====================*/}
                         <Route path="/users" element={<UsersPage/>}/>
+
+                        {/*==================== SETTINGS ====================*/}
+                        <Route path="/settings" element={<SettingsPage/>}/>
 
                         {/*==================== EDIT ROLES ====================*/}
                         <Route path="/roles" element={<RolesPage view="roles"/>}/>
