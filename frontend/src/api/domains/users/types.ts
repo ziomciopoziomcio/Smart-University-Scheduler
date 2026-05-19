@@ -60,3 +60,12 @@ export interface PasswordResetPayload {
     password: string;
     password2: string;
 }
+
+export interface TwoFactorSetupResponse {
+    provisioning_uri: string;
+    secret: string;
+}
+
+export interface BackupCodesResponse {
+    backup_codes: string[];
+}

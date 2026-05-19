@@ -119,7 +119,7 @@ const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.settings',
         icon: <SettingsOutlined/>,
-        path: '/',  // TODO: change to real path and add allowedRoles
+        path: '/settings',  // TODO: change to real path and add allowedRoles
         allowedRoles: []
     },
     {
