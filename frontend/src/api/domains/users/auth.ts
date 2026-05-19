@@ -1,5 +1,5 @@
 import {USERS_URL} from '@api/core';
-import type {User, AuthResponse, UserRegistrationData, PasswordResetPayload} from './types';
+import type {User, AuthResponse, UserRegistrationData, PasswordResetPayload, TwoFactorSetupResponse, BackupCodesResponse} from './types';
 
 const extractErrorMessage = async (response: Response, fallback: string): Promise<string> => {
     const contentType = response.headers.get('content-type') ?? '';
