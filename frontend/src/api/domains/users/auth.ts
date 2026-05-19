@@ -1,5 +1,5 @@
 import {USERS_URL} from '@api/core';
-import type {User, AuthResponse, UserRegistrationData, PasswordResetPayload} from './types';
+import type {User, AuthResponse, UserRegistrationData, PasswordResetPayload, TwoFactorSetupResponse, BackupCodesResponse} from './types';
 
 const extractErrorMessage = async (response: Response, fallback: string): Promise<string> => {
     const contentType = response.headers.get('content-type') ?? '';
@@ -153,4 +153,75 @@ export const fetchUserData = async (token: string): Promise<User> => {
     }
 
     return response.json();
+};
+
+export const setup2FA = async (token: string): Promise<TwoFactorSetupResponse> => {
+    const response = await fetch(`${USERS_URL}/2fa/setup`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        const message = await extractErrorMessage(response, '2FA setup failed');
+        throw new Error(message);
+    }
+
+    return response.json();
+};
+
+export const confirm2FA = async (token: string, code: string): Promise<BackupCodesResponse> => {
+    const response = await fetch(`${USERS_URL}/2fa/confirm`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({code}),
+    });
+
+    if (!response.ok) {
+        const message = await extractErrorMessage(response, '2FA confirmation failed');
+        throw new Error(message);
+    }
+
+    return response.json();
+};
+
+export const disable2FA = async (token: string, password: string, code: string): Promise<void> => {
+    const response = await fetch(`${USERS_URL}/2fa/disable`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({password, code}),
+    });
+
+    if (!response.ok) {
+        const message = await extractErrorMessage(response, 'Disabling 2FA failed');
+        throw new Error(message);
+    }
+
+    return;
+};
+
+export const changePassword = async (token: string, oldPassword: string, password: string, password2: string): Promise<void> => {
+    const response = await fetch(`${USERS_URL}/password/change`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({old_password: oldPassword, password, password2}),
+    });
+
+    if (!response.ok) {
+        const message = await extractErrorMessage(response, 'Changing password failed');
+        throw new Error(message);
+    }
+
+    return;
 };
