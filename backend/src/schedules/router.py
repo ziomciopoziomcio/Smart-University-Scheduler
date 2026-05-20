@@ -1033,6 +1033,19 @@ async def update_schedule_session(
     - 404: Session not found.
     - 409: Schedule conflict detected.
     """
+
+    # session exists
+    result = await neo4j_session.run(
+        "MATCH (s:ClassSession {sessionId: $session_id}) RETURN s",
+        session_id=session_id,
+    )
+    record = await result.single()
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Session not found"
+        )
+
+    # timeslot exists
     timeslot_id = await get_timeslot_id(
         payload.day_of_week.value,
         payload.start_time,
@@ -1051,6 +1064,7 @@ async def update_schedule_session(
             ),
         )
 
+    # schedule conflict detection
     has_conflict = await check_schedule_conflict(
         session_id=session_id,
         new_timeslot_id=timeslot_id,
@@ -1065,6 +1079,7 @@ async def update_schedule_session(
             detail="Schedule conflict detected",
         )
 
+    # update schedule
     await update_schedule_in_neo4j(
         session_id=session_id,
         timeslot_id=timeslot_id,
