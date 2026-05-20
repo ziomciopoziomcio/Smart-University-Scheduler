@@ -406,7 +406,7 @@ class Neo4jProvider:
                 "timeslot_id": (
                     int(gene.timeslot_id) if gene.timeslot_id is not None else None
                 ),
-                "course_code": str(gene.course_code),
+                "course_code": int(gene.course_code),
                 "class_type": str(gene.class_type).upper(),
                 "weeks": gene.active_weeks,
             }
