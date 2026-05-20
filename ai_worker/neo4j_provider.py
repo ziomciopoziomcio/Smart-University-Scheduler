@@ -9,46 +9,46 @@ from optimizer import models
 
 logger = logging.getLogger(__name__)
 
+DELETE_SCHEDULE_QUERY = Query("""
+    MATCH (s:ClassSession {facultyId: $faculty_id})
+    DETACH DELETE s
+""")
+
 SAVE_SCHEDULE_QUERY = Query("""
-        MATCH (old_s:ClassSession {facultyId: $faculty_id})
-        DETACH DELETE old_s
+    UNWIND $batch AS row
+    MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
+    MATCH (g:Group) WHERE g.groupId IN row.group_ids
+    WITH row, c, collect(g) AS matched_groups, $faculty_id AS faculty_id
+    WHERE size(matched_groups) = size(row.group_ids)
 
-        WITH count(*) as _
+    CREATE (s:ClassSession {sessionId: row.session_id, weeks: row.weeks, facultyId: faculty_id, createdAt: datetime()})
+    MERGE (s)-[:OF_COURSE]->(c)
 
-        UNWIND $batch AS row
-        MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
-        MATCH (g:Group) WHERE g.groupId IN row.group_ids
-        WITH row, c, collect(g) AS matched_groups, $faculty_id AS faculty_id, $batch AS b
-        WHERE size(matched_groups) = size(row.group_ids)
+    WITH s, row, matched_groups
 
-        CREATE (s:ClassSession {sessionId: row.session_id, weeks: row.weeks, facultyId: faculty_id, createdAt: datetime()})
-        MERGE (s)-[:OF_COURSE]->(c)
+    OPTIONAL MATCH (i:Instructor {instructorId: row.instructor_id})
+    WHERE row.instructor_id IS NULL OR i IS NOT NULL
 
-        WITH s, row, matched_groups, b
+    OPTIONAL MATCH (r:Room {roomId: row.room_id})
+    WHERE row.room_id IS NULL OR r IS NOT NULL
 
-        OPTIONAL MATCH (i:Instructor {instructorId: row.instructor_id})
-        WHERE row.instructor_id IS NULL OR i IS NOT NULL
+    OPTIONAL MATCH (t:TimeSlot {timeSlotId: row.timeslot_id})
+    WHERE row.timeslot_id IS NULL OR t IS NOT NULL
 
-        OPTIONAL MATCH (r:Room {roomId: row.room_id})
-        WHERE row.room_id IS NULL OR r IS NOT NULL
+    FOREACH (_ IN CASE WHEN i IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:TAUGHT_BY]->(i))
+    FOREACH (_ IN CASE WHEN r IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:HELD_IN]->(r))
+    FOREACH (_ IN CASE WHEN t IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:AT_TIME]->(t))
 
-        OPTIONAL MATCH (t:TimeSlot {timeSlotId: row.timeslot_id})
-        WHERE row.timeslot_id IS NULL OR t IS NOT NULL
+    WITH s, matched_groups
+    UNWIND matched_groups AS mg
+    MERGE (s)-[:FOR_GROUP]->(mg)
 
-        FOREACH (_ IN CASE WHEN i IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:TAUGHT_BY]->(i))
-        FOREACH (_ IN CASE WHEN r IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:HELD_IN]->(r))
-        FOREACH (_ IN CASE WHEN t IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:AT_TIME]->(t))
-
-        WITH s, matched_groups, b
-        UNWIND matched_groups AS mg
-        MERGE (s)-[:FOR_GROUP]->(mg)
-
-        WITH count(DISTINCT s) as created_count, size(b) as total_size
-        RETURN
-            CASE
-                WHEN created_count = total_size THEN created_count
-                ELSE 1 / (created_count - created_count)
-            END as result
+    WITH count(DISTINCT s) as created_count, size($batch) as total_size
+    RETURN
+        CASE
+            WHEN created_count = total_size THEN created_count
+            ELSE 1 / (created_count - created_count)
+        END as result
 """)
 
 
@@ -417,23 +417,31 @@ class Neo4jProvider:
         self, best_chromosome: models.ScheduleChromosome, faculty_id: int
     ) -> list[dict]:
         """
-        Save the best chromosome and return incomplete genes.
+        Save the best chromosome and return incomplete genes using batched transactions.
         """
         incomplete_genes = self._get_incomplete_genes(best_chromosome)
         if incomplete_genes:
             logger.warning(
-                f"Saving schedule: {len(incomplete_genes)} class sessions have missing assignments. Details: {incomplete_genes}"
+                f"Saving schedule: {len(incomplete_genes)} class sessions have missing assignments."
             )
 
         data_to_save = self._prepare_batch(best_chromosome)
+        batch_size = 200
 
         try:
             async with self.driver.session() as session:
-                result = await session.run(
-                    SAVE_SCHEDULE_QUERY, batch=data_to_save, faculty_id=faculty_id
+                await session.run(DELETE_SCHEDULE_QUERY, faculty_id=faculty_id)
+
+                for i in range(0, len(data_to_save), batch_size):
+                    chunk = data_to_save[i : i + batch_size]
+                    result = await session.run(
+                        SAVE_SCHEDULE_QUERY, batch=chunk, faculty_id=faculty_id
+                    )
+                    await result.consume()
+
+                logger.info(
+                    f"Successfully exported schedule for faculty {faculty_id} in {len(data_to_save) // batch_size + 1} batches."
                 )
-                await result.consume()
-                logger.info(f"Successfully exported schedule for faculty {faculty_id}")
                 return incomplete_genes
         except Exception as e:
             logger.error(f"Failed to save schedule: {e}")
