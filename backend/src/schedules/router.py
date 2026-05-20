@@ -1043,7 +1043,12 @@ async def update_schedule_session(
     if timeslot_id is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid timeslot",
+            detail=(
+                "Timeslot not found for "
+                f"day_of_week={payload.day_of_week.value}, "
+                f"start_time={payload.start_time}, "
+                f"end_time={payload.end_time}"
+            ),
         )
 
     has_conflict = await check_schedule_conflict(
