@@ -34,6 +34,8 @@ services:
     environment:
       NEO4J_AUTH: "neo4j/${NEO4J_PASSWORD}"
       NEO4J_PLUGINS: '["graph-data-science"]'
+      NEO4J_server_memory_heap_initial__size: 1G
+      NEO4J_server_memory_heap_max__size: 2G
     ports:
       - "7474:7474" # HTTP
       - "7687:7687" # Bolt
