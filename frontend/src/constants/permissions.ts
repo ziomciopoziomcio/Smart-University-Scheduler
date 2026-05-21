@@ -216,7 +216,6 @@ export const SIDEBAR_PERMISSIONS = {
         STUDY_FIELDS_INNER: [
             PERMISSIONS.STUDY_PROGRAMS_VIEW,
             PERMISSIONS.STUDY_PROGRAM_VIEW,
-            //TODO: opcjonalnie w srokdu: semestry, curriculum courses () || student groups (studenci z daneej grupy)
 
             PERMISSIONS.MAJORS_VIEW,
             PERMISSIONS.MAJOR_VIEW,
@@ -230,7 +229,6 @@ export const SIDEBAR_PERMISSIONS = {
             PERMISSIONS.UNIT_VIEW,
             PERMISSIONS.COURSES_VIEW,
             PERMISSIONS.COURSE_VIEW,
-            //TODO: Courses instructors w srodku
         ],
     },
 

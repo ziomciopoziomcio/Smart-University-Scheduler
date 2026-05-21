@@ -1,4 +1,4 @@
-import {useState, useEffect} from "react";
+import {useState, useEffect} from 'react';
 import {Box, Typography, Tooltip} from '@mui/material';
 import {useIntl} from 'react-intl';
 import {useNavigate} from 'react-router-dom';
@@ -8,6 +8,7 @@ import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import ExtensionOutlinedIcon from '@mui/icons-material/ExtensionOutlined';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+
 import {ListView, ActionMenu, DeleteConfirmDialog} from '@components/Common';
 import {
     type Group,
@@ -15,9 +16,11 @@ import {
     type ElectiveBlock,
     deleteGroup,
     fetchMajors,
-    fetchElectiveBlocks
+    fetchElectiveBlocks,
 } from '@api';
 import {ProgramGroupModal} from '../Modals/ProgramGroupModal';
+import {usePermissionStore} from '@store/usePermissionStore';
+import {PERMISSIONS} from '@constants/permissions';
 
 interface ProgramGroupViewProps {
     data: Group[];
@@ -29,9 +32,23 @@ interface ProgramGroupViewProps {
     onRefresh: () => void;
 }
 
-export function ProgramGroupView({data, facultyId, programId, semesterId, fieldId, fieldName, onRefresh}: ProgramGroupViewProps) {
+export function ProgramGroupView({
+                                     data,
+                                     facultyId,
+                                     programId,
+                                     semesterId,
+                                     fieldId,
+                                     fieldName,
+                                     onRefresh,
+                                 }: ProgramGroupViewProps) {
     const intl = useIntl();
     const navigate = useNavigate();
+    const hasAnyPermission = usePermissionStore((state) => state.hasAnyPermission);
+
+    const canCreateGroup = hasAnyPermission([PERMISSIONS.GROUP_CREATE]);
+    const canUpdateGroup = hasAnyPermission([PERMISSIONS.GROUP_UPDATE]);
+    const canDeleteGroup = hasAnyPermission([PERMISSIONS.GROUP_DELETE]);
+    const canUseGroupActions = canUpdateGroup || canDeleteGroup;
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
@@ -44,28 +61,83 @@ export function ProgramGroupView({data, facultyId, programId, semesterId, fieldI
     useEffect(() => {
         if (fieldId) {
             fetchMajors(1, 100, undefined, {study_field: fieldId})
-                .then(res => {
+                .then((res) => {
                     setMajors(res.items || []);
                 })
                 .catch(console.error);
 
             fetchElectiveBlocks(1, 100, undefined, {study_field: fieldId})
-                .then(res => {
+                .then((res) => {
                     setBlocks(res.items || []);
                 })
                 .catch(console.error);
         }
     }, [fieldId]);
 
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: Group) => {
+        if (!canUseGroupActions) {
+            return;
+        }
+
+        e.stopPropagation();
+        setAnchorEl(e.currentTarget);
+        setSelectedGroup(item);
+    };
+
+    const handleAddClick = () => {
+        if (!canCreateGroup) {
+            return;
+        }
+
+        setSelectedGroup(null);
+        setIsModalOpen(true);
+    };
+
+    const handleEditClick = () => {
+        if (!canUpdateGroup) {
+            return;
+        }
+
+        setIsModalOpen(true);
+        handleMenuClose();
+    };
+
+    const handleDeleteClick = () => {
+        if (!canDeleteGroup) {
+            return;
+        }
+
+        setIsDeleteOpen(true);
+        handleMenuClose();
+    };
+
     const handleConfirmDelete = async () => {
-        if (!selectedGroup) return;
+        if (!selectedGroup || !canDeleteGroup) {
+            return;
+        }
+
         try {
             await deleteGroup(selectedGroup.id);
             setIsDeleteOpen(false);
+            setSelectedGroup(null);
             onRefresh();
         } catch (error) {
             console.error(error);
         }
+    };
+
+    const handleItemClick = (item: Group) => {
+        if (!canUpdateGroup) {
+            return;
+        }
+
+        navigate(
+            `/didactics/fields/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${semesterId}/groups/${item.id}`,
+        );
     };
 
     return (
@@ -76,33 +148,48 @@ export function ProgramGroupView({data, facultyId, programId, semesterId, fieldI
                 getTitle={(item) => item.group_name}
                 rowSx={(item) => ({
                     opacity: item.is_active ? 1 : 0.5,
-                    transition: 'opacity 0.2s ease-in-out'
+                    transition: 'opacity 0.2s ease-in-out',
                 })}
                 columns={[
                     {
                         render: (item) => {
                             if (item.major) {
-                                const majorName = majors.find(m => m.id === item.major)?.major_name || item.major.toString();
+                                const majorName =
+                                    majors.find((m) => m.id === item.major)?.major_name
+                                    || item.major.toString();
+
                                 return (
                                     <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
                                         <ClassOutlinedIcon sx={{fontSize: 18, color: 'primary.main', opacity: 0.8}}/>
                                         <Typography variant="body2">
-                                            {intl.formatMessage({id: 'didactics.programs.groups.chip.major'}, {name: majorName})}
+                                            {intl.formatMessage(
+                                                {id: 'didactics.programs.groups.chip.major'},
+                                                {name: majorName},
+                                            )}
                                         </Typography>
                                     </Box>
                                 );
                             }
+
                             if (item.elective_block) {
-                                const blockName = blocks.find(b => b.id === item.elective_block)?.elective_block_name || item.elective_block.toString();
+                                const blockName =
+                                    blocks.find((b) => b.id === item.elective_block)?.elective_block_name
+                                    || item.elective_block.toString();
+
                                 return (
                                     <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
-                                        <ExtensionOutlinedIcon sx={{fontSize: 18, color: 'secondary.main', opacity: 0.8}}/>
+                                        <ExtensionOutlinedIcon
+                                            sx={{fontSize: 18, color: 'secondary.main', opacity: 0.8}}/>
                                         <Typography variant="body2">
-                                            {intl.formatMessage({id: 'didactics.programs.groups.chip.block'}, {name: blockName})}
+                                            {intl.formatMessage(
+                                                {id: 'didactics.programs.groups.chip.block'},
+                                                {name: blockName},
+                                            )}
                                         </Typography>
                                     </Box>
                                 );
                             }
+
                             return (
                                 <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
                                     <AutoStoriesIcon sx={{fontSize: 18, color: 'text.secondary', opacity: 0.6}}/>
@@ -112,85 +199,89 @@ export function ProgramGroupView({data, facultyId, programId, semesterId, fieldI
                                 </Box>
                             );
                         },
-                        width: '300px'
+                        width: '300px',
                     },
                     {
                         render: (item) => (
-                            <Tooltip title={intl.formatMessage({id: item.is_active ? 'didactics.programs.groups.active' : 'didactics.programs.groups.inactive'})}>
+                            <Tooltip
+                                title={intl.formatMessage({
+                                    id: item.is_active
+                                        ? 'didactics.programs.groups.active'
+                                        : 'didactics.programs.groups.inactive',
+                                })}
+                            >
                                 <Box sx={{display: 'flex', alignItems: 'center'}}>
-                                    {item.is_active ?
-                                        <CheckCircleOutlineIcon sx={{color: 'success.main', fontSize: 20}}/> :
+                                    {item.is_active ? (
+                                        <CheckCircleOutlineIcon sx={{color: 'success.main', fontSize: 20}}/>
+                                    ) : (
                                         <HighlightOffIcon sx={{color: 'error.main', fontSize: 20}}/>
-                                    }
+                                    )}
                                 </Box>
                             </Tooltip>
                         ),
                         width: '80px',
-                        align: 'center'
+                        align: 'center',
                     },
                     {
-                        render: (item) => intl.formatMessage({id: 'didactics.programs.groups.studentsCount'}, {count: item.students_count ?? 0}),
+                        render: (item) =>
+                            intl.formatMessage(
+                                {id: 'didactics.programs.groups.studentsCount'},
+                                {count: item.students_count ?? 0},
+                            ),
                         variant: 'secondary',
                         width: '120px',
-                        align: 'right'
-                    }
+                        align: 'right',
+                    },
                 ]}
-                onItemClick={(item) => {
-                    navigate(`/didactics/fields/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${semesterId}/groups/${item.id}`);
-                }}
-                onMenuOpen={(e, item) => {
-                    setAnchorEl(e.currentTarget);
-                    setSelectedGroup(item);
-                }}
-                onAddClick={() => {
-                    setSelectedGroup(null);
-                    setIsModalOpen(true);
-                }}
+                onItemClick={canUpdateGroup ? handleItemClick : undefined}
+                onMenuOpen={canUseGroupActions ? handleMenuOpen : undefined}
+                onAddClick={canCreateGroup ? handleAddClick : undefined}
                 addLabel={intl.formatMessage({id: 'didactics.programs.groups.add'})}
                 emptyMessage={intl.formatMessage({id: 'didactics.programs.groups.empty'})}
                 hideDividerOnLastItem
             />
 
-            <ActionMenu
-                anchorEl={anchorEl}
-                onClose={() => {
-                    setAnchorEl(null);
-                }}
-                onEdit={() => {
-                    setIsModalOpen(true);
-                    setAnchorEl(null);
-                }}
-                onDelete={() => {
-                    setIsDeleteOpen(true);
-                    setAnchorEl(null);
-                }}
-                editLabel={intl.formatMessage({id: 'didactics.common.edit'})}
-                deleteLabel={intl.formatMessage({id: 'didactics.common.delete'})}
-            />
+            {canUseGroupActions && (
+                <ActionMenu
+                    anchorEl={anchorEl}
+                    onClose={handleMenuClose}
+                    onEdit={canUpdateGroup ? handleEditClick : undefined}
+                    onDelete={canDeleteGroup ? handleDeleteClick : undefined}
+                    editLabel={intl.formatMessage({id: 'didactics.common.edit'})}
+                    deleteLabel={intl.formatMessage({id: 'didactics.common.delete'})}
+                />
+            )}
 
-            <DeleteConfirmDialog
-                open={isDeleteOpen}
-                title={intl.formatMessage({id: 'didactics.programs.groups.deleteTitle'})}
-                description={intl.formatMessage({id: 'didactics.programs.groups.deleteDesc'}, {name: selectedGroup?.group_name})}
-                onClose={() => {
-                    setIsDeleteOpen(false);
-                }}
-                onConfirm={handleConfirmDelete}
-                cancelButtonLabel={intl.formatMessage({id: 'didactics.common.cancel'})}
-                confirmButtonLabel={intl.formatMessage({id: 'didactics.common.delete'})}
-            />
+            {canDeleteGroup && (
+                <DeleteConfirmDialog
+                    open={isDeleteOpen}
+                    title={intl.formatMessage({id: 'didactics.programs.groups.deleteTitle'})}
+                    description={intl.formatMessage(
+                        {id: 'didactics.programs.groups.deleteDesc'},
+                        {name: selectedGroup?.group_name},
+                    )}
+                    onClose={() => {
+                        setIsDeleteOpen(false);
+                    }}
+                    onConfirm={handleConfirmDelete}
+                    cancelButtonLabel={intl.formatMessage({id: 'didactics.common.cancel'})}
+                    confirmButtonLabel={intl.formatMessage({id: 'didactics.common.delete'})}
+                />
+            )}
 
-            <ProgramGroupModal
-                open={isModalOpen}
-                group={selectedGroup}
-                programId={programId}
-                semesterId={semesterId}
-                fieldId={fieldId}
-                onClose={() => {
-                    setIsModalOpen(false);
-                }}
-                onSuccess={onRefresh}
-            />
+            {(canCreateGroup || canUpdateGroup) && (
+                <ProgramGroupModal
+                    open={isModalOpen}
+                    group={selectedGroup}
+                    programId={programId}
+                    semesterId={semesterId}
+                    fieldId={fieldId}
+                    onClose={() => {
+                        setIsModalOpen(false);
+                    }}
+                    onSuccess={onRefresh}
+                />
+            )}
         </Box>
     );
 }

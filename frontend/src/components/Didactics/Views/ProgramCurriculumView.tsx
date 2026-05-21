@@ -1,13 +1,16 @@
-import {useState} from "react";
+import {useState} from 'react';
 import {Box, Typography} from '@mui/material';
 import {useIntl} from 'react-intl';
 import BookIcon from '@mui/icons-material/Book';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import ExtensionOutlinedIcon from '@mui/icons-material/ExtensionOutlined';
+
 import {ListView} from '@components/Common';
 import {type CurriculumCourse} from '@api';
 import {CurriculumModal} from '../Modals/CurriculumModal';
+import {usePermissionStore} from '@store/usePermissionStore';
+import {PERMISSIONS} from '@constants/permissions';
 
 interface ProgramCurriculumViewProps {
     data: CurriculumCourse[];
@@ -18,22 +21,49 @@ interface ProgramCurriculumViewProps {
     onRefresh: () => void;
 }
 
-export function ProgramCurriculumView({data, programId, semesterId, fieldId, fieldName, onRefresh}: ProgramCurriculumViewProps) {
+export function ProgramCurriculumView({
+                                          data,
+                                          programId,
+                                          semesterId,
+                                          fieldId,
+                                          fieldName,
+                                          onRefresh,
+                                      }: ProgramCurriculumViewProps) {
     const intl = useIntl();
+    const hasAnyPermission = usePermissionStore((state) => state.hasAnyPermission);
+
+    const canCreateCurriculum = hasAnyPermission([PERMISSIONS.CURRICULUM_CREATE]);
+    const canUpdateCurriculum = hasAnyPermission([PERMISSIONS.CURRICULUM_UPDATE]);
+    const canDeleteCurriculum = hasAnyPermission([PERMISSIONS.CURRICULUM_DELETE]);
+
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const mappedData = data.map((item, idx) => ({
         ...item,
         // Ensure unique ID even if some fields are missing
-        id: `${item.study_program || programId}-${item.course || idx}-${item.semester || semesterId}`
+        id: `${item.study_program || programId}-${item.course || idx}-${item.semester || semesterId}`,
     }));
+
+    const handleAddClick = () => {
+        if (!canCreateCurriculum) {
+            return;
+        }
+
+        setIsModalOpen(true);
+    };
 
     return (
         <Box>
             <ListView<CurriculumCourse & { id: string }>
                 items={mappedData}
                 icon={BookIcon}
-                getTitle={(item) => item.course_details?.course_name || intl.formatMessage({id: 'didactics.programs.curriculum.courseIdFallback'}, {id: item.course})}
+                getTitle={(item) =>
+                    item.course_details?.course_name
+                    || intl.formatMessage(
+                        {id: 'didactics.programs.curriculum.courseIdFallback'},
+                        {id: item.course},
+                    )
+                }
                 titleWidth="400px"
                 columns={[
                     {
@@ -42,7 +72,7 @@ export function ProgramCurriculumView({data, programId, semesterId, fieldId, fie
                                 {item.course_details?.ects_points ?? 0} ECTS
                             </Typography>
                         ),
-                        width: '100px'
+                        width: '100px',
                     },
                     {
                         render: (item) => {
@@ -51,21 +81,32 @@ export function ProgramCurriculumView({data, programId, semesterId, fieldId, fie
                                     <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
                                         <ClassOutlinedIcon sx={{fontSize: 18, color: 'primary.main', opacity: 0.8}}/>
                                         <Typography variant="body2">
-                                            {item.major_details?.major_name || intl.formatMessage({id: 'didactics.programs.curriculum.majorIdFallback'}, {id: item.major})}
+                                            {item.major_details?.major_name
+                                                || intl.formatMessage(
+                                                    {id: 'didactics.programs.curriculum.majorIdFallback'},
+                                                    {id: item.major},
+                                                )}
                                         </Typography>
                                     </Box>
                                 );
                             }
+
                             if (item.elective_block) {
                                 return (
                                     <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
-                                        <ExtensionOutlinedIcon sx={{fontSize: 18, color: 'secondary.main', opacity: 0.8}}/>
+                                        <ExtensionOutlinedIcon
+                                            sx={{fontSize: 18, color: 'secondary.main', opacity: 0.8}}/>
                                         <Typography variant="body2">
-                                            {item.elective_block_details?.elective_block_name || intl.formatMessage({id: 'didactics.programs.curriculum.blockIdFallback'}, {id: item.elective_block})}
+                                            {item.elective_block_details?.elective_block_name
+                                                || intl.formatMessage(
+                                                    {id: 'didactics.programs.curriculum.blockIdFallback'},
+                                                    {id: item.elective_block},
+                                                )}
                                         </Typography>
                                     </Box>
                                 );
                             }
+
                             return (
                                 <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
                                     <AutoStoriesIcon sx={{fontSize: 18, color: 'text.secondary', opacity: 0.6}}/>
@@ -75,26 +116,27 @@ export function ProgramCurriculumView({data, programId, semesterId, fieldId, fie
                                 </Box>
                             );
                         },
-                        width: '350px'
-                    }
+                        width: '350px',
+                    },
                 ]}
-                onAddClick={() => {
-                    setIsModalOpen(true);
-                }}
+                onAddClick={canCreateCurriculum ? handleAddClick : undefined}
                 addLabel={intl.formatMessage({id: 'didactics.programs.addCourse'})}
                 emptyMessage={intl.formatMessage({id: 'didactics.programs.noData'})}
                 hideDividerOnLastItem
             />
 
-            <CurriculumModal
-                open={isModalOpen}
-                programId={programId}
-                semesterId={semesterId}
-                fieldId={fieldId}
-                onClose={() => {
-                    setIsModalOpen(false);
-                }} onSuccess={onRefresh}
-            />
+            {(canCreateCurriculum || canUpdateCurriculum || canDeleteCurriculum) && (
+                <CurriculumModal
+                    open={isModalOpen}
+                    programId={programId}
+                    semesterId={semesterId}
+                    fieldId={fieldId}
+                    onClose={() => {
+                        setIsModalOpen(false);
+                    }}
+                    onSuccess={onRefresh}
+                />
+            )}
         </Box>
     );
 }
