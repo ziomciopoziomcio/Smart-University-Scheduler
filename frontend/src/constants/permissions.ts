@@ -94,14 +94,34 @@ export const SIDEBAR_PERMISSIONS = {
         PERMISSIONS.UNITS_VIEW,
     ],
 
-    DIDACTICS: [
-        PERMISSIONS.STUDY_FIELDS_VIEW,
-        PERMISSIONS.COURSES_VIEW,
-        PERMISSIONS.MAJORS_VIEW,
-        PERMISSIONS.ELECTIVE_BLOCKS_VIEW,
-        PERMISSIONS.STUDY_PROGRAMS_VIEW,
-        PERMISSIONS.CURRICULUMS_VIEW,
-    ],
+    DIDACTICS: {
+        STUDY_FIELDS_BASE: [
+            PERMISSIONS.STUDY_FIELDS_VIEW,
+            PERMISSIONS.STUDY_FIELD_VIEW,
+            PERMISSIONS.FACULTIES_VIEW,
+            PERMISSIONS.FACULTY_VIEW,
+        ],
+
+        STUDY_FIELDS_INNER: [
+            PERMISSIONS.STUDY_PROGRAMS_VIEW,
+            PERMISSIONS.STUDY_PROGRAM_VIEW,
+            //TODO: opcjonalnie w srokdu: semestry, curriculum courses () || student groups (studenci z daneej grupy)
+
+            PERMISSIONS.MAJORS_VIEW,
+            PERMISSIONS.MAJOR_VIEW,
+
+            PERMISSIONS.ELECTIVE_BLOCKS_VIEW,
+            PERMISSIONS.ELECTIVE_BLOCK_VIEW,
+        ],
+
+        COURSES: [
+            PERMISSIONS.UNITS_VIEW,
+            PERMISSIONS.UNIT_VIEW,
+            PERMISSIONS.COURSES_VIEW,
+            PERMISSIONS.COURSE_VIEW,
+            //TODO: Courses instructors w srodku
+        ],
+    },
 
     STUDENTS: [
         PERMISSIONS.STUDENTS_VIEW,

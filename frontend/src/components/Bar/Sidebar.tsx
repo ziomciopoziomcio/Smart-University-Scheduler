@@ -11,7 +11,6 @@ import diagram_icon from '@assets/icons/diagram.svg?react';
 import easel_icon from '@assets/icons/easel.svg?react';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import GenerateScheduleIcon from '@mui/icons-material/EditCalendarOutlined';
-import StarBorderPurple500OutlinedIcon from '@mui/icons-material/StarBorderPurple500Outlined';
 import {SIDEBAR_PERMISSIONS, type PermissionCode} from '@constants/permissions';
 import {usePermissionStore} from '@store/usePermissionStore';
 
@@ -47,7 +46,7 @@ interface SidebarMenuItem {
     id: string;
     icon: React.ReactNode;
     path: string;
-    requiredPermissions: readonly PermissionCode[];
+    requiredPermissions?: readonly PermissionCode[];
 }
 
 const menuConfig: SidebarMenuItem[] = [
@@ -79,7 +78,6 @@ const menuConfig: SidebarMenuItem[] = [
         id: 'sidebar.didactics',
         icon: <SchoolOutlinedIcon/>,
         path: '/didactics',
-        requiredPermissions: SIDEBAR_PERMISSIONS.DIDACTICS,
     },
     {
         id: 'sidebar.students',
@@ -137,12 +135,38 @@ export function Sidebar() {
     const intl = useIntl();
 
     const {user} = useAuthStore();
+    const hasAnyPermission = usePermissionStore((state) => state.hasAnyPermission);
 
-    const canView = (requiredPermissions?: string[]) => {
-        if (!requiredPermissions || requiredPermissions.length === 0) return true;
-        if (!user?.roles) return false;
-        return user.roles.some((role) => requiredPermissions.includes(role));
-    };
+const canViewDidactics = () => {
+    const {STUDY_FIELDS_BASE, STUDY_FIELDS_INNER, COURSES} =
+        SIDEBAR_PERMISSIONS.DIDACTICS;
+
+    return (
+        hasAnyPermission(COURSES)
+        ||
+        (
+            hasAnyPermission(STUDY_FIELDS_BASE)
+            &&
+            hasAnyPermission(STUDY_FIELDS_INNER)
+        )
+    );
+};
+
+const canView = (item: SidebarMenuItem) => {
+    if (!user) {
+        return false;
+    }
+
+    if (item.id === 'sidebar.didactics') {
+        return canViewDidactics();
+    }
+
+    if (!item.requiredPermissions) {
+        return false;
+    }
+
+    return hasAnyPermission(item.requiredPermissions);
+};
 
     return (
         <Drawer
@@ -187,7 +211,7 @@ export function Sidebar() {
 
             <List sx={{width: '100%', px: open ? 0 : 1}}>
                 {menuConfig
-                    .filter((item) => canView(item.requiredPermissions))
+                    .filter((item) => canView(item))
                     .map((item) => (
                         <ListItem key={item.id} disablePadding sx={{display: 'block', mb: open ? 0.5 : 1.5}}>
                             <NavLink
