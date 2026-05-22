@@ -58,7 +58,6 @@ def create_user_admin(
     )
     session.add(user_obj)
     session.flush()
-    session.commit()
 
     unit_obj = db_units["I24"]
     unit_id = unit_obj.id
