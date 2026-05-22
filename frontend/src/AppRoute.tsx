@@ -107,9 +107,46 @@ function AppRoute() {
                         {/*==================== EDIT ROLES ====================*/}
                         <Route element={<PermissionRoute section="PERMISSIONS"/>}>
                             <Route path="/roles" element={<RolesPage view="roles"/>}/>
-                            <Route path="/roles/:id" element={<RolesPage view="dashboard"/>}/>
-                            <Route path="/roles/:id/permissions" element={<RolesPage view="permissions"/>}/>
-                            <Route path="/roles/:id/users" element={<RolesPage view="users"/>}/>
+
+                            <Route
+                                element={
+                                    <PermissionAnyRoute
+                                        permissions={[
+                                            PERMISSIONS.USERS_VIEW,
+                                            PERMISSIONS.PERMISSIONS_VIEW,
+                                        ]}
+                                        fallbackPath="/roles"
+                                    />
+                                }
+                            >
+                                <Route path="/roles/:id" element={<RolesPage view="dashboard"/>}/>
+                            </Route>
+
+                            <Route
+                                element={
+                                    <PermissionAnyRoute
+                                        permissions={[
+                                            PERMISSIONS.PERMISSIONS_VIEW,
+                                        ]}
+                                        fallbackPath="/roles"
+                                    />
+                                }
+                            >
+                                <Route path="/roles/:id/permissions" element={<RolesPage view="permissions"/>}/>
+                            </Route>
+
+                            <Route
+                                element={
+                                    <PermissionAnyRoute
+                                        permissions={[
+                                            PERMISSIONS.USERS_VIEW,
+                                        ]}
+                                        fallbackPath="/roles"
+                                    />
+                                }
+                            >
+                                <Route path="/roles/:id/users" element={<RolesPage view="users"/>}/>
+                            </Route>
                         </Route>
 
                         {/*==================== EDIT STUDENTS ====================*/}
