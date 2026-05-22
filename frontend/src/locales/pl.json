@@ -1,7 +1,8 @@
 {
   "common": {
     "cancel": "Anuluj",
-    "save": "Zapisz"
+    "save": "Zapisz",
+    "saving": "Zapisywanie..."
   },
   "login": {
     "title": "Zaloguj się",
