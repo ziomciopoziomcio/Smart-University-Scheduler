@@ -280,7 +280,7 @@ if __name__ == "__main__":
     session.commit()
 
     # ADMIN
-    admin_user_obj, admin_emp_obj = create_user_admin(
+    _, _ = create_user_admin(
         session=session,
         password_hash_func=PASSWORD_HASH_FUNC,
         roles=db_roles,
