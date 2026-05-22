@@ -59,6 +59,7 @@ export function ProgramSemesterDashboardView({
                 }}
                 variant="flat"
                 iconSize={58}
+                stretch
                 hideAdd
                 hideMenu
             />

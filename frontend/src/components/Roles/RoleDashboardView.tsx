@@ -38,6 +38,7 @@ export function RoleDashboardView({role}: RoleDashboardViewProps) {
                 onItemClick={(item) => {
                     navigate(`/roles/${role.id}/${item.id}`);
                 }}
+                stretch
                 hideAdd
                 hideMenu
             />

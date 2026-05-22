@@ -22,6 +22,7 @@ export function DidacticsFacultyView({ data, basePath }: DidacticsFacultyViewPro
             getTitle={(f) => f.faculty_short || intl.formatMessage({ id: 'didactics.common.faculty' })}
             getSubtitle={(f) => f.faculty_name}
             onItemClick={(f) => navigate(`${basePath}/${f.id}`)}
+            stretch
             hideAdd
             hideMenu
         />
