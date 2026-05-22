@@ -24,10 +24,12 @@ import {
     fetchUsers,
     updateUser,
     type User,
-    type Role
+    type Role,
 } from '@api';
 import {SearchBar, ListPagination, UserAvatar} from '@components/Common';
 import {useAuthStore} from '@store/useAuthStore';
+import {usePermissionStore} from '@store/usePermissionStore';
+import {PERMISSIONS} from '@constants/permissions';
 
 interface RoleUsersViewProps {
     role: Role;
@@ -36,8 +38,16 @@ interface RoleUsersViewProps {
 export function RoleUsersView({role}: RoleUsersViewProps) {
     const intl = useIntl();
     const {user: currentUser} = useAuthStore();
+    const hasAnyPermission = usePermissionStore((state) => state.hasAnyPermission);
 
-    // Data states
+    const canAddUserToRole = hasAnyPermission([
+        PERMISSIONS.USER_UPDATE,
+    ]);
+
+    const canRemoveUserFromRole = hasAnyPermission([
+        PERMISSIONS.PERMISSION_DELETE,
+    ]);
+
     const [leftUsers, setLeftUsers] = useState<User[]>([]);
     const [rightUsers, setRightUsers] = useState<User[]>([]);
     const [leftTotal, setLeftTotal] = useState(0);
@@ -45,23 +55,19 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
     const [loadingLeft, setLoadingLeft] = useState(true);
     const [loadingRight, setLoadingRight] = useState(true);
 
-    // Search & Debounce
     const [leftSearch, setLeftSearch] = useState('');
     const [debouncedLeftSearch, setDebouncedLeftSearch] = useState('');
     const [rightSearch, setRightSearch] = useState('');
     const [debouncedRightSearch, setDebouncedRightSearch] = useState('');
 
-    // Pagination
     const [leftPage, setLeftPage] = useState(1);
     const [rightPage, setRightPage] = useState(1);
     const [leftPageSize, setLeftPageSize] = useState(10);
     const [rightPageSize, setRightPageSize] = useState(10);
 
-    // Selection
     const [selectedLeft, setSelectedLeft] = useState<Set<number>>(new Set());
     const [selectedRight, setSelectedRight] = useState<Set<number>>(new Set());
 
-    // Debouncing effects
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedLeftSearch(leftSearch), 500);
         return () => clearTimeout(timer);
@@ -72,7 +78,16 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
         return () => clearTimeout(timer);
     }, [rightSearch]);
 
-    // Data loading
+    useEffect(() => {
+        if (!canRemoveUserFromRole) {
+            setSelectedLeft(new Set());
+        }
+
+        if (!canAddUserToRole) {
+            setSelectedRight(new Set());
+        }
+    }, [canAddUserToRole, canRemoveUserFromRole]);
+
     const loadLeft = useCallback(async () => {
         setLoadingLeft(true);
         try {
@@ -80,7 +95,7 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
                 leftPageSize,
                 (leftPage - 1) * leftPageSize,
                 debouncedLeftSearch,
-                {roles: [role.role_name]}
+                {roles: [role.role_name]},
             );
             setLeftUsers(res.items || []);
             setLeftTotal(res.total || 0);
@@ -94,12 +109,11 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
     const loadRight = useCallback(async () => {
         setLoadingRight(true);
         try {
-            // Fetch users who do NOT have this specific role
             const res = await fetchUsers(
                 rightPageSize,
                 (rightPage - 1) * rightPageSize,
                 debouncedRightSearch,
-                {exclude_roles: [role.role_name]}
+                {exclude_roles: [role.role_name]},
             );
             setRightUsers(res.items || []);
             setRightTotal(res.total || 0);
@@ -119,8 +133,17 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
     }, [loadRight]);
 
     const handleToggleSelect = (id: number, side: 'left' | 'right') => {
-        // Prevent selecting self in the left list (assigned roles)
-        if (side === 'left' && id === currentUser?.id) return;
+        const isSelf = id === currentUser?.id;
+
+        if (side === 'left') {
+            if (isSelf || !canRemoveUserFromRole) {
+                return;
+            }
+        }
+
+        if (side === 'right' && !canAddUserToRole) {
+            return;
+        }
 
         const target = side === 'left' ? selectedLeft : selectedRight;
         const setter = side === 'left' ? setSelectedLeft : setSelectedRight;
@@ -132,16 +155,22 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
     };
 
     const handleMoveLeft = async () => {
-        if (selectedRight.size === 0) return;
+        if (!canAddUserToRole || selectedRight.size === 0) {
+            return;
+        }
+
         setLoadingLeft(true);
         setLoadingRight(true);
+
         try {
             const promises = Array.from(selectedRight).map(async (userId) => {
-                const user = rightUsers.find(u => u.id === userId);
+                const user = rightUsers.find((u) => u.id === userId);
                 if (!user) return;
+
                 const newRoles = [...(user.roles || []), role.role_name];
                 return updateUser(userId, {roles: newRoles});
             });
+
             await Promise.all(promises);
             setSelectedRight(new Set());
             await Promise.all([loadLeft(), loadRight()]);
@@ -154,16 +183,22 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
     };
 
     const handleMoveRight = async () => {
-        if (selectedLeft.size === 0) return;
+        if (!canRemoveUserFromRole || selectedLeft.size === 0) {
+            return;
+        }
+
         setLoadingLeft(true);
         setLoadingRight(true);
+
         try {
             const promises = Array.from(selectedLeft).map(async (userId) => {
-                const user = leftUsers.find(u => u.id === userId);
+                const user = leftUsers.find((u) => u.id === userId);
                 if (!user) return;
-                const newRoles = (user.roles || []).filter(r => r !== role.role_name);
+
+                const newRoles = (user.roles || []).filter((r) => r !== role.role_name);
                 return updateUser(userId, {roles: newRoles});
             });
+
             await Promise.all(promises);
             setSelectedLeft(new Set());
             await Promise.all([loadLeft(), loadRight()]);
@@ -177,7 +212,6 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
 
     return (
         <Box sx={{width: '100%', display: 'flex', flexDirection: 'column', gap: 2, pb: 4}}>
-            {/* TOP SEARCH BARS */}
             <Box sx={{display: 'flex', gap: 3, alignItems: 'center', justifyContent: 'center'}}>
                 <Box sx={{flex: 1}}>
                     <SearchBar
@@ -202,7 +236,6 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
                 </Box>
             </Box>
 
-            {/* TITLES & COUNTS CARDS */}
             <Box sx={{display: 'flex', gap: 3, alignItems: 'center', justifyContent: 'center'}}>
                 <Card sx={{flex: 1, borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)'}}>
                     <Box sx={{p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -220,7 +253,7 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
                         <Typography variant="subtitle1" fontWeight={700} color="primary.main">
                             {intl.formatMessage({id: 'sidebar.users'})} {intl.formatMessage({
                                 id: 'roles.usersWithoutRolesSuffix',
-                                defaultMessage: '(No roles)'
+                                defaultMessage: '(No roles)',
                             })}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" fontWeight={600}>
@@ -230,35 +263,38 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
                 </Card>
             </Box>
 
-            {/* MAIN LISTS & CONTROLS */}
             <Box sx={{display: 'flex', gap: 3, alignItems: 'stretch', justifyContent: 'center', minHeight: '550px'}}>
-                {/* LEFT LIST */}
                 <Card sx={{flex: 1, display: 'flex', flexDirection: 'column', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)'}}>
                     <CardContent sx={{flexGrow: 1, p: 0, display: 'flex', flexDirection: 'column', position: 'relative'}}>
                         {loadingLeft && (
                             <Box sx={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: 'rgba(255,255,255,0.6)', zIndex: 1}}>
-                                <CircularProgress size={32} />
+                                <CircularProgress size={32}/>
                             </Box>
                         )}
                         <List dense sx={{flexGrow: 1}}>
                             {leftUsers.map((user) => {
                                 const isSelected = selectedLeft.has(user.id);
                                 const isSelf = user.id === currentUser?.id;
+                                const isDisabled = isSelf || !canRemoveUserFromRole;
+
                                 return (
                                     <ListItem key={user.id} disablePadding sx={{borderBottom: '1px solid rgba(0,0,0,0.04)'}}>
                                         <ListItemButton
-                                            disabled={isSelf}
+                                            disabled={isDisabled}
                                             onClick={() => handleToggleSelect(user.id, 'left')}
                                             selected={isSelected}
                                             sx={{
                                                 py: 1.5,
                                                 bgcolor: isSelected ? 'action.selected' : 'transparent',
-                                                '&.Mui-selected': { bgcolor: 'action.selected', '&:hover': { bgcolor: 'action.hover' } },
-                                                opacity: isSelf ? 0.6 : 1
+                                                '&.Mui-selected': {
+                                                    bgcolor: 'action.selected',
+                                                    '&:hover': {bgcolor: 'action.hover'},
+                                                },
+                                                opacity: isDisabled ? 0.6 : 1,
                                             }}
                                         >
                                             <ListItemAvatar>
-                                                <UserAvatar name={user.name} surname={user.surname} />
+                                                <UserAvatar name={user.name} surname={user.surname}/>
                                             </ListItemAvatar>
                                             <ListItemText
                                                 primary={
@@ -300,68 +336,83 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
                     </CardContent>
                 </Card>
 
-                {/* CONTROLS */}
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, justifyContent: 'center'}}>
                     <Tooltip title={intl.formatMessage({id: 'roles.assignTooltip', defaultMessage: 'Assign selected users to role'})}>
-                        <IconButton
-                            color="primary"
-                            onClick={handleMoveLeft}
-                            aria-label={intl.formatMessage({id: 'roles.assignAction', defaultMessage: 'Assign role'})}
-                            disabled={selectedRight.size === 0 || loadingLeft || loadingRight}
-                            sx={{
-                                width: 56, height: 80, borderRadius: '12px',
-                                bgcolor: 'primary.main', color: 'white',
-                                boxShadow: '0 4px 12px rgba(43, 80, 115, 0.2)',
-                                '&:hover': {bgcolor: 'primary.dark'},
-                                '&.Mui-disabled': {bgcolor: 'action.disabledBackground'}
-                            }}
-                        >
-                            <ArrowBack/>
-                        </IconButton>
+                        <span>
+                            <IconButton
+                                color="primary"
+                                onClick={handleMoveLeft}
+                                aria-label={intl.formatMessage({id: 'roles.assignAction', defaultMessage: 'Assign role'})}
+                                disabled={!canAddUserToRole || selectedRight.size === 0 || loadingLeft || loadingRight}
+                                sx={{
+                                    width: 56,
+                                    height: 80,
+                                    borderRadius: '12px',
+                                    bgcolor: 'primary.main',
+                                    color: 'white',
+                                    boxShadow: '0 4px 12px rgba(43, 80, 115, 0.2)',
+                                    '&:hover': {bgcolor: 'primary.dark'},
+                                    '&.Mui-disabled': {bgcolor: 'action.disabledBackground'},
+                                }}
+                            >
+                                <ArrowBack/>
+                            </IconButton>
+                        </span>
                     </Tooltip>
+
                     <Tooltip title={intl.formatMessage({id: 'roles.removeTooltip', defaultMessage: 'Remove selected users from role'})}>
-                        <IconButton
-                            color="primary"
-                            onClick={handleMoveRight}
-                            aria-label={intl.formatMessage({id: 'roles.removeAction', defaultMessage: 'Remove role'})}
-                            disabled={selectedLeft.size === 0 || loadingLeft || loadingRight}
-                            sx={{
-                                width: 56, height: 80, borderRadius: '12px',
-                                bgcolor: 'primary.main', color: 'white',
-                                boxShadow: '0 4px 12px rgba(43, 80, 115, 0.2)',
-                                '&:hover': {bgcolor: 'primary.dark'},
-                                '&.Mui-disabled': {bgcolor: 'action.disabledBackground'}
-                            }}
-                        >
-                            <ArrowForward/>
-                        </IconButton>
+                        <span>
+                            <IconButton
+                                color="primary"
+                                onClick={handleMoveRight}
+                                aria-label={intl.formatMessage({id: 'roles.removeAction', defaultMessage: 'Remove role'})}
+                                disabled={!canRemoveUserFromRole || selectedLeft.size === 0 || loadingLeft || loadingRight}
+                                sx={{
+                                    width: 56,
+                                    height: 80,
+                                    borderRadius: '12px',
+                                    bgcolor: 'primary.main',
+                                    color: 'white',
+                                    boxShadow: '0 4px 12px rgba(43, 80, 115, 0.2)',
+                                    '&:hover': {bgcolor: 'primary.dark'},
+                                    '&.Mui-disabled': {bgcolor: 'action.disabledBackground'},
+                                }}
+                            >
+                                <ArrowForward/>
+                            </IconButton>
+                        </span>
                     </Tooltip>
                 </Box>
 
-                {/* RIGHT LIST */}
                 <Card sx={{flex: 1, display: 'flex', flexDirection: 'column', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)'}}>
                     <CardContent sx={{flexGrow: 1, p: 0, display: 'flex', flexDirection: 'column', position: 'relative'}}>
                         {loadingRight && (
                             <Box sx={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: 'rgba(255,255,255,0.6)', zIndex: 1}}>
-                                <CircularProgress size={32} />
+                                <CircularProgress size={32}/>
                             </Box>
                         )}
                         <List dense sx={{flexGrow: 1}}>
                             {rightUsers.map((user) => {
                                 const isSelected = selectedRight.has(user.id);
+
                                 return (
                                     <ListItem key={user.id} disablePadding sx={{borderBottom: '1px solid rgba(0,0,0,0.04)'}}>
                                         <ListItemButton
+                                            disabled={!canAddUserToRole}
                                             onClick={() => handleToggleSelect(user.id, 'right')}
                                             selected={isSelected}
                                             sx={{
                                                 py: 1.5,
                                                 bgcolor: isSelected ? 'action.selected' : 'transparent',
-                                                '&.Mui-selected': { bgcolor: 'action.selected', '&:hover': { bgcolor: 'action.hover' } }
+                                                '&.Mui-selected': {
+                                                    bgcolor: 'action.selected',
+                                                    '&:hover': {bgcolor: 'action.hover'},
+                                                },
+                                                opacity: !canAddUserToRole ? 0.6 : 1,
                                             }}
                                         >
                                             <ListItemAvatar>
-                                                <UserAvatar name={user.name} surname={user.surname} />
+                                                <UserAvatar name={user.name} surname={user.surname}/>
                                             </ListItemAvatar>
                                             <ListItemText
                                                 primary={

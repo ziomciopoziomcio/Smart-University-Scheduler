@@ -1,8 +1,23 @@
 import {useState, useEffect, useMemo} from 'react';
-import {Box, Typography, Switch, Paper, Button, Zoom, CircularProgress, Snackbar, Alert, Tooltip, Collapse, IconButton} from '@mui/material';
+import {
+    Box,
+    Typography,
+    Switch,
+    Paper,
+    Button,
+    Zoom,
+    CircularProgress,
+    Snackbar,
+    Alert,
+    Tooltip,
+    Collapse,
+    IconButton,
+} from '@mui/material';
 import {Save, HourglassEmpty, ExpandMore} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 import {type Role, type Permission, updateRolePermissions} from '@api';
+import {usePermissionStore} from '@store/usePermissionStore';
+import {PERMISSIONS} from '@constants/permissions';
 
 interface RolePermissionsViewProps {
     role: Role;
@@ -11,6 +26,11 @@ interface RolePermissionsViewProps {
 
 export function RolePermissionsView({role, allPermissions}: RolePermissionsViewProps) {
     const intl = useIntl();
+    const hasAnyPermission = usePermissionStore((state) => state.hasAnyPermission);
+
+    const canAddPermissionToRole = hasAnyPermission([
+        PERMISSIONS.PERMISSION_ADD_TO_ROLE,
+    ]);
 
     const [selectedPermIds, setSelectedPermIds] = useState<number[]>([]);
     const [initialPermIds, setInitialPermIds] = useState<number[]>([]);
@@ -20,7 +40,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
 
     useEffect(() => {
         if (role) {
-            const ids = role.permissions.map(p => p.id);
+            const ids = role.permissions.map((p) => p.id);
             setSelectedPermIds(ids);
             setInitialPermIds(ids);
         }
@@ -28,32 +48,48 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
 
     const hasChanges = useMemo(() => {
         if (selectedPermIds.length !== initialPermIds.length) return true;
+
         const sortedInitial = [...initialPermIds].sort((a, b) => a - b);
         const sortedSelected = [...selectedPermIds].sort((a, b) => a - b);
+
         return !sortedInitial.every((val, index) => val === sortedSelected[index]);
     }, [selectedPermIds, initialPermIds]);
 
     const handleToggle = (permId: number) => {
-        setSelectedPermIds(prev =>
-            prev.includes(permId) ? prev.filter(id => id !== permId) : [...prev, permId]
+        if (!canAddPermissionToRole) {
+            return;
+        }
+
+        setSelectedPermIds((prev) =>
+            prev.includes(permId)
+                ? prev.filter((id) => id !== permId)
+                : [...prev, permId],
         );
     };
 
     const toggleGroup = (groupName: string) => {
         const next = new Set(collapsedGroups);
+
         if (next.has(groupName)) next.delete(groupName);
         else next.add(groupName);
+
         setCollapsedGroups(next);
     };
 
     const isDirty = (permId: number) => {
         const currentlySelected = selectedPermIds.includes(permId);
         const initiallySelected = initialPermIds.includes(permId);
+
         return currentlySelected !== initiallySelected;
     };
 
     const handleSave = async () => {
+        if (!canAddPermissionToRole) {
+            return;
+        }
+
         setSaving(true);
+
         try {
             await updateRolePermissions(role.id, selectedPermIds);
             setInitialPermIds([...selectedPermIds]);
@@ -72,6 +108,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
         if (!acc.has(groupName)) {
             acc.set(groupName, []);
         }
+
         acc.get(groupName)!.push(perm);
 
         return acc;
@@ -81,7 +118,6 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
         <Box sx={{display: 'flex', flexDirection: 'column', gap: 4, width: '100%', pb: 10}}>
             {Array.from(groupedPermissions.entries()).map(([groupName, perms]) => (
                 <Box key={groupName} sx={{display: 'flex', flexDirection: 'column', gap: 1.5}}>
-                    {/* GROUP NAME PAPER BAR */}
                     <Paper
                         elevation={0}
                         onClick={() => toggleGroup(groupName)}
@@ -111,8 +147,8 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                             '&:focus-visible': {
                                 outline: '2px solid',
                                 outlineColor: 'primary.main',
-                                outlineOffset: '2px'
-                            }
+                                outlineOffset: '2px',
+                            },
                         }}
                     >
                         <Typography
@@ -122,24 +158,24 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                                 color: '#000000',
                                 textTransform: 'uppercase',
                                 letterSpacing: 1.2,
-                                userSelect: 'none'
+                                userSelect: 'none',
                             }}
                         >
                             {groupName}
                         </Typography>
+
                         <IconButton
                             size="small"
-                            component="div" // Prevent button inside button
+                            component="div"
                             sx={{
                                 transform: collapsedGroups.has(groupName) ? 'rotate(-90deg)' : 'rotate(0deg)',
-                                transition: 'transform 0.3s'
+                                transition: 'transform 0.3s',
                             }}
                         >
-                            <ExpandMore />
+                            <ExpandMore/>
                         </IconButton>
                     </Paper>
 
-                    {/* PERMISSIONS LIST COLLAPSE */}
                     <Collapse in={!collapsedGroups.has(groupName)} id={`permissions-group-${groupName}`}>
                         <Paper
                             elevation={0}
@@ -148,7 +184,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                                 border: '1px solid #e2e8f0',
                                 overflow: 'hidden',
                                 boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                                bgcolor: '#ffffff'
+                                bgcolor: '#ffffff',
                             }}
                         >
                             <Box sx={{display: 'flex', flexDirection: 'column'}}>
@@ -164,7 +200,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                                             px: 3,
                                             borderBottom: index !== perms.length - 1 ? '1px solid #f1f5f9' : 'none',
                                             transition: 'background-color 0.15s',
-                                            '&:hover': {bgcolor: '#f8fafc'}
+                                            '&:hover': {bgcolor: '#f8fafc'},
                                         }}
                                     >
                                         <Box sx={{display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'nowrap'}}>
@@ -184,7 +220,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                                                     fontWeight: 700,
                                                     whiteSpace: 'nowrap',
                                                     border: '1px solid #e2e8f0',
-                                                    fontSize: '0.65rem'
+                                                    fontSize: '0.65rem',
                                                 }}
                                             >
                                                 {perm.code}
@@ -195,40 +231,82 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                                             {perm.description || '—'}
                                         </Typography>
 
-                                        <Box sx={{display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2}}>
-                                            {isDirty(perm.id) && (
-                                                <Tooltip title={intl.formatMessage({id: 'roles.permissions.unsaved', defaultMessage: 'Unsaved changes'})}>
-                                                    <HourglassEmpty sx={{fontSize: 18, color: '#f59e0b', animation: 'spin 2s linear infinite'}} />
+                                        <Box sx={{
+                                            display: 'flex',
+                                            justifyContent: 'flex-end',
+                                            alignItems: 'center',
+                                            gap: 2
+                                        }}>
+                                            {isDirty(perm.id) && canAddPermissionToRole && (
+                                                <Tooltip title={intl.formatMessage({
+                                                    id: 'roles.permissions.unsaved',
+                                                    defaultMessage: 'Unsaved changes'
+                                                })}>
+                                                    <HourglassEmpty sx={{
+                                                        fontSize: 18,
+                                                        color: '#f59e0b',
+                                                        animation: 'spin 2s linear infinite'
+                                                    }}/>
                                                 </Tooltip>
                                             )}
+
                                             <Switch
                                                 checked={selectedPermIds.includes(perm.id)}
                                                 onChange={() => handleToggle(perm.id)}
+                                                disabled={!canAddPermissionToRole || saving}
                                                 sx={{
                                                     width: 50,
                                                     height: 26,
                                                     padding: 0,
+
                                                     '& .MuiSwitch-switchBase': {
                                                         padding: 0,
                                                         margin: '2px',
                                                         transitionDuration: '300ms',
+
                                                         '&.Mui-checked': {
                                                             transform: 'translateX(24px)',
                                                             color: '#fff',
+
                                                             '& + .MuiSwitch-track': {
                                                                 backgroundColor: '#2b5073',
                                                                 opacity: 1,
                                                                 border: 0,
                                                             },
                                                         },
+
+                                                        '&.Mui-disabled': {
+                                                            color: '#cbd5e1',
+
+                                                            '& + .MuiSwitch-track': {
+                                                                backgroundColor: '#e2e8f0',
+                                                                opacity: 1,
+                                                            },
+                                                        },
+
+                                                        '&.Mui-disabled.Mui-checked': {
+                                                            color: '#f8fafc',
+
+                                                            '& + .MuiSwitch-track': {
+                                                                backgroundColor: '#94a3b8',
+                                                                opacity: 0.6,
+                                                            },
+                                                        },
                                                     },
+
                                                     '& .MuiSwitch-thumb': {
                                                         boxSizing: 'border-box',
                                                         width: 22,
                                                         height: 22,
                                                         backgroundColor: '#fff',
-                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                                                     },
+
+                                                    '& .MuiSwitch-switchBase.Mui-disabled .MuiSwitch-thumb': {
+                                                        backgroundColor: '#cbd5e1',
+                                                        boxShadow: 'none',
+                                                    },
+
                                                     '& .MuiSwitch-track': {
                                                         borderRadius: 26 / 2,
                                                         backgroundColor: '#cbd5e1',
@@ -246,39 +324,42 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                 </Box>
             ))}
 
-            {/* CONDITIONAL SAVE BUTTON (FLOATING) */}
-            <Zoom in={hasChanges}>
-                <Box sx={{
-                    position: 'fixed',
-                    bottom: 32,
-                    right: 32,
-                    zIndex: 1000,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2
-                }}>
-                    <Button
-                        variant="contained"
-                        startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <Save />}
-                        onClick={handleSave}
-                        disabled={saving}
+            {canAddPermissionToRole && (
+                <Zoom in={hasChanges}>
+                    <Box
                         sx={{
-                            bgcolor: '#2b5073',
-                            px: 4,
-                            py: 1.5,
-                            borderRadius: '50px',
-                            fontWeight: 700,
-                            boxShadow: '0 10px 25px rgba(43, 80, 115, 0.3)',
-                            '&:hover': {
-                                bgcolor: '#1e3a54',
-                                boxShadow: '0 12px 30px rgba(43, 80, 115, 0.4)',
-                            }
+                            position: 'fixed',
+                            bottom: 32,
+                            right: 32,
+                            zIndex: 1000,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 2,
                         }}
                     >
-                        {saving ? intl.formatMessage({id: 'common.saving'}) : intl.formatMessage({id: 'common.save'})}
-                    </Button>
-                </Box>
-            </Zoom>
+                        <Button
+                            variant="contained"
+                            startIcon={saving ? <CircularProgress size={20} color="inherit"/> : <Save/>}
+                            onClick={handleSave}
+                            disabled={saving}
+                            sx={{
+                                bgcolor: '#2b5073',
+                                px: 4,
+                                py: 1.5,
+                                borderRadius: '50px',
+                                fontWeight: 700,
+                                boxShadow: '0 10px 25px rgba(43, 80, 115, 0.3)',
+                                '&:hover': {
+                                    bgcolor: '#1e3a54',
+                                    boxShadow: '0 12px 30px rgba(43, 80, 115, 0.4)',
+                                },
+                            }}
+                        >
+                            {saving ? intl.formatMessage({id: 'common.saving'}) : intl.formatMessage({id: 'common.save'})}
+                        </Button>
+                    </Box>
+                </Zoom>
+            )}
 
             <Snackbar
                 open={showSuccess}
@@ -290,7 +371,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                     {intl.formatMessage({id: 'roles.permissions.success'})}
                 </Alert>
             </Snackbar>
-            
+
             <style>
                 {`
                     @keyframes spin {
