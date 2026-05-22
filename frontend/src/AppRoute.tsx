@@ -33,6 +33,8 @@ import SessionExpiredDialog from '@components/Login/SessionExpiredDialog';
 import {PermissionRoute} from './routing/PermissionRoute.tsx';
 import {getFirstAccessiblePath} from './routing/access';
 import {usePermissionStore} from '@store/usePermissionStore';
+import {PermissionAnyRoute} from './routing/PermissionAnyRoute.tsx';
+import {PERMISSIONS} from '@constants/permissions';
 
 function DefaultRedirect() {
     const isAuthenticated = useAuthStore((state) => state.token !== null);
@@ -68,7 +70,7 @@ function AppRoute() {
                         </Route>
 
                         {/*==================== CHAT ====================*/}
-                        <Route element={<PermissionRoute section="MY_PLAN"/>}>
+                        <Route element={<PermissionRoute section="CHAT"/>}>
                             <Route path="/chat" element={<ChatPage/>}/>
                         </Route>
 
@@ -184,38 +186,185 @@ function AppRoute() {
                             <Route path="/didactics">
                                 <Route index element={<DidacticsPage view="dashboard"/>}/>
 
-                                <Route path="fields" element={<DidacticsPage view="faculties_for_fields"/>}/>
-                                <Route path="fields/faculty/:facultyId" element={<DidacticsPage view="fields"/>}/>
-                                <Route path="fields/faculty/:facultyId/field/:fieldId"
-                                       element={<DidacticsPage view="field_dashboard"/>}/>
-                                <Route path="fields/faculty/:facultyId/field/:fieldId/majors"
-                                       element={<DidacticsPage view="majors"/>}/>
-                                <Route path="fields/faculty/:facultyId/field/:fieldId/blocks"
-                                       element={<DidacticsPage view="blocks"/>}/>
-                                <Route path="fields/faculty/:facultyId/field/:fieldId/programs"
-                                       element={<DidacticsPage view="programs"/>}/>
-                                <Route path="fields/faculty/:facultyId/field/:fieldId/program/:programId"
-                                       element={<DidacticsPage view="semesters"/>}/>
+                                {/* STUDY FIELDS BASE */}
                                 <Route
-                                    path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId"
-                                    element={<DidacticsPage view="semester-dashboard"/>}/>
-                                <Route
-                                    path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/curriculum"
-                                    element={<DidacticsPage view="curriculum"/>}/>
-                                <Route
-                                    path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/groups"
-                                    element={<DidacticsPage view="groups"/>}/>
-                                <Route
-                                    path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/groups/:groupId"
-                                    element={<DidacticsPage view="group_members"/>}/>
+                                    element={
+                                        <PermissionAnyRoute
+                                            permissions={[
+                                                PERMISSIONS.STUDY_FIELDS_VIEW,
+                                                PERMISSIONS.STUDY_FIELD_VIEW,
+                                                PERMISSIONS.FACULTIES_VIEW,
+                                                PERMISSIONS.FACULTY_VIEW,
+                                            ]}
+                                            fallbackPath="/didactics"
+                                        />
+                                    }
+                                >
+                                    <Route path="fields" element={<DidacticsPage view="faculties_for_fields"/>}/>
+                                    <Route path="fields/faculty/:facultyId" element={<DidacticsPage view="fields"/>}/>
+                                    <Route
+                                        path="fields/faculty/:facultyId/field/:fieldId"
+                                        element={<DidacticsPage view="field_dashboard"/>}
+                                    />
+                                </Route>
 
-                                <Route path="courses" element={<DidacticsPage view="faculties_for_courses"/>}/>
-                                <Route path="courses/faculty/:facultyId"
-                                       element={<DidacticsPage view="units_for_courses"/>}/>
-                                <Route path="courses/faculty/:facultyId/unit/:unitId"
-                                       element={<DidacticsPage view="catalog"/>}/>
-                                <Route path="courses/faculty/:facultyId/unit/:unitId/course/:courseCode/instructors"
-                                       element={<DidacticsPage view="course_instructors"/>}/>
+                                {/* MAJORS */}
+                                <Route
+                                    element={
+                                        <PermissionAnyRoute
+                                            permissions={[
+                                                PERMISSIONS.MAJORS_VIEW,
+                                                PERMISSIONS.MAJOR_VIEW,
+                                            ]}
+                                            fallbackPath="/didactics"
+                                        />
+                                    }
+                                >
+                                    <Route
+                                        path="fields/faculty/:facultyId/field/:fieldId/majors"
+                                        element={<DidacticsPage view="majors"/>}
+                                    />
+                                </Route>
+
+                                {/* ELECTIVE BLOCKS */}
+                                <Route
+                                    element={
+                                        <PermissionAnyRoute
+                                            permissions={[
+                                                PERMISSIONS.ELECTIVE_BLOCKS_VIEW,
+                                                PERMISSIONS.ELECTIVE_BLOCK_VIEW,
+                                            ]}
+                                            fallbackPath="/didactics"
+                                        />
+                                    }
+                                >
+                                    <Route
+                                        path="fields/faculty/:facultyId/field/:fieldId/blocks"
+                                        element={<DidacticsPage view="blocks"/>}
+                                    />
+                                </Route>
+
+                                {/* STUDY PROGRAMS */}
+                                <Route
+                                    element={
+                                        <PermissionAnyRoute
+                                            permissions={[
+                                                PERMISSIONS.STUDY_PROGRAMS_VIEW,
+                                                PERMISSIONS.STUDY_PROGRAM_VIEW,
+                                            ]}
+                                            fallbackPath="/didactics"
+                                        />
+                                    }
+                                >
+                                    <Route
+                                        path="fields/faculty/:facultyId/field/:fieldId/programs"
+                                        element={<DidacticsPage view="programs"/>}
+                                    />
+                                    <Route
+                                        path="fields/faculty/:facultyId/field/:fieldId/program/:programId"
+                                        element={<DidacticsPage view="semesters"/>}
+                                    />
+                                    <Route
+                                        path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId"
+                                        element={<DidacticsPage view="semester-dashboard"/>}
+                                    />
+                                </Route>
+
+                                {/* CURRICULUM */}
+                                <Route
+                                    element={
+                                        <PermissionAnyRoute
+                                            permissions={[
+                                                PERMISSIONS.CURRICULUMS_VIEW,
+                                                PERMISSIONS.CURRICULUM_VIEW,
+                                            ]}
+                                            fallbackPath="/didactics"
+                                        />
+                                    }
+                                >
+                                    <Route
+                                        path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/curriculum"
+                                        element={<DidacticsPage view="curriculum"/>}
+                                    />
+                                </Route>
+
+                                {/* GROUPS */}
+                                <Route
+                                    element={
+                                        <PermissionAnyRoute
+                                            permissions={[
+                                                PERMISSIONS.GROUPS_VIEW,
+                                                PERMISSIONS.GROUP_VIEW,
+                                            ]}
+                                            fallbackPath="/didactics"
+                                        />
+                                    }
+                                >
+                                    <Route
+                                        path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/groups"
+                                        element={<DidacticsPage view="groups"/>}
+                                    />
+                                </Route>
+
+                                {/* GROUP MEMBERS */}
+                                <Route
+                                    element={
+                                        <PermissionAnyRoute
+                                            permissions={[
+                                                PERMISSIONS.GROUP_MEMBERS_VIEW,
+                                                PERMISSIONS.GROUP_MEMBER_VIEW,
+                                            ]}
+                                            fallbackPath="/didactics"
+                                        />
+                                    }
+                                >
+                                    <Route
+                                        path="fields/faculty/:facultyId/field/:fieldId/program/:programId/semester/:semesterId/groups/:groupId"
+                                        element={<DidacticsPage view="group_members"/>}
+                                    />
+                                </Route>
+
+                                {/* COURSES BASE */}
+                                <Route
+                                    element={
+                                        <PermissionAnyRoute
+                                            permissions={[
+                                                PERMISSIONS.UNITS_VIEW,
+                                                PERMISSIONS.UNIT_VIEW,
+                                                PERMISSIONS.COURSES_VIEW,
+                                                PERMISSIONS.COURSE_VIEW,
+                                            ]}
+                                            fallbackPath="/didactics"
+                                        />
+                                    }
+                                >
+                                    <Route path="courses" element={<DidacticsPage view="faculties_for_courses"/>}/>
+                                    <Route
+                                        path="courses/faculty/:facultyId"
+                                        element={<DidacticsPage view="units_for_courses"/>}
+                                    />
+                                    <Route
+                                        path="courses/faculty/:facultyId/unit/:unitId"
+                                        element={<DidacticsPage view="catalog"/>}
+                                    />
+                                </Route>
+
+                                {/* COURSE INSTRUCTORS */}
+                                <Route
+                                    element={
+                                        <PermissionAnyRoute
+                                            permissions={[
+                                                PERMISSIONS.COURSE_INSTRUCTOR_VIEW,
+                                            ]}
+                                            fallbackPath="/didactics"
+                                        />
+                                    }
+                                >
+                                    <Route
+                                        path="courses/faculty/:facultyId/unit/:unitId/course/:courseCode/instructors"
+                                        element={<DidacticsPage view="course_instructors"/>}
+                                    />
+                                </Route>
                             </Route>
                         </Route>
                     </Route>
