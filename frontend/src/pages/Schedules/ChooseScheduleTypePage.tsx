@@ -71,6 +71,7 @@ export default function ChooseScheduleTypePage() {
                     }}
                     variant="flat"
                     iconSize={58}
+                    stretch
                     hideAdd
                     hideMenu
                 />

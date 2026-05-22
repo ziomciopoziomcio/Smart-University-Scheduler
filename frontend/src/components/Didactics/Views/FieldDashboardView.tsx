@@ -43,6 +43,7 @@ export function FieldDashboardView() {
                 onItemClick={(item) => navigate(item.path)}
                 variant="flat"
                 iconSize={58}
+                stretch
                 hideAdd
                 hideMenu
             />

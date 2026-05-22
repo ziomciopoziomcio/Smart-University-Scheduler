@@ -16,6 +16,7 @@ export function ScheduleStudentFacultyView({data}: ScheduleStudentFacultyViewPro
             icon={SchoolOutlinedIcon}
             variant="flat"
             iconSize={52}
+            stretch
             hideAdd
             hideMenu
             getTitle={(item) => item.faculty_short}
