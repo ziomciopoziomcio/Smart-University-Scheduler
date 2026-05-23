@@ -14,7 +14,8 @@
       "@api/*": ["src/api/*"],
       "@api": ["src/api/index.ts"],
       "@store/*": ["src/store/*"],
-      "@constants/*": ["src/constants/*"]
+      "@constants/*": ["src/constants/*"],
+      "@routing/*": ["src/routing/*"]
     },
 
     /* Bundler mode */

@@ -45,7 +45,7 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
     ]);
 
     const canRemoveUserFromRole = hasAnyPermission([
-        PERMISSIONS.PERMISSION_DELETE,
+        PERMISSIONS.USER_UPDATE,
     ]);
 
     const [leftUsers, setLeftUsers] = useState<User[]>([]);

@@ -29,7 +29,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
     const hasAnyPermission = usePermissionStore((state) => state.hasAnyPermission);
 
     const canAddPermissionToRole = hasAnyPermission([
-        PERMISSIONS.PERMISSION_ADD_TO_ROLE,
+        PERMISSIONS.ROLE_UPDATE,
     ]);
 
     const [selectedPermIds, setSelectedPermIds] = useState<number[]>([]);

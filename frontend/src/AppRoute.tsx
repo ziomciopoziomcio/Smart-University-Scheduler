@@ -114,12 +114,25 @@ function AppRoute() {
                                         permissions={[
                                             PERMISSIONS.USERS_VIEW,
                                             PERMISSIONS.PERMISSIONS_VIEW,
+                                            PERMISSIONS.ROLE_VIEW
                                         ]}
                                         fallbackPath="/roles"
                                     />
                                 }
                             >
-                                <Route path="/roles/:id" element={<RolesPage view="dashboard"/>}/>
+                                <Route
+                                    element={
+                                        <PermissionAnyRoute
+                                            permissions={[
+                                                PERMISSIONS.USERS_VIEW,
+                                                PERMISSIONS.PERMISSIONS_VIEW,
+                                            ]}
+                                            fallbackPath="/roles"
+                                        />
+                                    }
+                                >
+                                    <Route path="/roles/:id" element={<RolesPage view="dashboard"/>}/>
+                                </Route>
                             </Route>
 
                             <Route
