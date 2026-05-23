@@ -208,7 +208,10 @@ if __name__ == "__main__":
 
     # GROUPS
     db_common_groups = generate_common_groups(
-        session=session, db_study_programs=db_study_programs, sourcefile=GROUPS_PATH
+        session=session,
+        db_study_programs=db_study_programs,
+        sourcefile=GROUPS_PATH,
+        db_study_fields=db_study_fields,
     )
     session.commit()
 
@@ -218,6 +221,7 @@ if __name__ == "__main__":
         db_study_programs=db_study_programs,
         db_majors=db_majors,
         db_curr_courses=db_curr_courses,
+        db_study_fields=db_study_fields,
     )
     session.commit()
 
@@ -227,6 +231,7 @@ if __name__ == "__main__":
         db_study_programs=db_study_programs,
         db_elective_blocks=db_elective_blocks,
         db_curr_courses=db_elective_curr_courses,
+        db_study_fields=db_study_fields,
     )
     session.commit()
 

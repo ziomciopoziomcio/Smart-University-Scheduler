@@ -8,6 +8,7 @@ from backend.src.courses.models import (
     Major,
     Curriculum_course,
     Elective_block,
+    Study_fields,
 )
 
 
@@ -37,8 +38,29 @@ def _get_study_program_name_by_id(
     return "error"
 
 
-def _generate_common_group_name(study_program_name: str | None, num: int) -> str:
-    return f"{study_program_name} #{num}"
+def _get_study_field_by_id(
+    db_study_fields: dict[tuple[str, int], Study_fields], study_field_id: int
+):
+    for sf_obj in db_study_fields.values():
+        if sf_obj.id == study_field_id:
+            return sf_obj
+    return None
+
+
+def _generate_common_group_name(
+    db_study_fields: dict[tuple[str, int], Study_fields],
+    study_field_id: int,
+    semester: int,
+    num: int,
+) -> str:
+    sf_obj = _get_study_field_by_id(db_study_fields, study_field_id)
+    if sf_obj is None:
+        return "-"
+    sf_name = sf_obj.field_name
+
+    initials = "".join(word[0].upper() for word in sf_name.split() if word)
+
+    return f"{semester}-{initials}-{num}"
 
 
 def _get_specified_study_program(
@@ -85,6 +107,7 @@ def generate_common_groups(
     session: Session,
     sourcefile: str,
     db_study_programs: dict[tuple[str, str, int], Study_program],
+    db_study_fields: dict[tuple[str, int], Study_fields],
 ) -> dict[str, Groups]:
     """
     Generates common groups
@@ -113,6 +136,7 @@ def generate_common_groups(
 
         sp_id = sp_obj.id
         sp_name = sp_obj.program_name
+        sf_id = sp_obj.study_field
 
         if "2025/26" in sp_name and "1. stopień" in sp_name:
             semester = 2
@@ -130,7 +154,9 @@ def generate_common_groups(
         is_active = _get_active(deg, semester)
 
         for group_id in range(1, common + 1):
-            group_name = _generate_common_group_name(sp_name, group_id)
+            group_name = _generate_common_group_name(
+                db_study_fields, sf_id, semester, group_id
+            )
 
             group_obj = Groups(
                 group_name=group_name,
@@ -246,9 +272,20 @@ def _get_major_object_by_id(
 
 
 def _generate_major_group_name(
-    study_program_name: str | None, num: int, major_name: str
+    db_study_fields: dict[tuple[str, int], Study_fields],
+    study_field_id: int,
+    semester: int,
+    num: int,
+    major_name: str,
 ) -> str:
-    return f"{study_program_name} ({major_name}) #{num}"
+    sf_obj = _get_study_field_by_id(db_study_fields, study_field_id)
+    if sf_obj is None:
+        return "-"
+    sf_name = sf_obj.field_name
+
+    sf_initials = "".join(word[0].upper() for word in sf_name.split() if word)
+    m_initials = "".join(word[0].upper() for word in major_name.split() if word)
+    return f"{semester}-{sf_initials}-{m_initials}-{num}"
 
 
 def generate_major_groups(
@@ -259,6 +296,7 @@ def generate_major_groups(
     db_curr_courses: dict[
         tuple[str | None, int, int, str | None, str | None], Curriculum_course
     ],
+    db_study_fields: dict[tuple[str, int], Study_fields],
 ) -> dict[str, Groups]:
     """
     Generates major groups
@@ -290,6 +328,7 @@ def generate_major_groups(
 
         sp_id = sp_obj.id
         sp_name = sp_obj.program_name
+        sf_id = sp_obj.study_field
 
         if "2025/26" in sp_name and "1. stopień" in sp_name:
             semester = 2
@@ -312,7 +351,9 @@ def generate_major_groups(
                 major_obj = _get_major_object_by_id(db_majors, major_id)
                 major_name = major_obj.major_name
 
-                group_name = _generate_major_group_name(sp_name, group_id, major_name)
+                group_name = _generate_major_group_name(
+                    db_study_fields, sf_id, semester, group_id, major_name
+                )
 
                 group_obj = Groups(
                     group_name=group_name,
@@ -444,9 +485,20 @@ def _get_elective_block_object_by_id(
 
 
 def _generate_elective_group_name(
-    study_program_name: str | None, num: int, eb_name: str
+    db_study_fields: dict[tuple[str, int], Study_fields],
+    study_field_id: int,
+    semester: int,
+    num: int,
+    eb_name: str,
 ) -> str:
-    return f"{study_program_name} (blok: {eb_name}) #{num}"
+    sf_obj = _get_study_field_by_id(db_study_fields, study_field_id)
+    if sf_obj is None:
+        return "-"
+    sf_name = sf_obj.field_name
+
+    sf_initials = "".join(word[0].upper() for word in sf_name.split() if word)
+    eb_initials = "".join(word[0].upper() for word in eb_name.split() if word)
+    return f"{semester}-{sf_initials}-{eb_initials}-{num}"
 
 
 def generate_elective_groups(
@@ -457,6 +509,7 @@ def generate_elective_groups(
     db_curr_courses: dict[
         tuple[str | None, int, int, str | None, str | None], Curriculum_course
     ],
+    db_study_fields: dict[tuple[str, int], Study_fields],
 ) -> dict[str, Groups]:
     """
     Generates major groups
@@ -490,6 +543,7 @@ def generate_elective_groups(
 
         sp_id = sp_obj.id
         sp_name = sp_obj.program_name
+        sf_id = sp_obj.study_field
 
         if "2025/26" in sp_name and "1. stopień" in sp_name:
             semester = 2
@@ -512,7 +566,9 @@ def generate_elective_groups(
                 eb_obj = _get_elective_block_object_by_id(db_elective_blocks, eb_id)
                 eb_name = eb_obj.elective_block_name
 
-                group_name = _generate_elective_group_name(sp_name, group_id, eb_name)
+                group_name = _generate_elective_group_name(
+                    db_study_fields, sf_id, semester, group_id, eb_name
+                )
 
                 group_obj = Groups(
                     group_name=group_name,
