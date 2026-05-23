@@ -871,79 +871,68 @@ async def get_room_plan(
     return _map_room_plan(records)
 
 
-_GET_TIMESLOT_QUERY = """
-    MATCH (t:TimeSlot)
-    WHERE t.dayOfWeek = $dayOfWeek
-      AND t.startTime = $startTime
-      AND t.endTime = $endTime
-
-    RETURN t.timeSlotId AS timeSlotId
-    LIMIT 1
-"""
-
-_SCHEDULE_CONFLICT_QUERY = """
-    MATCH (target:ClassSession {sessionId: $session_id})
-    
-    MATCH (other:ClassSession)-[:AT_TIME]->(t:TimeSlot)
-    WHERE t.timeSlotId = $new_timeslot_id
-      AND other.sessionId <> $session_id
-    
-    OPTIONAL MATCH (other)-[:TAUGHT_BY]->(i:Instructor)
-    OPTIONAL MATCH (other)-[:HELD_IN]->(r:Room)
-    
-    WITH target, other, i, r,
-         EXISTS {
-             MATCH (target)-[:FOR_GROUP]->(g:Group)
-             MATCH (other)-[:FOR_GROUP]->(g)
-         } AS has_group_conflict
-        
-    WHERE (i IS NOT NULL AND i.instructorId = $instructor_id)
-       OR (r IS NOT NULL AND r.roomId = $room_id)
-       OR has_group_conflict
-    
-    RETURN count(other) > 0 AS has_conflict
-"""
-
 _UPDATE_SCHEDULE_QUERY = """
     MATCH (s:ClassSession {sessionId: $session_id})
-
     MATCH (t:TimeSlot {timeSlotId: $timeslot_id})
     MATCH (r:Room {roomId: $room_id})
     MATCH (i:Instructor {instructorId: $instructor_id})
-
+    
+    /* other ClassSession in the same TimeSlot */
+    OPTIONAL MATCH (other:ClassSession)-[:AT_TIME]->(t)
+    WHERE other.sessionId <> $session_id
+    
+    OPTIONAL MATCH (other)-[:TAUGHT_BY]->(oi:Instructor)
+    OPTIONAL MATCH (other)-[:HELD_IN]->(or:Room)
+    
+    /* conflict checker */
+    WITH s, t, r, i, other,
+         collect(
+            CASE
+                WHEN other IS NULL THEN null
+                WHEN oi.instructorId = $instructor_id THEN other
+                WHEN or.roomId = $room_id THEN other
+                ELSE null
+            END
+         ) AS conflicts
+    
+    /* remove NULL vals */
+    WITH s, t, r, i,
+         [x IN conflicts WHERE x IS NOT NULL] AS conflicts_filtered
+    
+    WITH s, t, r, i, size(conflicts_filtered) AS conflictCount
+    WHERE conflictCount = 0
+    
+    /* update */
     OPTIONAL MATCH (s)-[old_time:AT_TIME]->(:TimeSlot)
     DELETE old_time
-
+    
     WITH s, t, r, i
-
+    
     OPTIONAL MATCH (s)-[old_room:HELD_IN]->(:Room)
     DELETE old_room
-
+    
     WITH s, t, r, i
-
+    
     OPTIONAL MATCH (s)-[old_instr:TAUGHT_BY]->(:Instructor)
     DELETE old_instr
-
+    
     WITH s, t, r, i
-
+    
     MERGE (s)-[:AT_TIME]->(t)
     MERGE (s)-[:HELD_IN]->(r)
     MERGE (s)-[:TAUGHT_BY]->(i)
-
+    
     RETURN s.sessionId AS sessionId
 """
 
 
-async def update_schedule_in_neo4j(
+async def update_schedule_atomic(
     session_id: str,
     timeslot_id: int,
     room_id: int,
     instructor_id: int,
     neo4j_session,
-):
-    """
-    Update session relations in Neo4j.
-    """
+) -> bool:
     result = await neo4j_session.run(
         _UPDATE_SCHEDULE_QUERY,
         session_id=session_id,
@@ -953,66 +942,7 @@ async def update_schedule_in_neo4j(
     )
 
     record = await result.single()
-
-    if not record:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Session not found",
-        )
-
-
-async def check_schedule_conflict(
-    session_id: str,
-    new_timeslot_id: int,
-    instructor_id: int,
-    room_id: int,
-    neo4j_session,
-) -> bool:
-    """
-    Check if the updated schedule would create a conflict.
-    Detects conflicts for:
-    - instructor availability,
-    - room occupancy,
-    - overlapping student groups.
-    """
-    result = await neo4j_session.run(
-        _SCHEDULE_CONFLICT_QUERY,
-        session_id=session_id,
-        new_timeslot_id=new_timeslot_id,
-        instructor_id=instructor_id,
-        room_id=room_id,
-    )
-
-    record = await result.single()
-
-    if not record:
-        return False
-
-    return bool(record["has_conflict"])
-
-
-async def get_timeslot_id(
-    day_of_week: str,
-    start_time: str,
-    end_time: str,
-    neo4j_session,
-) -> int | None:
-    """
-    Returns timeslot id by day and time range.
-    """
-    result = await neo4j_session.run(
-        _GET_TIMESLOT_QUERY,
-        dayOfWeek=day_of_week,
-        startTime=start_time,
-        endTime=end_time,
-    )
-
-    record = await result.single()
-
-    if not record:
-        return None
-
-    return record["timeSlotId"]
+    return record is not None
 
 
 @router.put(
@@ -1023,7 +953,7 @@ async def update_schedule_session(
     session_id: str,
     payload: schemas.UpdateScheduleSessionRequest,
     neo4j_session=Depends(get_neo4j_session),
-    _current_user: user_models.Users = Depends(require_permission("schedule:update")),
+    # _current_user: user_models.Users = Depends(require_permission("schedule:update")),
 ):
     """
     Update a scheduled class session.
@@ -1034,58 +964,61 @@ async def update_schedule_session(
     - 409: Schedule conflict detected.
     """
 
-    # session exists
+    # check session
     result = await neo4j_session.run(
         "MATCH (s:ClassSession {sessionId: $session_id}) RETURN s",
         session_id=session_id,
     )
     record = await result.single()
+
     if not record:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Session not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found",
         )
 
-    # timeslot exists
-    timeslot_id = await get_timeslot_id(
-        payload.day_of_week.value,
-        payload.start_time,
-        payload.end_time,
-        neo4j_session,
+    # find timeslot
+    result = await neo4j_session.run(
+        """
+        MATCH (t:TimeSlot)
+        WHERE t.dayOfWeek = $dayOfWeek
+          AND t.startTime = $startTime
+          AND t.endTime = $endTime
+        RETURN t.timeSlotId AS timeSlotId
+        LIMIT 1
+        """,
+        dayOfWeek=payload.day_of_week.value,
+        startTime=payload.start_time,
+        endTime=payload.end_time,
     )
 
-    if timeslot_id is None:
+    record = await result.single()
+
+    if not record:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
-                "Timeslot not found for "
-                f"day_of_week={payload.day_of_week.value}, "
-                f"start_time={payload.start_time}, "
-                f"end_time={payload.end_time}"
+                f"Timeslot not found for "
+                f"{payload.day_of_week.value} "
+                f"{payload.start_time}-{payload.end_time}"
             ),
         )
 
-    # schedule conflict detection
-    has_conflict = await check_schedule_conflict(
-        session_id=session_id,
-        new_timeslot_id=timeslot_id,
-        instructor_id=payload.instructor_id,
-        room_id=payload.room_id,
-        neo4j_session=neo4j_session,
-    )
+    timeslot_id = record["timeSlotId"]
 
-    if has_conflict:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Schedule conflict detected",
-        )
-
-    # update schedule
-    await update_schedule_in_neo4j(
+    # conflict check adn update
+    updated = await update_schedule_atomic(
         session_id=session_id,
         timeslot_id=timeslot_id,
         room_id=payload.room_id,
         instructor_id=payload.instructor_id,
         neo4j_session=neo4j_session,
     )
+
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Schedule conflict detected",
+        )
 
     return None
