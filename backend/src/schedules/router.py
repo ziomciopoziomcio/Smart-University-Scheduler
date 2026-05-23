@@ -925,6 +925,15 @@ _UPDATE_SCHEDULE_QUERY = """
     RETURN s.sessionId AS sessionId
 """
 
+_FIND_TIMESLOT_QUERY = """
+    MATCH (t:TimeSlot)
+    WHERE t.dayOfWeek = $dayOfWeek
+      AND t.startTime = $startTime
+      AND t.endTime = $endTime
+    RETURN t.timeSlotId AS timeSlotId
+    LIMIT 1
+"""
+
 
 async def update_schedule_atomic(
     session_id: str,
@@ -979,14 +988,7 @@ async def update_schedule_session(
 
     # find timeslot
     result = await neo4j_session.run(
-        """
-        MATCH (t:TimeSlot)
-        WHERE t.dayOfWeek = $dayOfWeek
-          AND t.startTime = $startTime
-          AND t.endTime = $endTime
-        RETURN t.timeSlotId AS timeSlotId
-        LIMIT 1
-        """,
+        _FIND_TIMESLOT_QUERY,
         dayOfWeek=payload.day_of_week.value,
         startTime=payload.start_time,
         endTime=payload.end_time,
