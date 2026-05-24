@@ -139,3 +139,6 @@ class UpdateScheduleSessionRequest(BaseModel):
     end_time: str = Field(alias="endTime")
     instructor_id: int = Field(alias="instructorId")
     room_id: int = Field(alias="roomId")
+    apply_once: bool = Field(
+        default=False, alias="applyOnce"
+    )  # todo develop in next release
