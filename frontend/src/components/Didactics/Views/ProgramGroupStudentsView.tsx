@@ -32,9 +32,11 @@ import {
     type Student,
     type Group,
     type StudyProgram,
-    type StudyField
+    type StudyField,
 } from '@api';
 import {SearchBar, ListPagination, UserAvatar} from '@components/Common';
+import {usePermissionStore} from '@store/usePermissionStore';
+import {PERMISSIONS} from '@constants/permissions';
 
 interface ProgramGroupStudentsViewProps {
     groupId: number;
@@ -43,6 +45,10 @@ interface ProgramGroupStudentsViewProps {
 
 export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStudentsViewProps) {
     const intl = useIntl();
+    const hasAnyPermission = usePermissionStore((state) => state.hasAnyPermission);
+
+    const canAddGroupMember = hasAnyPermission([PERMISSIONS.GROUP_MEMBER_CREATE]);
+    const canRemoveGroupMember = hasAnyPermission([PERMISSIONS.GROUP_MEMBER_DELETE]);
 
     // Metadata
     const [group, setGroup] = useState<Group | null>(null);
@@ -85,12 +91,22 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
         return () => clearTimeout(timer);
     }, [rightSearch]);
 
+    useEffect(() => {
+        if (!canRemoveGroupMember) {
+            setSelectedLeft(new Set());
+        }
+
+        if (!canAddGroupMember) {
+            setSelectedRight(new Set());
+        }
+    }, [canAddGroupMember, canRemoveGroupMember]);
+
     const loadMetadata = useCallback(async () => {
         setLoadingMetadata(true);
         try {
             const [groupRes, programRes] = await Promise.all([
                 getGroup(groupId),
-                getStudyProgram(programId)
+                getStudyProgram(programId),
             ]);
             setGroup(groupRes);
             setProgram(programRes);
@@ -113,7 +129,7 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                 leftPage,
                 leftPageSize,
                 debouncedLeftSearch,
-                {study_program: programId, group_id: groupId}
+                {study_program: programId, group_id: groupId},
             );
             setLeftStudents(res.items || []);
             setLeftTotal(res.total || 0);
@@ -131,7 +147,7 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                 rightPage,
                 rightPageSize,
                 debouncedRightSearch,
-                {study_program: programId, exclude_group_id: groupId}
+                {study_program: programId, exclude_group_id: groupId},
             );
             setRightStudents(res.items || []);
             setRightTotal(res.total || 0);
@@ -155,6 +171,14 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
     }, [loadRight]);
 
     const handleToggleSelect = (id: number, side: 'left' | 'right') => {
+        if (side === 'left' && !canRemoveGroupMember) {
+            return;
+        }
+
+        if (side === 'right' && !canAddGroupMember) {
+            return;
+        }
+
         const target = side === 'left' ? selectedLeft : selectedRight;
         const setter = side === 'left' ? setSelectedLeft : setSelectedRight;
 
@@ -165,11 +189,17 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
     };
 
     const handleMoveLeft = async () => {
-        if (selectedRight.size === 0) return;
+        if (!canAddGroupMember || selectedRight.size === 0) {
+            return;
+        }
+
         setLoadingLeft(true);
         setLoadingRight(true);
+
         try {
-            const promises = Array.from(selectedRight).map(studentId => addGroupMember(groupId, studentId));
+            const promises = Array.from(selectedRight).map((studentId) =>
+                addGroupMember(groupId, studentId),
+            );
             await Promise.all(promises);
             setSelectedRight(new Set());
             await Promise.all([loadLeft(), loadRight()]);
@@ -182,11 +212,17 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
     };
 
     const handleMoveRight = async () => {
-        if (selectedLeft.size === 0) return;
+        if (!canRemoveGroupMember || selectedLeft.size === 0) {
+            return;
+        }
+
         setLoadingLeft(true);
         setLoadingRight(true);
+
         try {
-            const promises = Array.from(selectedLeft).map(studentId => removeGroupMember(groupId, studentId));
+            const promises = Array.from(selectedLeft).map((studentId) =>
+                removeGroupMember(groupId, studentId),
+            );
             await Promise.all(promises);
             setSelectedLeft(new Set());
             await Promise.all([loadLeft(), loadRight()]);
@@ -261,16 +297,36 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
             {/* MAIN LISTS & CONTROLS */}
             <Box sx={{display: 'flex', gap: 3, alignItems: 'stretch', justifyContent: 'center', minHeight: '550px'}}>
                 {/* LEFT LIST */}
-                <Card sx={{flex: 1, display: 'flex', flexDirection: 'column', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)'}}>
-                    <CardContent sx={{flexGrow: 1, p: 0, display: 'flex', flexDirection: 'column', position: 'relative'}}>
+                <Card sx={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    borderRadius: '16px',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+                }}>
+                    <CardContent
+                        sx={{flexGrow: 1, p: 0, display: 'flex', flexDirection: 'column', position: 'relative'}}>
                         {loadingLeft && (
-                            <Box sx={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: 'rgba(255,255,255,0.6)', zIndex: 1}}>
-                                <CircularProgress size={32} />
+                            <Box sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                bgcolor: 'rgba(255,255,255,0.6)',
+                                zIndex: 1
+                            }}>
+                                <CircularProgress size={32}/>
                             </Box>
                         )}
+
                         <List dense sx={{flexGrow: 1}}>
                             {leftStudents.map((student) => {
                                 const isSelected = selectedLeft.has(student.id);
+
                                 return (
                                     <ListItem
                                         key={student.id}
@@ -282,6 +338,7 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                                         <ListItemButton
                                             onClick={() => handleToggleSelect(student.id, 'left')}
                                             selected={isSelected}
+                                            disabled={!canRemoveGroupMember}
                                             sx={{
                                                 py: 1.5,
                                                 bgcolor: isSelected ? 'action.selected' : 'transparent',
@@ -289,12 +346,12 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                                                     bgcolor: 'action.selected',
                                                     '&:hover': {
                                                         bgcolor: 'action.hover',
-                                                    }
-                                                }
+                                                    },
+                                                },
                                             }}
                                         >
                                             <ListItemAvatar>
-                                                <UserAvatar name={student.user.name} surname={student.user.surname} />
+                                                <UserAvatar name={student.user.name} surname={student.user.surname}/>
                                             </ListItemAvatar>
                                             <ListItemText
                                                 primary={
@@ -302,7 +359,12 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                                                         <Typography variant="body2" color="text.primary">
                                                             {student.user.name} {student.user.surname}
                                                         </Typography>
-                                                        <Box component="span" sx={{display: 'flex', alignItems: 'center', gap: 0.3, color: 'text.secondary'}}>
+                                                        <Box component="span" sx={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 0.3,
+                                                            color: 'text.secondary'
+                                                        }}>
                                                             <Tag sx={{fontSize: 14}}/>
                                                             <Typography variant="caption">{student.user_id}</Typography>
                                                         </Box>
@@ -313,13 +375,16 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                                     </ListItem>
                                 );
                             })}
+
                             {leftStudents.length === 0 && !loadingLeft && (
                                 <Typography variant="body2" color="text.secondary" sx={{p: 4, textAlign: 'center'}}>
                                     {intl.formatMessage({id: 'didactics.programs.groupStudents.empty'})}
                                 </Typography>
                             )}
                         </List>
+
                         <Divider/>
+
                         <Box sx={{p: 1}}>
                             <ListPagination
                                 page={leftPage}
@@ -340,7 +405,7 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                     <IconButton
                         color="primary"
                         onClick={handleMoveLeft}
-                        disabled={selectedRight.size === 0 || loadingLeft || loadingRight}
+                        disabled={!canAddGroupMember || selectedRight.size === 0 || loadingLeft || loadingRight}
                         sx={{
                             width: 56,
                             height: 80,
@@ -349,15 +414,16 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                             color: 'white',
                             boxShadow: '0 4px 12px rgba(43, 80, 115, 0.2)',
                             '&:hover': {bgcolor: 'primary.dark'},
-                            '&.Mui-disabled': {bgcolor: 'action.disabledBackground'}
+                            '&.Mui-disabled': {bgcolor: 'action.disabledBackground'},
                         }}
                     >
                         <ArrowBack/>
                     </IconButton>
+
                     <IconButton
                         color="primary"
                         onClick={handleMoveRight}
-                        disabled={selectedLeft.size === 0 || loadingLeft || loadingRight}
+                        disabled={!canRemoveGroupMember || selectedLeft.size === 0 || loadingLeft || loadingRight}
                         sx={{
                             width: 56,
                             height: 80,
@@ -366,7 +432,7 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                             color: 'white',
                             boxShadow: '0 4px 12px rgba(43, 80, 115, 0.2)',
                             '&:hover': {bgcolor: 'primary.dark'},
-                            '&.Mui-disabled': {bgcolor: 'action.disabledBackground'}
+                            '&.Mui-disabled': {bgcolor: 'action.disabledBackground'},
                         }}
                     >
                         <ArrowForward/>
@@ -374,16 +440,36 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                 </Box>
 
                 {/* RIGHT LIST */}
-                <Card sx={{flex: 1, display: 'flex', flexDirection: 'column', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)'}}>
-                    <CardContent sx={{flexGrow: 1, p: 0, display: 'flex', flexDirection: 'column', position: 'relative'}}>
+                <Card sx={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    borderRadius: '16px',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+                }}>
+                    <CardContent
+                        sx={{flexGrow: 1, p: 0, display: 'flex', flexDirection: 'column', position: 'relative'}}>
                         {loadingRight && (
-                            <Box sx={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: 'rgba(255,255,255,0.6)', zIndex: 1}}>
-                                <CircularProgress size={32} />
+                            <Box sx={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                bgcolor: 'rgba(255,255,255,0.6)',
+                                zIndex: 1
+                            }}>
+                                <CircularProgress size={32}/>
                             </Box>
                         )}
+
                         <List dense sx={{flexGrow: 1}}>
                             {rightStudents.map((student) => {
                                 const isSelected = selectedRight.has(student.id);
+
                                 return (
                                     <ListItem
                                         key={student.id}
@@ -395,6 +481,7 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                                         <ListItemButton
                                             onClick={() => handleToggleSelect(student.id, 'right')}
                                             selected={isSelected}
+                                            disabled={!canAddGroupMember}
                                             sx={{
                                                 py: 1.5,
                                                 bgcolor: isSelected ? 'action.selected' : 'transparent',
@@ -402,12 +489,12 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                                                     bgcolor: 'action.selected',
                                                     '&:hover': {
                                                         bgcolor: 'action.hover',
-                                                    }
-                                                }
+                                                    },
+                                                },
                                             }}
                                         >
                                             <ListItemAvatar>
-                                                <UserAvatar name={student.user.name} surname={student.user.surname} />
+                                                <UserAvatar name={student.user.name} surname={student.user.surname}/>
                                             </ListItemAvatar>
                                             <ListItemText
                                                 primary={
@@ -415,7 +502,12 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                                                         <Typography variant="body2" color="text.primary">
                                                             {student.user.name} {student.user.surname}
                                                         </Typography>
-                                                        <Box component="span" sx={{display: 'flex', alignItems: 'center', gap: 0.3, color: 'text.secondary'}}>
+                                                        <Box component="span" sx={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 0.3,
+                                                            color: 'text.secondary'
+                                                        }}>
                                                             <Tag sx={{fontSize: 14}}/>
                                                             <Typography variant="caption">{student.user_id}</Typography>
                                                         </Box>
@@ -426,13 +518,16 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                                     </ListItem>
                                 );
                             })}
+
                             {rightStudents.length === 0 && !loadingRight && (
                                 <Typography variant="body2" color="text.secondary" sx={{p: 4, textAlign: 'center'}}>
                                     {intl.formatMessage({id: 'didactics.programs.groupStudents.empty'})}
                                 </Typography>
                             )}
                         </List>
+
                         <Divider/>
+
                         <Box sx={{p: 1}}>
                             <ListPagination
                                 page={rightPage}

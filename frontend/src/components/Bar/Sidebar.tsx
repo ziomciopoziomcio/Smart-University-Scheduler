@@ -11,8 +11,10 @@ import diagram_icon from '@assets/icons/diagram.svg?react';
 import easel_icon from '@assets/icons/easel.svg?react';
 import AlternateEmailIcon from '@mui/icons-material/AlternateEmail';
 import GenerateScheduleIcon from '@mui/icons-material/EditCalendarOutlined';
-import StarBorderPurple500OutlinedIcon from '@mui/icons-material/StarBorderPurple500Outlined';
+import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
 
+import {usePermissionStore} from '@store/usePermissionStore';
+import {useAuthStore} from '@store/useAuthStore';
 
 import {
     Drawer,
@@ -23,8 +25,9 @@ import {
     ListItemText,
     Box,
     IconButton,
-    SvgIcon
+    SvgIcon,
 } from '@mui/material';
+
 import {
     PersonOutlined,
     SettingsOutlined,
@@ -34,102 +37,105 @@ import {
     GroupsOutlined,
     InboxOutlined,
 } from '@mui/icons-material';
+
 import {useIntl} from 'react-intl';
+import {NavLink} from 'react-router-dom';
+
 import SidebarClock from './SidebarClock';
 import SidebarCalendar from './SidebarCalendar';
-import {NavLink} from 'react-router-dom';
-import {theme} from "../../theme/theme";
-import {useAuthStore} from "@store/useAuthStore";
-import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
+import {theme} from '../../theme/theme';
+
+import {
+    canAccessSection,
+    type AppSection,
+} from '@routing/access';
 
 interface SidebarMenuItem {
     id: string;
     icon: React.ReactNode;
     path: string;
-    allowedRoles?: string[];
+    section: AppSection;
 }
 
 const menuConfig: SidebarMenuItem[] = [
     {
         id: 'sidebar.myPlan',
         icon: <PersonOutlined/>,
-        path: '/plan', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/plan',
+        section: 'MY_PLAN',
     },
     {
-        id: 'sidebar.employees', // employees or maybe "staff"?
+        id: 'sidebar.employees',
         icon: <SvgIcon component={easel_icon} inheritViewBox/>,
-        path: '/employees', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/employees',
+        section: 'EMPLOYEES',
     },
     {
-        id: 'sidebar.facilities', // facilities (buildings, rooms, campuses)
+        id: 'sidebar.facilities',
         icon: <SvgIcon component={building_icon} inheritViewBox/>,
-        path: '/facilities', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/facilities',
+        section: 'FACILITIES',
     },
     {
-        id: 'sidebar.structures', // structures (units, faculties)
+        id: 'sidebar.structures',
         icon: <SvgIcon component={diagram_icon} inheritViewBox/>,
-        path: '/structures', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/structures',
+        section: 'STRUCTURES',
     },
     {
         id: 'sidebar.didactics',
         icon: <SchoolOutlinedIcon/>,
-        path: '/didactics', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/didactics',
+        section: 'DIDACTICS',
     },
     {
-        id: 'sidebar.students', // students
+        id: 'sidebar.students',
         icon: <SvgIcon component={backpack_icon} inheritViewBox/>,
-        path: '/students', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/students',
+        section: 'STUDENTS',
     },
     {
-        id: 'sidebar.plans', // plans (study plans, course plans)
+        id: 'sidebar.plans',
         icon: <GroupsOutlined/>,
-        path: '/schedules',  // TODO:  add allowedRoles
-        allowedRoles: []
+        path: '/schedules',
+        section: 'PLANS',
     },
     {
         id: 'sidebar.chat',
         icon: <ChatBubbleOutline/>,
-        path: '/chat',  // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/chat',
+        section: 'CHAT',
     },
     {
         id: 'sidebar.suggestions',
         icon: <InboxOutlined/>,
-        path: '/suggestions',  // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/suggestions',
+        section: 'SUGGESTIONS',
     },
     {
         id: 'sidebar.permissions',
         icon: <SvgIcon component={key_icon} inheritViewBox/>,
-        path: '/roles', // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/roles',
+        section: 'PERMISSIONS',
     },
     {
         id: 'sidebar.users',
         icon: <AlternateEmailIcon/>,
-        path: '/users',  // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/users',
+        section: 'USERS',
     },
     {
         id: 'sidebar.settings',
         icon: <SettingsOutlined/>,
-        path: '/settings',  // TODO: change to real path and add allowedRoles
-        allowedRoles: []
+        path: '/settings',
+        section: 'SETTINGS',
     },
     {
         id: 'sidebar.generateSchedule',
         icon: <GenerateScheduleIcon/>,
         path: '/generate',
-        allowedRoles: []
+        section: 'GENERATE_SCHEDULE',
     },
-
-
 ];
 
 export function Sidebar() {
@@ -138,11 +144,14 @@ export function Sidebar() {
     const intl = useIntl();
 
     const {user} = useAuthStore();
+    const hasAnyPermission = usePermissionStore((state) => state.hasAnyPermission);
 
-    const canView = (allowedRoles?: string[]) => {
-        if (!allowedRoles || allowedRoles.length === 0) return true;
-        if (!user?.roles) return false;
-        return user.roles.some((role) => allowedRoles.includes(role));
+    const canView = (item: SidebarMenuItem) => {
+        if (!user) {
+            return false;
+        }
+
+        return canAccessSection(item.section, hasAnyPermission);
     };
 
     return (
@@ -173,24 +182,30 @@ export function Sidebar() {
                 },
             }}
         >
-            <Box sx={{
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 2,
-                mb: open ? 0 : 2,
-                px: open ? 1 : 0
-            }}>
+            <Box
+                sx={{
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 2,
+                    mb: open ? 0 : 2,
+                    px: open ? 1 : 0,
+                }}
+            >
                 <SidebarClock open={open}/>
                 <SidebarCalendar open={open}/>
             </Box>
 
             <List sx={{width: '100%', px: open ? 0 : 1}}>
                 {menuConfig
-                    .filter((item) => canView(item.allowedRoles))
+                    .filter((item) => canView(item))
                     .map((item) => (
-                        <ListItem key={item.id} disablePadding sx={{display: 'block', mb: open ? 0.5 : 1.5}}>
+                        <ListItem
+                            key={item.id}
+                            disablePadding
+                            sx={{display: 'block', mb: open ? 0.5 : 1.5}}
+                        >
                             <NavLink
                                 to={item.path}
                                 style={{textDecoration: 'none', display: 'block'}}
@@ -206,7 +221,7 @@ export function Sidebar() {
                                             color: isActive ? '#045f8d' : '#555',
                                             transition: 'all 0.2s ease-in-out',
                                             '&:hover': {
-                                                backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                                                backgroundColor: 'rgba(0, 0, 0, 0.04)',
                                             },
                                         }}
                                     >
@@ -218,7 +233,7 @@ export function Sidebar() {
                                                 color: 'inherit',
                                                 '& svg': {
                                                     fontSize: open ? 20 : 25,
-                                                }
+                                                },
                                             }}
                                         >
                                             {item.icon}
@@ -240,15 +255,23 @@ export function Sidebar() {
                     ))}
             </List>
 
-            <Box sx={{mt: 'auto', mb: open ? 1 : 4, width: '100%', display: 'flex', justifyContent: 'center'}}>
+            <Box
+                sx={{
+                    mt: 'auto',
+                    mb: open ? 1 : 4,
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                }}
+            >
                 <IconButton
                     onClick={() => {
-                        setOpen(!open)
+                        setOpen(!open);
                     }}
                     sx={{
                         background: 'white',
                         boxShadow: '0px 4px 10px rgba(0,0,0,0.05)',
-                        '&:hover': {bgcolor: '#fff'}
+                        '&:hover': {bgcolor: '#fff'},
                     }}
                 >
                     {open ? <ArrowBack/> : <ArrowForward/>}
