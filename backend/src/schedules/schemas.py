@@ -124,13 +124,13 @@ class ScheduleEntry(BaseModel):
 
 
 class DayOfWeek(str, Enum):
-    MONDAY = "Mondays"
-    TUESDAY = "Tuesdays"
-    WEDNESDAY = "Wednesdays"
-    THURSDAY = "Thursdays"
-    FRIDAY = "Fridays"
-    SATURDAY = "Saturdays"
-    SUNDAY = "Sundays"
+    MONDAY = "Monday"
+    TUESDAY = "Tuesday"
+    WEDNESDAY = "Wednesday"
+    THURSDAY = "Thursday"
+    FRIDAY = "Friday"
+    SATURDAY = "Saturday"
+    SUNDAY = "Sunday"
 
 
 class UpdateScheduleSessionRequest(BaseModel):

@@ -980,6 +980,19 @@ async def _get_timeslot_or_400(
     return record["timeSlotId"]
 
 
+def _to_plural_day(dow: str) -> str:
+    mapping = {
+        "Monday": "Mondays",
+        "Tuesday": "Tuesdays",
+        "Wednesday": "Wednesdays",
+        "Thursday": "Thursdays",
+        "Friday": "Fridays",
+        "Saturday": "Saturdays",
+        "Sunday": "Sundays",
+    }
+    return mapping[dow]
+
+
 @router.put(
     "/session/{session_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -999,6 +1012,8 @@ async def update_schedule_session(
     - 409: Schedule conflict detected.
     """
 
+    mapped_day_of_week = _to_plural_day(payload.day_of_week.value)
+
     # check session
     result = await neo4j_session.run(
         "MATCH (s:ClassSession {sessionId: $session_id}) RETURN s",
@@ -1014,7 +1029,7 @@ async def update_schedule_session(
     # find timeslot
     timeslot_id = await _get_timeslot_or_400(
         neo4j_session=neo4j_session,
-        day_of_week=payload.day_of_week.value,
+        day_of_week=mapped_day_of_week,
         start_time=payload.start_time,
         end_time=payload.end_time,
     )
