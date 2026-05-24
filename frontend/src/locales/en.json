@@ -1,7 +1,8 @@
 {
   "common": {
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "saving": "Saving..."
   },
   "login": {
     "title": "Sign in",
