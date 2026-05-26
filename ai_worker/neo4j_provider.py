@@ -32,16 +32,17 @@ SAVE_SCHEDULE_QUERY = Query("""
     OPTIONAL MATCH (r:Room {roomId: row.room_id})
     WHERE row.room_id IS NULL OR r IS NOT NULL
 
-    OPTIONAL MATCH (t:TimeSlot {timeSlotId: row.timeslot_id})
-    WHERE row.timeslot_id IS NULL OR t IS NOT NULL
-
     FOREACH (_ IN CASE WHEN i IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:TAUGHT_BY]->(i))
     FOREACH (_ IN CASE WHEN r IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:HELD_IN]->(r))
-    FOREACH (_ IN CASE WHEN t IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:AT_TIME]->(t))
 
-    WITH s, matched_groups
+    WITH s, row, matched_groups
     UNWIND matched_groups AS mg
     MERGE (s)-[:FOR_GROUP]->(mg)
+
+    WITH DISTINCT s, row
+    UNWIND (CASE WHEN size(row.timeslot_ids) > 0 THEN row.timeslot_ids ELSE [null] END) AS t_id
+    OPTIONAL MATCH (t:TimeSlot {timeSlotId: t_id})
+    FOREACH (_ IN CASE WHEN t IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:AT_TIME]->(t))
 
     WITH count(DISTINCT s) as created_count, size($batch) as total_size
     RETURN
@@ -403,8 +404,10 @@ class Neo4jProvider:
                 ),
                 "room_id": int(gene.room_id) if gene.room_id is not None else None,
                 "group_ids": [int(g_id) for g_id in gene.group_ids],
-                "timeslot_id": (
-                    int(gene.timeslot_id) if gene.timeslot_id is not None else None
+                "timeslot_ids": (
+                    [int(gene.timeslot_id) + i for i in range(gene.duration_slots)]
+                    if gene.timeslot_id is not None
+                    else []
                 ),
                 "course_code": int(gene.course_code),
                 "class_type": str(gene.class_type).upper(),
