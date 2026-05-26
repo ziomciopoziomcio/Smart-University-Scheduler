@@ -40,29 +40,14 @@ def create_student(
     return obj
 
 
-@router.get("/students", response_model=PaginatedResponse[schemas.StudentNested])
-def list_students(
-    user_id: int | None = Query(None),
-    study_program: int | None = Query(None),
-    major: int | None = Query(None),
-    limit: int = Query(STUDENT_LIMIT, ge=1, le=200),
-    offset: int = Query(0, ge=0),
-    db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(require_permission("students:view")),
-    search: str | None = Query(None),
+def _build_students_query(
+    db: Session,
+    user_id: int | None,
+    study_program: int | None,
+    major: int | None,
+    search: str | None,
 ):
-    filters = []
-    if user_id is not None:
-        filters.append(models.Students.user_id == user_id)
-    if study_program is not None:
-        filters.append(models.Students.study_program == study_program)
-    if major is not None:
-        filters.append(models.Students.major == major)
-
     count_q = db.query(models.Students)
-    if filters:
-        count_q = count_q.filter(*filters)
-
     joined_q = (
         db.query(
             models.Students,
@@ -82,6 +67,17 @@ def list_students(
         )
         .outerjoin(course_models.Major, models.Students.major == course_models.Major.id)
     )
+
+    filter_map = {
+        models.Students.user_id: user_id,
+        models.Students.study_program: study_program,
+        models.Students.major: major,
+    }
+    filters = [col == val for col, val in filter_map.items() if val is not None]
+
+    if filters:
+        count_q = count_q.filter(*filters)
+        joined_q = joined_q.filter(*filters)
 
     trimmed_search = (search or "").strip()
     if trimmed_search:
@@ -104,8 +100,21 @@ def list_students(
             ).filter(search_filter)
             joined_q = joined_q.filter(search_filter)
 
-    if filters:
-        joined_q = joined_q.filter(*filters)
+    return joined_q, count_q
+
+
+@router.get("/students", response_model=PaginatedResponse[schemas.StudentNested])
+def list_students(
+    user_id: int | None = Query(None),
+    study_program: int | None = Query(None),
+    major: int | None = Query(None),
+    limit: int = Query(STUDENT_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("students:view")),
+    search: str | None = Query(None),
+):
+    joined_q, count_q = _build_students_query(db, user_id, study_program, major, search)
 
     paginated = paginate(
         joined_q,
@@ -115,11 +124,8 @@ def list_students(
         count_query=count_q,
     )
 
-    rows = paginated.items
-    total = paginated.total
-
-    student_ids = [row[0].id for row in rows]
-    student_groups_map = defaultdict(list)
+    student_ids = [row[0].id for row in paginated.items]
+    groups_map = defaultdict(list)
 
     if student_ids:
         groups_data = (
@@ -128,14 +134,15 @@ def list_students(
             .filter(models.Group_members.student.in_(student_ids))
             .all()
         )
-        for student_id, group_obj in groups_data:
-            student_groups_map[student_id].append(group_obj)
+        for sid, gobj in groups_data:
+            groups_map[sid].append(gobj)
 
-    items = [
-        serialize_student_nested(row, student_groups_map.get(row[0].id, []))
-        for row in rows
+    paginated.items = [
+        serialize_student_nested(row, groups_map.get(row[0].id, []))
+        for row in paginated.items
     ]
-    return PaginatedResponse(items=items, total=total, limit=limit, offset=offset)
+
+    return paginated
 
 
 @router.get("/students/{student_id}", response_model=schemas.StudentNested)
