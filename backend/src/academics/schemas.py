@@ -107,6 +107,10 @@ class GroupsRead(GroupsBase):
     students_count: int = 0
 
 
+class GroupSummaryRead(GroupsBase):
+    id: int
+
+
 class GroupsUpdate(BaseModel):
     group_name: Annotated[str, StringConstraints(max_length=255)] | None = None
     study_program: int | None = None
@@ -174,6 +178,7 @@ class StudentNested(BaseSchema):
     study_program: int
     major: int | None = None
     user_id: int
+    groups: list[GroupSummaryRead] = Field(default_factory=list)
 
 
 class EmployeeNested(BaseSchema):
