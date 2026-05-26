@@ -564,8 +564,8 @@ class FitnessCalculator:
                     if gap > 2:
                         penalty += w_max_gap * multiplier
 
-        if daily_slots_count > 6:
-            penalty += (daily_slots_count - 6) * w_fatigue * multiplier
+        if daily_slots_count > 8:
+            penalty += (daily_slots_count - 8) * w_fatigue * multiplier
 
         return penalty
 
