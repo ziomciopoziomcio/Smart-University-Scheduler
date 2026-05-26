@@ -316,11 +316,6 @@ def list_group_members(
     if student is not None:
         query = query.filter(models.Group_members.student == student)
 
-    query = query.order_by(
-        models.Group_members.group,
-        models.Group_members.student,
-    )
-
     return paginate(
         query,
         limit,
