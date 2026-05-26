@@ -23,16 +23,16 @@ class FitnessCalculator:
         self.profile_counts = profile_counts
         self.instructor_assignments = instructor_assignments
 
-        self.W_DAY_USED = 100
+        self.W_DAY_USED = 800
         self.W_GAP_SLOT = 50
         self.W_MAX_GAP = 200  # gap longer than 2 slots
         self.W_ROOM_SIZE = 1  # per one free seat
         self.W_CAMPUS_CHANGE = 500  # without gap
-        self.W_FATIGUE = 150  # day longer than 6 time slots in a day
+        self.W_FATIGUE = 50  # day longer than 6 time slots in a day
         self.W_BUILDING_CHANGE = 20
         self.W_ROOM_CHANGE = 10
 
-        self.W_INSTR_DAY_USED = 150
+        self.W_INSTR_DAY_USED = 600
         self.W_INSTR_GAP_SLOT = 75
         self.W_INSTR_MAX_GAP = 300
         self.W_INSTR_CAMPUS_CHANGE = 750
