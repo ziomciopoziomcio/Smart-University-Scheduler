@@ -40,29 +40,14 @@ def create_employee(
     return obj
 
 
-@router.get("/employees", response_model=PaginatedResponse[schemas.EmployeeNested])
-def list_employees(
-    user_id: int | None = Query(None),
-    faculty_id: int | None = Query(None),
-    unit_id: int | None = Query(None),
-    limit: int | None = Query(EMPLOYEE_LIMIT, ge=1, le=200),
-    offset: int = Query(0, ge=0),
-    db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(require_permission("employees:view")),
-    search: str | None = Query(None),
+def _build_employees_query(
+    db: Session,
+    user_id: int | None,
+    faculty_id: int | None,
+    unit_id: int | None,
+    search: str | None,
 ):
-    filters = []
-    if user_id is not None:
-        filters.append(models.Employees.user_id == user_id)
-    if faculty_id is not None:
-        filters.append(models.Employees.faculty_id == faculty_id)
-    if unit_id is not None:
-        filters.append(models.Employees.unit_id == unit_id)
-
     count_q = db.query(models.Employees)
-    if filters:
-        count_q = count_q.filter(*filters)
-
     joined_q = (
         db.query(
             models.Employees,
@@ -77,6 +62,17 @@ def list_employees(
             models.Employees.faculty_id == facilities_models.Faculty.id,
         )
     )
+
+    filter_map = {
+        models.Employees.user_id: user_id,
+        models.Employees.faculty_id: faculty_id,
+        models.Employees.unit_id: unit_id,
+    }
+    filters = [col == val for col, val in filter_map.items() if val is not None]
+
+    if filters:
+        count_q = count_q.filter(*filters)
+        joined_q = joined_q.filter(*filters)
 
     trimmed_search = (search or "").strip()
     if trimmed_search:
@@ -104,8 +100,21 @@ def list_employees(
             )
             joined_q = joined_q.filter(search_filter)
 
-    if filters:
-        joined_q = joined_q.filter(*filters)
+    return joined_q, count_q
+
+
+@router.get("/employees", response_model=PaginatedResponse[schemas.EmployeeNested])
+def list_employees(
+    user_id: int | None = Query(None),
+    faculty_id: int | None = Query(None),
+    unit_id: int | None = Query(None),
+    limit: int | None = Query(EMPLOYEE_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("employees:view")),
+    search: str | None = Query(None),
+):
+    joined_q, count_q = _build_employees_query(db, user_id, faculty_id, unit_id, search)
 
     paginated = paginate(
         joined_q,
@@ -115,11 +124,9 @@ def list_employees(
         count_query=count_q,
     )
 
-    rows = paginated.items
-    total = paginated.total
+    paginated.items = [serialize_employee_nested(row) for row in paginated.items]
 
-    items = [serialize_employee_nested(row) for row in rows]
-    return PaginatedResponse(items=items, total=total, limit=limit, offset=offset)
+    return paginated
 
 
 @router.get("/employees/{employee_id}", response_model=schemas.EmployeeNested)
