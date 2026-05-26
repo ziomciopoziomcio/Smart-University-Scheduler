@@ -37,23 +37,18 @@ def create_unit(
     return obj
 
 
-@router.get("/units", response_model=PaginatedResponse[schemas.UnitsReadWithCount])
-def list_units(
-    faculty_id: int | None = Query(None),
-    unit_name: str | None = Query(None, min_length=1),
-    unit_short: str | None = Query(None, min_length=1),
-    limit: int | None = Query(UNIT_LIMIT, ge=1, le=200),
-    offset: int = Query(0, ge=0),
-    db: Session = Depends(get_db),
-    _current_user: user_models.Users = Depends(require_permission("units:view")),
-    search: str | None = Query(None),
+def _build_units_query(
+    db: Session,
+    faculty_id: int | None,
+    unit_name: str | None,
+    unit_short: str | None,
+    search: str | None,
 ):
     lecturers_subq = (
         db.query(func.count(models.Employees.id))
         .filter(models.Employees.unit_id == models.Units.id)
         .scalar_subquery()
     )
-
     courses_subq = (
         db.query(func.count(course_models.Course.course_code))
         .filter(course_models.Course.leading_unit == models.Units.id)
@@ -67,28 +62,45 @@ def list_units(
     )
     count_query = db.query(models.Units.id)
 
+    filters = []
     if faculty_id is not None:
-        query = query.filter(models.Units.faculty_id == faculty_id)
-        count_query = count_query.filter(models.Units.faculty_id == faculty_id)
-    if unit_name is not None:
-        f_name = models.Units.unit_name.ilike(f"%{unit_name}%")
-        query = query.filter(f_name)
-        count_query = count_query.filter(f_name)
-    if unit_short is not None:
-        f_short = models.Units.unit_short.ilike(f"%{unit_short}%")
-        query = query.filter(f_short)
-        count_query = count_query.filter(f_short)
+        filters.append(models.Units.faculty_id == faculty_id)
+    if unit_name:
+        filters.append(models.Units.unit_name.ilike(f"%{unit_name}%"))
+    if unit_short:
+        filters.append(models.Units.unit_short.ilike(f"%{unit_short}%"))
 
-    query, count_query = apply_search_to_queries(
+    if filters:
+        query = query.filter(*filters)
+        count_query = count_query.filter(*filters)
+
+    return apply_search_to_queries(
         search=search,
         query=query,
         count_query=count_query,
         columns=[models.Units.unit_name, models.Units.unit_short],
     )
 
+
+@router.get("/units", response_model=PaginatedResponse[schemas.UnitsReadWithCount])
+def list_units(
+    faculty_id: int | None = Query(None),
+    unit_name: str | None = Query(None, min_length=1),
+    unit_short: str | None = Query(None, min_length=1),
+    limit: int | None = Query(UNIT_LIMIT, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("units:view")),
+    search: str | None = Query(None),
+):
+    query, count_query = _build_units_query(
+        db, faculty_id, unit_name, unit_short, search
+    )
+
     pagination_result = paginate(
         query, limit, offset, order_by=models.Units.id, count_query=count_query
     )
+
     pagination_result.items = [
         schemas.UnitsReadWithCount(
             id=row.Units.id,
