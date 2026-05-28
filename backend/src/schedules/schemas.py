@@ -11,7 +11,7 @@ from pydantic import (
     model_validator,
     field_validator,
 )
-
+from enum import Enum
 from .models import AbsenceStatus
 from .models import SuggestionStatus
 from ..academics.models import SemesterType
@@ -121,3 +121,24 @@ class ScheduleEntry(BaseModel):
     start_time: str = Field(alias="startTime")
     end_time: str = Field(alias="endTime")
     variant: ClassType
+
+
+class DayOfWeek(str, Enum):
+    MONDAY = "Monday"
+    TUESDAY = "Tuesday"
+    WEDNESDAY = "Wednesday"
+    THURSDAY = "Thursday"
+    FRIDAY = "Friday"
+    SATURDAY = "Saturday"
+    SUNDAY = "Sunday"
+
+
+class UpdateScheduleSessionRequest(BaseModel):
+    day_of_week: DayOfWeek = Field(alias="dayOfWeek")
+    start_time: str = Field(alias="startTime")
+    end_time: str = Field(alias="endTime")
+    instructor_id: int = Field(alias="instructorId")
+    room_id: int = Field(alias="roomId")
+    apply_once: bool = Field(
+        default=False, alias="applyOnce"
+    )  # todo develop in next release

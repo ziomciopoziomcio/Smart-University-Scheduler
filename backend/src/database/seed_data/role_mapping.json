@@ -20,7 +20,7 @@
     "user:me", "user-2fa:setup", "user-2fa:confirm", "user-2fa:verify", "user-2fa:disable",
     "roles:view", "role:view", "role:create", "role:update", "role:delete",
     "users:view", "user:view", "user:create", "user:update", "user:delete",
-    "schedule:generate", "schedules:view", "schedule:view_others", "schedule:view", "schedule:delete", "schedule:publish", "schedule:export",
+    "schedule:generate", "schedules:view", "schedule:view_others", "schedule:view", "schedule:delete", "schedule:publish", "schedule:export", "schedule:update",
     "course-instructor:view", "course-instructor:create", "course-instructor:delete",
     "class-sessions:view", "class-session:view", "class-session:update", "class-session:delete", "class-session:create",
     "suggestions:view", "suggestion:view", "suggestion:create", "suggestion:update", "suggestion:delete", "suggestion:approve", "suggestion:reject",
