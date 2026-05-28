@@ -148,7 +148,8 @@ export default function DidacticsPage({view}: { view: string }) {
             } else if (view === 'groups' && programId && semesterId) {
                 res = await fetchGroups(page, pageSize, {
                     study_program: Number(programId),
-                    semester: Number(semesterId)
+                    semester: Number(semesterId),
+                    is_active: true
                 }, debouncedSearch);
             }
 
