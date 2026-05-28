@@ -285,8 +285,12 @@ if __name__ == "__main__":
     session.commit()
 
     # ADMIN
-    admin_obj = create_user_admin(
-        session=session, password_hash_func=PASSWORD_HASH_FUNC, roles=db_roles
+    _, _ = create_user_admin(
+        session=session,
+        password_hash_func=PASSWORD_HASH_FUNC,
+        roles=db_roles,
+        db_faculties=db_faculties,
+        db_units=db_units,
     )
     session.commit()
 
