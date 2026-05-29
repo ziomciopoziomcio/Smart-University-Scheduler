@@ -4,9 +4,9 @@ import {type PermissionCode} from '@constants/permissions';
 
 interface PermissionState {
     getPermissionCodes: () => string[];
-    hasPermission: (permission: PermissionCode | string) => boolean;
-    hasAnyPermission: (permissions: readonly (PermissionCode | string)[]) => boolean;
-    hasAllPermissions: (permissions: readonly (PermissionCode | string)[]) => boolean;
+    hasPermission: (_permission: PermissionCode | string) => boolean;
+    hasAnyPermission: (_permissions: readonly (PermissionCode | string)[]) => boolean;
+    hasAllPermissions: (_permissions: readonly (PermissionCode | string)[]) => boolean;
 }
 
 export const usePermissionStore = create<PermissionState>()((set, get) => {

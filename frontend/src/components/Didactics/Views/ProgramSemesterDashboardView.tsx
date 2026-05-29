@@ -22,7 +22,7 @@ export function ProgramSemesterDashboardView({
                                              }: ProgramSemesterDashboardProps) {
     const navigate = useNavigate();
     const intl = useIntl();
-    const basePath = customBasePath || `/programs/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${semesterId}`;
+    const basePath = customBasePath ?? `/programs/faculty/${facultyId}/field/${fieldId}/program/${programId}/semester/${semesterId}`;
 
     const options = [
         {

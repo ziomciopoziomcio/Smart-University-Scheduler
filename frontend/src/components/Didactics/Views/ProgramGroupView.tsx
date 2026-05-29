@@ -263,7 +263,7 @@ export function ProgramGroupView({
                     onClose={() => {
                         setIsDeleteOpen(false);
                     }}
-                    onConfirm={handleConfirmDelete}
+                    onConfirm={() => { void handleConfirmDelete(); }}
                     cancelButtonLabel={intl.formatMessage({id: 'didactics.common.cancel'})}
                     confirmButtonLabel={intl.formatMessage({id: 'didactics.common.delete'})}
                 />

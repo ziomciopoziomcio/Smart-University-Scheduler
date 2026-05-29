@@ -169,7 +169,7 @@ export function ProgramGroupModal({
                     control={
                         <Checkbox
                             checked={isActive}
-                            onChange={(e) => setIsActive(e.target.checked)}
+                            onChange={(e) => { setIsActive(e.target.checked); }}
                             color="primary"
                         />
                     }
@@ -181,7 +181,7 @@ export function ProgramGroupModal({
                 <Button onClick={onClose} disabled={isSubmitting} sx={{fontWeight: 600, color: 'text.secondary'}}>
                     {intl.formatMessage({id: 'didactics.common.cancel'})}
                 </Button>
-                <Button onClick={handleSubmit} variant="contained" disabled={isSubmitting || !groupName}
+                <Button onClick={() => { void handleSubmit(); }} variant="contained" disabled={isSubmitting || !groupName}
                         sx={{borderRadius: '10px', px: 4, fontWeight: 600}}>
                     {isSubmitting ?
                         <CircularProgress size={24} color="inherit"/> : intl.formatMessage({id: 'didactics.common.save'})}

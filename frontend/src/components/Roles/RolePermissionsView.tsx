@@ -120,7 +120,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                 <Box key={groupName} sx={{display: 'flex', flexDirection: 'column', gap: 1.5}}>
                     <Paper
                         elevation={0}
-                        onClick={() => toggleGroup(groupName)}
+                        onClick={() => { toggleGroup(groupName); }}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
@@ -252,7 +252,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
 
                                             <Switch
                                                 checked={selectedPermIds.includes(perm.id)}
-                                                onChange={() => handleToggle(perm.id)}
+                                                onChange={() => { handleToggle(perm.id); }}
                                                 disabled={!canAddPermissionToRole || saving}
                                                 sx={{
                                                     width: 50,
@@ -340,7 +340,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                         <Button
                             variant="contained"
                             startIcon={saving ? <CircularProgress size={20} color="inherit"/> : <Save/>}
-                            onClick={handleSave}
+                            onClick={() => { void handleSave(); }}
                             disabled={saving}
                             sx={{
                                 bgcolor: '#2b5073',
@@ -364,7 +364,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
             <Snackbar
                 open={showSuccess}
                 autoHideDuration={3000}
-                onClose={() => setShowSuccess(false)}
+                onClose={() => { setShowSuccess(false); }}
                 anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
             >
                 <Alert severity="success" variant="filled" sx={{borderRadius: '12px'}}>

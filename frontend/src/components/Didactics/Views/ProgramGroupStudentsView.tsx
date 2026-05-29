@@ -82,13 +82,13 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
 
     // Debouncing effects
     useEffect(() => {
-        const timer = setTimeout(() => setDebouncedLeftSearch(leftSearch), 500);
-        return () => clearTimeout(timer);
+        const timer = setTimeout(() => { setDebouncedLeftSearch(leftSearch); }, 500);
+        return () => { clearTimeout(timer); };
     }, [leftSearch]);
 
     useEffect(() => {
-        const timer = setTimeout(() => setDebouncedRightSearch(rightSearch), 500);
-        return () => clearTimeout(timer);
+        const timer = setTimeout(() => { setDebouncedRightSearch(rightSearch); }, 500);
+        return () => { clearTimeout(timer); };
     }, [rightSearch]);
 
     useEffect(() => {
@@ -336,7 +336,7 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                                         }}
                                     >
                                         <ListItemButton
-                                            onClick={() => handleToggleSelect(student.id, 'left')}
+                                            onClick={() => { handleToggleSelect(student.id, 'left'); }}
                                             selected={isSelected}
                                             disabled={!canRemoveGroupMember}
                                             sx={{
@@ -404,7 +404,7 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, justifyContent: 'center'}}>
                     <IconButton
                         color="primary"
-                        onClick={handleMoveLeft}
+                        onClick={() => { void handleMoveLeft(); }}
                         disabled={!canAddGroupMember || selectedRight.size === 0 || loadingLeft || loadingRight}
                         sx={{
                             width: 56,
@@ -422,7 +422,7 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
 
                     <IconButton
                         color="primary"
-                        onClick={handleMoveRight}
+                        onClick={() => { void handleMoveRight(); }}
                         disabled={!canRemoveGroupMember || selectedLeft.size === 0 || loadingLeft || loadingRight}
                         sx={{
                             width: 56,
@@ -479,7 +479,7 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                                         }}
                                     >
                                         <ListItemButton
-                                            onClick={() => handleToggleSelect(student.id, 'right')}
+                                            onClick={() => { handleToggleSelect(student.id, 'right'); }}
                                             selected={isSelected}
                                             disabled={!canAddGroupMember}
                                             sx={{

@@ -23,7 +23,7 @@ interface ListViewProps<T> {
     addLabel?: string;
     emptyMessage?: string;
     hideDividerOnLastItem?: boolean;
-    rowSx?: object | ((item: T) => object);
+    rowSx?: object | ((_item: T) => object);
     titleSx?: object;
 }
 

@@ -15,7 +15,7 @@ export const getHeaders = () => ({
 });
 
 // Global fetch interceptor for 401 Unauthorized errors
-const {fetch: originalFetch} = window;
+const originalFetch = window.fetch.bind(window);
 window.fetch = async (...args) => {
     const response = await originalFetch(...args);
     

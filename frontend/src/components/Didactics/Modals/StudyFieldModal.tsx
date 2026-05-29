@@ -87,7 +87,7 @@ export function StudyFieldModal({open, studyField, facultyId, onClose, onSuccess
                     placeholder={intl.formatMessage({id: 'didactics.fields.namePlaceholder'})}
                     required
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => { setName(e.target.value); }}
                     fullWidth
                     autoFocus
                     InputProps={{sx: {borderRadius: '12px'}}}
@@ -99,7 +99,7 @@ export function StudyFieldModal({open, studyField, facultyId, onClose, onSuccess
                         fullWidth
                         label={intl.formatMessage({id: 'didactics.fields.degreeLabel', defaultMessage: 'Stopień'})}
                         value={degree}
-                        onChange={(e) => setDegree(e.target.value as StudyDegree)}
+                        onChange={(e) => { setDegree(e.target.value as StudyDegree); }}
                         InputProps={{sx: {borderRadius: '12px'}}}
                     >
                         {DEGREES.map(d => (
@@ -114,7 +114,7 @@ export function StudyFieldModal({open, studyField, facultyId, onClose, onSuccess
                         fullWidth
                         label={intl.formatMessage({id: 'didactics.fields.modeLabel', defaultMessage: 'Tryb'})}
                         value={mode}
-                        onChange={(e) => setMode(e.target.value as StudyMode)}
+                        onChange={(e) => { setMode(e.target.value as StudyMode); }}
                         InputProps={{sx: {borderRadius: '12px'}}}
                     >
                         {MODES.map(m => (
@@ -130,7 +130,7 @@ export function StudyFieldModal({open, studyField, facultyId, onClose, onSuccess
                     fullWidth
                     label={intl.formatMessage({id: 'didactics.fields.languageLabel', defaultMessage: 'Język'})}
                     value={language}
-                    onChange={(e) => setLanguage(e.target.value as CourseLanguage)}
+                    onChange={(e) => { setLanguage(e.target.value as CourseLanguage); }}
                     InputProps={{sx: {borderRadius: '12px'}}}
                 >
                     {LANGUAGES.map(l => (
@@ -144,7 +144,7 @@ export function StudyFieldModal({open, studyField, facultyId, onClose, onSuccess
                     <Button
                         variant="contained"
                         fullWidth
-                        onClick={handleSubmit}
+                        onClick={() => { void handleSubmit(); }}
                         disabled={loading || !name.trim()}
                         sx={{
                             py: 1.5,

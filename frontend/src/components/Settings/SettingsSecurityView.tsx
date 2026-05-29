@@ -137,14 +137,14 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
 
     const copyBackupCodes = () => {
         if (backupCodes) {
-            navigator.clipboard.writeText(backupCodes.join('\n')).catch(() => {});
+            navigator.clipboard.writeText(backupCodes.join('\n')).catch(() => { /* ignore */ });
             setShowSuccess(intl.formatMessage({id: 'users.modal.copySuccess'}));
         }
     };
 
     const copySecret = () => {
         if (setupData?.secret) {
-            navigator.clipboard.writeText(setupData.secret).catch(() => {});
+            navigator.clipboard.writeText(setupData.secret).catch(() => { /* ignore */ });
             setShowSuccess(intl.formatMessage({id: 'users.modal.copySuccess'}));
         }
     };
@@ -159,7 +159,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
             action: (
                 <Button 
                     variant="outlined" 
-                    onClick={() => setPasswordDialogOpen(true)}
+                    onClick={() => { setPasswordDialogOpen(true); }}
                     startIcon={<LockOutlined />}
                     sx={{borderRadius: '8px', width: '200px'}}
                 >
@@ -175,7 +175,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                 <Button 
                     variant="outlined" 
                     color="error" 
-                    onClick={() => setDisableDialogOpen(true)}
+                    onClick={() => { setDisableDialogOpen(true); }}
                     sx={{borderRadius: '8px', width: '200px'}}
                 >
                     {intl.formatMessage({id: 'settings.security.twoFactor.disable'})}
@@ -183,7 +183,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
             ) : (
                 <Button 
                     variant="contained" 
-                    onClick={handleEnable2FA}
+                    onClick={() => { void handleEnable2FA(); }}
                     startIcon={<SecurityOutlined />}
                     sx={{borderRadius: '8px', bgcolor: '#2b5073', width: '200px'}}
                 >
@@ -202,7 +202,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1.5}}>
                     <Paper
                         elevation={0}
-                        onClick={() => toggleGroup(securityGroupTitle)}
+                        onClick={() => { toggleGroup(securityGroupTitle); }}
                         sx={{
                             px: 3,
                             py: 1.5,
@@ -260,7 +260,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
             )}
 
             {/* Password Change Dialog */}
-            <Dialog open={passwordDialogOpen} onClose={() => setPasswordDialogOpen(false)} maxWidth="xs" fullWidth>
+            <Dialog open={passwordDialogOpen} onClose={() => { setPasswordDialogOpen(false); }} maxWidth="xs" fullWidth>
                 <DialogTitle sx={{color: 'black', fontWeight: 700}}>
                     {intl.formatMessage({id: 'settings.security.password.title'})}
                 </DialogTitle>
@@ -270,28 +270,28 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                         type="password"
                         fullWidth
                         value={oldPassword}
-                        onChange={(e) => setOldPassword(e.target.value)}
+                        onChange={(e) => { setOldPassword(e.target.value); }}
                     />
                     <TextField
                         label={intl.formatMessage({id: 'settings.security.password.newPassword'})}
                         type="password"
                         fullWidth
                         value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
+                        onChange={(e) => { setNewPassword(e.target.value); }}
                     />
                     <TextField
                         label={intl.formatMessage({id: 'settings.security.password.confirmPassword'})}
                         type="password"
                         fullWidth
                         value={confirmNewPassword}
-                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        onChange={(e) => { setConfirmNewPassword(e.target.value); }}
                     />
                 </DialogContent>
                 <DialogActions sx={{p: 3}}>
-                    <Button onClick={() => setPasswordDialogOpen(false)}>{intl.formatMessage({id: 'common.cancel'})}</Button>
+                    <Button onClick={() => { setPasswordDialogOpen(false); }}>{intl.formatMessage({id: 'common.cancel'})}</Button>
                     <Button 
                         variant="contained" 
-                        onClick={handlePasswordChange} 
+                        onClick={() => { void handlePasswordChange(); }} 
                         disabled={loading || !oldPassword || !newPassword || !confirmNewPassword}
                         sx={{bgcolor: '#2b5073'}}
                     >
@@ -302,7 +302,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
 
             <Dialog 
                 open={setupDialogOpen} 
-                onClose={() => !backupCodes && setSetupDialogOpen(false)} 
+                onClose={() => { if (!backupCodes) setSetupDialogOpen(false); }} 
                 maxWidth="sm" 
                 fullWidth
                 PaperProps={{
@@ -399,10 +399,10 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                 <DialogActions sx={{p: 3}}>
                     {!backupCodes ? (
                         <>
-                            <Button onClick={() => setSetupDialogOpen(false)}>{intl.formatMessage({id: 'common.cancel'})}</Button>
+                            <Button onClick={() => { setSetupDialogOpen(false); }}>{intl.formatMessage({id: 'common.cancel'})}</Button>
                             <Button 
                                 variant="contained" 
-                                onClick={handleConfirm2FA} 
+                                onClick={() => { void handleConfirm2FA(); }} 
                                 disabled={loading || verificationCode.length !== 6}
                                 sx={{bgcolor: '#2b5073'}}
                             >
@@ -427,7 +427,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
             </Dialog>
 
             {/* 2FA Disable Dialog */}
-            <Dialog open={disableDialogOpen} onClose={() => setDisableDialogOpen(false)} maxWidth="xs" fullWidth>
+            <Dialog open={disableDialogOpen} onClose={() => { setDisableDialogOpen(false); }} maxWidth="xs" fullWidth>
                 <DialogTitle sx={{color: 'black', fontWeight: 700}}>
                     {intl.formatMessage({id: 'settings.security.twoFactor.disableTitle'})}
                 </DialogTitle>
@@ -440,7 +440,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                         type="password"
                         fullWidth
                         value={disablePassword}
-                        onChange={(e) => setDisablePassword(e.target.value)}
+                        onChange={(e) => { setDisablePassword(e.target.value); }}
                     />
                     <Box sx={{mt: 1, width: '100%'}}>
                         <Typography variant="caption" color="text.secondary" sx={{display: 'block', mb: 1, fontWeight: 600, textAlign: 'center'}}>
@@ -454,11 +454,11 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                     </Box>
                 </DialogContent>
                 <DialogActions sx={{p: 3}}>
-                    <Button onClick={() => setDisableDialogOpen(false)}>{intl.formatMessage({id: 'common.cancel'})}</Button>
+                    <Button onClick={() => { setDisableDialogOpen(false); }}>{intl.formatMessage({id: 'common.cancel'})}</Button>
                     <Button 
                         variant="contained" 
                         color="error"
-                        onClick={handleDisable2FA} 
+                        onClick={() => { void handleDisable2FA(); }} 
                         disabled={loading || !disablePassword || disableCode.length !== 6}
                     >
                         {loading ? <CircularProgress size={24} /> : intl.formatMessage({id: 'settings.security.twoFactor.disable'})}
@@ -466,13 +466,13 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                 </DialogActions>
             </Dialog>
 
-            <Snackbar open={!!showSuccess} autoHideDuration={3000} onClose={() => setShowSuccess(null)}>
+            <Snackbar open={!!showSuccess} autoHideDuration={3000} onClose={() => { setShowSuccess(null); }}>
                 <Alert severity="success" variant="filled" sx={{borderRadius: '12px'}}>
                     {showSuccess}
                 </Alert>
             </Snackbar>
 
-            <Snackbar open={!!error} autoHideDuration={5000} onClose={() => setError(null)}>
+            <Snackbar open={!!error} autoHideDuration={5000} onClose={() => { setError(null); }}>
                 <Alert severity="error" variant="filled" sx={{borderRadius: '12px'}}>
                     {error}
                 </Alert>

@@ -1,6 +1,6 @@
 import {SIDEBAR_PERMISSIONS, type PermissionCode} from '@constants/permissions';
 
-type HasAnyPermission = (permissions: readonly PermissionCode[]) => boolean;
+type HasAnyPermission = (_permissions: readonly PermissionCode[]) => boolean;
 
 export type AppSection =
     | 'MY_PLAN'

@@ -38,7 +38,7 @@ export function DidacticsCourseView({unitId, facultyId, data, onRefresh}: Didact
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-    const itemsWithId: CourseListItem[] = (data || []).map((item) => ({
+    const itemsWithId: CourseListItem[] = data.map((item) => ({
         ...item,
         id: item.course_code,
     }));
@@ -161,7 +161,7 @@ export function DidacticsCourseView({unitId, facultyId, data, onRefresh}: Didact
                     )}
                     cancelButtonLabel={intl.formatMessage({id: 'didactics.common.cancel'})}
                     confirmButtonLabel={intl.formatMessage({id: 'didactics.common.delete'})}
-                    onConfirm={handleConfirmDelete}
+                    onConfirm={() => { void handleConfirmDelete(); }}
                     onClose={() => {
                         setIsDeleteOpen(false);
                     }}

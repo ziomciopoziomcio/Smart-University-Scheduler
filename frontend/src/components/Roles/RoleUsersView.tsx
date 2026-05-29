@@ -69,13 +69,13 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
     const [selectedRight, setSelectedRight] = useState<Set<number>>(new Set());
 
     useEffect(() => {
-        const timer = setTimeout(() => setDebouncedLeftSearch(leftSearch), 500);
-        return () => clearTimeout(timer);
+        const timer = setTimeout(() => { setDebouncedLeftSearch(leftSearch); }, 500);
+        return () => { clearTimeout(timer); };
     }, [leftSearch]);
 
     useEffect(() => {
-        const timer = setTimeout(() => setDebouncedRightSearch(rightSearch), 500);
-        return () => clearTimeout(timer);
+        const timer = setTimeout(() => { setDebouncedRightSearch(rightSearch); }, 500);
+        return () => { clearTimeout(timer); };
     }, [rightSearch]);
 
     useEffect(() => {
@@ -163,9 +163,9 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
         setLoadingRight(true);
 
         try {
-            const promises = Array.from(selectedRight).map(async (userId) => {
+            const promises = Array.from(selectedRight).map((userId) => {
                 const user = rightUsers.find((u) => u.id === userId);
-                if (!user) return;
+                if (!user) return Promise.resolve();
 
                 const newRoles = [...(user.roles || []), role.role_name];
                 return updateUser(userId, {roles: newRoles});
@@ -191,9 +191,9 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
         setLoadingRight(true);
 
         try {
-            const promises = Array.from(selectedLeft).map(async (userId) => {
+            const promises = Array.from(selectedLeft).map((userId) => {
                 const user = leftUsers.find((u) => u.id === userId);
-                if (!user) return;
+                if (!user) return Promise.resolve();
 
                 const newRoles = (user.roles || []).filter((r) => r !== role.role_name);
                 return updateUser(userId, {roles: newRoles});
@@ -281,7 +281,7 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
                                     <ListItem key={user.id} disablePadding sx={{borderBottom: '1px solid rgba(0,0,0,0.04)'}}>
                                         <ListItemButton
                                             disabled={isDisabled}
-                                            onClick={() => handleToggleSelect(user.id, 'left')}
+                                            onClick={() => { handleToggleSelect(user.id, 'left'); }}
                                             selected={isSelected}
                                             sx={{
                                                 py: 1.5,
@@ -341,7 +341,7 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
                         <span>
                             <IconButton
                                 color="primary"
-                                onClick={handleMoveLeft}
+                                onClick={() => { void handleMoveLeft(); }}
                                 aria-label={intl.formatMessage({id: 'roles.assignAction', defaultMessage: 'Assign role'})}
                                 disabled={!canAddUserToRole || selectedRight.size === 0 || loadingLeft || loadingRight}
                                 sx={{
@@ -364,7 +364,7 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
                         <span>
                             <IconButton
                                 color="primary"
-                                onClick={handleMoveRight}
+                                onClick={() => { void handleMoveRight(); }}
                                 aria-label={intl.formatMessage({id: 'roles.removeAction', defaultMessage: 'Remove role'})}
                                 disabled={!canRemoveUserFromRole || selectedLeft.size === 0 || loadingLeft || loadingRight}
                                 sx={{
@@ -399,7 +399,7 @@ export function RoleUsersView({role}: RoleUsersViewProps) {
                                     <ListItem key={user.id} disablePadding sx={{borderBottom: '1px solid rgba(0,0,0,0.04)'}}>
                                         <ListItemButton
                                             disabled={!canAddUserToRole}
-                                            onClick={() => handleToggleSelect(user.id, 'right')}
+                                            onClick={() => { handleToggleSelect(user.id, 'right'); }}
                                             selected={isSelected}
                                             sx={{
                                                 py: 1.5,

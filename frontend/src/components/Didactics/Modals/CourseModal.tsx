@@ -61,7 +61,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
 
     // Class types state
     const [selectedTypes, setSelectedTypes] = useState<Record<ClassType, { enabled: boolean; hours: number; original?: CourseTypeDetail }>>(() => {
-        return CLASS_TYPES.reduce((acc, t) => {
+        return CLASS_TYPES.reduce<Record<ClassType, { enabled: boolean; hours: number; original?: CourseTypeDetail }>>((acc, t) => {
             acc[t] = {enabled: false, hours: 0};
             return acc;
         }, {} as Record<ClassType, { enabled: boolean; hours: number; original?: CourseTypeDetail }>);
@@ -113,7 +113,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
             }
 
             // Reset class types
-            const initialTypes = CLASS_TYPES.reduce((acc, t) => {
+            const initialTypes = CLASS_TYPES.reduce<Record<ClassType, { enabled: boolean; hours: number; original?: CourseTypeDetail }>>((acc, t) => {
                 acc[t] = {enabled: false, hours: 0};
                 return acc;
             }, {} as Record<ClassType, { enabled: boolean; hours: number; original?: CourseTypeDetail }>);
@@ -376,7 +376,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
                                 control={
                                     <Checkbox
                                         checked={selectedTypes[type].enabled}
-                                        onChange={() => handleTypeToggle(type)}
+                                        onChange={() => { handleTypeToggle(type); }}
                                         sx={{color: '#2b5073', '&.Mui-checked': {color: '#2b5073'}}}
                                     />
                                 }
@@ -388,7 +388,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
                                 type="number"
                                 label={intl.formatMessage({id: 'didactics.courses.hoursLabel'})}
                                 value={selectedTypes[type].hours}
-                                onChange={(e) => handleHoursChange(type, e.target.value)}
+                                onChange={(e) => { handleHoursChange(type, e.target.value); }}
                                 disabled={!selectedTypes[type].enabled}
                                 sx={{width: '120px'}}
                                 InputProps={{sx: {borderRadius: '8px'}}}
@@ -401,7 +401,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
                     <Button
                         variant="contained"
                         fullWidth
-                        onClick={handleSubmit}
+                        onClick={() => { void handleSubmit(); }}
                         disabled={loading || loadingEmployees}
                         sx={{
                             py: 1.5,

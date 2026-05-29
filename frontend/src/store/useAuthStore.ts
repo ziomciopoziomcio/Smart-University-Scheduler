@@ -13,7 +13,7 @@ export interface AuthState {
     finalizeLogin: (token: string) => Promise<void>;
     logout: () => void;
     initialize: () => Promise<void>;
-    setSessionExpired: (expired: boolean) => void;
+    setSessionExpired: (_expired: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
