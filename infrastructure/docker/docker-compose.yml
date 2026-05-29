@@ -38,10 +38,13 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+      SECRET_KEY: ${SECRET_KEY}
+      BACKEND_URL: "http://backend:3000"
     ports:
       - "8081:8080"
     depends_on:
       - postgres
+      - backend
 
   # graph DB
   neo4j:
