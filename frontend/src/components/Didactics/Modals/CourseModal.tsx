@@ -130,6 +130,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
                     })
                     .catch(() => {
                         const message = intl.formatMessage({
+                            id: 'didactics.courses.errorLoadTypes',
                             defaultMessage: 'Failed to load existing class types for this course. The editor will be closed to prevent saving incomplete data.'
                         });
                         setError(message);

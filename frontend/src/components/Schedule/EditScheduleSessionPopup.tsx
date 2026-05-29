@@ -1,4 +1,4 @@
-import {useMemo, useState} from 'react';
+import {useMemo, useState, useEffect} from 'react';
 import {
     Box,
     Button,
@@ -111,12 +111,10 @@ export function EditScheduleSessionPopup({
     }, [fallbackValues, initialValues]);
 
     const [formValues, setFormValues] = useState<FormValues>(valuesFromProps);
-    const [prevValues, setPrevValues] = useState<FormValues>(valuesFromProps);
 
-    if (valuesFromProps !== prevValues) {
-        setPrevValues(valuesFromProps);
+    useEffect(() => {
         setFormValues(valuesFromProps);
-    }
+    }, [valuesFromProps]);
 
     const handleSave = async () => {
         await onSave({

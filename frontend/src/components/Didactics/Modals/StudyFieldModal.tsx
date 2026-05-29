@@ -5,7 +5,8 @@ import {
 } from '@mui/material';
 import {useIntl} from 'react-intl';
 import {type StudyField, createStudyField, updateStudyField} from '@api';
-import type {StudyDegree, StudyMode} from '@api/domains/courses/types';
+import type {StudyDegree, StudyMode, StudyFieldCreate} from '@api/domains/courses/types';
+import type {CourseLanguage} from '@api/core';
 
 interface StudyFieldModalProps {
     open: boolean;
@@ -17,6 +18,7 @@ interface StudyFieldModalProps {
 
 const DEGREES: StudyDegree[] = ['Bachelor', 'Master', 'Uniform_Master', 'Doctoral'];
 const MODES: StudyMode[] = ['Full-time', 'Part-time'];
+const LANGUAGES: CourseLanguage[] = ['Polish', 'English', 'French'];
 
 export function StudyFieldModal({open, studyField, facultyId, onClose, onSuccess}: StudyFieldModalProps) {
     const intl = useIntl();
@@ -24,6 +26,7 @@ export function StudyFieldModal({open, studyField, facultyId, onClose, onSuccess
     const [name, setName] = useState('');
     const [degree, setDegree] = useState<StudyDegree>('Bachelor');
     const [mode, setMode] = useState<StudyMode>('Full-time');
+    const [language, setLanguage] = useState<CourseLanguage>('Polish');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +35,7 @@ export function StudyFieldModal({open, studyField, facultyId, onClose, onSuccess
             setName(studyField?.field_name || '');
             setDegree(studyField?.degree || 'Bachelor');
             setMode(studyField?.mode || 'Full-time');
+            setLanguage(studyField?.language || 'Polish');
             setError(null);
         }
     }, [open, studyField]);
@@ -46,17 +50,18 @@ export function StudyFieldModal({open, studyField, facultyId, onClose, onSuccess
         setError(null);
 
         try {
-            const payload = {
+            const payload: StudyFieldCreate = {
                 field_name: name.trim(),
                 faculty: facultyId,
                 degree,
-                mode
+                mode,
+                language
             };
 
             if (isEdit && studyField) {
                 await updateStudyField(studyField.id, payload);
             } else {
-                await createStudyField(payload as any);
+                await createStudyField(payload);
             }
             onSuccess();
             onClose();
@@ -119,6 +124,21 @@ export function StudyFieldModal({open, studyField, facultyId, onClose, onSuccess
                         ))}
                     </TextField>
                 </Box>
+
+                <TextField
+                    select
+                    fullWidth
+                    label={intl.formatMessage({id: 'didactics.fields.languageLabel', defaultMessage: 'Język'})}
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value as CourseLanguage)}
+                    InputProps={{sx: {borderRadius: '12px'}}}
+                >
+                    {LANGUAGES.map(l => (
+                        <MenuItem key={l} value={l}>
+                            {intl.formatMessage({id: `didactics.courses.language${l}`})}
+                        </MenuItem>
+                    ))}
+                </TextField>
 
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
                     <Button

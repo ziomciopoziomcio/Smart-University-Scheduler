@@ -155,7 +155,7 @@ export function CourseInstructorModal({open, course, instructor, facultyId, onCl
                     variant="contained"
                     fullWidth
                     onClick={handleSubmit}
-                    disabled={loading || !form.employee || !form.hours || !form.class_type || availableTypes.length === 0}
+                    disabled={loading || !form.employee || !form.hours || !form.class_type || (!isEdit && availableTypes.length === 0)}
                     sx={{borderRadius: '12px', bgcolor: '#2b5073', py: 1.5}}
                 >
                     {loading ? <CircularProgress size={24}
