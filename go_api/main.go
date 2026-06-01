@@ -20,7 +20,7 @@ func main() {
 		})
 	})
 
-	routes.RegisterRoutes(r)
+	routes.RegisterV1Routes(r)
 
 	r.Run(":8080")
 }
