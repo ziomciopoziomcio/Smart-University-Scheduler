@@ -1095,46 +1095,50 @@ def _parse_time_str_to_timeobj(tstr: str) -> time:
     return datetime.strptime(tstr, "%H:%M").time()
 
 
+def _check_single_overlap(
+    rec: schemas.ScheduleEntry, event_start_dt: datetime, event_end_dt: datetime
+) -> dict | None:
+    """
+    Checks if a single schedule entry overlaps with the given time range.
+    Returns conflict dictionary if overlap occurs, else None.
+    """
+    sess_date = rec.date
+    if not (event_start_dt.date() <= sess_date <= event_end_dt.date()):
+        return None
+
+    sess_start = _parse_time_str_to_timeobj(rec.start_time)
+    sess_end = _parse_time_str_to_timeobj(rec.end_time)
+
+    sess_start_dt = datetime.combine(sess_date, sess_start, tzinfo=event_start_dt.tzinfo)
+    sess_end_dt = datetime.combine(sess_date, sess_end, tzinfo=event_start_dt.tzinfo)
+
+    if event_end_dt <= sess_start_dt or event_start_dt >= sess_end_dt:
+        return None
+
+    return {
+        "session_date": sess_date.isoformat(),
+        "session_start": sess_start.strftime("%H:%M"),
+        "session_end": sess_end.strftime("%H:%M"),
+        "session_title": rec.title,
+        "session_id": rec.id,
+    }
+
+
 def _event_overlaps_schedule(
     event_start_dt: datetime,
     event_end_dt: datetime,
     schedule_entries: list[schemas.ScheduleEntry],
 ) -> list[dict]:
     """
-    Checks for overlaps: compares physical_date and times for each day in schedule_entries.
+    Checks for overlaps against a list of schedule_entries.
     Returns a list of conflicts (may be empty).
     """
     conflicts = []
     for rec in schedule_entries:
-        sess_date = rec.date  # date
-        if (sess_date >= event_start_dt.date()) and (sess_date <= event_end_dt.date()):
-            sess_start = (
-                _parse_time_str_to_timeobj(rec.start_time)
-                if hasattr(rec, "start_time")
-                else _parse_time_str_to_timeobj(rec.startTime)
-            )  # zależnie od serializacji
-            sess_end = (
-                _parse_time_str_to_timeobj(rec.end_time)
-                if hasattr(rec, "end_time")
-                else _parse_time_str_to_timeobj(rec.endTime)
-            )
-            sess_start_dt = datetime.combine(
-                sess_date, sess_start, tzinfo=event_start_dt.tzinfo
-            )
-            sess_end_dt = datetime.combine(
-                sess_date, sess_end, tzinfo=event_start_dt.tzinfo
-            )
+        conflict = _check_single_overlap(rec, event_start_dt, event_end_dt)
+        if conflict:
+            conflicts.append(conflict)
 
-            if not (event_end_dt <= sess_start_dt or event_start_dt >= sess_end_dt):
-                conflicts.append(
-                    {
-                        "session_date": sess_date.isoformat(),
-                        "session_start": sess_start.strftime("%H:%M"),
-                        "session_end": sess_end.strftime("%H:%M"),
-                        "session_title": getattr(rec, "title", None) or rec.title,
-                        "session_id": getattr(rec, "id", None) or rec.id,
-                    }
-                )
     return conflicts
 
 
