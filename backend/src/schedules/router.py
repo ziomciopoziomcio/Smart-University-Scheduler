@@ -1279,7 +1279,17 @@ async def update_custom_event(
             },
         )
 
-    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"description"})
+    _apply_patch_or_reject_nulls(
+        obj,
+        payload,
+        nullable_fields={
+            "description",
+            "related_group_id",
+            "related_room_id",
+            "related_session_id",
+        },
+    )
+
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
