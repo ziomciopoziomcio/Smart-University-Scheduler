@@ -28,6 +28,10 @@ func RegisterV1Routes(r *gin.Engine, db *gorm.DB) {
 	v1.GET("/faculties", handlers.GetFaculties)
 	v1.POST("/faculties", middleware.AdminOnly(db), handlers.CreateFaculty)
 
+	// units
+	v1.GET("/units", handlers.GetUnits)
+	v1.POST("/units", handlers.CreateUnit)
+
 	// students
-	v1.POST("/students", handlers.CreateStudent)
+	// v1.POST("/students", handlers.CreateStudent)
 }
