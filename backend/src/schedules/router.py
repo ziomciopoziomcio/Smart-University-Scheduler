@@ -1220,15 +1220,15 @@ def list_custom_events(
     )
 
 
-@router.get("/custom-events/{event_id}", response_model=CustomEventRead)
+@router.get("/custom-events/{custom_event_id}", response_model=CustomEventRead)
 def get_custom_event(
-    event_id: int,
+    custom_event_id: int,
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(
         require_permission("custom-events:view")
     ),
 ):
-    obj = _get_or_404(db, Custom_events, event_id, "Custom Event")
+    obj = _get_or_404(db, Custom_events, custom_event_id, "Custom Event")
 
     is_privileged = user_has_permission(_current_user, "custom-events:create")
 
@@ -1241,9 +1241,9 @@ def get_custom_event(
     return obj
 
 
-@router.patch("/custom-events/{event_id}", response_model=CustomEventRead)
+@router.patch("/custom-events/{custom_event_id}", response_model=CustomEventRead)
 async def update_custom_event(
-    event_id: int,
+    custom_event_id: int,
     payload: CustomEventUpdate,
     db: Session = Depends(get_db),
     neo4j_session=Depends(get_neo4j_session),
@@ -1251,7 +1251,7 @@ async def update_custom_event(
         require_permission("custom-events:update")
     ),
 ):
-    obj = _get_or_404(db, Custom_events, event_id, "Custom Event")
+    obj = _get_or_404(db, Custom_events, custom_event_id, "Custom Event")
 
     new_start = payload.start_dt or obj.start_dt
     new_end = payload.end_dt or obj.end_dt
@@ -1296,15 +1296,15 @@ async def update_custom_event(
     return obj
 
 
-@router.delete("/custom-events/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/custom-events/{custom_event_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_custom_event(
-    event_id: int,
+    custom_event_id: int,
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(
         require_permission("custom-events:delete")
     ),
 ):
-    obj = _get_or_404(db, Custom_events, event_id, "Custom Event")
+    obj = _get_or_404(db, Custom_events, custom_event_id, "Custom Event")
     db.delete(obj)
     _commit_or_rollback(db)
     return None
