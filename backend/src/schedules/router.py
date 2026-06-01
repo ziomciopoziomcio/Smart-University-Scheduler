@@ -1092,8 +1092,6 @@ async def _get_user_week_schedule_for_date(
 
 
 def _parse_time_str_to_timeobj(tstr: str) -> time:
-    from datetime import datetime
-
     return datetime.strptime(tstr, "%H:%M").time()
 
 
