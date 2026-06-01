@@ -1195,6 +1195,16 @@ def list_custom_events(
         require_permission("custom-events:view")
     ),
 ):
+    is_privileged = user_has_permission(_current_user, "custom-events:create")
+
+    if not is_privileged:
+        if user_id is not None and user_id != _current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only view your own custom events.",
+            )
+        user_id = _current_user.id
+
     query = db.query(Custom_events)
     count_query = db.query(Custom_events.id)
     if user_id is not None:
