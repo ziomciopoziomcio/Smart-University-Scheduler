@@ -1228,7 +1228,17 @@ def get_custom_event(
         require_permission("custom-events:view")
     ),
 ):
-    return _get_or_404(db, Custom_events, event_id, "Custom Event")
+    obj = _get_or_404(db, Custom_events, event_id, "Custom Event")
+
+    is_privileged = user_has_permission(_current_user, "custom-events:create")
+
+    if not is_privileged and obj.user_id != _current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only view your own custom events.",
+        )
+
+    return obj
 
 
 @router.patch("/custom-events/{event_id}", response_model=CustomEventRead)
