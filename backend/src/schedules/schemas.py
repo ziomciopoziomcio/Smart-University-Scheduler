@@ -14,6 +14,7 @@ from pydantic import (
 from enum import Enum
 from .models import AbsenceStatus
 from .models import SuggestionStatus
+from .models import CustomEventType
 from ..academics.models import SemesterType
 from ..courses.models import ClassType
 
@@ -142,3 +143,50 @@ class UpdateScheduleSessionRequest(BaseModel):
     apply_once: bool = Field(
         default=False, alias="applyOnce"
     )  # todo develop in next release
+
+
+class CustomEventBase(BaseSchema):
+    user_id: int
+    title: Annotated[str, StringConstraints(max_length=255)]
+    description: Annotated[str, StringConstraints(max_length=1024)] | None = None
+    event_type: CustomEventType
+    start_dt: datetime
+    end_dt: datetime
+
+    related_group_id: int | None = None
+    related_room_id: int | None = None
+    related_session_id: uuid.UUID | None = None
+
+
+class CustomEventCreate(CustomEventBase):
+    @model_validator(mode="after")
+    def validate_dates(self):
+        if self.start_dt > self.end_dt:
+            raise ValueError("start_dt must be before or equal to end_dt")
+        return self
+
+
+class CustomEventRead(CustomEventBase):
+    id: int
+    event_id: uuid.UUID
+    created_by: int
+    created_at: datetime
+    updated_at: datetime | None = None
+
+
+class CustomEventUpdate(BaseModel):
+    title: Annotated[str, StringConstraints(max_length=255)] | None = None
+    description: Annotated[str, StringConstraints(max_length=1024)] | None = None
+    event_type: CustomEventType | None = None
+    start_dt: datetime | None = None
+    end_dt: datetime | None = None
+    related_group_id: int | None = None
+    related_room_id: int | None = None
+    related_session_id: uuid.UUID | None = None
+
+    @model_validator(mode="after")
+    def validate_if_both_dates(self):
+        if self.start_dt is not None and self.end_dt is not None:
+            if self.start_dt > self.end_dt:
+                raise ValueError("start_dt must be before or equal to end_dt")
+        return self

@@ -1,11 +1,13 @@
 import logging
 import uuid
-from datetime import timezone, datetime, date, timedelta
+from datetime import timezone, datetime, date, timedelta, time
 
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import cast, String
 
+from .models import Custom_events
+from .schemas import CustomEventRead, CustomEventCreate, CustomEventUpdate
 from ..academics.models import Students, Employees
 from . import models
 from . import schemas
@@ -1049,4 +1051,216 @@ async def update_schedule_session(
             detail="Schedule conflict detected",
         )
 
+    return None
+
+
+def _week_start_from_date(d: date) -> date:
+    return d - timedelta(days=d.weekday())
+
+
+async def _get_user_week_schedule_for_date(
+    db: Session, neo4j_session, user_id: int, reference_date: date
+) -> list[schemas.ScheduleEntry]:
+    """Returns a list of ScheduleEntry objects for the week containing the reference_date for the specified user_id."""
+    week_start = _week_start_from_date(reference_date)
+    day_configs = _get_academic_day_configs(db, week_start)
+    if not day_configs:
+        return []
+
+    student = _get_student_with_user_id(db, user_id)
+    employee = _get_employee_with_user_id(db, user_id)
+
+    if student:
+        group_ids = _get_student_group_ids(db, student.id)
+        if not group_ids:
+            return []
+        result = await neo4j_session.run(
+            STUDY_FIELD_PLAN_ACADEMIC_QUERY,
+            group_ids=group_ids,
+            day_configs=day_configs,
+        )
+        records = await result.data()
+        return _map_schedule_entries(records)
+    elif employee:
+        result = await neo4j_session.run(
+            EMPLOYEE_SCHEDULE_QUERY, instructor_id=employee.id, day_configs=day_configs
+        )
+        records = await result.data()
+        return _map_schedule_entries(records)
+    else:
+        return []
+
+
+def _parse_time_str_to_timeobj(tstr: str) -> time:
+    from datetime import datetime
+
+    return datetime.strptime(tstr, "%H:%M").time()
+
+
+def _event_overlaps_schedule(
+    event_start_dt: datetime,
+    event_end_dt: datetime,
+    schedule_entries: list[schemas.ScheduleEntry],
+) -> list[dict]:
+    """
+    Checks for overlaps: compares physical_date and times for each day in schedule_entries.
+    Returns a list of conflicts (may be empty).
+    """
+    conflicts = []
+    for rec in schedule_entries:
+        sess_date = rec.date  # date
+        if (sess_date >= event_start_dt.date()) and (sess_date <= event_end_dt.date()):
+            sess_start = (
+                _parse_time_str_to_timeobj(rec.start_time)
+                if hasattr(rec, "start_time")
+                else _parse_time_str_to_timeobj(rec.startTime)
+            )  # zależnie od serializacji
+            sess_end = (
+                _parse_time_str_to_timeobj(rec.end_time)
+                if hasattr(rec, "end_time")
+                else _parse_time_str_to_timeobj(rec.endTime)
+            )
+            sess_start_dt = datetime.combine(
+                sess_date, sess_start, tzinfo=event_start_dt.tzinfo
+            )
+            sess_end_dt = datetime.combine(
+                sess_date, sess_end, tzinfo=event_start_dt.tzinfo
+            )
+
+            if not (event_end_dt <= sess_start_dt or event_start_dt >= sess_end_dt):
+                conflicts.append(
+                    {
+                        "session_date": sess_date.isoformat(),
+                        "session_start": sess_start.strftime("%H:%M"),
+                        "session_end": sess_end.strftime("%H:%M"),
+                        "session_title": getattr(rec, "title", None) or rec.title,
+                        "session_id": getattr(rec, "id", None) or rec.id,
+                    }
+                )
+    return conflicts
+
+
+@router.post(
+    "/custom-events",
+    response_model=CustomEventRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_custom_event(
+    payload: CustomEventCreate,
+    db: Session = Depends(get_db),
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(
+        require_permission("custom-events:create")
+    ),
+):
+    schedule_entries = await _get_user_week_schedule_for_date(
+        db, neo4j_session, payload.user_id, payload.start_dt.date()
+    )
+    conflicts = _event_overlaps_schedule(
+        payload.start_dt, payload.end_dt, schedule_entries
+    )
+
+    if conflicts:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "Event conflicts with existing scheduled sessions",
+                "conflicts": conflicts,
+            },
+        )
+
+    obj = Custom_events(**payload.model_dump(), created_by=_current_user.id)
+    db.add(obj)
+    _commit_or_rollback(db)
+    db.refresh(obj)
+    return obj
+
+
+@router.get("/custom-events", response_model=PaginatedResponse[CustomEventRead])
+def list_custom_events(
+    user_id: int | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("custom-events:view")
+    ),
+):
+    query = db.query(Custom_events)
+    count_query = db.query(Custom_events.id)
+    if user_id is not None:
+        query = query.filter(Custom_events.user_id == user_id)
+        count_query = count_query.filter(Custom_events.user_id == user_id)
+
+    return paginate(
+        query,
+        limit,
+        offset,
+        order_by=Custom_events.created_at.desc(),
+        count_query=count_query,
+    )
+
+
+@router.get("/custom-events/{event_id}", response_model=CustomEventRead)
+def get_custom_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("custom-events:view")
+    ),
+):
+    return _get_or_404(db, Custom_events, event_id, "Custom Event")
+
+
+@router.patch("/custom-events/{event_id}", response_model=CustomEventRead)
+async def update_custom_event(
+    event_id: int,
+    payload: CustomEventUpdate,
+    db: Session = Depends(get_db),
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(
+        require_permission("custom-events:update")
+    ),
+):
+    obj = _get_or_404(db, Custom_events, event_id, "Custom Event")
+
+    new_start = payload.start_dt or obj.start_dt
+    new_end = payload.end_dt or obj.end_dt
+    new_user_id = (
+        payload.user_id
+        if hasattr(payload, "user_id") and payload.user_id is not None
+        else obj.user_id
+    )
+
+    schedule_entries = await _get_user_week_schedule_for_date(
+        db, neo4j_session, new_user_id, new_start.date()
+    )
+    conflicts = _event_overlaps_schedule(new_start, new_end, schedule_entries)
+    if conflicts:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "Updated event conflicts with existing scheduled sessions",
+                "conflicts": conflicts,
+            },
+        )
+
+    _apply_patch_or_reject_nulls(obj, payload, nullable_fields={"description"})
+    db.add(obj)
+    _commit_or_rollback(db)
+    db.refresh(obj)
+    return obj
+
+
+@router.delete("/custom-events/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_custom_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(
+        require_permission("custom-events:delete")
+    ),
+):
+    obj = _get_or_404(db, Custom_events, event_id, "Custom Event")
+    db.delete(obj)
+    _commit_or_rollback(db)
     return None

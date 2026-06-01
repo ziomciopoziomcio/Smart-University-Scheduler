@@ -25,6 +25,7 @@
     "class-sessions:view", "class-session:view", "class-session:update", "class-session:delete", "class-session:create",
     "suggestions:view", "suggestion:view", "suggestion:create", "suggestion:update", "suggestion:delete", "suggestion:approve", "suggestion:reject",
     "absences:view", "absence:view", "absence:create", "absence:update", "absence:delete",
+    "custom-events:create", "custom-events:view", "custom-events:update", "custom-events:delete",
     "permissions:view", "permission:add-to-role", "permission:delete",
     "calendar-bulk:create", "calendar-day:create", "calendar-days:view", "calendar-day:view", "calendar-day:update", "calendar-day:delete",
     "chat:create", "chats:view", "chat:view", "chat:update", "chat:delete",
@@ -56,6 +57,7 @@
     "class-sessions:view", "class-session:view", "class-session:update", "class-session:delete", "class-session:create",
     "suggestions:view", "suggestion:view", "suggestion:create", "suggestion:update", "suggestion:delete", "suggestion:approve", "suggestion:reject",
     "absences:view", "absence:view",
+    "custom-events:create", "custom-events:view", "custom-events:update", "custom-events:delete",
     "settings:create", "settings:view", "settings:update", "settings:delete",
     "optimization:run", "optimization:view"
   ],
@@ -84,6 +86,7 @@
     "class-sessions:view", "class-session:view", "class-session:update", "class-session:delete", "class-session:create",
     "suggestions:view", "suggestion:view", "suggestion:create", "suggestion:update", "suggestion:delete", "suggestion:approve", "suggestion:reject",
     "absences:view", "absence:view", "absence:create", "absence:update", "absence:delete",
+    "custom-events:create", "custom-events:view", "custom-events:update", "custom-events:delete",
     "settings:view"
   ],
   "Unit head": [
@@ -110,6 +113,7 @@
     "class-sessions:view", "class-session:view",
     "suggestions:view", "suggestion:view", "suggestion:create",
     "absences:view", "absence:view", "absence:create", "absence:update",
+    "custom-events:view",
     "settings:view"
   ],
   "Instructor": [
@@ -136,6 +140,7 @@
     "class-sessions:view", "class-session:view",
     "suggestions:view", "suggestion:view", "suggestion:create",
     "absences:view", "absence:view", "absence:create", "absence:update",
+    "custom-events:view",
     "settings:view"
   ],
   "Student": [
@@ -161,7 +166,8 @@
     "course-instructor:view",
     "class-sessions:view", "class-session:view",
     "suggestions:view", "suggestion:view", "suggestion:create",
-    "absences:view", "absence:view"
+    "absences:view", "absence:view",
+    "custom-events:view"
   ],
   "Administrative Staff": [
     "employees:view", "employee:view",
@@ -184,7 +190,8 @@
     "course-instructor:view",
     "class-sessions:view", "class-session:view",
     "suggestions:view", "suggestion:view", "suggestion:create",
-    "absences:view", "absence:view"
+    "absences:view", "absence:view",
+    "custom-events:view"
   ],
   "Guest": [
     "units:view", "unit:view",
