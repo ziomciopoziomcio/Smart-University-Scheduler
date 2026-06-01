@@ -36,6 +36,14 @@ func RegisterV1Routes(r *gin.Engine, db *gorm.DB) {
 	v1.GET("/study-fields", handlers.GetStudyFields)
     v1.POST("/study-fields", handlers.CreateStudyField)
 
+    // major
+    v1.GET("/majors", handlers.GetMajors)
+	v1.POST("/majors", handlers.CreateMajor)
+
+    // elective block
+    v1.GET("/elective-blocks", handlers.GetElectiveBlocks)
+	v1.POST("/elective-blocks", handlers.CreateElectiveBlock)
+
 	// students
 	// v1.POST("/students", handlers.CreateStudent)
 	v1.POST("/users", middleware.AdminOnly(db), handlers.CreateUserProxy)
