@@ -1109,7 +1109,9 @@ def _check_single_overlap(
     sess_start = _parse_time_str_to_timeobj(rec.start_time)
     sess_end = _parse_time_str_to_timeobj(rec.end_time)
 
-    sess_start_dt = datetime.combine(sess_date, sess_start, tzinfo=event_start_dt.tzinfo)
+    sess_start_dt = datetime.combine(
+        sess_date, sess_start, tzinfo=event_start_dt.tzinfo
+    )
     sess_end_dt = datetime.combine(sess_date, sess_end, tzinfo=event_start_dt.tzinfo)
 
     if event_end_dt <= sess_start_dt or event_start_dt >= sess_end_dt:
