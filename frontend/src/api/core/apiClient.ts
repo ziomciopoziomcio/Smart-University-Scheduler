@@ -15,20 +15,22 @@ export const getHeaders = () => ({
 });
 
 // Global fetch interceptor for 401 Unauthorized errors
-const originalFetch = window.fetch.bind(window);
-window.fetch = async (...args) => {
-    const response = await originalFetch(...args);
-    
-    if (response.status === 401) {
-        const state = useAuthStore.getState();
-        // Only trigger if we're currently authenticated (avoid triggering on login screen)
-        if (state.token && !state.sessionExpired) {
-            state.setSessionExpired(true);
+if (typeof window !== 'undefined') {
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = async (...args) => {
+        const response = await originalFetch(...args);
+
+        if (response.status === 401) {
+            const state = useAuthStore.getState();
+            // Only trigger if we're currently authenticated (avoid triggering on login screen)
+            if (state.token && !state.sessionExpired) {
+                state.setSessionExpired(true);
+            }
         }
-    }
-    
-    return response;
-};
+
+        return response;
+    };
+}
 
 /**
  * Enhanced fetch wrapper that handles 401 Unauthorized errors globally.

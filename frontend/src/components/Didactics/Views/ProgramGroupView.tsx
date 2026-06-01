@@ -48,6 +48,10 @@ export function ProgramGroupView({
     const canCreateGroup = hasAnyPermission([PERMISSIONS.GROUP_CREATE]);
     const canUpdateGroup = hasAnyPermission([PERMISSIONS.GROUP_UPDATE]);
     const canDeleteGroup = hasAnyPermission([PERMISSIONS.GROUP_DELETE]);
+    const canViewGroupMembers = hasAnyPermission([
+        PERMISSIONS.GROUP_MEMBERS_VIEW,
+        PERMISSIONS.GROUP_MEMBER_VIEW,
+    ]);
     const canUseGroupActions = canUpdateGroup || canDeleteGroup;
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -131,7 +135,7 @@ export function ProgramGroupView({
     };
 
     const handleItemClick = (item: Group) => {
-        if (!canUpdateGroup) {
+        if (!canViewGroupMembers) {
             return;
         }
 
@@ -233,7 +237,7 @@ export function ProgramGroupView({
                         align: 'right',
                     },
                 ]}
-                onItemClick={canUpdateGroup ? handleItemClick : undefined}
+                onItemClick={canViewGroupMembers ? handleItemClick : undefined}
                 onMenuOpen={canUseGroupActions ? handleMenuOpen : undefined}
                 onAddClick={canCreateGroup ? handleAddClick : undefined}
                 addLabel={intl.formatMessage({id: 'didactics.programs.groups.add'})}

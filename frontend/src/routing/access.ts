@@ -56,11 +56,9 @@ export function canAccessDidactics(hasAnyPermission: HasAnyPermission): boolean 
     return (
         hasAnyPermission(COURSES)
         ||
-        (
-            hasAnyPermission(STUDY_FIELDS_BASE)
-            &&
-            hasAnyPermission(STUDY_FIELDS_INNER)
-        )
+        hasAnyPermission(STUDY_FIELDS_BASE)
+        ||
+        hasAnyPermission(STUDY_FIELDS_INNER)
     );
 }
 

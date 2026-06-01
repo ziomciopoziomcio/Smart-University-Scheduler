@@ -25,7 +25,7 @@ export function ProgramListView({
     fieldId,
     onRefresh,
     fieldName,
-    basePath = '/programs',
+    basePath = '/didactics/fields/faculty',
 }: ProgramListViewProps) {
     const navigate = useNavigate();
     const intl = useIntl();
