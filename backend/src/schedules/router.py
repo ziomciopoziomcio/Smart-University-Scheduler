@@ -1226,11 +1226,7 @@ async def update_custom_event(
 
     new_start = payload.start_dt or obj.start_dt
     new_end = payload.end_dt or obj.end_dt
-    new_user_id = (
-        payload.user_id
-        if hasattr(payload, "user_id") and payload.user_id is not None
-        else obj.user_id
-    )
+    new_user_id = obj.user_id
 
     schedule_entries = await _get_user_week_schedule_for_date(
         db, neo4j_session, new_user_id, new_start.date()
