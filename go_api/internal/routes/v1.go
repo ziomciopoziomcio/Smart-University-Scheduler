@@ -38,4 +38,5 @@ func RegisterV1Routes(r *gin.Engine, db *gorm.DB) {
 
 	// students
 	// v1.POST("/students", handlers.CreateStudent)
+	v1.POST("/users", middleware.AdminOnly(db), handlers.CreateUserProxy)
 }

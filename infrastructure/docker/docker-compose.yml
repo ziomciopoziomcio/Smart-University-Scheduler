@@ -139,9 +139,10 @@ services:
         condition: service_healthy
     ports:
       - "3000:3000"
+      - "50051:50051"
     volumes:
       - ../../backend:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 3000 --reload
+    command: sh -c "python grpc_server.py & uvicorn main:app --host 0.0.0.0 --port 3000 --reload"
 
   ai_worker:
     build:

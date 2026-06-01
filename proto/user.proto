@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "go_api/internal/rpc/user;user";
+
+service UserRpcService {
+  rpc CreateUserRPC (UserCreateRequest) returns (UserCreateResponse);
+}
+
+message UserCreateRequest {
+  string email = 1;
+  string name = 2;
+  string surname = 3;
+  string phone_number = 4;
+  string degree = 5;
+  bool send_login_credentials_email = 6;
+}
+
+message UserCreateResponse {
+  int32 id = 1;
+  string email = 2;
+  string status = 3;
+}
