@@ -1153,9 +1153,18 @@ async def create_custom_event(
         require_permission("custom-events:create")
     ),
 ):
-    schedule_entries = await _get_user_week_schedule_for_date(
-        db, neo4j_session, payload.user_id, payload.start_dt.date()
-    )
+    schedule_entries: list[schemas.ScheduleEntry] = []
+    week_cursor = _week_start_from_date(payload.start_dt.date())
+    end_week = _week_start_from_date(payload.end_dt.date())
+
+    while week_cursor <= end_week:
+        schedule_entries.extend(
+            await _get_user_week_schedule_for_date(
+                db, neo4j_session, payload.user_id, week_cursor
+            )
+        )
+        week_cursor += timedelta(days=7)
+
     conflicts = _event_overlaps_schedule(
         payload.start_dt, payload.end_dt, schedule_entries
     )
@@ -1228,9 +1237,18 @@ async def update_custom_event(
     new_end = payload.end_dt or obj.end_dt
     new_user_id = obj.user_id
 
-    schedule_entries = await _get_user_week_schedule_for_date(
-        db, neo4j_session, new_user_id, new_start.date()
-    )
+    schedule_entries: list[schemas.ScheduleEntry] = []
+    week_cursor = _week_start_from_date(new_start.date())
+    end_week = _week_start_from_date(new_end.date())
+
+    while week_cursor <= end_week:
+        schedule_entries.extend(
+            await _get_user_week_schedule_for_date(
+                db, neo4j_session, new_user_id, week_cursor
+            )
+        )
+        week_cursor += timedelta(days=7)
+
     conflicts = _event_overlaps_schedule(new_start, new_end, schedule_entries)
     if conflicts:
         raise HTTPException(
