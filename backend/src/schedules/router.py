@@ -1296,7 +1296,9 @@ async def update_custom_event(
     return obj
 
 
-@router.delete("/custom-events/{custom_event_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/custom-events/{custom_event_id}", status_code=status.HTTP_204_NO_CONTENT
+)
 def delete_custom_event(
     custom_event_id: int,
     db: Session = Depends(get_db),
