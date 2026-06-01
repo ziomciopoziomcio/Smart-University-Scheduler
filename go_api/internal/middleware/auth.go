@@ -1,107 +1,59 @@
 package middleware
 
 import (
-	"encoding/json"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"net/http"
-	"os"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	jwt "github.com/golang-jwt/jwt/v4"
+	"gorm.io/gorm"
+	"go_api/internal/models"
 )
 
-type Role struct {
-	RoleName string `json:"role_name"`
+func hashAPIKey(apiKey string) string {
+	hash := sha256.Sum256([]byte(apiKey))
+	return hex.EncodeToString(hash[:])
 }
 
-type userMeResponse struct {
-	ID    int    `json:"id"`
-	Email string `json:"email"`
-	Roles []string `json:"roles"`
-}
-
-func getSecretKey() (string, error) {
-	secret := os.Getenv("SECRET_KEY")
-	if secret == "" {
-		return "", ErrMissingSecret
-	}
-	return secret, nil
-}
-
-var ErrMissingSecret = errors.New("SECRET_KEY not set")
-
-func parseBearerToken(c *gin.Context) string {
-	auth := c.GetHeader("Authorization")
-	if auth == "" {
-		return ""
-	}
-	parts := strings.SplitN(auth, " ", 2)
-	if len(parts) != 2 {
-		return ""
-	}
-	if strings.ToLower(parts[0]) != "bearer" {
-		return ""
-	}
-	return parts[1]
-}
-
-func AdminOnly() gin.HandlerFunc {
+func AdminOnly(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenStr := parseBearerToken(c)
-		if tokenStr == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing Authorization header"})
+		providedAPIKey := c.GetHeader("X-API-Key")
+
+		if providedAPIKey == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing X-API-Key header"})
 			return
 		}
 
-		secret, err := getSecretKey()
+		hashedKey := hashAPIKey(providedAPIKey)
+
+		var user models.User
+		err := db.Preload("Roles").Where("api_key_hash = ?", hashedKey).First(&user).Error
+
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "server misconfiguration (SECRET_KEY)"})
-			return
-		}
-
-		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok || t.Method.Alg() != jwt.SigningMethodHS256.Alg() {
-				return nil, jwt.ErrTokenMalformed
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Invalid API key or insufficient permissions"})
+			} else {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error during key verification"})
 			}
-			return []byte(secret), nil
-		})
-
-		if err != nil || token == nil || !token.Valid {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 			return
 		}
 
+		isAdmin := false
+		for _, r := range user.Roles {
+			if strings.ToLower(r.RoleName) == "administrator" || strings.ToLower(r.RoleName) == "admin" {
+				isAdmin = true
+				break
+			}
+		}
 
-		backendURL := os.Getenv("BACKEND_URL")
-        if backendURL != "" {
-          client := &http.Client{Timeout: 5 * time.Second}
-          req, _ := http.NewRequest("GET", strings.TrimRight(backendURL, "/")+"/users/me", nil)
-          req.Header.Set("Authorization", "Bearer "+tokenStr)
-          resp, err := client.Do(req)
-
-          if err == nil && resp != nil {
-             defer resp.Body.Close()
-             if resp.StatusCode == http.StatusOK {
-                var um userMeResponse
-                if err := json.NewDecoder(resp.Body).Decode(&um); err == nil {
-                   // Iterujemy bezpośrednio po stringach
-                   for _, r := range um.Roles {
-                      if strings.ToLower(r) == "administrator" {
-                         // Użytkownik jest adminem, puszczamy dalej!
-                         c.Next()
-                         return
-                      }
-                   }
-                }
-             }
-          }
-		} else {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "server misconfiguration (BACKEND_URL)"})
+		if !isAdmin {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Required administrator privileges missing"})
 			return
 		}
 
-		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Dostęp wzbroniony: tylko dla administratorów"})
+		c.Set("admin_id", user.ID)
+		c.Next()
 	}
 }

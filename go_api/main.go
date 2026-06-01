@@ -20,7 +20,7 @@ func main() {
 		})
 	})
 
-	routes.RegisterV1Routes(r)
+	routes.RegisterV1Routes(r, db.DB)
 
 	r.Run(":8080")
 }

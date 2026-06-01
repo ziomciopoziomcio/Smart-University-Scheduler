@@ -1,6 +1,7 @@
 import json
 import logging
 import secrets
+import hashlib
 from datetime import datetime, timezone, timedelta
 
 import pyotp
@@ -83,6 +84,33 @@ def read_own_user(
     _current_user: user_models.Users = Depends(require_permission("user:me")),
 ):
     return current_user
+
+
+@router.post(
+    "/api-keys/generate",
+    response_model=schemas.APIKeyResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def generate_api_key(
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Generates a new API Key for the currently authenticated user.
+    The previous key is overwritten (invalidated).
+    """
+    raw_api_key = secrets.token_hex(32)
+
+    hashed_key = hashlib.sha256(raw_api_key.encode("utf-8")).hexdigest()
+
+    current_user.api_key_hash = hashed_key
+    db.add(current_user)
+    _commit_or_rollback(db)
+
+    return {
+        "detail": "API key generated. Please copy it since it won't be shown again.",
+        "api_key": raw_api_key,
+    }
 
 
 @router.post("/2fa/setup", response_model=schemas.TwoFactorSetupResponse)

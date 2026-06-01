@@ -70,6 +70,10 @@ class Users(Base):
         Boolean, nullable=False, server_default=text("false")
     )
 
+    api_key_hash: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, unique=True, index=True
+    )
+
     roles: Mapped[list["Roles"]] = relationship(
         secondary=user_roles, back_populates="users"
     )
