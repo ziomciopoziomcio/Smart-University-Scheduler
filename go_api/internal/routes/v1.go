@@ -27,4 +27,7 @@ func RegisterV1Routes(r *gin.Engine, db *gorm.DB) {
 	// faculties
 	v1.GET("/faculties", handlers.GetFaculties)
 	v1.POST("/faculties", middleware.AdminOnly(db), handlers.CreateFaculty)
+
+	// students
+	v1.POST("/students", handlers.CreateStudent)
 }
