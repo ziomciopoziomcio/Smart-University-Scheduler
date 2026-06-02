@@ -64,6 +64,18 @@ func RegisterV1Routes(r *gin.Engine, db *gorm.DB) {
 	v1.GET("/courses-instructors", handlers.GetCoursesInstructors)
 	v1.POST("/courses-instructors", handlers.CreateCoursesInstructor)
 
+	// groups
+	v1.GET("/groups", handlers.GetGroups)
+    v1.POST("/groups", handlers.CreateGroup)
+
+    // group members
+    v1.GET("/group-members", handlers.GetGroupMembers)
+    v1.POST("/group-members", handlers.CreateGroupMember)
+
+    // academic calendar
+    v1.GET("/academic-calendar", handlers.GetAcademicCalendar)
+    v1.POST("/academic-calendar", handlers.CreateAcademicCalendar)
+
 	// students
 	v1.POST("/users", middleware.AdminOnly(db), handlers.CreateUserProxy)
     v1.DELETE("/users/:id", middleware.AdminOnly(db), handlers.DeleteUserProxy)
