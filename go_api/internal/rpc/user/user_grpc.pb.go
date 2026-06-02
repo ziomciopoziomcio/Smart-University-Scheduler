@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	UserRpcService_CreateUserRPC_FullMethodName = "/user.UserRpcService/CreateUserRPC"
+	UserRpcService_DeleteUserRPC_FullMethodName = "/user.UserRpcService/DeleteUserRPC"
 )
 
 // UserRpcServiceClient is the client API for UserRpcService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserRpcServiceClient interface {
 	CreateUserRPC(ctx context.Context, in *UserCreateRequest, opts ...grpc.CallOption) (*UserCreateResponse, error)
+	DeleteUserRPC(ctx context.Context, in *UserDeleteRequest, opts ...grpc.CallOption) (*UserDeleteResponse, error)
 }
 
 type userRpcServiceClient struct {
@@ -46,11 +48,21 @@ func (c *userRpcServiceClient) CreateUserRPC(ctx context.Context, in *UserCreate
 	return out, nil
 }
 
+func (c *userRpcServiceClient) DeleteUserRPC(ctx context.Context, in *UserDeleteRequest, opts ...grpc.CallOption) (*UserDeleteResponse, error) {
+	out := new(UserDeleteResponse)
+	err := c.cc.Invoke(ctx, UserRpcService_DeleteUserRPC_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserRpcServiceServer is the server API for UserRpcService service.
 // All implementations must embed UnimplementedUserRpcServiceServer
 // for forward compatibility
 type UserRpcServiceServer interface {
 	CreateUserRPC(context.Context, *UserCreateRequest) (*UserCreateResponse, error)
+	DeleteUserRPC(context.Context, *UserDeleteRequest) (*UserDeleteResponse, error)
 	mustEmbedUnimplementedUserRpcServiceServer()
 }
 
@@ -60,6 +72,9 @@ type UnimplementedUserRpcServiceServer struct {
 
 func (UnimplementedUserRpcServiceServer) CreateUserRPC(context.Context, *UserCreateRequest) (*UserCreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUserRPC not implemented")
+}
+func (UnimplementedUserRpcServiceServer) DeleteUserRPC(context.Context, *UserDeleteRequest) (*UserDeleteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUserRPC not implemented")
 }
 func (UnimplementedUserRpcServiceServer) mustEmbedUnimplementedUserRpcServiceServer() {}
 
@@ -92,6 +107,24 @@ func _UserRpcService_CreateUserRPC_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserRpcService_DeleteUserRPC_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserDeleteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserRpcServiceServer).DeleteUserRPC(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserRpcService_DeleteUserRPC_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserRpcServiceServer).DeleteUserRPC(ctx, req.(*UserDeleteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserRpcService_ServiceDesc is the grpc.ServiceDesc for UserRpcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -102,6 +135,10 @@ var UserRpcService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateUserRPC",
 			Handler:    _UserRpcService_CreateUserRPC_Handler,
+		},
+		{
+			MethodName: "DeleteUserRPC",
+			Handler:    _UserRpcService_DeleteUserRPC_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

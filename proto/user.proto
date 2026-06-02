@@ -5,6 +5,7 @@ option go_package = "./internal/rpc/user;user";
 
 service UserRpcService {
   rpc CreateUserRPC (UserCreateRequest) returns (UserCreateResponse);
+  rpc DeleteUserRPC (UserDeleteRequest) returns (UserDeleteResponse);
 }
 
 message StudentProfile {
@@ -35,4 +36,13 @@ message UserCreateResponse {
   int32 id = 1;
   string email = 2;
   string status = 3;
+}
+
+message UserDeleteRequest {
+  int32 id = 1;
+}
+
+message UserDeleteResponse {
+  bool success = 1;
+  string message = 2;
 }

@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nuser.proto\x12\x04user\"<\n\x0eStudentProfile\x12\x18\n\x10study_program_id\x18\x01 \x01(\x05\x12\x10\n\x08major_id\x18\x02 \x01(\x05\"6\n\x0f\x45mployeeProfile\x12\x12\n\nfaculty_id\x18\x01 \x01(\x05\x12\x0f\n\x07unit_id\x18\x02 \x01(\x05\"\xec\x01\n\x11UserCreateRequest\x12\r\n\x05\x65mail\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0f\n\x07surname\x18\x03 \x01(\t\x12\x14\n\x0cphone_number\x18\x04 \x01(\t\x12\x0e\n\x06\x64\x65gree\x18\x05 \x01(\t\x12$\n\x1csend_login_credentials_email\x18\x06 \x01(\x08\x12\'\n\x07student\x18\x07 \x01(\x0b\x32\x14.user.StudentProfileH\x00\x12)\n\x08\x65mployee\x18\x08 \x01(\x0b\x32\x15.user.EmployeeProfileH\x00\x42\t\n\x07profile\"?\n\x12UserCreateResponse\x12\n\n\x02id\x18\x01 \x01(\x05\x12\r\n\x05\x65mail\x18\x02 \x01(\t\x12\x0e\n\x06status\x18\x03 \x01(\t2T\n\x0eUserRpcService\x12\x42\n\rCreateUserRPC\x12\x17.user.UserCreateRequest\x1a\x18.user.UserCreateResponseB\x1aZ\x18./internal/rpc/user;userb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\nuser.proto\x12\x04user\"<\n\x0eStudentProfile\x12\x18\n\x10study_program_id\x18\x01 \x01(\x05\x12\x10\n\x08major_id\x18\x02 \x01(\x05\"6\n\x0f\x45mployeeProfile\x12\x12\n\nfaculty_id\x18\x01 \x01(\x05\x12\x0f\n\x07unit_id\x18\x02 \x01(\x05\"\xec\x01\n\x11UserCreateRequest\x12\r\n\x05\x65mail\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0f\n\x07surname\x18\x03 \x01(\t\x12\x14\n\x0cphone_number\x18\x04 \x01(\t\x12\x0e\n\x06\x64\x65gree\x18\x05 \x01(\t\x12$\n\x1csend_login_credentials_email\x18\x06 \x01(\x08\x12\'\n\x07student\x18\x07 \x01(\x0b\x32\x14.user.StudentProfileH\x00\x12)\n\x08\x65mployee\x18\x08 \x01(\x0b\x32\x15.user.EmployeeProfileH\x00\x42\t\n\x07profile\"?\n\x12UserCreateResponse\x12\n\n\x02id\x18\x01 \x01(\x05\x12\r\n\x05\x65mail\x18\x02 \x01(\t\x12\x0e\n\x06status\x18\x03 \x01(\t\"\x1f\n\x11UserDeleteRequest\x12\n\n\x02id\x18\x01 \x01(\x05\"6\n\x12UserDeleteResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t2\x98\x01\n\x0eUserRpcService\x12\x42\n\rCreateUserRPC\x12\x17.user.UserCreateRequest\x1a\x18.user.UserCreateResponse\x12\x42\n\rDeleteUserRPC\x12\x17.user.UserDeleteRequest\x1a\x18.user.UserDeleteResponseB\x1aZ\x18./internal/rpc/user;userb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -40,6 +40,10 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_USERCREATEREQUEST']._serialized_end=375
   _globals['_USERCREATERESPONSE']._serialized_start=377
   _globals['_USERCREATERESPONSE']._serialized_end=440
-  _globals['_USERRPCSERVICE']._serialized_start=442
-  _globals['_USERRPCSERVICE']._serialized_end=526
+  _globals['_USERDELETEREQUEST']._serialized_start=442
+  _globals['_USERDELETEREQUEST']._serialized_end=473
+  _globals['_USERDELETERESPONSE']._serialized_start=475
+  _globals['_USERDELETERESPONSE']._serialized_end=529
+  _globals['_USERRPCSERVICE']._serialized_start=532
+  _globals['_USERRPCSERVICE']._serialized_end=684
 # @@protoc_insertion_point(module_scope)

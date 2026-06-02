@@ -45,6 +45,6 @@ func RegisterV1Routes(r *gin.Engine, db *gorm.DB) {
 	v1.POST("/elective-blocks", handlers.CreateElectiveBlock)
 
 	// students
-	// v1.POST("/students", handlers.CreateStudent)
 	v1.POST("/users", middleware.AdminOnly(db), handlers.CreateUserProxy)
+    v1.DELETE("/users/:id", middleware.AdminOnly(db),handlers.DeleteUserProxy)
 }

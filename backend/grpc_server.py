@@ -91,6 +91,43 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
         finally:
             db.close()
 
+    async def DeleteUserRPC(self, request, context):
+        db = SessionLocal()
+        try:
+            user = db.query(UserModel).filter(UserModel.id == request.id).first()
+            if not user:
+                context.set_code(grpc.StatusCode.NOT_FOUND)
+                context.set_details("User not found")
+                return user_pb2.UserDeleteResponse(
+                    success=False, message="User not found"
+                )
+
+            from src.academics.models import Students, Employees
+
+            db.query(Students).filter(Students.user_id == request.id).delete()
+            db.query(Employees).filter(Employees.user_id == request.id).delete()
+            db.flush()
+
+            db.delete(user)
+            db.commit()
+
+            logging.info(
+                f"Successfully deleted user with ID: {request.id} and all their academic profiles."
+            )
+            return user_pb2.UserDeleteResponse(
+                success=True,
+                message="User and associated profiles deleted successfully.",
+            )
+
+        except Exception as e:
+            db.rollback()
+            logging.error(f"Error gRPC DeleteUser: {str(e)}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(str(e))
+            return user_pb2.UserDeleteResponse(success=False, message=str(e))
+        finally:
+            db.close()
+
 
 async def serve():
     server = grpc.aio.server()
