@@ -2,22 +2,22 @@ package models
 
 
 type CourseTypeDetail struct {
-	Course    int    `gorm:"primaryKey"`
-	ClassType string `gorm:"primaryKey;size:20"`
+	Course          int    `json:"course" gorm:"primaryKey"`
+	ClassType       string `json:"class_type" gorm:"primaryKey;size:20"`
 
-	ClassHours                int `gorm:"default:0"`
-	SlotsPerClass             int `gorm:"default:2"`
-	Frequency                 string `gorm:"size:20;default:Every_week"`
+	ClassHours      int `json:"class_hours" gorm:"default:0"`
+	SlotsPerClass   int `json:"slots_per_class" gorm:"default:2"`
+	Frequency       string `json:"frequency" gorm:"size:20;default:Every_week"`
 
-	ManualWeeks []int `gorm:"serializer:json"`
+	ManualWeeks     []int `json:"manual_weeks" gorm:"serializer:json"`
 
-	PCNeeded        bool `gorm:"default:false"`
-	ProjectorNeeded bool `gorm:"default:true"`
+	PCNeeded        bool `json:"pc_needed" gorm:"default:false"`
+	ProjectorNeeded bool `json:"projector_needed" gorm:"default:true"`
 
-	MaxGroupParticipantsNumber int `gorm:"default:15"`
+	MaxGroupParticipantsNumber int `json:"max_group_participants_number" gorm:"default:15"`
 
 	// Relations
-	CourseRef Course `gorm:"foreignKey:Course;references:CourseCode"`
+	CourseRef Course `json:"course_ref" gorm:"foreignKey:Course;references:CourseCode"`
 }
 
 func (CourseTypeDetail) TableName() string {

@@ -1,8 +1,8 @@
 package models
 
 type GroupMember struct {
-	GroupID   uint `gorm:"primaryKey"`
-	StudentID uint `gorm:"primaryKey"`
+	Group   uint `json:"group" gorm:"primaryKey"`
+	Student uint `json:"student" gorm:"primaryKey"`
 }
 
 func (GroupMember) TableName() string {

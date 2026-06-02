@@ -2,16 +2,16 @@ package models
 
 
 type CurriculumCourse struct {
-	StudyProgram int `gorm:"primaryKey"`
-	Course       int `gorm:"primaryKey"`
-	Semester     int `gorm:"primaryKey"`
+	StudyProgram int `json:"study_program" gorm:"primaryKey"`
+	Course       int `json:"course" gorm:"primaryKey"`
+	Semester     int `json:"semester" gorm:"primaryKey"`
 
-	Major         *int
-	ElectiveBlock *int
+	Major         *int `json:"major"`
+	ElectiveBlock *int `json:"elective_block"`
 
 	// Relations
-	StudyProgramRef StudyProgram `gorm:"foreignKey:StudyProgram;references:ID"`
-	CourseRef       Course       `gorm:"foreignKey:Course;references:CourseCode"`
+	StudyProgramRef StudyProgram `json:"study_program_ref" gorm:"foreignKey:StudyProgram;references:ID"`
+	CourseRef       Course       `json:"course_ref" gorm:"foreignKey:Course;references:CourseCode"`
 }
 
 func (CurriculumCourse) TableName() string {

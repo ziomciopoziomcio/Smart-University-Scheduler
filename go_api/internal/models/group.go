@@ -2,16 +2,16 @@ package models
 
 
 type Group struct {
-	ID             uint   `gorm:"primaryKey;autoIncrement"`
-	GroupName      string `gorm:"size:255;unique;not null"`
-	StudyProgram   uint   `gorm:"not null"`
-	Major          *uint  `gorm:"default:null"`
-	ElectiveBlock  *uint  `gorm:"default:null"`
-	Semester       int    `gorm:"default:1;not null"`
-	IsActive       bool   `gorm:"default:true;not null"`
+	ID             uint   `json:"id" gorm:"primaryKey;autoIncrement"`
+	GroupName      string `json:"group_name" gorm:"size:255;unique;not null"`
+	StudyProgram   uint   `json:"study_program" gorm:"not null"`
+	Major          *uint  `json:"major" gorm:"default:null"`
+	ElectiveBlock  *uint  `json:"elective_block" gorm:"default:null"`
+	Semester       int    `json:"semester" gorm:"default:1;not null"`
+	IsActive       bool   `json:"is_active" gorm:"default:true;not null"`
 
 	// Relations
-	Members []GroupMember `gorm:"foreignKey:GroupID"`
+	Members []GroupMember `json:"members" gorm:"foreignKey:GroupID"`
 }
 
 func (Group) TableName() string {
