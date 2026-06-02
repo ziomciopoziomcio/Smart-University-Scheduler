@@ -14,7 +14,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
     async def CreateUserRPC(self, request, context):
         db = SessionLocal()
         try:
-            # Check if user already exists
             existing_user = (
                 db.query(UserModel).filter(UserModel.email == request.email).first()
             )
@@ -23,7 +22,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
                 context.set_details("User with this email already exists.")
                 return user_pb2.UserCreateResponse()
 
-            # Logic identical to your FastAPI endpoint
             generated_password = secrets.token_urlsafe(12)
             hashed = hash_password(generated_password)
 
@@ -36,24 +34,57 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
                 password_hash=hashed,
                 force_password_change=True,
             )
-
             db.add(new_user)
+            db.flush()
+
+            profile_type = request.WhichOneof("profile")
+
+            if profile_type == "student":
+                from src.academics.models import Students
+
+                new_student = Students(
+                    user_id=new_user.id,
+                    study_program=request.student.study_program_id,
+                    major=(
+                        request.student.major_id
+                        if request.student.major_id > 0
+                        else None
+                    ),
+                )
+                db.add(new_student)
+                logging.info(f"Adding student profile for user_id: {new_user.id}")
+
+            elif profile_type == "employee":
+                from src.academics.models import Employees
+
+                new_employee = Employees(
+                    user_id=new_user.id,
+                    faculty_id=request.employee.faculty_id,
+                    unit_id=request.employee.unit_id,
+                )
+                db.add(new_employee)
+                logging.info(f"Adding employee profile for user_id: {new_user.id}")
+
             db.commit()
             db.refresh(new_user)
 
-            # Send email if checked
             if request.send_login_credentials_email:
-                # W gRPC działamy asynchronicznie, wysyłamy maila bezpośrednio
                 try:
-                    send_email(new_user.email, generated_password)
+                    subject = "Your login info for Smart University Scheduler"
+                    body_text = f"Hello {new_user.name},\n\nLogin: {new_user.email}\nPassword: {generated_password}"
+                    send_email(
+                        to_email=new_user.email, subject=subject, body_text=body_text
+                    )
                 except Exception as e:
-                    logging.error(f"Failed to send email: {e}")
+                    logging.error(f"Couldn't send email: {e}")
 
             return user_pb2.UserCreateResponse(
                 id=new_user.id, email=new_user.email, status="created"
             )
+
         except Exception as e:
             db.rollback()
+            logging.error(f"Error gRPC CreateUser: {str(e)}")
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(str(e))
             return user_pb2.UserCreateResponse()

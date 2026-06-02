@@ -23,7 +23,6 @@ func CreateUserProxy(c *gin.Context) {
 
 	client := pb.NewUserRpcServiceClient(conn)
 
-	// 2. Parsujemy JSON-a z żądania Postmana
 	var reqBody struct {
 		Email                     string `json:"email"`
 		Name                      string `json:"name"`
@@ -31,6 +30,14 @@ func CreateUserProxy(c *gin.Context) {
 		PhoneNumber               string `json:"phone_number"`
 		Degree                    string `json:"degree"`
 		SendLoginCredentialsEmail bool   `json:"send_login_credentials_email"`
+		Student *struct {
+			StudyProgramId int32 `json:"study_program_id"`
+			MajorId        int32 `json:"major_id"`
+		} `json:"student"`
+		Employee *struct {
+			FacultyId int32 `json:"faculty_id"`
+			UnitId    int32 `json:"unit_id"`
+		} `json:"employee"`
 	}
 
 	if err := c.ShouldBindJSON(&reqBody); err != nil {
@@ -38,18 +45,35 @@ func CreateUserProxy(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	resp, err := client.CreateUserRPC(ctx, &pb.UserCreateRequest{
+	grpcReq := &pb.UserCreateRequest{
 		Email:                     reqBody.Email,
 		Name:                      reqBody.Name,
 		Surname:                   reqBody.Surname,
 		PhoneNumber:               reqBody.PhoneNumber,
 		Degree:                    reqBody.Degree,
 		SendLoginCredentialsEmail: reqBody.SendLoginCredentialsEmail,
-	})
+	}
 
+	if reqBody.Student != nil {
+		grpcReq.Profile = &pb.UserCreateRequest_Student{
+			Student: &pb.StudentProfile{
+				StudyProgramId: reqBody.Student.StudyProgramId,
+				MajorId:        reqBody.Student.MajorId,
+			},
+		}
+	} else if reqBody.Employee != nil {
+		grpcReq.Profile = &pb.UserCreateRequest_Employee{
+			Employee: &pb.EmployeeProfile{
+				FacultyId: reqBody.Employee.FacultyId,
+				UnitId:    reqBody.Employee.UnitId,
+			},
+		}
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	resp, err := client.CreateUserRPC(ctx, grpcReq)
 	if err != nil {
 		st, ok := status.FromError(err)
 		if ok {
