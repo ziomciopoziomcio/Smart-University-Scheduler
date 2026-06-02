@@ -9,13 +9,6 @@ import (
 	"go_api/internal/models"
 )
 
-type CreateStudyFieldRequest struct {
-	FieldName    string `json:"field_name" binding:"required"`
-	FacultyShort string `json:"faculty_short" binding:"required"`
-	Language     string `json:"language"`
-	Mode         string `json:"mode"`
-	Degree       string `json:"degree"`
-}
 
 func GetStudyFields(c *gin.Context) {
 	var studyFields []models.StudyField
@@ -36,34 +29,24 @@ func GetStudyFields(c *gin.Context) {
 }
 
 func CreateStudyField(c *gin.Context) {
-	var req CreateStudyFieldRequest
+	var studyField models.StudyField
 
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindJSON(&studyField); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
+	// faculty exists?
 	var faculty models.Faculty
-
-	if err := db.DB.
-		Where("faculty_short = ?", req.FacultyShort).
-		First(&faculty).Error; err != nil {
-
+	if err := db.DB.First(&faculty, studyField.FacultyID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "faculty not found",
 		})
 		return
 	}
 
-	studyField := models.StudyField{
-		FieldName: req.FieldName,
-		FacultyID: faculty.ID,
-		Language:  req.Language,
-		Mode:      req.Mode,
-		Degree:    req.Degree,
-	}
 
 	if err := db.DB.Create(&studyField).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -72,9 +55,15 @@ func CreateStudyField(c *gin.Context) {
 		return
 	}
 
-	db.DB.
+	if err := db.DB.
 		Preload("Faculty").
-		First(&studyField, studyField.ID)
+		First(&studyField, studyField.ID).Error; err != nil {
+
+		c.JSON(http.StatusCreated, gin.H{
+			"data": studyField,
+		})
+		return
+	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"data": studyField,
