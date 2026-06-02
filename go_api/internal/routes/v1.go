@@ -46,5 +46,6 @@ func RegisterV1Routes(r *gin.Engine, db *gorm.DB) {
 
 	// students
 	v1.POST("/users", middleware.AdminOnly(db), handlers.CreateUserProxy)
-    v1.DELETE("/users/:id", middleware.AdminOnly(db),handlers.DeleteUserProxy)
+    v1.DELETE("/users/:id", middleware.AdminOnly(db), handlers.DeleteUserProxy)
+    v1.GET("/users/:id", middleware.AdminOnly(db), handlers.GetUserProxy)
 }

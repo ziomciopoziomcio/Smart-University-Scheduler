@@ -44,6 +44,11 @@ class UserRpcServiceStub:
                 request_serializer=user__pb2.UserDeleteRequest.SerializeToString,
                 response_deserializer=user__pb2.UserDeleteResponse.FromString,
                 _registered_method=True)
+        self.GetUserRPC = channel.unary_unary(
+                '/user.UserRpcService/GetUserRPC',
+                request_serializer=user__pb2.UserGetRequest.SerializeToString,
+                response_deserializer=user__pb2.UserGetResponse.FromString,
+                _registered_method=True)
 
 
 class UserRpcServiceServicer:
@@ -61,6 +66,13 @@ class UserRpcServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetUserRPC(self, request, context):
+        """<--- NOWOŚĆ
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_UserRpcServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -73,6 +85,11 @@ def add_UserRpcServiceServicer_to_server(servicer, server):
                     servicer.DeleteUserRPC,
                     request_deserializer=user__pb2.UserDeleteRequest.FromString,
                     response_serializer=user__pb2.UserDeleteResponse.SerializeToString,
+            ),
+            'GetUserRPC': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetUserRPC,
+                    request_deserializer=user__pb2.UserGetRequest.FromString,
+                    response_serializer=user__pb2.UserGetResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -129,6 +146,33 @@ class UserRpcService:
             '/user.UserRpcService/DeleteUserRPC',
             user__pb2.UserDeleteRequest.SerializeToString,
             user__pb2.UserDeleteResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetUserRPC(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/user.UserRpcService/GetUserRPC',
+            user__pb2.UserGetRequest.SerializeToString,
+            user__pb2.UserGetResponse.FromString,
             options,
             channel_credentials,
             insecure,

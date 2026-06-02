@@ -128,6 +128,54 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
         finally:
             db.close()
 
+    async def GetUserRPC(self, request, context):
+        db = SessionLocal()
+        try:
+            user = db.query(UserModel).filter(UserModel.id == request.id).first()
+            if not user:
+                context.set_code(grpc.StatusCode.NOT_FOUND)
+                context.set_details("User not found")
+                return user_pb2.UserGetResponse()
+
+            response = user_pb2.UserGetResponse(
+                id=user.id,
+                email=user.email,
+                name=user.name,
+                surname=user.surname,
+                phone_number=user.phone_number if user.phone_number else "",
+                degree=user.degree if user.degree else "",
+            )
+
+            from src.academics.models import Students, Employees
+
+            student_profile = (
+                db.query(Students).filter(Students.user_id == user.id).first()
+            )
+            if student_profile:
+                response.student.study_program_id = student_profile.study_program
+                response.student.major_id = (
+                    student_profile.major if student_profile.major else 0
+                )
+                return response
+
+            employee_profile = (
+                db.query(Employees).filter(Employees.user_id == user.id).first()
+            )
+            if employee_profile:
+                response.employee.faculty_id = employee_profile.faculty_id
+                response.employee.unit_id = employee_profile.unit_id
+                return response
+
+            return response
+
+        except Exception as e:
+            logging.error(f"Error gRPC GetUser: {str(e)}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(str(e))
+            return user_pb2.UserGetResponse()
+        finally:
+            db.close()
+
 
 async def serve():
     server = grpc.aio.server()
