@@ -45,13 +45,13 @@ export function StudyProgramModal({open, program, fieldId, onClose, onSuccess}: 
         const y2 = parseInt(yearTo);
 
         if (!/^\d{4}$/.test(yearFrom) || !/^\d{4}$/.test(yearTo)) {
-            return intl.formatMessage({id: 'programs.modal.yearErrorFormat'});
+            return intl.formatMessage({id: 'didactics.programs.modal.yearErrorFormat'});
         }
         if (y1 >= y2) {
-            return intl.formatMessage({id: 'programs.modal.yearErrorOrder'});
+            return intl.formatMessage({id: 'didactics.programs.modal.yearErrorOrder'});
         }
         if (y2 - y1 !== 1) {
-            return intl.formatMessage({id: 'programs.modal.yearErrorDiff'});
+            return intl.formatMessage({id: 'didactics.programs.modal.yearErrorDiff'});
         }
         return null;
     };
@@ -88,7 +88,7 @@ export function StudyProgramModal({open, program, fieldId, onClose, onSuccess}: 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth PaperProps={{sx: {borderRadius: '16px'}}}>
             <DialogTitle fontWeight={700}>
-                {isEditMode ? intl.formatMessage({id: 'programs.modal.editProgram'}) : intl.formatMessage({id: 'programs.modal.addProgram'})}
+                {isEditMode ? intl.formatMessage({id: 'didactics.programs.modal.editProgram'}) : intl.formatMessage({id: 'didactics.programs.modal.addProgram'})}
             </DialogTitle>
 
             <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1}}>
@@ -96,46 +96,46 @@ export function StudyProgramModal({open, program, fieldId, onClose, onSuccess}: 
 
                 <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
                     <TextField
-                        label={intl.formatMessage({id: 'programs.modal.yearFrom'})}
+                        label={intl.formatMessage({id: 'didactics.programs.modal.yearFrom'})}
                         value={yearFrom}
                         onChange={(e) => {
                             setYearFrom(e.target.value);
                             setError(null);
                         }}
-                        placeholder={intl.formatMessage({id: 'programs.modal.yearFromPlaceholder'})}
+                        placeholder={intl.formatMessage({id: 'didactics.programs.modal.yearFromPlaceholder'})}
                         fullWidth
                     />
                     <Typography sx={{fontWeight: 700, color: 'text.secondary'}}>/</Typography>
                     <TextField
-                        label={intl.formatMessage({id: 'programs.modal.yearTo'})}
+                        label={intl.formatMessage({id: 'didactics.programs.modal.yearTo'})}
                         value={yearTo}
                         onChange={(e) => {
                             setYearTo(e.target.value);
                             setError(null);
                         }}
-                        placeholder={intl.formatMessage({id: 'programs.modal.yearToPlaceholder'})}
+                        placeholder={intl.formatMessage({id: 'didactics.programs.modal.yearToPlaceholder'})}
                         fullWidth
                     />
                 </Box>
 
                 <TextField
-                    label={intl.formatMessage({id: 'programs.modal.programName'})}
+                    label={intl.formatMessage({id: 'didactics.programs.modal.programName'})}
                     value={programName}
                     onChange={(e) => {
                         setProgramName(e.target.value);
                     }}
                     fullWidth
-                    placeholder={intl.formatMessage({id: 'programs.modal.programNamePlaceholder'})}
+                    placeholder={intl.formatMessage({id: 'didactics.programs.modal.programNamePlaceholder'})}
                 />
             </DialogContent>
 
             <DialogActions sx={{p: 3}}>
                 <Button onClick={onClose} sx={{fontWeight: 600, color: 'text.secondary'}}>
-                    {intl.formatMessage({id: 'common.cancel'})}
+                    {intl.formatMessage({id: 'didactics.common.cancel'})}
                 </Button>
                 <Button onClick={handleSubmit} variant="contained" disabled={isSubmitting}
                         sx={{borderRadius: '10px', px: 4, fontWeight: 600}}>
-                    {isSubmitting ? <CircularProgress size={24}/> : intl.formatMessage({id: 'common.save'})}
+                    {isSubmitting ? <CircularProgress size={24}/> : intl.formatMessage({id: 'didactics.common.save'})}
                 </Button>
             </DialogActions>
         </Dialog>

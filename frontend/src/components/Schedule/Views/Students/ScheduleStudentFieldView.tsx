@@ -21,6 +21,7 @@ interface ScheduleStudentFieldViewProps {
 type StudyFieldWithSummary = StudyField & {
     language?: string | null;
     mode?: string | null;
+    degree?: string | null;
     semesters_count?: number | null;
     specializations_count?: number | null;
 };
@@ -89,6 +90,33 @@ export function ScheduleStudentFieldView({
         }
     };
 
+    const getStudyDegreeLabel = (item: StudyFieldWithSummary) => {
+        switch (item.degree) {
+            case 'Bachelor':
+                return intl.formatMessage({
+                    id: 'plans.studentsPlan.studyField.studyDegree.bachelor',
+                });
+
+            case 'Master':
+                return intl.formatMessage({
+                    id: 'plans.studentsPlan.studyField.studyDegree.master',
+                });
+
+            case 'Uniform_Master':
+                return intl.formatMessage({
+                    id: 'plans.studentsPlan.studyField.studyDegree.uniformMaster',
+                });
+
+            case 'Doctoral':
+                return intl.formatMessage({
+                    id: 'plans.studentsPlan.studyField.studyDegree.doctoral',
+                });
+
+            default:
+                return '—';
+        }
+    };
+
     const getSemestersLabel = (item: StudyFieldWithSummary) => {
         const count = item.semesters_count ?? 0;
 
@@ -138,6 +166,11 @@ export function ScheduleStudentFieldView({
                         render: getStudyModeLabel,
                         variant: 'secondary',
                         width: '120px'
+                    },
+                    {
+                        render: getStudyDegreeLabel,
+                        variant: 'secondary',
+                        width: '140px'
                     },
                     {
                         render: getSemestersLabel,

@@ -37,6 +37,9 @@ export interface Group {
     major: number | null;
     elective_block: number | null;
     semester: number;
+    is_active: boolean;
+    /** Number of students in this group (calculated by backend) */
+    students_count?: number;
 }
 
 export type GroupCreate = Omit<Group, 'id'>;

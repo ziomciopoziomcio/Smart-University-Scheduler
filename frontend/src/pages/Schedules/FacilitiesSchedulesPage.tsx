@@ -76,7 +76,7 @@ export default function SchedulesFacilitiesPage({view}: SchedulesFacilitiesPageP
         } finally {
             setLoading(false);
         }
-    }, [view, campusId, buildingId, page, pageSize, debouncedSearch]);
+    }, [view, campusId, buildingId, page, pageSize, debouncedSearch, intl]);
 
     useEffect(() => {
         void loadData();

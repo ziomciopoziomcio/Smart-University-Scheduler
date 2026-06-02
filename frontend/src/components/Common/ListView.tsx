@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars */
+ 
 import {Box, Typography, Divider, Button, IconButton, SvgIcon} from '@mui/material';
 import {Add, MoreVert} from '@mui/icons-material';
 import * as React from 'react';
@@ -23,7 +23,7 @@ interface ListViewProps<T> {
     addLabel?: string;
     emptyMessage?: string;
     hideDividerOnLastItem?: boolean;
-    rowSx?: object;
+    rowSx?: object | ((_item: T) => object);
     titleSx?: object;
 }
 
@@ -66,7 +66,7 @@ export function ListView<T extends { id: number | string }>({
                             '&:hover': {
                                 bgcolor: onItemClick ? '#F3F5F8' : 'transparent',
                             },
-                            ...rowSx,
+                            ...(typeof rowSx === 'function' ? rowSx(item) : rowSx),
                         }}
                     >
                         {Icon && (
@@ -135,23 +135,20 @@ export function ListView<T extends { id: number | string }>({
                                         />
                                     )}
 
-                                    <Typography
-                                        variant="body2"
-                                        color={
-                                            col.variant === 'primary'
-                                                ? 'text.primary'
-                                                : 'text.secondary'
-                                        }
+                                    <Box
                                         sx={{
                                             fontSize: '15px',
                                             color: col.variant === 'primary' ? '#111111' : '#8A8A8A',
                                             whiteSpace: 'nowrap',
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 0.5
                                         }}
                                     >
                                         {col.render(item)}
-                                    </Typography>
+                                    </Box>
                                 </Box>
                             ))}
 

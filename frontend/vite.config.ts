@@ -22,8 +22,8 @@ export default defineConfig({
             '@assets': path.resolve(__dirname, './src/assets'),
             '@api': path.resolve(__dirname, './src/api'),
             '@store': path.resolve(__dirname, './src/store'),
-            '@constants': path.resolve(__dirname, './src/constants')
-
+            '@constants': path.resolve(__dirname, './src/constants'),
+            '@routing': path.resolve(__dirname, './src/routing')
         },
     },
 })

@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars, @typescript-eslint/no-unused-vars */
+ 
 import {Box, Typography, IconButton, SvgIcon} from '@mui/material';
 import {MoreVert} from '@mui/icons-material';
 
@@ -16,6 +16,7 @@ interface TileViewProps<T> {
     hideMenu?: boolean;
     variant?: 'outlined' | 'flat';
     iconSize?: number;
+    stretch?: boolean;
 }
 
 export default function TileView<T extends { id: number | string }>({
@@ -31,7 +32,8 @@ export default function TileView<T extends { id: number | string }>({
                                                                         hideAdd,
                                                                         hideMenu,
                                                                         variant = 'outlined',
-                                                                        iconSize = 48
+                                                                        iconSize = 48,
+                                                                        stretch = false
                                                                     }: TileViewProps<T>) {
     const isFlat = variant === 'flat';
 
@@ -46,9 +48,9 @@ export default function TileView<T extends { id: number | string }>({
                             onItemClick(item);
                         }}
                         sx={{
-                            flexGrow: 1,
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            width: '30%',
+                            flexGrow: stretch ? 1 : 0,
+                            width: stretch ? '30%' : 'calc(33.33% - 16px)',
                             p: isFlat ? 1.5 : 2.5,
                             border: isFlat ? 'none' : '1px solid rgba(0,0,0,0.1)',
                             borderRadius: '16px',
@@ -130,8 +132,10 @@ export default function TileView<T extends { id: number | string }>({
 
             {!hideAdd && onAddClick && DefaultIcon && (
                 <Box onClick={onAddClick} sx={{
-                    flexGrow: 1,
-                    display: 'flex', alignItems: 'center', width: '30%', p: 2.5,
+                    display: 'flex', alignItems: 'center',
+                    flexGrow: stretch ? 1 : 0,
+                    width: stretch ? '30%' : 'calc(33.33% - 16px)',
+                    p: 2.5,
                     border: '1px dashed rgba(0,0,0,0.2)', borderRadius: '16px',
                     cursor: 'pointer', transition: 'all 0.2s', gap: 2,
                     '&:hover': {bgcolor: '#fbfbfb', borderColor: 'rgba(0,0,0,0.3)'}

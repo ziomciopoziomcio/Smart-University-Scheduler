@@ -20,12 +20,16 @@ export interface ElectiveBlock {
 export type ElectiveBlockCreate = Omit<ElectiveBlock, 'id'>;
 export type ElectiveBlockUpdate = Partial<ElectiveBlockCreate>;
 
+export type StudyMode = 'Full-time' | 'Part-time';
+export type StudyDegree = 'Bachelor' | 'Master' | 'Uniform_Master' | 'Doctoral';
+
 export interface StudyField {
     id: number;
     faculty: number;
     field_name: string;
-    language?: string;
-    mode?: string;
+    language: CourseLanguage;
+    mode: StudyMode;
+    degree: StudyDegree;
     semesters_count?: number;
     specializations_count?: number;
     elective_blocks_count?: number;
@@ -48,8 +52,6 @@ export interface Course {
     leading_unit: number;
     course_language: CourseLanguage;
     course_coordinator: number;
-    major?: number | null;
-    elective_block?: number | null;
 }
 
 export type CourseCreate = Course;
@@ -95,6 +97,23 @@ export interface CourseSummary {
     course_name: string;
     ects_points: number;
 }
+
+export interface CourseTypeDetail {
+    course: number;
+    class_type: ClassType;
+    class_hours: number;
+    slots_per_class: number;
+    frequency: string;
+    manual_weeks: number[] | null;
+    pc_needed: boolean;
+    projector_needed: boolean;
+    max_group_participants_number: number;
+}
+
+export type CourseTypeDetailCreate = Omit<CourseTypeDetail, 'slots_per_class' | 'manual_weeks' | 'pc_needed' | 'projector_needed' | 'max_group_participants_number'> &
+    Partial<Pick<CourseTypeDetail, 'slots_per_class' | 'manual_weeks' | 'pc_needed' | 'projector_needed' | 'max_group_participants_number'>>;
+
+export type CourseTypeDetailUpdate = Partial<Omit<CourseTypeDetailCreate, 'course' | 'class_type'>>;
 
 export interface CurriculumCourse {
     study_program: number;
