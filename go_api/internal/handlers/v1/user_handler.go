@@ -175,12 +175,14 @@ func GetUserProxy(c *gin.Context) {
 	if resp.GetStudent() != nil {
 		responseData["role"] = "student"
 		responseData["student"] = gin.H{
+			"id":               resp.GetStudent().Id,
 			"study_program_id": resp.GetStudent().StudyProgramId,
-			"major_id":        resp.GetStudent().MajorId,
+			"major_id":         resp.GetStudent().MajorId,
 		}
 	} else if resp.GetEmployee() != nil {
 		responseData["role"] = "employee"
 		responseData["employee"] = gin.H{
+			"id":         resp.GetEmployee().Id,
 			"faculty_id": resp.GetEmployee().FacultyId,
 			"unit_id":    resp.GetEmployee().UnitId,
 		}

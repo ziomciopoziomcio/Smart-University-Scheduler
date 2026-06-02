@@ -152,6 +152,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
                 db.query(Students).filter(Students.user_id == user.id).first()
             )
             if student_profile:
+                response.student.id = student_profile.id
                 response.student.study_program_id = student_profile.study_program
                 response.student.major_id = (
                     student_profile.major if student_profile.major else 0
@@ -162,6 +163,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
                 db.query(Employees).filter(Employees.user_id == user.id).first()
             )
             if employee_profile:
+                response.employee.id = employee_profile.id
                 response.employee.faculty_id = employee_profile.faculty_id
                 response.employee.unit_id = employee_profile.unit_id
                 return response

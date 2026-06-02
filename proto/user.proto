@@ -6,17 +6,19 @@ option go_package = "./internal/rpc/user;user";
 service UserRpcService {
   rpc CreateUserRPC (UserCreateRequest) returns (UserCreateResponse);
   rpc DeleteUserRPC (UserDeleteRequest) returns (UserDeleteResponse);
-  rpc GetUserRPC (UserGetRequest) returns (UserGetResponse); // <--- NOWOŚĆ
+  rpc GetUserRPC (UserGetRequest) returns (UserGetResponse);
 }
 
 message StudentProfile {
   int32 study_program_id = 1;
   int32 major_id = 2;
+  int32 id = 3;
 }
 
 message EmployeeProfile {
   int32 faculty_id = 1;
   int32 unit_id = 2;
+  int32 id = 3;
 }
 
 message UserCreateRequest {
