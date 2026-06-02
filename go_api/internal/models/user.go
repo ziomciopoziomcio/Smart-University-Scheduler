@@ -30,12 +30,3 @@ type User struct {
 func (User) TableName() string {
 	return "users"
 }
-
-type Role struct {
-	ID       int    `gorm:"primaryKey;autoIncrement;column:id"`
-	RoleName string `gorm:"unique;column:role_name;type:varchar(255)"`
-}
-
-func (Role) TableName() string {
-	return "roles"
-}

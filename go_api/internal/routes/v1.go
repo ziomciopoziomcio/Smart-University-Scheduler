@@ -80,4 +80,13 @@ func RegisterV1Routes(r *gin.Engine, db *gorm.DB) {
 	v1.POST("/users", middleware.AdminOnly(db), handlers.CreateUserProxy)
     v1.DELETE("/users/:id", middleware.AdminOnly(db), handlers.DeleteUserProxy)
     v1.GET("/users/:id", middleware.AdminOnly(db), handlers.GetUserProxy)
+
+    // roles
+    v1.GET("/roles", handlers.GetRoles)
+    v1.POST("/roles", handlers.CreateRole)
+    v1.POST("/roles/:id/permissions", handlers.AssignPermissionToRole)
+
+    // permissions
+    v1.GET("/permissions", handlers.GetPermissions)
+    v1.POST("/permissions", handlers.CreatePermission)
 }
