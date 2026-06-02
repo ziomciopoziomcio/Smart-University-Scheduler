@@ -44,6 +44,26 @@ func RegisterV1Routes(r *gin.Engine, db *gorm.DB) {
     v1.GET("/elective-blocks", handlers.GetElectiveBlocks)
 	v1.POST("/elective-blocks", handlers.CreateElectiveBlock)
 
+    // study programs
+	v1.GET("/study-programs", handlers.GetStudyPrograms)
+	v1.POST("/study-programs", handlers.CreateStudyProgram)
+
+	// courses
+	v1.GET("/courses", handlers.GetCourses)
+	v1.POST("/courses", handlers.CreateCourse)
+
+	// curriculum courses
+	v1.GET("/curriculum-courses", handlers.GetCurriculumCourses)
+	v1.POST("/curriculum-courses", handlers.CreateCurriculumCourse)
+
+	// course type details
+	v1.GET("/course-type-details", handlers.GetCourseTypeDetails)
+	v1.POST("/course-type-details", handlers.CreateCourseTypeDetail)
+
+	// courses instructors
+	v1.GET("/courses-instructors", handlers.GetCoursesInstructors)
+	v1.POST("/courses-instructors", handlers.CreateCoursesInstructor)
+
 	// students
 	v1.POST("/users", middleware.AdminOnly(db), handlers.CreateUserProxy)
     v1.DELETE("/users/:id", middleware.AdminOnly(db), handlers.DeleteUserProxy)
