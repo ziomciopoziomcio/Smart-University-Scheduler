@@ -261,6 +261,85 @@ const docTemplate = `{
                 }
             }
         },
+        "/courses": {
+            "get": {
+                "description": "Returns list of all courses sorted by course code",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "courses"
+                ],
+                "summary": "Get all courses",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedCoursesResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new course.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "courses"
+                ],
+                "summary": "Create course",
+                "parameters": [
+                    {
+                        "description": "Course data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateCourseRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Course"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/groups": {
             "get": {
                 "produces": [
@@ -349,6 +428,37 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateCourseRequest": {
+            "type": "object",
+            "required": [
+                "course_code",
+                "course_coordinator",
+                "course_language",
+                "course_name",
+                "ects_points",
+                "leading_unit"
+            ],
+            "properties": {
+                "course_code": {
+                    "type": "integer"
+                },
+                "course_coordinator": {
+                    "type": "integer"
+                },
+                "course_language": {
+                    "type": "string"
+                },
+                "course_name": {
+                    "type": "string"
+                },
+                "ects_points": {
+                    "type": "integer"
+                },
+                "leading_unit": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.AcademicCalendarResponse": {
             "type": "object",
             "properties": {
@@ -419,6 +529,29 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Course": {
+            "type": "object",
+            "properties": {
+                "course_code": {
+                    "type": "integer"
+                },
+                "course_coordinator": {
+                    "type": "integer"
+                },
+                "course_language": {
+                    "type": "string"
+                },
+                "course_name": {
+                    "type": "string"
+                },
+                "ects_points": {
+                    "type": "integer"
+                },
+                "leading_unit": {
                     "type": "integer"
                 }
             }
@@ -495,6 +628,17 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.Campus"
+                    }
+                }
+            }
+        },
+        "models.PaginatedCoursesResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Course"
                     }
                 }
             }

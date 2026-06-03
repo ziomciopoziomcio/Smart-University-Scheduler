@@ -43,6 +43,28 @@ definitions:
     - campus_name
     - campus_short
     type: object
+  dto.CreateCourseRequest:
+    properties:
+      course_code:
+        type: integer
+      course_coordinator:
+        type: integer
+      course_language:
+        type: string
+      course_name:
+        type: string
+      ects_points:
+        type: integer
+      leading_unit:
+        type: integer
+    required:
+    - course_code
+    - course_coordinator
+    - course_language
+    - course_name
+    - ects_points
+    - leading_unit
+    type: object
   models.AcademicCalendarResponse:
     properties:
       academic_day_of_week:
@@ -89,6 +111,21 @@ definitions:
       campus_short:
         type: string
       id:
+        type: integer
+    type: object
+  models.Course:
+    properties:
+      course_code:
+        type: integer
+      course_coordinator:
+        type: integer
+      course_language:
+        type: string
+      course_name:
+        type: string
+      ects_points:
+        type: integer
+      leading_unit:
         type: integer
     type: object
   models.Group:
@@ -138,6 +175,13 @@ definitions:
       items:
         items:
           $ref: '#/definitions/models.Campus'
+        type: array
+    type: object
+  models.PaginatedCoursesResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.Course'
         type: array
     type: object
 info:
@@ -305,6 +349,58 @@ paths:
       summary: Create campus
       tags:
       - campuses
+  /courses:
+    get:
+      description: Returns list of all courses sorted by course code
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedCoursesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all courses
+      tags:
+      - courses
+    post:
+      consumes:
+      - application/json
+      description: Creates a new course.
+      parameters:
+      - description: Course data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCourseRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Course'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create course
+      tags:
+      - courses
   /groups:
     get:
       produces:

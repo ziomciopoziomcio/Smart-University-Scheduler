@@ -10,6 +10,15 @@ import (
 	"go_api/internal/models"
 )
 
+
+// GetCourses godoc
+// @Summary Get all courses
+// @Description Returns list of all courses sorted by course code
+// @Tags courses
+// @Produce json
+// @Success 200 {object} models.PaginatedCoursesResponse
+// @Failure 500 {object} map[string]string
+// @Router /courses [get]
 func GetCourses(c *gin.Context) {
 	var courses []models.Course
 
@@ -23,6 +32,18 @@ func GetCourses(c *gin.Context) {
 	})
 }
 
+
+// CreateCourse godoc
+// @Summary Create course
+// @Description Creates a new course.
+// @Tags courses
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateCourseRequest true "Course data"
+// @Success 201 {object} models.Course
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /courses [post]
 func CreateCourse(c *gin.Context) {
 	var req dto.CreateCourseRequest
 
