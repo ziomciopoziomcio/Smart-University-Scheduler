@@ -1,25 +1,29 @@
 package models
 
-import (
-	"time"
-)
-
-type SemesterType string
-
-const (
-	SemesterWinter SemesterType = "Winter"
-	SemesterSummer SemesterType = "Summer"
-)
+import "time"
 
 type AcademicCalendar struct {
-	CalendarDate      time.Time    `json:"calendar_date" gorm:"primaryKey;type:date"`
-	AcademicYear      string       `json:"academic_year" gorm:"size:20;not null"`
-	SemesterType      SemesterType `json:"semester_type" gorm:"type:varchar(20);not null"`
-	WeekNumber        int          `json:"week_number" gorm:"not null"`
-	AcademicDayOfWeek int          `json:"academic_day_of_week" gorm:"not null"`
-	Description       *string      `json:"description" gorm:"size:255"`
+	CalendarDate     time.Time `gorm:"primaryKey;column:calendar_date"`
+	AcademicYear     string    `gorm:"column:academic_year"`
+	SemesterType     string    `gorm:"column:semester_type"`
+	WeekNumber       int       `gorm:"column:week_number"`
+	AcademicDayOfWeek int       `gorm:"column:academic_day_of_week"`
+	Description      *string   `gorm:"column:description"`
 }
 
 func (AcademicCalendar) TableName() string {
 	return "academic_calendar"
+}
+
+type AcademicCalendarResponse struct {
+	CalendarDate      string  `json:"calendar_date"`
+	AcademicYear      string  `json:"academic_year"`
+	SemesterType      string  `json:"semester_type"`
+	WeekNumber        int     `json:"week_number"`
+	AcademicDayOfWeek int     `json:"academic_day_of_week"`
+	Description       *string `json:"description"`
+}
+
+type PaginatedAcademicCalendarResponse struct {
+	Items []AcademicCalendarResponse `json:"items"`
 }
