@@ -5,7 +5,7 @@ type Faculty struct {
 	FacultyName  string `json:"faculty_name" gorm:"unique"`
 	FacultyShort string `json:"faculty_short" gorm:"unique"`
 
-	Buildings []Building `json:"buildings,omitempty" gorm:"many2many:faculty_buildings;"`
+	Buildings []Building `json:"-" gorm:"many2many:faculty_buildings;"`
 }
 
 func (Faculty) TableName() string {
@@ -19,4 +19,16 @@ type FacultyBuilding struct {
 
 func (FacultyBuilding) TableName() string {
 	return "faculty_buildings"
+}
+
+type FacultyReadWithCounterResponse struct {
+	ID           int    `json:"id"`
+	FacultyName  string `json:"faculty_name"`
+	FacultyShort string `json:"faculty_short"`
+	LecturersCount int  `json:"lecturers_count"`
+	StudentsCount  int  `json:"students_count"`
+}
+
+type PaginatedFacultiesResponse struct {
+	Items []FacultyReadWithCounterResponse `json:"items"`
 }
