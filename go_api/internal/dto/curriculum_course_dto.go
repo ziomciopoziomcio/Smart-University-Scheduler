@@ -2,22 +2,28 @@ package dto
 
 import "go_api/internal/models"
 
-
 type CourseDetails struct {
-    CourseCode int    `json:"course_code"`
-    CourseName string `json:"course_name"`
-    ECTSPoints int    `json:"ects_points"`
+	CourseCode int    `json:"course_code"`
+	CourseName string `json:"course_name"`
+	ECTSPoints int    `json:"ects_points"`
 }
 
 type CurriculumCourseResponse struct {
-    StudyProgram int `json:"study_program"`
-    Course       int `json:"course"`
-    Semester     int `json:"semester"`
+	StudyProgram int  `json:"study_program"`
+	Course       int  `json:"course"`
+	Semester     int  `json:"semester"`
+	Major        *int `json:"major"`
+	ElectiveBlock *int `json:"elective_block"`
 
-    Major         *int `json:"major"`
-    ElectiveBlock *int `json:"elective_block"`
+	CourseDetails        *CourseDetails                 `json:"course_details"`
+	MajorDetails         *models.MajorReadResponse      `json:"major_details"`
+	ElectiveBlockDetails *models.ElectiveBlock          `json:"elective_block_details"`
+}
 
-    CourseDetails        *CourseDetails         `json:"course_details"`
-    MajorDetails         *models.Major          `json:"major_details"`
-    ElectiveBlockDetails *models.ElectiveBlock  `json:"elective_block_details"`
+type CreateCurriculumCourseRequest struct {
+	StudyProgram  int  `json:"study_program" binding:"required"`
+	Course        int  `json:"course" binding:"required"`
+	Semester      int  `json:"semester" binding:"required"`
+	Major         *int `json:"major"`
+	ElectiveBlock *int `json:"elective_block"`
 }
