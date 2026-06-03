@@ -8,6 +8,8 @@ exclude_paths:
   - "frontend/src/App.css"
   - "frontend/package-lock.json"
   - "helpers/db_seeder/**"
+  - "backend/**/*_pb2.py"
+  - "backend/**/*_pb2_grpc.py"
 engines:
   bandit:
     patterns:
