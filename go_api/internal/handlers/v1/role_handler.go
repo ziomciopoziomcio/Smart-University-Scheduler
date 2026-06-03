@@ -7,26 +7,58 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/db"
+	"go_api/internal/dto"
 	"go_api/internal/models"
 )
 
 func GetRoles(c *gin.Context) {
 	var roles []models.Role
 
-	if err := db.DB.Preload("Permissions").Find(&roles).Error; err != nil {
+	if err := db.DB.Preload("Permissions").Order("id").Find(&roles).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": roles})
+	type RoleCountRow struct {
+		RoleID     int
+		UsersCount int
+	}
+	var countRows []RoleCountRow
+
+	db.DB.Table("roles").
+		Select("roles.id as role_id, count(user_roles.user_id) as users_count").
+		Joins("left join user_roles on user_roles.role_id = roles.id").
+		Group("roles.id").
+		Scan(&countRows)
+
+	countsMap := make(map[int]int)
+	for _, row := range countRows {
+		countsMap[row.RoleID] = row.UsersCount
+	}
+
+	var items []models.RoleWithCountResponse
+	for _, r := range roles {
+		perms := r.Permissions
+		if perms == nil {
+			perms = []models.Permission{}
+		}
+
+		items = append(items, models.RoleWithCountResponse{
+			ID:          r.ID,
+			RoleName:    r.RoleName,
+			Permissions: perms,
+			UsersCount:  countsMap[r.ID],
+		})
+	}
+
+	c.JSON(http.StatusOK, models.PaginatedRolesResponse{
+		Items: items,
+	})
 }
 
-type CreateRoleRequest struct {
-	RoleName string `json:"role_name" binding:"required"`
-}
-
+// POST /roles
 func CreateRole(c *gin.Context) {
-	var req CreateRoleRequest
+	var req dto.CreateRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -41,29 +73,24 @@ func CreateRole(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": role})
+	c.JSON(http.StatusCreated, role)
 }
 
 func GetPermissions(c *gin.Context) {
 	var permissions []models.Permission
 
-	if err := db.DB.Find(&permissions).Error; err != nil {
+	if err := db.DB.Order("id").Find(&permissions).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": permissions})
-}
-
-type CreatePermissionRequest struct {
-	Code        string `json:"code" binding:"required"`
-	Name        string `json:"name" binding:"required"`
-	Description string `json:"description"`
-	Group       string `json:"group"`
+	c.JSON(http.StatusOK, models.PaginatedPermissionsResponse{
+		Items: permissions,
+	})
 }
 
 func CreatePermission(c *gin.Context) {
-	var req CreatePermissionRequest
+	var req dto.CreatePermissionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -81,11 +108,7 @@ func CreatePermission(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": permission})
-}
-
-type AssignPermissionRequest struct {
-	PermissionID int `json:"permission_id" binding:"required"`
+	c.JSON(http.StatusCreated, permission)
 }
 
 func AssignPermissionToRole(c *gin.Context) {
@@ -96,7 +119,7 @@ func AssignPermissionToRole(c *gin.Context) {
 		return
 	}
 
-	var req AssignPermissionRequest
+	var req dto.AssignPermissionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
