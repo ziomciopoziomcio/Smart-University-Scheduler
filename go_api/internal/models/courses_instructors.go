@@ -9,7 +9,7 @@ type CoursesInstructors struct {
 	Hours int `json:"hours" gorm:"default:0"`
 
 	// Relation to CourseTypeDetail
-	CourseTypeDetail CourseTypeDetail `json:"course_type_detail" gorm:"foreignKey:Course,ClassType;references:Course,ClassType"`
+	CourseTypeDetail CourseTypeDetail `json:"-" gorm:"foreignKey:Course,ClassType;references:Course,ClassType"`
 }
 
 func (CoursesInstructors) TableName() string {
