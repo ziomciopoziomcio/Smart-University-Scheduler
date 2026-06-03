@@ -1,0 +1,47 @@
+definitions:
+  models.Group:
+    properties:
+      elective_block:
+        type: integer
+      group_name:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      major:
+        type: integer
+      members:
+        items:
+          $ref: '#/definitions/models.GroupMember'
+        type: array
+      semester:
+        type: integer
+      study_program:
+        type: integer
+    type: object
+  models.GroupMember:
+    properties:
+      group:
+        type: integer
+      student:
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /groups:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Group'
+            type: array
+      summary: Get all groups
+      tags:
+      - groups
+swagger: "2.0"

@@ -10,6 +10,13 @@ import (
 	"go_api/internal/dto"
 )
 
+// TODO change !!! ONLY FOR TESTS
+// GetGroups test 001
+// @Summary Get all groups
+// @Tags groups
+// @Produce json
+// @Success 200 {object} []models.Group
+// @Router /groups [get]
 func GetGroups(c *gin.Context) {
 	var groups []models.Group
 

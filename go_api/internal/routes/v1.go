@@ -6,11 +6,17 @@ import (
 
 	"go_api/internal/handlers/v1"
 	"go_api/internal/middleware"
+
+	swaggerFiles "github.com/swaggo/files"
+    ginSwagger "github.com/swaggo/gin-swagger"
+    _ "go_api/docs"
 )
 
 func RegisterV1Routes(r *gin.Engine, db *gorm.DB) {
 
 	v1 := r.Group("/api/v1")
+
+	v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// campuses
 	v1.GET("/campuses", handlers.GetCampuses)
