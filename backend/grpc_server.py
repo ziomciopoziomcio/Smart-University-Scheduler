@@ -23,60 +23,24 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
                 return user_pb2.UserCreateResponse()
 
             generated_password = secrets.token_urlsafe(12)
-            hashed = hash_password(generated_password)
-
             new_user = UserModel(
                 email=request.email,
                 name=request.name,
                 surname=request.surname,
                 phone_number=request.phone_number if request.phone_number else None,
                 degree=request.degree if request.degree else None,
-                password_hash=hashed,
+                password_hash=hash_password(generated_password),
                 force_password_change=True,
             )
             db.add(new_user)
             db.flush()
 
-            profile_type = request.WhichOneof("profile")
-
-            if profile_type == "student":
-                from src.academics.models import Students
-
-                new_student = Students(
-                    user_id=new_user.id,
-                    study_program=request.student.study_program_id,
-                    major=(
-                        request.student.major_id
-                        if request.student.major_id > 0
-                        else None
-                    ),
-                )
-                db.add(new_student)
-                logging.info(f"Adding student profile for user_id: {new_user.id}")
-
-            elif profile_type == "employee":
-                from src.academics.models import Employees
-
-                new_employee = Employees(
-                    user_id=new_user.id,
-                    faculty_id=request.employee.faculty_id,
-                    unit_id=request.employee.unit_id,
-                )
-                db.add(new_employee)
-                logging.info(f"Adding employee profile for user_id: {new_user.id}")
-
+            self._handle_academic_profile(db, new_user.id, request)
             db.commit()
             db.refresh(new_user)
 
             if request.send_login_credentials_email:
-                try:
-                    subject = "Your login info for Smart University Scheduler"
-                    body_text = f"Hello {new_user.name},\n\nLogin: {new_user.email}\nPassword: {generated_password}"
-                    send_email(
-                        to_email=new_user.email, subject=subject, body_text=body_text
-                    )
-                except Exception as e:
-                    logging.error(f"Couldn't send email: {e}")
+                self._send_credentials_email(new_user, generated_password)
 
             return user_pb2.UserCreateResponse(
                 id=new_user.id, email=new_user.email, status="created"
@@ -90,6 +54,39 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             return user_pb2.UserCreateResponse()
         finally:
             db.close()
+
+    def _handle_academic_profile(self, db, user_id, request):
+        profile_type = request.WhichOneof("profile")
+        if profile_type == "student":
+            from src.academics.models import Students
+
+            new_student = Students(
+                user_id=user_id,
+                study_program=request.student.study_program_id,
+                major=(
+                    request.student.major_id if request.student.major_id > 0 else None
+                ),
+            )
+            db.add(new_student)
+            logging.info(f"Adding student profile for user_id: {user_id}")
+        elif profile_type == "employee":
+            from src.academics.models import Employees
+
+            new_employee = Employees(
+                user_id=user_id,
+                faculty_id=request.employee.faculty_id,
+                unit_id=request.employee.unit_id,
+            )
+            db.add(new_employee)
+            logging.info(f"Adding employee profile for user_id: {user_id}")
+
+    def _send_credentials_email(self, user, plaintext_password):
+        try:
+            subject = "Your login info for Smart University Scheduler"
+            body_text = f"Hello {user.name},\n\nLogin: {user.email}\nPassword: {plaintext_password}"
+            send_email(to_email=user.email, subject=subject, body_text=body_text)
+        except Exception as e:
+            logging.error(f"Couldn't send email: {e}")
 
     async def DeleteUserRPC(self, request, context):
         db = SessionLocal()
@@ -146,28 +143,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
                 degree=user.degree if user.degree else "",
             )
 
-            from src.academics.models import Students, Employees
-
-            student_profile = (
-                db.query(Students).filter(Students.user_id == user.id).first()
-            )
-            if student_profile:
-                response.student.id = student_profile.id
-                response.student.study_program_id = student_profile.study_program
-                response.student.major_id = (
-                    student_profile.major if student_profile.major else 0
-                )
-                return response
-
-            employee_profile = (
-                db.query(Employees).filter(Employees.user_id == user.id).first()
-            )
-            if employee_profile:
-                response.employee.id = employee_profile.id
-                response.employee.faculty_id = employee_profile.faculty_id
-                response.employee.unit_id = employee_profile.unit_id
-                return response
-
+            self._enrich_user_response_profile(db, user.id, response)
             return response
 
         except Exception as e:
@@ -177,6 +153,26 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             return user_pb2.UserGetResponse()
         finally:
             db.close()
+
+    def _enrich_user_response_profile(self, db, user_id, response):
+        from src.academics.models import Students, Employees
+
+        student_profile = db.query(Students).filter(Students.user_id == user_id).first()
+        if student_profile:
+            response.student.id = student_profile.id
+            response.student.study_program_id = student_profile.study_program
+            response.student.major_id = (
+                student_profile.major if student_profile.major else 0
+            )
+            return
+
+        employee_profile = (
+            db.query(Employees).filter(Employees.user_id == user_id).first()
+        )
+        if employee_profile:
+            response.employee.id = employee_profile.id
+            response.employee.faculty_id = employee_profile.faculty_id
+            response.employee.unit_id = employee_profile.unit_id
 
 
 async def serve():
