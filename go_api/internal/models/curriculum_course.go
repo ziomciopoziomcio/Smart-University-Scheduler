@@ -9,9 +9,12 @@ type CurriculumCourse struct {
 	Major         *int `json:"major"`
 	ElectiveBlock *int `json:"elective_block"`
 
-	// Relations
-	StudyProgramRef StudyProgram `json:"study_program_ref" gorm:"foreignKey:StudyProgram;references:ID"`
+    // Relations
 	CourseRef       Course       `json:"course_ref" gorm:"foreignKey:Course;references:CourseCode"`
+	StudyProgramRef StudyProgram `json:"study_program_ref" gorm:"foreignKey:StudyProgram;references:ID"`
+
+	MajorRef         *Major         `json:"major_ref,omitempty" gorm:"foreignKey:Major;references:ID"`
+	ElectiveBlockRef *ElectiveBlock `json:"elective_block_ref,omitempty" gorm:"foreignKey:ElectiveBlock;references:ID"`
 }
 
 func (CurriculumCourse) TableName() string {
