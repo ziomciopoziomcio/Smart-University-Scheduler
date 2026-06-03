@@ -94,6 +94,94 @@ const docTemplate = `{
                 }
             }
         },
+        "/buildings": {
+            "get": {
+                "description": "Returns list of buildings with number of rooms",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "buildings"
+                ],
+                "summary": "Get all buildings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedBuildingsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new building.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "buildings"
+                ],
+                "summary": "Create building",
+                "parameters": [
+                    {
+                        "description": "Building data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateBuildingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Building"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/groups": {
             "get": {
                 "produces": [
@@ -148,6 +236,25 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateBuildingRequest": {
+            "type": "object",
+            "required": [
+                "building_name",
+                "building_number",
+                "campus_id"
+            ],
+            "properties": {
+                "building_name": {
+                    "type": "string"
+                },
+                "building_number": {
+                    "type": "string"
+                },
+                "campus_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.AcademicCalendarResponse": {
             "type": "object",
             "properties": {
@@ -167,6 +274,43 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "week_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Building": {
+            "type": "object",
+            "properties": {
+                "building_name": {
+                    "type": "string"
+                },
+                "building_number": {
+                    "type": "string"
+                },
+                "campus_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.BuildingReadResponse": {
+            "type": "object",
+            "properties": {
+                "building_name": {
+                    "type": "string"
+                },
+                "building_number": {
+                    "type": "string"
+                },
+                "campus_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "rooms_number": {
                     "type": "integer"
                 }
             }
@@ -221,6 +365,17 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.AcademicCalendarResponse"
+                    }
+                }
+            }
+        },
+        "models.PaginatedBuildingsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.BuildingReadResponse"
                     }
                 }
             }

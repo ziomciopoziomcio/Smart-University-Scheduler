@@ -10,6 +10,15 @@ import (
 	"go_api/internal/models"
 )
 
+
+// GetBuildings godoc
+// @Summary Get all buildings
+// @Description Returns list of buildings with number of rooms
+// @Tags buildings
+// @Produce json
+// @Success 200 {object} models.PaginatedBuildingsResponse
+// @Failure 500 {object} map[string]string
+// @Router /buildings [get]
 func GetBuildings(c *gin.Context) {
 	var items []models.BuildingReadResponse
 
@@ -38,6 +47,19 @@ func GetBuildings(c *gin.Context) {
 	})
 }
 
+
+// CreateBuilding godoc
+// @Summary Create building
+// @Description Creates a new building.
+// @Tags buildings
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateBuildingRequest true "Building data"
+// @Success 201 {object} models.Building
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /buildings [post]
 func CreateBuilding(c *gin.Context) {
 	var req dto.CreateBuildingRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

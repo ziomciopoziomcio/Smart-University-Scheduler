@@ -20,6 +20,19 @@ definitions:
     - semester_type
     - week_number
     type: object
+  dto.CreateBuildingRequest:
+    properties:
+      building_name:
+        type: string
+      building_number:
+        type: string
+      campus_id:
+        type: integer
+    required:
+    - building_name
+    - building_number
+    - campus_id
+    type: object
   models.AcademicCalendarResponse:
     properties:
       academic_day_of_week:
@@ -33,6 +46,30 @@ definitions:
       semester_type:
         type: string
       week_number:
+        type: integer
+    type: object
+  models.Building:
+    properties:
+      building_name:
+        type: string
+      building_number:
+        type: string
+      campus_id:
+        type: integer
+      id:
+        type: integer
+    type: object
+  models.BuildingReadResponse:
+    properties:
+      building_name:
+        type: string
+      building_number:
+        type: string
+      campus_id:
+        type: integer
+      id:
+        type: integer
+      rooms_number:
         type: integer
     type: object
   models.Group:
@@ -68,6 +105,13 @@ definitions:
       items:
         items:
           $ref: '#/definitions/models.AcademicCalendarResponse'
+        type: array
+    type: object
+  models.PaginatedBuildingsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.BuildingReadResponse'
         type: array
     type: object
 info:
@@ -125,6 +169,64 @@ paths:
       summary: Create academic calendar entry
       tags:
       - Academic Calendar
+  /buildings:
+    get:
+      description: Returns list of buildings with number of rooms
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedBuildingsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all buildings
+      tags:
+      - buildings
+    post:
+      consumes:
+      - application/json
+      description: Creates a new building.
+      parameters:
+      - description: Building data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateBuildingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Building'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create building
+      tags:
+      - buildings
   /groups:
     get:
       produces:
