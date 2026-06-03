@@ -7,20 +7,36 @@ import (
 
 	"go_api/db"
 	"go_api/internal/models"
+	"go_api/internal/dto"
 )
 
 func GetGroups(c *gin.Context) {
 	var groups []models.Group
 
-	if err := db.DB.
-		Preload("Members").
-		Find(&groups).Error; err != nil {
-
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err := db.DB.Find(&groups).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": groups})
+	items := make([]dto.GroupResponse, 0, len(groups))
+
+	for _, g := range groups {
+		items = append(items, dto.GroupResponse{
+			ID:            g.ID,
+			GroupName:     g.GroupName,
+			StudyProgram:  g.StudyProgram,
+			Major:         g.Major,
+			ElectiveBlock: g.ElectiveBlock,
+			Semester:      g.Semester,
+			IsActive:      g.IsActive,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": items,
+	})
 }
 
 func CreateGroup(c *gin.Context) {
