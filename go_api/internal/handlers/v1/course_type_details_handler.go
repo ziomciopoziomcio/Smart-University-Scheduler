@@ -10,6 +10,15 @@ import (
 	"go_api/internal/models"
 )
 
+
+// GetCourseTypeDetails godoc
+// @Summary Get course type details
+// @Description Returns list of course type details sorted by course and class type
+// @Tags course-type-details
+// @Produce json
+// @Success 200 {object} models.PaginatedCourseTypeDetailsResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/course-type-details [get]
 func GetCourseTypeDetails(c *gin.Context) {
 	var courseTypeDetails []models.CourseTypeDetail
 
@@ -23,6 +32,18 @@ func GetCourseTypeDetails(c *gin.Context) {
 	})
 }
 
+
+// CreateCourseTypeDetail godoc
+// @Summary Create course type detail
+// @Description Creates a new course type detail entry.
+// @Tags course-type-details
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateCourseTypeDetailRequest true "Course type detail data"
+// @Success 201 {object} models.CourseTypeDetail
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/course-type-details [post]
 func CreateCourseTypeDetail(c *gin.Context) {
 	var req dto.CreateCourseTypeDetailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

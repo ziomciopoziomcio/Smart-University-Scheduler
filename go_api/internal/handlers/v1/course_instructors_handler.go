@@ -10,6 +10,15 @@ import (
 	"go_api/internal/models"
 )
 
+
+// GetCoursesInstructors godoc
+// @Summary Get course instructors
+// @Description Returns list of course-instructor assignments
+// @Tags courses-instructors
+// @Produce json
+// @Success 200 {object} models.PaginatedCoursesInstructorsResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/courses-instructors [get]
 func GetCoursesInstructors(c *gin.Context) {
 	var coursesInstructors []models.CoursesInstructors
 
@@ -23,6 +32,17 @@ func GetCoursesInstructors(c *gin.Context) {
 	})
 }
 
+// CreateCoursesInstructor godoc
+// @Summary Assign instructor to course
+// @Description Assigns an employee to a course and class type (after validating course type existence)
+// @Tags courses-instructors
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateCourseInstructorRequest true "Instructor assignment data"
+// @Success 201 {object} models.CoursesInstructors
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/courses-instructors [post]
 func CreateCoursesInstructor(c *gin.Context) {
 	var req dto.CreateCourseInstructorRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

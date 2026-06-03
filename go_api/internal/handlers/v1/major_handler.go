@@ -10,6 +10,14 @@ import (
 	"go_api/internal/models"
 )
 
+// GetMajors godoc
+// @Summary Get majors
+// @Description Returns list of majors with group count
+// @Tags majors
+// @Produce json
+// @Success 200 {object} models.PaginatedMajorsResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/majors [get]
 func GetMajors(c *gin.Context) {
 	var items []models.MajorReadResponse
 
@@ -36,6 +44,19 @@ func GetMajors(c *gin.Context) {
 	})
 }
 
+
+// CreateMajor godoc
+// @Summary Create major
+// @Description Creates a new major.
+// @Tags majors
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateMajorRequest true "Major data"
+// @Success 201 {object} models.Major
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/majors [post]
 func CreateMajor(c *gin.Context) {
 	var req dto.CreateMajorRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

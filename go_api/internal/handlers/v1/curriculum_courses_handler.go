@@ -10,6 +10,15 @@ import (
 	"go_api/internal/models"
 )
 
+
+// GetCurriculumCourses godoc
+// @Summary Get curriculum courses
+// @Description Returns curriculum courses with course, major and elective block details (with aggregated group counts)
+// @Tags curriculum-courses
+// @Produce json
+// @Success 200 {object} map[string][]dto.CurriculumCourseResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/curriculum-courses [get]
 func GetCurriculumCourses(c *gin.Context) {
 	var curriculumCourses []models.CurriculumCourse
 
@@ -23,7 +32,6 @@ func GetCurriculumCourses(c *gin.Context) {
 		return
 	}
 
-	// Szybkie pobranie liczby grup dla każdego majora
 	type MajorCountRow struct {
 		MajorID    int
 		GroupCount int
@@ -76,6 +84,18 @@ func GetCurriculumCourses(c *gin.Context) {
 	})
 }
 
+
+// CreateCurriculumCourse godoc
+// @Summary Create curriculum course
+// @Description Creates a new curriculum course entry.
+// @Tags curriculum-courses
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateCurriculumCourseRequest true "Curriculum course data"
+// @Success 201 {object} models.CurriculumCourse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/curriculum-courses [post]
 func CreateCurriculumCourse(c *gin.Context) {
 	var req dto.CreateCurriculumCourseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Success 200 {object} models.PaginatedCampusesResponse
 // @Failure 500 {object} map[string]string
-// @Router /campuses [get]
+// @Router /api/v1/campuses [get]
 func GetCampuses(c *gin.Context) {
 	var campuses []models.Campus
 
@@ -43,7 +43,7 @@ func GetCampuses(c *gin.Context) {
 // @Success 201 {object} models.Campus
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /campuses [post]
+// @Router /api/v1/campuses [post]
 func CreateCampus(c *gin.Context) {
 	var req dto.CreateCampusRequest
 

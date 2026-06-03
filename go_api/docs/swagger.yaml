@@ -1,4 +1,20 @@
 definitions:
+  dto.AssignPermissionRequest:
+    properties:
+      permission_id:
+        type: integer
+    required:
+    - permission_id
+    type: object
+  dto.CourseDetails:
+    properties:
+      course_code:
+        type: integer
+      course_name:
+        type: string
+      ects_points:
+        type: integer
+    type: object
   dto.CreateAcademicCalendarRequest:
     properties:
       academic_day_of_week:
@@ -43,6 +59,21 @@ definitions:
     - campus_name
     - campus_short
     type: object
+  dto.CreateCourseInstructorRequest:
+    properties:
+      class_type:
+        type: string
+      course:
+        type: integer
+      employee:
+        type: integer
+      hours:
+        type: integer
+    required:
+    - class_type
+    - course
+    - employee
+    type: object
   dto.CreateCourseRequest:
     properties:
       course_code:
@@ -64,6 +95,173 @@ definitions:
     - course_name
     - ects_points
     - leading_unit
+    type: object
+  dto.CreateCourseTypeDetailRequest:
+    properties:
+      class_hours:
+        type: integer
+      class_type:
+        type: string
+      course:
+        type: integer
+      frequency:
+        type: string
+      manual_weeks:
+        items:
+          type: integer
+        type: array
+      max_group_participants_number:
+        type: integer
+      pc_needed:
+        type: boolean
+      projector_needed:
+        type: boolean
+      slots_per_class:
+        type: integer
+    required:
+    - class_type
+    - course
+    type: object
+  dto.CreateCurriculumCourseRequest:
+    properties:
+      course:
+        type: integer
+      elective_block:
+        type: integer
+      major:
+        type: integer
+      semester:
+        type: integer
+      study_program:
+        type: integer
+    required:
+    - course
+    - semester
+    - study_program
+    type: object
+  dto.CreateElectiveBlockRequest:
+    properties:
+      elective_block_name:
+        type: string
+      study_field:
+        type: integer
+    required:
+    - elective_block_name
+    - study_field
+    type: object
+  dto.CreateFacultyRequest:
+    properties:
+      faculty_name:
+        type: string
+      faculty_short:
+        type: string
+    required:
+    - faculty_name
+    - faculty_short
+    type: object
+  dto.CreateMajorRequest:
+    properties:
+      major_name:
+        type: string
+      study_field:
+        type: integer
+    required:
+    - major_name
+    - study_field
+    type: object
+  dto.CreatePermissionRequest:
+    properties:
+      code:
+        type: string
+      description:
+        type: string
+      group:
+        type: string
+      name:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  dto.CreateRoleRequest:
+    properties:
+      role_name:
+        type: string
+    required:
+    - role_name
+    type: object
+  dto.CreateUserRequest:
+    properties:
+      degree:
+        type: string
+      email:
+        type: string
+      employee:
+        $ref: '#/definitions/dto.EmployeeProfileDTO'
+      name:
+        type: string
+      phone_number:
+        type: string
+      send_login_credentials_email:
+        type: boolean
+      student:
+        $ref: '#/definitions/dto.StudentProfileDTO'
+      surname:
+        type: string
+    required:
+    - email
+    - name
+    - surname
+    type: object
+  dto.CurriculumCourseResponse:
+    properties:
+      course:
+        type: integer
+      course_details:
+        $ref: '#/definitions/dto.CourseDetails'
+      elective_block:
+        type: integer
+      elective_block_details:
+        $ref: '#/definitions/models.ElectiveBlock'
+      major:
+        type: integer
+      major_details:
+        $ref: '#/definitions/models.MajorReadResponse'
+      semester:
+        type: integer
+      study_program:
+        type: integer
+    type: object
+  dto.EmployeeProfileDTO:
+    properties:
+      faculty_id:
+        type: integer
+      unit_id:
+        type: integer
+    type: object
+  dto.GroupResponse:
+    properties:
+      elective_block:
+        type: integer
+      group_name:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      major:
+        type: integer
+      semester:
+        type: integer
+      study_program:
+        type: integer
+    type: object
+  dto.StudentProfileDTO:
+    properties:
+      major_id:
+        type: integer
+      study_program_id:
+        type: integer
     type: object
   models.AcademicCalendarResponse:
     properties:
@@ -128,6 +326,94 @@ definitions:
       leading_unit:
         type: integer
     type: object
+  models.CourseTypeDetail:
+    properties:
+      class_hours:
+        type: integer
+      class_type:
+        type: string
+      course:
+        type: integer
+      frequency:
+        type: string
+      manual_weeks:
+        items:
+          type: integer
+        type: array
+      max_group_participants_number:
+        type: integer
+      pc_needed:
+        type: boolean
+      projector_needed:
+        type: boolean
+      slots_per_class:
+        type: integer
+    type: object
+  models.CoursesInstructors:
+    properties:
+      class_type:
+        type: string
+      course:
+        type: integer
+      employee:
+        type: integer
+      hours:
+        type: integer
+    type: object
+  models.CurriculumCourse:
+    properties:
+      course:
+        type: integer
+      course_ref:
+        allOf:
+        - $ref: '#/definitions/models.Course'
+        description: Relations
+      elective_block:
+        type: integer
+      elective_block_ref:
+        $ref: '#/definitions/models.ElectiveBlock'
+      major:
+        type: integer
+      major_ref:
+        $ref: '#/definitions/models.Major'
+      semester:
+        type: integer
+      study_program:
+        type: integer
+      study_program_ref:
+        $ref: '#/definitions/models.StudyProgram'
+    type: object
+  models.ElectiveBlock:
+    properties:
+      elective_block_name:
+        type: string
+      id:
+        type: integer
+      study_field:
+        type: integer
+    type: object
+  models.Faculty:
+    properties:
+      faculty_name:
+        type: string
+      faculty_short:
+        type: string
+      id:
+        type: integer
+    type: object
+  models.FacultyReadWithCounterResponse:
+    properties:
+      faculty_name:
+        type: string
+      faculty_short:
+        type: string
+      id:
+        type: integer
+      lecturers_count:
+        type: integer
+      students_count:
+        type: integer
+    type: object
   models.Group:
     properties:
       elective_block:
@@ -156,6 +442,26 @@ definitions:
       student:
         type: integer
     type: object
+  models.Major:
+    properties:
+      id:
+        type: integer
+      major_name:
+        type: string
+      study_field:
+        type: integer
+    type: object
+  models.MajorReadResponse:
+    properties:
+      group_count:
+        type: integer
+      id:
+        type: integer
+      major_name:
+        type: string
+      study_field:
+        type: integer
+    type: object
   models.PaginatedAcademicCalendarResponse:
     properties:
       items:
@@ -177,6 +483,20 @@ definitions:
           $ref: '#/definitions/models.Campus'
         type: array
     type: object
+  models.PaginatedCourseTypeDetailsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.CourseTypeDetail'
+        type: array
+    type: object
+  models.PaginatedCoursesInstructorsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.CoursesInstructors'
+        type: array
+    type: object
   models.PaginatedCoursesResponse:
     properties:
       items:
@@ -184,10 +504,293 @@ definitions:
           $ref: '#/definitions/models.Course'
         type: array
     type: object
+  models.PaginatedElectiveBlocksResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.ElectiveBlock'
+        type: array
+    type: object
+  models.PaginatedFacultiesResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.FacultyReadWithCounterResponse'
+        type: array
+    type: object
+  models.PaginatedMajorsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.MajorReadResponse'
+        type: array
+    type: object
+  models.PaginatedPermissionsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.Permission'
+        type: array
+    type: object
+  models.PaginatedRolesResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.RoleWithCountResponse'
+        type: array
+    type: object
+  models.PaginatedRoomsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.Room'
+        type: array
+    type: object
+  models.PaginatedStudyFieldsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.StudyFieldListSummaryResponse'
+        type: array
+    type: object
+  models.PaginatedStudyProgramsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.StudyProgramDetailResponse'
+        type: array
+    type: object
+  models.PaginatedUsersResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.UserResponse'
+        type: array
+    type: object
+  models.Permission:
+    properties:
+      code:
+        type: string
+      description:
+        type: string
+      group:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/models.Role'
+        type: array
+    type: object
+  models.Role:
+    properties:
+      id:
+        type: integer
+      permissions:
+        items:
+          $ref: '#/definitions/models.Permission'
+        type: array
+      role_name:
+        type: string
+    type: object
+  models.RoleWithCountResponse:
+    properties:
+      id:
+        type: integer
+      permissions:
+        items:
+          $ref: '#/definitions/models.Permission'
+        type: array
+      role_name:
+        type: string
+      users_count:
+        type: integer
+    type: object
+  models.Room:
+    properties:
+      building_id:
+        type: integer
+      faculty_id:
+        type: integer
+      id:
+        type: integer
+      pc_amount:
+        type: integer
+      projector_availability:
+        type: boolean
+      room_capacity:
+        type: integer
+      room_name:
+        type: string
+      unit_id:
+        type: integer
+    type: object
+  models.SemesterSummary:
+    properties:
+      courses_count:
+        type: integer
+      ects_sum:
+        type: integer
+      semester_number:
+        type: integer
+    type: object
+  models.StudyField:
+    properties:
+      degree:
+        type: string
+      faculty_id:
+        type: integer
+      field_name:
+        type: string
+      id:
+        type: integer
+      language:
+        type: string
+      mode:
+        type: string
+    type: object
+  models.StudyFieldListSummaryResponse:
+    properties:
+      degree:
+        type: string
+      elective_blocks_count:
+        type: integer
+      faculty:
+        type: integer
+      field_name:
+        type: string
+      id:
+        type: integer
+      language:
+        type: string
+      mode:
+        type: string
+      programs_count:
+        type: integer
+      semesters_count:
+        type: integer
+      specializations_count:
+        type: integer
+    type: object
+  models.StudyProgram:
+    properties:
+      id:
+        type: integer
+      program_name:
+        type: string
+      start_year:
+        type: string
+      study_field:
+        type: integer
+    type: object
+  models.StudyProgramDetailResponse:
+    properties:
+      id:
+        type: integer
+      program_name:
+        type: string
+      semester_summary:
+        items:
+          $ref: '#/definitions/models.SemesterSummary'
+        type: array
+      semesters_count:
+        type: integer
+      start_year:
+        type: string
+      study_field:
+        type: integer
+    type: object
+  models.Unit:
+    properties:
+      faculty_id:
+        type: integer
+      id:
+        type: integer
+      unit_name:
+        type: string
+      unit_short:
+        type: string
+    type: object
+  models.UnitResponse:
+    properties:
+      courses_count:
+        type: integer
+      faculty_id:
+        type: integer
+      id:
+        type: integer
+      lecturers_count:
+        type: integer
+      unit_name:
+        type: string
+      unit_short:
+        type: string
+    type: object
+  models.UnitsListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.UnitResponse'
+        type: array
+    type: object
+  models.UserDetailResponse:
+    properties:
+      created_at:
+        type: string
+      degree:
+        type: string
+      email:
+        type: string
+      employee:
+        additionalProperties: true
+        type: object
+      id:
+        type: integer
+      name:
+        type: string
+      phone_number:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+      student:
+        additionalProperties: true
+        type: object
+      surname:
+        type: string
+      two_factor_enabled:
+        type: boolean
+    type: object
+  models.UserResponse:
+    properties:
+      created_at:
+        type: string
+      degree:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      phone_number:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+      surname:
+        type: string
+      two_factor_enabled:
+        type: boolean
+    type: object
 info:
   contact: {}
 paths:
-  /academic-calendar:
+  /api/v1/academic-calendar:
     get:
       description: Returns all academic calendar entries
       produces:
@@ -239,7 +842,7 @@ paths:
       summary: Create academic calendar entry
       tags:
       - Academic Calendar
-  /buildings:
+  /api/v1/buildings:
     get:
       description: Returns list of buildings with number of rooms
       produces:
@@ -297,7 +900,7 @@ paths:
       summary: Create building
       tags:
       - buildings
-  /campuses:
+  /api/v1/campuses:
     get:
       description: Returns list of all campuses
       produces:
@@ -349,7 +952,60 @@ paths:
       summary: Create campus
       tags:
       - campuses
-  /courses:
+  /api/v1/course-type-details:
+    get:
+      description: Returns list of course type details sorted by course and class
+        type
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedCourseTypeDetailsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get course type details
+      tags:
+      - course-type-details
+    post:
+      consumes:
+      - application/json
+      description: Creates a new course type detail entry.
+      parameters:
+      - description: Course type detail data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCourseTypeDetailRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CourseTypeDetail'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create course type detail
+      tags:
+      - course-type-details
+  /api/v1/courses:
     get:
       description: Returns list of all courses sorted by course code
       produces:
@@ -401,18 +1057,897 @@ paths:
       summary: Create course
       tags:
       - courses
-  /groups:
+  /api/v1/courses-instructors:
     get:
+      description: Returns list of course-instructor assignments
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/models.Group'
-            type: array
+            $ref: '#/definitions/models.PaginatedCoursesInstructorsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get course instructors
+      tags:
+      - courses-instructors
+    post:
+      consumes:
+      - application/json
+      description: Assigns an employee to a course and class type (after validating
+        course type existence)
+      parameters:
+      - description: Instructor assignment data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCourseInstructorRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CoursesInstructors'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Assign instructor to course
+      tags:
+      - courses-instructors
+  /api/v1/curriculum-courses:
+    get:
+      description: Returns curriculum courses with course, major and elective block
+        details (with aggregated group counts)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              items:
+                $ref: '#/definitions/dto.CurriculumCourseResponse'
+              type: array
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get curriculum courses
+      tags:
+      - curriculum-courses
+    post:
+      consumes:
+      - application/json
+      description: Creates a new curriculum course entry.
+      parameters:
+      - description: Curriculum course data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCurriculumCourseRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CurriculumCourse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create curriculum course
+      tags:
+      - curriculum-courses
+  /api/v1/elective-blocks:
+    get:
+      description: Returns list of elective blocks
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedElectiveBlocksResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get elective blocks
+      tags:
+      - elective-blocks
+    post:
+      consumes:
+      - application/json
+      description: Creates a new elective block.
+      parameters:
+      - description: Elective block data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateElectiveBlockRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ElectiveBlock'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create elective block
+      tags:
+      - elective-blocks
+  /api/v1/faculties:
+    get:
+      description: Returns faculties with lecturers and students count
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedFacultiesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get faculties
+      tags:
+      - faculties
+    post:
+      consumes:
+      - application/json
+      description: Creates a new faculty.
+      parameters:
+      - description: Faculty data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateFacultyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Faculty'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create faculty
+      tags:
+      - faculties
+  /api/v1/group-members:
+    get:
+      description: Returns list of group members with group relation
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              items:
+                $ref: '#/definitions/models.GroupMember'
+              type: array
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get group members
+      tags:
+      - group-members
+    post:
+      consumes:
+      - application/json
+      description: Adds a user to a group
+      parameters:
+      - description: Group member data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.GroupMember'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/models.GroupMember'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create group member
+      tags:
+      - group-members
+  /api/v1/groups:
+    get:
+      description: Returns list of all groups
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              items:
+                $ref: '#/definitions/dto.GroupResponse'
+              type: array
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: Get all groups
       tags:
       - groups
+    post:
+      consumes:
+      - application/json
+      description: Creates a new group.
+      parameters:
+      - description: Group data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Group'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/models.Group'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create group
+      tags:
+      - groups
+  /api/v1/majors:
+    get:
+      description: Returns list of majors with group count
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedMajorsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get majors
+      tags:
+      - majors
+    post:
+      consumes:
+      - application/json
+      description: Creates a new major.
+      parameters:
+      - description: Major data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateMajorRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Major'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create major
+      tags:
+      - majors
+  /api/v1/permissions:
+    get:
+      description: Returns list of permissions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedPermissionsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get permissions
+      tags:
+      - permissions
+    post:
+      consumes:
+      - application/json
+      description: Creates a new permission
+      parameters:
+      - description: Permission data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreatePermissionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Permission'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create permission
+      tags:
+      - permissions
+  /api/v1/roles:
+    get:
+      description: Returns list of roles with permissions and user count
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedRolesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get roles
+      tags:
+      - roles
+    post:
+      consumes:
+      - application/json
+      description: Creates a new role
+      parameters:
+      - description: Role data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Role'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create role
+      tags:
+      - roles
+  /api/v1/roles/{id}/permissions:
+    post:
+      consumes:
+      - application/json
+      description: Assigns a permission to a role
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Permission assignment data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AssignPermissionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Assign permission to role
+      tags:
+      - roles
+  /api/v1/rooms:
+    get:
+      description: Returns list of rooms
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedRoomsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get rooms
+      tags:
+      - rooms
+    post:
+      consumes:
+      - application/json
+      description: Creates a new room. ID is generated by database and cannot be provided
+        by client.
+      parameters:
+      - description: Room data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Room'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              $ref: '#/definitions/models.Room'
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create room
+      tags:
+      - rooms
+  /api/v1/study-fields:
+    get:
+      description: Returns study fields with aggregated counts (majors, programs,
+        elective blocks, semesters)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedStudyFieldsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get study fields
+      tags:
+      - study-fields
+    post:
+      consumes:
+      - application/json
+      description: Creates a new study field.
+      parameters:
+      - description: Study field data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.StudyField'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.StudyField'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create study field
+      tags:
+      - study-fields
+  /api/v1/study-programs:
+    get:
+      description: Returns study programs with semester statistics (courses count
+        and ECTS sum per semester)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedStudyProgramsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get study programs
+      tags:
+      - study-programs
+    post:
+      consumes:
+      - application/json
+      description: Creates a new study program. ID is generated by database and cannot
+        be provided by client.
+      parameters:
+      - description: Study program data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.StudyProgram'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.StudyProgram'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create study program
+      tags:
+      - study-programs
+  /api/v1/units:
+    get:
+      description: Returns list of units with lecturers and courses counts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UnitsListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get units
+      tags:
+      - units
+    post:
+      consumes:
+      - application/json
+      description: Creates a new unit.
+      parameters:
+      - description: Unit data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Unit'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Unit'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create unit
+      tags:
+      - units
+  /api/v1/users:
+    get:
+      description: Returns list of users with roles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedUsersResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Creates a user via internal gRPC service
+      parameters:
+      - description: User data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create user (proxy)
+      tags:
+      - users
+  /api/v1/users/{id}:
+    delete:
+      description: Deletes a user via internal gRPC service
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete user (proxy)
+      tags:
+      - users
+    get:
+      description: Fetches user details from internal gRPC service and enriches with
+        DB data
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserDetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user by ID (proxy)
+      tags:
+      - users
 swagger: "2.0"

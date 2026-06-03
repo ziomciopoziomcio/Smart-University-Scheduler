@@ -18,6 +18,15 @@ import (
 	pb "go_api/internal/rpc/user"
 )
 
+
+// GetUsers godoc
+// @Summary Get users
+// @Description Returns list of users with roles
+// @Tags users
+// @Produce json
+// @Success 200 {object} models.PaginatedUsersResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/users [get]
 func GetUsers(c *gin.Context) {
 	var users []models.User
 
@@ -51,6 +60,18 @@ func GetUsers(c *gin.Context) {
 	})
 }
 
+
+// GetUserProxy godoc
+// @Summary Get user by ID (proxy)
+// @Description Fetches user details from internal gRPC service and enriches with DB data
+// @Tags users
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} models.UserDetailResponse
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/users/{id} [get]
 func GetUserProxy(c *gin.Context) {
 	idParam := c.Param("id")
 	userId, err := strconv.ParseInt(idParam, 10, 32)
@@ -128,6 +149,18 @@ func GetUserProxy(c *gin.Context) {
 	c.JSON(http.StatusOK, userDetail)
 }
 
+
+// CreateUserProxy godoc
+// @Summary Create user (proxy)
+// @Description Creates a user via internal gRPC service
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateUserRequest true "User data"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/users [post]
 func CreateUserProxy(c *gin.Context) {
 	conn, err := grpc.Dial("backend:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -190,6 +223,17 @@ func CreateUserProxy(c *gin.Context) {
 	})
 }
 
+
+// DeleteUserProxy godoc
+// @Summary Delete user (proxy)
+// @Description Deletes a user via internal gRPC service
+// @Tags users
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/users/{id} [delete]
 func DeleteUserProxy(c *gin.Context) {
 	idParam := c.Param("id")
 	userId, err := strconv.ParseInt(idParam, 10, 32)

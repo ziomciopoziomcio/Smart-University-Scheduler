@@ -10,13 +10,14 @@ import (
 	"go_api/internal/dto"
 )
 
-// TODO change !!! ONLY FOR TESTS
-// GetGroups test 001
+// GetGroups godoc
 // @Summary Get all groups
+// @Description Returns list of all groups
 // @Tags groups
 // @Produce json
-// @Success 200 {object} []models.Group
-// @Router /groups [get]
+// @Success 200 {object} map[string][]dto.GroupResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/groups [get]
 func GetGroups(c *gin.Context) {
 	var groups []models.Group
 
@@ -46,6 +47,18 @@ func GetGroups(c *gin.Context) {
 	})
 }
 
+
+// CreateGroup godoc
+// @Summary Create group
+// @Description Creates a new group.
+// @Tags groups
+// @Accept json
+// @Produce json
+// @Param request body models.Group true "Group data"
+// @Success 201 {object} map[string]models.Group
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/groups [post]
 func CreateGroup(c *gin.Context) {
 	var group models.Group
 

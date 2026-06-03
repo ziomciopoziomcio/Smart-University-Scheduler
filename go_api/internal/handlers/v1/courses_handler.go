@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Success 200 {object} models.PaginatedCoursesResponse
 // @Failure 500 {object} map[string]string
-// @Router /courses [get]
+// @Router /api/v1/courses [get]
 func GetCourses(c *gin.Context) {
 	var courses []models.Course
 
@@ -43,7 +43,7 @@ func GetCourses(c *gin.Context) {
 // @Success 201 {object} models.Course
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /courses [post]
+// @Router /api/v1/courses [post]
 func CreateCourse(c *gin.Context) {
 	var req dto.CreateCourseRequest
 

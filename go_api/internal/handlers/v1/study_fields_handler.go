@@ -9,6 +9,15 @@ import (
 	"go_api/internal/models"
 )
 
+
+// GetStudyFields godoc
+// @Summary Get study fields
+// @Description Returns study fields with aggregated counts (majors, programs, elective blocks, semesters)
+// @Tags study-fields
+// @Produce json
+// @Success 200 {object} models.PaginatedStudyFieldsResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/study-fields [get]
 func GetStudyFields(c *gin.Context) {
 	var items []models.StudyFieldListSummaryResponse
 
@@ -50,6 +59,19 @@ func GetStudyFields(c *gin.Context) {
 	})
 }
 
+
+// CreateStudyField godoc
+// @Summary Create study field
+// @Description Creates a new study field.
+// @Tags study-fields
+// @Accept json
+// @Produce json
+// @Param request body models.StudyField true "Study field data"
+// @Success 201 {object} models.StudyField
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/study-fields [post]
 func CreateStudyField(c *gin.Context) {
 	var studyField models.StudyField
 

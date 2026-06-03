@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/academic-calendar": {
+        "/api/v1/academic-calendar": {
             "get": {
                 "description": "Returns all academic calendar entries",
                 "produces": [
@@ -94,7 +94,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/buildings": {
+        "/api/v1/buildings": {
             "get": {
                 "description": "Returns list of buildings with number of rooms",
                 "produces": [
@@ -182,7 +182,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/campuses": {
+        "/api/v1/campuses": {
             "get": {
                 "description": "Returns list of all campuses",
                 "produces": [
@@ -261,7 +261,86 @@ const docTemplate = `{
                 }
             }
         },
-        "/courses": {
+        "/api/v1/course-type-details": {
+            "get": {
+                "description": "Returns list of course type details sorted by course and class type",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "course-type-details"
+                ],
+                "summary": "Get course type details",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedCourseTypeDetailsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new course type detail entry.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "course-type-details"
+                ],
+                "summary": "Create course type detail",
+                "parameters": [
+                    {
+                        "description": "Course type detail data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateCourseTypeDetailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.CourseTypeDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/courses": {
             "get": {
                 "description": "Returns list of all courses sorted by course code",
                 "produces": [
@@ -340,8 +419,428 @@ const docTemplate = `{
                 }
             }
         },
-        "/groups": {
+        "/api/v1/courses-instructors": {
             "get": {
+                "description": "Returns list of course-instructor assignments",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "courses-instructors"
+                ],
+                "summary": "Get course instructors",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedCoursesInstructorsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Assigns an employee to a course and class type (after validating course type existence)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "courses-instructors"
+                ],
+                "summary": "Assign instructor to course",
+                "parameters": [
+                    {
+                        "description": "Instructor assignment data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateCourseInstructorRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.CoursesInstructors"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/curriculum-courses": {
+            "get": {
+                "description": "Returns curriculum courses with course, major and elective block details (with aggregated group counts)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "curriculum-courses"
+                ],
+                "summary": "Get curriculum courses",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/dto.CurriculumCourseResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new curriculum course entry.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "curriculum-courses"
+                ],
+                "summary": "Create curriculum course",
+                "parameters": [
+                    {
+                        "description": "Curriculum course data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateCurriculumCourseRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.CurriculumCourse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/elective-blocks": {
+            "get": {
+                "description": "Returns list of elective blocks",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "elective-blocks"
+                ],
+                "summary": "Get elective blocks",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedElectiveBlocksResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new elective block.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "elective-blocks"
+                ],
+                "summary": "Create elective block",
+                "parameters": [
+                    {
+                        "description": "Elective block data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateElectiveBlockRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.ElectiveBlock"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/faculties": {
+            "get": {
+                "description": "Returns faculties with lecturers and students count",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "faculties"
+                ],
+                "summary": "Get faculties",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedFacultiesResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new faculty.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "faculties"
+                ],
+                "summary": "Create faculty",
+                "parameters": [
+                    {
+                        "description": "Faculty data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateFacultyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Faculty"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/group-members": {
+            "get": {
+                "description": "Returns list of group members with group relation",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "group-members"
+                ],
+                "summary": "Get group members",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/models.GroupMember"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Adds a user to a group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "group-members"
+                ],
+                "summary": "Create group member",
+                "parameters": [
+                    {
+                        "description": "Group member data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GroupMember"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/models.GroupMember"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/groups": {
+            "get": {
+                "description": "Returns list of all groups",
                 "produces": [
                     "application/json"
                 ],
@@ -353,9 +852,910 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/definitions/dto.GroupResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new group.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "groups"
+                ],
+                "summary": "Create group",
+                "parameters": [
+                    {
+                        "description": "Group data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Group"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
                                 "$ref": "#/definitions/models.Group"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/majors": {
+            "get": {
+                "description": "Returns list of majors with group count",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "majors"
+                ],
+                "summary": "Get majors",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedMajorsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new major.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "majors"
+                ],
+                "summary": "Create major",
+                "parameters": [
+                    {
+                        "description": "Major data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateMajorRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Major"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/permissions": {
+            "get": {
+                "description": "Returns list of permissions",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "permissions"
+                ],
+                "summary": "Get permissions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedPermissionsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new permission",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "permissions"
+                ],
+                "summary": "Create permission",
+                "parameters": [
+                    {
+                        "description": "Permission data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreatePermissionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Permission"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/roles": {
+            "get": {
+                "description": "Returns list of roles with permissions and user count",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roles"
+                ],
+                "summary": "Get roles",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedRolesResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new role",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roles"
+                ],
+                "summary": "Create role",
+                "parameters": [
+                    {
+                        "description": "Role data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateRoleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Role"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/roles/{id}/permissions": {
+            "post": {
+                "description": "Assigns a permission to a role",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roles"
+                ],
+                "summary": "Assign permission to role",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Role ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Permission assignment data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AssignPermissionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/rooms": {
+            "get": {
+                "description": "Returns list of rooms",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Get rooms",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedRoomsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new room. ID is generated by database and cannot be provided by client.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "rooms"
+                ],
+                "summary": "Create room",
+                "parameters": [
+                    {
+                        "description": "Room data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Room"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "$ref": "#/definitions/models.Room"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/study-fields": {
+            "get": {
+                "description": "Returns study fields with aggregated counts (majors, programs, elective blocks, semesters)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "study-fields"
+                ],
+                "summary": "Get study fields",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedStudyFieldsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new study field.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "study-fields"
+                ],
+                "summary": "Create study field",
+                "parameters": [
+                    {
+                        "description": "Study field data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.StudyField"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.StudyField"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/study-programs": {
+            "get": {
+                "description": "Returns study programs with semester statistics (courses count and ECTS sum per semester)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "study-programs"
+                ],
+                "summary": "Get study programs",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedStudyProgramsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new study program. ID is generated by database and cannot be provided by client.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "study-programs"
+                ],
+                "summary": "Create study program",
+                "parameters": [
+                    {
+                        "description": "Study program data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.StudyProgram"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.StudyProgram"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/units": {
+            "get": {
+                "description": "Returns list of units with lecturers and courses counts",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "units"
+                ],
+                "summary": "Get units",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UnitsListResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new unit.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "units"
+                ],
+                "summary": "Create unit",
+                "parameters": [
+                    {
+                        "description": "Unit data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Unit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Unit"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users": {
+            "get": {
+                "description": "Returns list of users with roles",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get users",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedUsersResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a user via internal gRPC service",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Create user (proxy)",
+                "parameters": [
+                    {
+                        "description": "User data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}": {
+            "get": {
+                "description": "Fetches user details from internal gRPC service and enriches with DB data",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get user by ID (proxy)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserDetailResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes a user via internal gRPC service",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Delete user (proxy)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     }
@@ -364,6 +1764,31 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.AssignPermissionRequest": {
+            "type": "object",
+            "required": [
+                "permission_id"
+            ],
+            "properties": {
+                "permission_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CourseDetails": {
+            "type": "object",
+            "properties": {
+                "course_code": {
+                    "type": "integer"
+                },
+                "course_name": {
+                    "type": "string"
+                },
+                "ects_points": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.CreateAcademicCalendarRequest": {
             "type": "object",
             "required": [
@@ -428,6 +1853,28 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateCourseInstructorRequest": {
+            "type": "object",
+            "required": [
+                "class_type",
+                "course",
+                "employee"
+            ],
+            "properties": {
+                "class_type": {
+                    "type": "string"
+                },
+                "course": {
+                    "type": "integer"
+                },
+                "employee": {
+                    "type": "integer"
+                },
+                "hours": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.CreateCourseRequest": {
             "type": "object",
             "required": [
@@ -455,6 +1902,258 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "leading_unit": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CreateCourseTypeDetailRequest": {
+            "type": "object",
+            "required": [
+                "class_type",
+                "course"
+            ],
+            "properties": {
+                "class_hours": {
+                    "type": "integer"
+                },
+                "class_type": {
+                    "type": "string"
+                },
+                "course": {
+                    "type": "integer"
+                },
+                "frequency": {
+                    "type": "string"
+                },
+                "manual_weeks": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "max_group_participants_number": {
+                    "type": "integer"
+                },
+                "pc_needed": {
+                    "type": "boolean"
+                },
+                "projector_needed": {
+                    "type": "boolean"
+                },
+                "slots_per_class": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CreateCurriculumCourseRequest": {
+            "type": "object",
+            "required": [
+                "course",
+                "semester",
+                "study_program"
+            ],
+            "properties": {
+                "course": {
+                    "type": "integer"
+                },
+                "elective_block": {
+                    "type": "integer"
+                },
+                "major": {
+                    "type": "integer"
+                },
+                "semester": {
+                    "type": "integer"
+                },
+                "study_program": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CreateElectiveBlockRequest": {
+            "type": "object",
+            "required": [
+                "elective_block_name",
+                "study_field"
+            ],
+            "properties": {
+                "elective_block_name": {
+                    "type": "string"
+                },
+                "study_field": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CreateFacultyRequest": {
+            "type": "object",
+            "required": [
+                "faculty_name",
+                "faculty_short"
+            ],
+            "properties": {
+                "faculty_name": {
+                    "type": "string"
+                },
+                "faculty_short": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateMajorRequest": {
+            "type": "object",
+            "required": [
+                "major_name",
+                "study_field"
+            ],
+            "properties": {
+                "major_name": {
+                    "type": "string"
+                },
+                "study_field": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CreatePermissionRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateRoleRequest": {
+            "type": "object",
+            "required": [
+                "role_name"
+            ],
+            "properties": {
+                "role_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "surname"
+            ],
+            "properties": {
+                "degree": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "employee": {
+                    "$ref": "#/definitions/dto.EmployeeProfileDTO"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "send_login_credentials_email": {
+                    "type": "boolean"
+                },
+                "student": {
+                    "$ref": "#/definitions/dto.StudentProfileDTO"
+                },
+                "surname": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CurriculumCourseResponse": {
+            "type": "object",
+            "properties": {
+                "course": {
+                    "type": "integer"
+                },
+                "course_details": {
+                    "$ref": "#/definitions/dto.CourseDetails"
+                },
+                "elective_block": {
+                    "type": "integer"
+                },
+                "elective_block_details": {
+                    "$ref": "#/definitions/models.ElectiveBlock"
+                },
+                "major": {
+                    "type": "integer"
+                },
+                "major_details": {
+                    "$ref": "#/definitions/models.MajorReadResponse"
+                },
+                "semester": {
+                    "type": "integer"
+                },
+                "study_program": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.EmployeeProfileDTO": {
+            "type": "object",
+            "properties": {
+                "faculty_id": {
+                    "type": "integer"
+                },
+                "unit_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.GroupResponse": {
+            "type": "object",
+            "properties": {
+                "elective_block": {
+                    "type": "integer"
+                },
+                "group_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "major": {
+                    "type": "integer"
+                },
+                "semester": {
+                    "type": "integer"
+                },
+                "study_program": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.StudentProfileDTO": {
+            "type": "object",
+            "properties": {
+                "major_id": {
+                    "type": "integer"
+                },
+                "study_program_id": {
                     "type": "integer"
                 }
             }
@@ -556,6 +2255,143 @@ const docTemplate = `{
                 }
             }
         },
+        "models.CourseTypeDetail": {
+            "type": "object",
+            "properties": {
+                "class_hours": {
+                    "type": "integer"
+                },
+                "class_type": {
+                    "type": "string"
+                },
+                "course": {
+                    "type": "integer"
+                },
+                "frequency": {
+                    "type": "string"
+                },
+                "manual_weeks": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "max_group_participants_number": {
+                    "type": "integer"
+                },
+                "pc_needed": {
+                    "type": "boolean"
+                },
+                "projector_needed": {
+                    "type": "boolean"
+                },
+                "slots_per_class": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.CoursesInstructors": {
+            "type": "object",
+            "properties": {
+                "class_type": {
+                    "type": "string"
+                },
+                "course": {
+                    "type": "integer"
+                },
+                "employee": {
+                    "type": "integer"
+                },
+                "hours": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.CurriculumCourse": {
+            "type": "object",
+            "properties": {
+                "course": {
+                    "type": "integer"
+                },
+                "course_ref": {
+                    "description": "Relations",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Course"
+                        }
+                    ]
+                },
+                "elective_block": {
+                    "type": "integer"
+                },
+                "elective_block_ref": {
+                    "$ref": "#/definitions/models.ElectiveBlock"
+                },
+                "major": {
+                    "type": "integer"
+                },
+                "major_ref": {
+                    "$ref": "#/definitions/models.Major"
+                },
+                "semester": {
+                    "type": "integer"
+                },
+                "study_program": {
+                    "type": "integer"
+                },
+                "study_program_ref": {
+                    "$ref": "#/definitions/models.StudyProgram"
+                }
+            }
+        },
+        "models.ElectiveBlock": {
+            "type": "object",
+            "properties": {
+                "elective_block_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "study_field": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Faculty": {
+            "type": "object",
+            "properties": {
+                "faculty_name": {
+                    "type": "string"
+                },
+                "faculty_short": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.FacultyReadWithCounterResponse": {
+            "type": "object",
+            "properties": {
+                "faculty_name": {
+                    "type": "string"
+                },
+                "faculty_short": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lecturers_count": {
+                    "type": "integer"
+                },
+                "students_count": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.Group": {
             "type": "object",
             "properties": {
@@ -599,6 +2435,37 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Major": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "major_name": {
+                    "type": "string"
+                },
+                "study_field": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.MajorReadResponse": {
+            "type": "object",
+            "properties": {
+                "group_count": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "major_name": {
+                    "type": "string"
+                },
+                "study_field": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.PaginatedAcademicCalendarResponse": {
             "type": "object",
             "properties": {
@@ -632,6 +2499,28 @@ const docTemplate = `{
                 }
             }
         },
+        "models.PaginatedCourseTypeDetailsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.CourseTypeDetail"
+                    }
+                }
+            }
+        },
+        "models.PaginatedCoursesInstructorsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.CoursesInstructors"
+                    }
+                }
+            }
+        },
         "models.PaginatedCoursesResponse": {
             "type": "object",
             "properties": {
@@ -640,6 +2529,441 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.Course"
                     }
+                }
+            }
+        },
+        "models.PaginatedElectiveBlocksResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ElectiveBlock"
+                    }
+                }
+            }
+        },
+        "models.PaginatedFacultiesResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.FacultyReadWithCounterResponse"
+                    }
+                }
+            }
+        },
+        "models.PaginatedMajorsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MajorReadResponse"
+                    }
+                }
+            }
+        },
+        "models.PaginatedPermissionsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Permission"
+                    }
+                }
+            }
+        },
+        "models.PaginatedRolesResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.RoleWithCountResponse"
+                    }
+                }
+            }
+        },
+        "models.PaginatedRoomsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Room"
+                    }
+                }
+            }
+        },
+        "models.PaginatedStudyFieldsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.StudyFieldListSummaryResponse"
+                    }
+                }
+            }
+        },
+        "models.PaginatedStudyProgramsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.StudyProgramDetailResponse"
+                    }
+                }
+            }
+        },
+        "models.PaginatedUsersResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.UserResponse"
+                    }
+                }
+            }
+        },
+        "models.Permission": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Role"
+                    }
+                }
+            }
+        },
+        "models.Role": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Permission"
+                    }
+                },
+                "role_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RoleWithCountResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Permission"
+                    }
+                },
+                "role_name": {
+                    "type": "string"
+                },
+                "users_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Room": {
+            "type": "object",
+            "properties": {
+                "building_id": {
+                    "type": "integer"
+                },
+                "faculty_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "pc_amount": {
+                    "type": "integer"
+                },
+                "projector_availability": {
+                    "type": "boolean"
+                },
+                "room_capacity": {
+                    "type": "integer"
+                },
+                "room_name": {
+                    "type": "string"
+                },
+                "unit_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.SemesterSummary": {
+            "type": "object",
+            "properties": {
+                "courses_count": {
+                    "type": "integer"
+                },
+                "ects_sum": {
+                    "type": "integer"
+                },
+                "semester_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.StudyField": {
+            "type": "object",
+            "properties": {
+                "degree": {
+                    "type": "string"
+                },
+                "faculty_id": {
+                    "type": "integer"
+                },
+                "field_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.StudyFieldListSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "degree": {
+                    "type": "string"
+                },
+                "elective_blocks_count": {
+                    "type": "integer"
+                },
+                "faculty": {
+                    "type": "integer"
+                },
+                "field_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "language": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "programs_count": {
+                    "type": "integer"
+                },
+                "semesters_count": {
+                    "type": "integer"
+                },
+                "specializations_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.StudyProgram": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "program_name": {
+                    "type": "string"
+                },
+                "start_year": {
+                    "type": "string"
+                },
+                "study_field": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.StudyProgramDetailResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "program_name": {
+                    "type": "string"
+                },
+                "semester_summary": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.SemesterSummary"
+                    }
+                },
+                "semesters_count": {
+                    "type": "integer"
+                },
+                "start_year": {
+                    "type": "string"
+                },
+                "study_field": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Unit": {
+            "type": "object",
+            "properties": {
+                "faculty_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "unit_name": {
+                    "type": "string"
+                },
+                "unit_short": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UnitResponse": {
+            "type": "object",
+            "properties": {
+                "courses_count": {
+                    "type": "integer"
+                },
+                "faculty_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lecturers_count": {
+                    "type": "integer"
+                },
+                "unit_name": {
+                    "type": "string"
+                },
+                "unit_short": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UnitsListResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.UnitResponse"
+                    }
+                }
+            }
+        },
+        "models.UserDetailResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "degree": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "employee": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "student": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "surname": {
+                    "type": "string"
+                },
+                "two_factor_enabled": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.UserResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "degree": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "surname": {
+                    "type": "string"
+                },
+                "two_factor_enabled": {
+                    "type": "boolean"
                 }
             }
         }

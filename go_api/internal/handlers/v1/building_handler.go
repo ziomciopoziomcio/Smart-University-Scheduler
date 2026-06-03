@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Success 200 {object} models.PaginatedBuildingsResponse
 // @Failure 500 {object} map[string]string
-// @Router /buildings [get]
+// @Router /api/v1/buildings [get]
 func GetBuildings(c *gin.Context) {
 	var items []models.BuildingReadResponse
 
@@ -59,7 +59,7 @@ func GetBuildings(c *gin.Context) {
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /buildings [post]
+// @Router /api/v1/buildings [post]
 func CreateBuilding(c *gin.Context) {
 	var req dto.CreateBuildingRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

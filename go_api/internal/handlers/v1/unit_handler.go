@@ -9,6 +9,15 @@ import (
 	"go_api/internal/models"
 )
 
+
+// GetUnits godoc
+// @Summary Get units
+// @Description Returns list of units with lecturers and courses counts
+// @Tags units
+// @Produce json
+// @Success 200 {object} models.UnitsListResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/units [get]
 func GetUnits(c *gin.Context) {
 	var items []models.UnitResponse
 
@@ -35,6 +44,18 @@ func GetUnits(c *gin.Context) {
 	c.JSON(http.StatusOK, models.UnitsListResponse{Items: items})
 }
 
+// CreateUnit godoc
+// @Summary Create unit
+// @Description Creates a new unit.
+// @Tags units
+// @Accept json
+// @Produce json
+// @Param request body models.Unit true "Unit data"
+// @Success 201 {object} models.Unit
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/units [post]
 func CreateUnit(c *gin.Context) {
     var unit models.Unit
 

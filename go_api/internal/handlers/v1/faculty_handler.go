@@ -10,6 +10,14 @@ import (
 	"go_api/internal/models"
 )
 
+// GetFaculties godoc
+// @Summary Get faculties
+// @Description Returns faculties with lecturers and students count
+// @Tags faculties
+// @Produce json
+// @Success 200 {object} models.PaginatedFacultiesResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/faculties [get]
 func GetFaculties(c *gin.Context) {
 	var items []models.FacultyReadWithCounterResponse
 
@@ -44,6 +52,17 @@ func GetFaculties(c *gin.Context) {
 	})
 }
 
+// CreateFaculty godoc
+// @Summary Create faculty
+// @Description Creates a new faculty.
+// @Tags faculties
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateFacultyRequest true "Faculty data"
+// @Success 201 {object} models.Faculty
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/faculties [post]
 func CreateFaculty(c *gin.Context) {
 	var req dto.CreateFacultyRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

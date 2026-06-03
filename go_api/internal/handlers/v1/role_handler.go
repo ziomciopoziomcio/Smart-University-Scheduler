@@ -11,6 +11,15 @@ import (
 	"go_api/internal/models"
 )
 
+
+// GetRoles godoc
+// @Summary Get roles
+// @Description Returns list of roles with permissions and user count
+// @Tags roles
+// @Produce json
+// @Success 200 {object} models.PaginatedRolesResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/roles [get]
 func GetRoles(c *gin.Context) {
 	var roles []models.Role
 
@@ -56,7 +65,17 @@ func GetRoles(c *gin.Context) {
 	})
 }
 
-// POST /roles
+// CreateRole godoc
+// @Summary Create role
+// @Description Creates a new role
+// @Tags roles
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateRoleRequest true "Role data"
+// @Success 201 {object} models.Role
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/roles [post]
 func CreateRole(c *gin.Context) {
 	var req dto.CreateRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -76,6 +95,14 @@ func CreateRole(c *gin.Context) {
 	c.JSON(http.StatusCreated, role)
 }
 
+// GetPermissions godoc
+// @Summary Get permissions
+// @Description Returns list of permissions
+// @Tags permissions
+// @Produce json
+// @Success 200 {object} models.PaginatedPermissionsResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/permissions [get]
 func GetPermissions(c *gin.Context) {
 	var permissions []models.Permission
 
@@ -89,6 +116,17 @@ func GetPermissions(c *gin.Context) {
 	})
 }
 
+// CreatePermission godoc
+// @Summary Create permission
+// @Description Creates a new permission
+// @Tags permissions
+// @Accept json
+// @Produce json
+// @Param request body dto.CreatePermissionRequest true "Permission data"
+// @Success 201 {object} models.Permission
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/permissions [post]
 func CreatePermission(c *gin.Context) {
 	var req dto.CreatePermissionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -111,6 +149,20 @@ func CreatePermission(c *gin.Context) {
 	c.JSON(http.StatusCreated, permission)
 }
 
+
+// AssignPermissionToRole godoc
+// @Summary Assign permission to role
+// @Description Assigns a permission to a role
+// @Tags roles
+// @Accept json
+// @Produce json
+// @Param id path int true "Role ID"
+// @Param request body dto.AssignPermissionRequest true "Permission assignment data"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/roles/{id}/permissions [post]
 func AssignPermissionToRole(c *gin.Context) {
 	roleIDStr := c.Param("id")
 	roleID, err := strconv.Atoi(roleIDStr)

@@ -19,7 +19,7 @@ import (
 // @Produce json
 // @Success 200 {object} models.PaginatedAcademicCalendarResponse
 // @Failure 500 {object} map[string]string
-// @Router /academic-calendar [get]
+// @Router /api/v1/academic-calendar [get]
 func GetAcademicCalendar(c *gin.Context) {
 	var records []models.AcademicCalendar
 
@@ -56,7 +56,7 @@ func GetAcademicCalendar(c *gin.Context) {
 // @Success 201 {object} models.AcademicCalendarResponse
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /academic-calendar [post]
+// @Router /api/v1/academic-calendar [post]
 func CreateAcademicCalendar(c *gin.Context) {
 	var req dto.CreateAcademicCalendarRequest
 
