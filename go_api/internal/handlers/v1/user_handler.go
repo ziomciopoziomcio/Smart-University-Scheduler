@@ -18,7 +18,6 @@ import (
 	pb "go_api/internal/rpc/user"
 )
 
-
 // GetUsers godoc
 // @Summary Get users
 // @Description Returns list of users with roles
@@ -60,7 +59,6 @@ func GetUsers(c *gin.Context) {
 	})
 }
 
-
 // GetUserProxy godoc
 // @Summary Get user by ID (proxy)
 // @Description Fetches user details from internal gRPC service and enriches with DB data
@@ -73,8 +71,7 @@ func GetUsers(c *gin.Context) {
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/users/{id} [get]
 func GetUserProxy(c *gin.Context) {
-	idParam := c.Param("id")
-	userId, err := strconv.ParseInt(idParam, 10, 32)
+	userId, err := strconv.ParseInt(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
 		return
@@ -87,22 +84,28 @@ func GetUserProxy(c *gin.Context) {
 	}
 	defer conn.Close()
 
-	client := pb.NewUserRpcServiceClient(conn)
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	resp, err := client.GetUserRPC(ctx, &pb.UserGetRequest{Id: int32(userId)})
+	resp, err := pb.NewUserRpcServiceClient(conn).GetUserRPC(ctx, &pb.UserGetRequest{Id: int32(userId)})
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok && st.Code() == codes.NotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": st.Message()})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal RPC error: " + err.Error()})
-		}
+		handleGrpcError(c, err)
 		return
 	}
 
+	c.JSON(http.StatusOK, buildUserDetailResponse(userId, resp))
+}
+
+func handleGrpcError(c *gin.Context, err error) {
+	st, ok := status.FromError(err)
+	if ok && st.Code() == codes.NotFound {
+		c.JSON(http.StatusNotFound, gin.H{"error": st.Message()})
+	} else {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal RPC error: " + err.Error()})
+	}
+}
+
+func buildUserDetailResponse(userId int64, resp *pb.UserGetResponse) models.UserDetailResponse {
 	var dbUser models.User
 	roleNames := []string{}
 	if err := db.DB.Preload("Roles").First(&dbUser, userId).Error; err == nil {
@@ -111,22 +114,13 @@ func GetUserProxy(c *gin.Context) {
 		}
 	}
 
-	var phoneNumber *string
-	if resp.PhoneNumber != "" {
-		phoneNumber = &resp.PhoneNumber
-	}
-	var degree *string
-	if resp.Degree != "" {
-		degree = &resp.Degree
-	}
-
 	userDetail := models.UserDetailResponse{
 		ID:               int(resp.Id),
 		Email:            resp.Email,
-		PhoneNumber:      phoneNumber,
+		PhoneNumber:      getOptionalString(resp.PhoneNumber),
 		Name:             resp.Name,
 		Surname:          resp.Surname,
-		Degree:           degree,
+		Degree:           getOptionalString(resp.Degree),
 		CreatedAt:        dbUser.CreatedAt,
 		TwoFactorEnabled: dbUser.TwoFactorEnabled,
 		Roles:            roleNames,
@@ -145,10 +139,15 @@ func GetUserProxy(c *gin.Context) {
 			"unit_id":    resp.GetEmployee().UnitId,
 		}
 	}
-
-	c.JSON(http.StatusOK, userDetail)
+	return userDetail
 }
 
+func getOptionalString(val string) *string {
+	if val == "" {
+		return nil
+	}
+	return &val
+}
 
 // CreateUserProxy godoc
 // @Summary Create user (proxy)
@@ -169,14 +168,30 @@ func CreateUserProxy(c *gin.Context) {
 	}
 	defer conn.Close()
 
-	client := pb.NewUserRpcServiceClient(conn)
-
 	var reqBody dto.CreateUserRequest
 	if err := c.ShouldBindJSON(&reqBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	resp, err := pb.NewUserRpcServiceClient(conn).CreateUserRPC(ctx, buildGrpcCreateRequest(&reqBody))
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": st.Message()})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal RPC error: " + err.Error()})
+		}
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"id": resp.Id, "email": resp.Email, "status": resp.Status})
+}
+
+func buildGrpcCreateRequest(reqBody *dto.CreateUserRequest) *pb.UserCreateRequest {
 	grpcReq := &pb.UserCreateRequest{
 		Email:                     reqBody.Email,
 		Name:                      reqBody.Name,
@@ -201,28 +216,8 @@ func CreateUserProxy(c *gin.Context) {
 			},
 		}
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	resp, err := client.CreateUserRPC(ctx, grpcReq)
-	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
-			c.JSON(http.StatusBadRequest, gin.H{"error": st.Message()})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal RPC error: " + err.Error()})
-		}
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"id":     resp.Id,
-		"email":  resp.Email,
-		"status": resp.Status,
-	})
+	return grpcReq
 }
-
 
 // DeleteUserProxy godoc
 // @Summary Delete user (proxy)

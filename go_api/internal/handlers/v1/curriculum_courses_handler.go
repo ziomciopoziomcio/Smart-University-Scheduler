@@ -10,7 +10,6 @@ import (
 	"go_api/internal/models"
 )
 
-
 // GetCurriculumCourses godoc
 // @Summary Get curriculum courses
 // @Description Returns curriculum courses with course, major and elective block details (with aggregated group counts)
@@ -32,6 +31,15 @@ func GetCurriculumCourses(c *gin.Context) {
 		return
 	}
 
+	majorCounts := fetchMajorGroupCounts()
+	items := mapToCurriculumResponses(curriculumCourses, majorCounts)
+
+	c.JSON(http.StatusOK, gin.H{
+		"items": items,
+	})
+}
+
+func fetchMajorGroupCounts() map[int]int {
 	type MajorCountRow struct {
 		MajorID    int
 		GroupCount int
@@ -47,10 +55,13 @@ func GetCurriculumCourses(c *gin.Context) {
 	for _, row := range countRows {
 		majorCounts[row.MajorID] = row.GroupCount
 	}
+	return majorCounts
+}
 
-	items := make([]dto.CurriculumCourseResponse, 0, len(curriculumCourses))
+func mapToCurriculumResponses(courses []models.CurriculumCourse, majorCounts map[int]int) []dto.CurriculumCourseResponse {
+	items := make([]dto.CurriculumCourseResponse, 0, len(courses))
 
-	for _, cc := range curriculumCourses {
+	for _, cc := range courses {
 		var majorDetails *models.MajorReadResponse
 		if cc.MajorRef != nil {
 			majorDetails = &models.MajorReadResponse{
@@ -67,23 +78,17 @@ func GetCurriculumCourses(c *gin.Context) {
 			Semester:      cc.Semester,
 			Major:         cc.Major,
 			ElectiveBlock: cc.ElectiveBlock,
-
 			CourseDetails: &dto.CourseDetails{
 				CourseCode: cc.CourseRef.CourseCode,
 				CourseName: cc.CourseRef.CourseName,
 				ECTSPoints: cc.CourseRef.EctsPoints,
 			},
-
 			MajorDetails:         majorDetails,
 			ElectiveBlockDetails: cc.ElectiveBlockRef,
 		})
 	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"items": items,
-	})
+	return items
 }
-
 
 // CreateCurriculumCourse godoc
 // @Summary Create curriculum course

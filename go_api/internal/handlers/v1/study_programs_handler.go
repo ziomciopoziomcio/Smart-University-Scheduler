@@ -9,7 +9,6 @@ import (
 	"go_api/internal/models"
 )
 
-
 // GetStudyPrograms godoc
 // @Summary Get study programs
 // @Description Returns study programs with semester statistics (courses count and ECTS sum per semester)
@@ -29,50 +28,7 @@ func GetStudyPrograms(c *gin.Context) {
 	var mappedItems []models.StudyProgramDetailResponse
 
 	for _, p := range programs {
-		type SummaryRow struct {
-			Semester     int
-			CoursesCount int
-			EctsSum      int
-		}
-		var rows []SummaryRow
-
-		db.DB.Table("curriculum_courses").
-			Select(`
-				curriculum_courses.semester as semester,
-				count(curriculum_courses.course) as courses_count,
-				coalesce(sum(courses.ects_points), 0) as ects_sum
-			`).
-			Joins("join courses on curriculum_courses.course = courses.course_code").
-			Where("curriculum_courses.study_program = ?", p.ID).
-			Group("curriculum_courses.semester").
-			Order("curriculum_courses.semester").
-			Scan(&rows)
-
-		maxSem := 0
-		perSemMap := make(map[int]models.SemesterSummary)
-		for _, r := range rows {
-			if r.Semester > maxSem {
-				maxSem = r.Semester
-			}
-			perSemMap[r.Semester] = models.SemesterSummary{
-				SemesterNumber: r.Semester,
-				CoursesCount:   r.CoursesCount,
-				EctsSum:        r.EctsSum,
-			}
-		}
-
-		var semesterSummary []models.SemesterSummary
-		for s := 1; s <= maxSem; s++ {
-			if entry, exists := perSemMap[s]; exists {
-				semesterSummary = append(semesterSummary, entry)
-			} else {
-				semesterSummary = append(semesterSummary, models.SemesterSummary{
-					SemesterNumber: s,
-					CoursesCount:   0,
-					EctsSum:        0,
-				})
-			}
-		}
+		semesterSummary, maxSem := fetchSemesterSummary(p.ID)
 
 		mappedItems = append(mappedItems, models.StudyProgramDetailResponse{
 			ID:              p.ID,
@@ -89,6 +45,54 @@ func GetStudyPrograms(c *gin.Context) {
 	})
 }
 
+func fetchSemesterSummary(programID int) ([]models.SemesterSummary, int) {
+	type SummaryRow struct {
+		Semester     int
+		CoursesCount int
+		EctsSum      int
+	}
+	var rows []SummaryRow
+
+	db.DB.Table("curriculum_courses").
+		Select(`
+             curriculum_courses.semester as semester,
+             count(curriculum_courses.course) as courses_count,
+             coalesce(sum(courses.ects_points), 0) as ects_sum
+          `).
+		Joins("join courses on curriculum_courses.course = courses.course_code").
+		Where("curriculum_courses.study_program = ?", programID).
+		Group("curriculum_courses.semester").
+		Order("curriculum_courses.semester").
+		Scan(&rows)
+
+	maxSem := 0
+	perSemMap := make(map[int]models.SemesterSummary)
+	for _, r := range rows {
+		if r.Semester > maxSem {
+			maxSem = r.Semester
+		}
+		perSemMap[r.Semester] = models.SemesterSummary{
+			SemesterNumber: r.Semester,
+			CoursesCount:   r.CoursesCount,
+			EctsSum:        r.EctsSum,
+		}
+	}
+
+	var semesterSummary []models.SemesterSummary
+	for s := 1; s <= maxSem; s++ {
+		if entry, exists := perSemMap[s]; exists {
+			semesterSummary = append(semesterSummary, entry)
+		} else {
+			semesterSummary = append(semesterSummary, models.SemesterSummary{
+				SemesterNumber: s,
+				CoursesCount:   0,
+				EctsSum:        0,
+			})
+		}
+	}
+
+	return semesterSummary, maxSem
+}
 
 // CreateStudyProgram godoc
 // @Summary Create study program
