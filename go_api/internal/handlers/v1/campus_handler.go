@@ -10,12 +10,15 @@ import (
 	"go_api/internal/models"
 )
 
-func Health(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"status": "ok",
-	})
-}
 
+// GetCampuses godoc
+// @Summary Get all campuses
+// @Description Returns list of all campuses
+// @Tags campuses
+// @Produce json
+// @Success 200 {object} models.PaginatedCampusesResponse
+// @Failure 500 {object} map[string]string
+// @Router /campuses [get]
 func GetCampuses(c *gin.Context) {
 	var campuses []models.Campus
 
@@ -29,6 +32,18 @@ func GetCampuses(c *gin.Context) {
 	})
 }
 
+
+// CreateCampus godoc
+// @Summary Create campus
+// @Description Creates a new campus.
+// @Tags campuses
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateCampusRequest true "Campus data"
+// @Success 201 {object} models.Campus
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /campuses [post]
 func CreateCampus(c *gin.Context) {
 	var req dto.CreateCampusRequest
 

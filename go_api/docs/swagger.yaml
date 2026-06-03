@@ -33,6 +33,16 @@ definitions:
     - building_number
     - campus_id
     type: object
+  dto.CreateCampusRequest:
+    properties:
+      campus_name:
+        type: string
+      campus_short:
+        type: string
+    required:
+    - campus_name
+    - campus_short
+    type: object
   models.AcademicCalendarResponse:
     properties:
       academic_day_of_week:
@@ -70,6 +80,15 @@ definitions:
       id:
         type: integer
       rooms_number:
+        type: integer
+    type: object
+  models.Campus:
+    properties:
+      campus_name:
+        type: string
+      campus_short:
+        type: string
+      id:
         type: integer
     type: object
   models.Group:
@@ -112,6 +131,13 @@ definitions:
       items:
         items:
           $ref: '#/definitions/models.BuildingReadResponse'
+        type: array
+    type: object
+  models.PaginatedCampusesResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.Campus'
         type: array
     type: object
 info:
@@ -227,6 +253,58 @@ paths:
       summary: Create building
       tags:
       - buildings
+  /campuses:
+    get:
+      description: Returns list of all campuses
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedCampusesResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all campuses
+      tags:
+      - campuses
+    post:
+      consumes:
+      - application/json
+      description: Creates a new campus.
+      parameters:
+      - description: Campus data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCampusRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Campus'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create campus
+      tags:
+      - campuses
   /groups:
     get:
       produces:

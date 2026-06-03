@@ -182,6 +182,85 @@ const docTemplate = `{
                 }
             }
         },
+        "/campuses": {
+            "get": {
+                "description": "Returns list of all campuses",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "campuses"
+                ],
+                "summary": "Get all campuses",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedCampusesResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new campus.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "campuses"
+                ],
+                "summary": "Create campus",
+                "parameters": [
+                    {
+                        "description": "Campus data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateCampusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Campus"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/groups": {
             "get": {
                 "produces": [
@@ -255,6 +334,21 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreateCampusRequest": {
+            "type": "object",
+            "required": [
+                "campus_name",
+                "campus_short"
+            ],
+            "properties": {
+                "campus_name": {
+                    "type": "string"
+                },
+                "campus_short": {
+                    "type": "string"
+                }
+            }
+        },
         "models.AcademicCalendarResponse": {
             "type": "object",
             "properties": {
@@ -311,6 +405,20 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "rooms_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Campus": {
+            "type": "object",
+            "properties": {
+                "campus_name": {
+                    "type": "string"
+                },
+                "campus_short": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "integer"
                 }
             }
@@ -376,6 +484,17 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.BuildingReadResponse"
+                    }
+                }
+            }
+        },
+        "models.PaginatedCampusesResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Campus"
                     }
                 }
             }
