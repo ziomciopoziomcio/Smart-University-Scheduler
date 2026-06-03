@@ -1,4 +1,40 @@
 definitions:
+  dto.CreateAcademicCalendarRequest:
+    properties:
+      academic_day_of_week:
+        type: integer
+      academic_year:
+        type: string
+      calendar_date:
+        type: string
+      description:
+        type: string
+      semester_type:
+        type: string
+      week_number:
+        type: integer
+    required:
+    - academic_day_of_week
+    - academic_year
+    - calendar_date
+    - semester_type
+    - week_number
+    type: object
+  models.AcademicCalendarResponse:
+    properties:
+      academic_day_of_week:
+        type: integer
+      academic_year:
+        type: string
+      calendar_date:
+        type: string
+      description:
+        type: string
+      semester_type:
+        type: string
+      week_number:
+        type: integer
+    type: object
   models.Group:
     properties:
       elective_block:
@@ -27,9 +63,68 @@ definitions:
       student:
         type: integer
     type: object
+  models.PaginatedAcademicCalendarResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/models.AcademicCalendarResponse'
+        type: array
+    type: object
 info:
   contact: {}
 paths:
+  /academic-calendar:
+    get:
+      description: Returns all academic calendar entries
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PaginatedAcademicCalendarResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get academic calendar
+      tags:
+      - Academic Calendar
+    post:
+      consumes:
+      - application/json
+      description: Creates a new academic calendar record.
+      parameters:
+      - description: Academic calendar data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateAcademicCalendarRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.AcademicCalendarResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create academic calendar entry
+      tags:
+      - Academic Calendar
   /groups:
     get:
       produces:

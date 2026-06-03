@@ -11,6 +11,15 @@ import (
 	"go_api/internal/models"
 )
 
+
+// GetAcademicCalendar godoc
+// @Summary Get academic calendar
+// @Description Returns all academic calendar entries
+// @Tags Academic Calendar
+// @Produce json
+// @Success 200 {object} models.PaginatedAcademicCalendarResponse
+// @Failure 500 {object} map[string]string
+// @Router /academic-calendar [get]
 func GetAcademicCalendar(c *gin.Context) {
 	var records []models.AcademicCalendar
 
@@ -36,6 +45,18 @@ func GetAcademicCalendar(c *gin.Context) {
 	})
 }
 
+
+// CreateAcademicCalendar godoc
+// @Summary Create academic calendar entry
+// @Description Creates a new academic calendar record.
+// @Tags Academic Calendar
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateAcademicCalendarRequest true "Academic calendar data"
+// @Success 201 {object} models.AcademicCalendarResponse
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /academic-calendar [post]
 func CreateAcademicCalendar(c *gin.Context) {
 	var req dto.CreateAcademicCalendarRequest
 

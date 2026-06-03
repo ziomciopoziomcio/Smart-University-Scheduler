@@ -15,6 +15,85 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/academic-calendar": {
+            "get": {
+                "description": "Returns all academic calendar entries",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Academic Calendar"
+                ],
+                "summary": "Get academic calendar",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PaginatedAcademicCalendarResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new academic calendar record.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Academic Calendar"
+                ],
+                "summary": "Create academic calendar entry",
+                "parameters": [
+                    {
+                        "description": "Academic calendar data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateAcademicCalendarRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.AcademicCalendarResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/groups": {
             "get": {
                 "produces": [
@@ -39,6 +118,59 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.CreateAcademicCalendarRequest": {
+            "type": "object",
+            "required": [
+                "academic_day_of_week",
+                "academic_year",
+                "calendar_date",
+                "semester_type",
+                "week_number"
+            ],
+            "properties": {
+                "academic_day_of_week": {
+                    "type": "integer"
+                },
+                "academic_year": {
+                    "type": "string"
+                },
+                "calendar_date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "semester_type": {
+                    "type": "string"
+                },
+                "week_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.AcademicCalendarResponse": {
+            "type": "object",
+            "properties": {
+                "academic_day_of_week": {
+                    "type": "integer"
+                },
+                "academic_year": {
+                    "type": "string"
+                },
+                "calendar_date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "semester_type": {
+                    "type": "string"
+                },
+                "week_number": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.Group": {
             "type": "object",
             "properties": {
@@ -79,6 +211,17 @@ const docTemplate = `{
                 },
                 "student": {
                     "type": "integer"
+                }
+            }
+        },
+        "models.PaginatedAcademicCalendarResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.AcademicCalendarResponse"
+                    }
                 }
             }
         }
