@@ -167,7 +167,6 @@ class CustomEventCreate(CustomEventBase):
 
 
 class CustomEventRead(CustomEventBase):
-    id: int
     event_id: uuid.UUID
     created_by: int
     created_at: datetime
