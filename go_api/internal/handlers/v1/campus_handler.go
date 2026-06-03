@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/db"
+	"go_api/internal/dto"
 	"go_api/internal/models"
 )
 
@@ -18,36 +19,33 @@ func Health(c *gin.Context) {
 func GetCampuses(c *gin.Context) {
 	var campuses []models.Campus
 
-	if err := db.DB.Preload("Buildings").Find(&campuses).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+	if err := db.DB.Order("id").Find(&campuses).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data": campuses,
+	c.JSON(http.StatusOK, models.PaginatedCampusesResponse{
+		Items: campuses,
 	})
 }
 
 func CreateCampus(c *gin.Context) {
-	var campus models.Campus
+	var req dto.CreateCampusRequest
 
-	if err := c.ShouldBindJSON(&campus); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	campus := models.Campus{
+		CampusName:  req.CampusName,
+		CampusShort: req.CampusShort,
 	}
 
 	if err := db.DB.Create(&campus).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"data": campus,
-	})
+	c.JSON(http.StatusCreated, campus)
 }
