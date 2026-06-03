@@ -10,6 +10,8 @@ exclude_paths:
   - "helpers/db_seeder/**"
   - "backend/user_pb2.py"
   - "backend/user_pb2_grpc.py"
+  - "go_api/docs/**"
+  - "go_api/**/*.pb.go"
 engines:
   bandit:
     patterns:
