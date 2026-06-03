@@ -46,3 +46,17 @@ type UserResponse struct {
 type PaginatedUsersResponse struct {
 	Items []UserResponse `json:"items"`
 }
+
+type UserDetailResponse struct {
+	ID               int                    `json:"id"`
+	Email            string                 `json:"email"`
+	PhoneNumber      *string                `json:"phone_number"`
+	Name             string                 `json:"name"`
+	Surname          string                 `json:"surname"`
+	Degree           *string                `json:"degree"`
+	CreatedAt        time.Time              `json:"created_at"`
+	TwoFactorEnabled bool                   `json:"two_factor_enabled"`
+	Roles            []string               `json:"roles"`
+	Student          map[string]interface{} `json:"student,omitempty"`
+	Employee         map[string]interface{} `json:"employee,omitempty"`
+}
