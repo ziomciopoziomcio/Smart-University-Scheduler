@@ -1455,6 +1455,31 @@ async def get_custom_event(
     )
 
 
+def _prepare_update_params(
+    event_id: str, existing: CustomEventRead, payload: CustomEventUpdate
+) -> dict:
+    """Merges existing event data with the update payload to produce Neo4j parameters."""
+    merged = existing.model_dump()
+    merged.update(payload.model_dump(exclude_unset=True))
+
+    e_type = merged["event_type"]
+
+    return {
+        "event_id": event_id,
+        "title": merged["title"],
+        "description": merged["description"],
+        "event_type": e_type.value if hasattr(e_type, "value") else e_type,
+        "start_dt": merged["start_dt"],
+        "end_dt": merged["end_dt"],
+        "room_id": merged["related_room_id"],
+        "group_id": merged["related_group_id"],
+        "session_id": (
+            str(merged["related_session_id"]) if merged["related_session_id"] else None
+        ),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
 @router.patch("/custom-events/{custom_event_id}", response_model=CustomEventRead)
 async def update_custom_event(
     custom_event_id: str,
@@ -1466,23 +1491,17 @@ async def update_custom_event(
     ),
 ):
     existing = await get_custom_event(custom_event_id, neo4j_session, _current_user)
+    params = _prepare_update_params(custom_event_id, existing, payload)
 
-    new_start = payload.start_dt or existing.start_dt
-    new_end = payload.end_dt or existing.end_dt
-    new_room = (
-        payload.related_room_id
-        if payload.related_room_id is not None
-        else existing.related_room_id
-    )
-
-    if payload.start_dt or payload.end_dt or payload.related_room_id is not None:
+    updates = payload.model_dump(exclude_unset=True)
+    if any(k in updates for k in ("start_dt", "end_dt", "related_room_id")):
         conflicts = await _check_all_conflicts(
             db,
             neo4j_session,
             existing.user_id,
-            new_start,
-            new_end,
-            new_room,
+            params["start_dt"],
+            params["end_dt"],
+            params["room_id"],
             exclude_event_id=custom_event_id,
         )
         if conflicts:
@@ -1494,41 +1513,10 @@ async def update_custom_event(
                 },
             )
 
-    now = datetime.now(timezone.utc)
+    params["start_dt"] = params["start_dt"].isoformat()
+    params["end_dt"] = params["end_dt"].isoformat()
 
-    await neo4j_session.run(
-        UPDATE_CUSTOM_EVENT_QUERY,
-        event_id=custom_event_id,
-        title=payload.title if payload.title is not None else existing.title,
-        description=(
-            payload.description
-            if payload.description is not None
-            else existing.description
-        ),
-        event_type=(
-            payload.event_type.value
-            if payload.event_type
-            else existing.event_type.value
-        ),
-        start_dt=new_start.isoformat(),
-        end_dt=new_end.isoformat(),
-        updated_at=now.isoformat(),
-        room_id=new_room,
-        group_id=(
-            payload.related_group_id
-            if payload.related_group_id is not None
-            else existing.related_group_id
-        ),
-        session_id=(
-            str(payload.related_session_id)
-            if payload.related_session_id
-            else (
-                str(existing.related_session_id)
-                if existing.related_session_id
-                else None
-            )
-        ),
-    )
+    await neo4j_session.run(UPDATE_CUSTOM_EVENT_QUERY, **params)
 
     return await get_custom_event(
         custom_event_id, neo4j_session, _current_user, bypass_permission=True
