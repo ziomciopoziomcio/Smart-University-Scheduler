@@ -12,16 +12,15 @@ import (
 func GetGroups(c *gin.Context) {
 	var groups []models.Group
 
-	if err := db.DB.Find(&groups).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+	if err := db.DB.
+		Preload("Members").
+		Find(&groups).Error; err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data": groups,
-	})
+	c.JSON(http.StatusOK, gin.H{"data": groups})
 }
 
 func CreateGroup(c *gin.Context) {

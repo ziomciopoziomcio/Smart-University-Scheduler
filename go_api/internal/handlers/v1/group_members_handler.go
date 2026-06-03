@@ -12,7 +12,10 @@ import (
 func GetGroupMembers(c *gin.Context) {
 	var members []models.GroupMember
 
-	if err := db.DB.Find(&members).Error; err != nil {
+	if err := db.DB.
+		Preload("Group").
+		Find(&members).Error; err != nil {
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
