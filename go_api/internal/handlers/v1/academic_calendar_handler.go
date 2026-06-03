@@ -38,14 +38,19 @@ func GetAcademicCalendar(c *gin.Context) {
 
 func CreateAcademicCalendar(c *gin.Context) {
 	var req dto.CreateAcademicCalendarRequest
+
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
 	parsedDate, err := time.Parse("2006-01-02", req.CalendarDate)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid calendar_date format, use YYYY-MM-DD"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid calendar_date format, use YYYY-MM-DD",
+		})
 		return
 	}
 
@@ -59,7 +64,9 @@ func CreateAcademicCalendar(c *gin.Context) {
 	}
 
 	if err := db.DB.Create(&record).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
