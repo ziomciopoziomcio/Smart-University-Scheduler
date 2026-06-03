@@ -12,19 +12,13 @@ import (
 func GetRooms(c *gin.Context) {
 	var rooms []models.Room
 
-	if err := db.DB.
-		Preload("Building").
-		Preload("Faculty").
-		Find(&rooms).Error; err != nil {
-
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+	if err := db.DB.Order("id").Find(&rooms).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data": rooms,
+	c.JSON(http.StatusOK, models.PaginatedRoomsResponse{
+		Items: rooms,
 	})
 }
 
