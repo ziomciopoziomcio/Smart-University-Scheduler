@@ -9,22 +9,44 @@ import (
 	"go_api/internal/models"
 )
 
-
 func GetStudyFields(c *gin.Context) {
-	var studyFields []models.StudyField
+	var items []models.StudyFieldListSummaryResponse
 
-	if err := db.DB.
-		Preload("Faculty").
-		Find(&studyFields).Error; err != nil {
+	electiveBlocksSubq := db.DB.Table("elective_block").
+		Select("count(id)").
+		Where("elective_block.study_field = study_fields.id")
 
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+	programsSubq := db.DB.Table("study_programs").
+		Select("count(id)").
+		Where("study_programs.study_field = study_fields.id")
+
+	err := db.DB.Table("study_fields").
+		Select(`
+			study_fields.id,
+			study_fields.faculty as faculty,
+			study_fields.field_name,
+			study_fields.language,
+			study_fields.mode,
+			study_fields.degree,
+			coalesce(count(distinct major.id), 0) as specializations_count,
+			coalesce(max(curriculum_courses.semester), 0) as semesters_count,
+			coalesce((?), 0) as elective_blocks_count,
+			coalesce((?), 0) as programs_count
+		`, electiveBlocksSubq, programsSubq).
+		Joins("left join major on study_fields.id = major.study_field").
+		Joins("left join study_programs on study_fields.id = study_programs.study_field").
+		Joins("left join curriculum_courses on study_programs.id = curriculum_courses.study_program").
+		Group("study_fields.id").
+		Order("study_fields.id").
+		Scan(&items).Error
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data": studyFields,
+	c.JSON(http.StatusOK, models.PaginatedStudyFieldsResponse{
+		Items: items,
 	})
 }
 
@@ -32,40 +54,20 @@ func CreateStudyField(c *gin.Context) {
 	var studyField models.StudyField
 
 	if err := c.ShouldBindJSON(&studyField); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// faculty exists?
 	var faculty models.Faculty
 	if err := db.DB.First(&faculty, studyField.FacultyID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "faculty not found",
-		})
+		c.JSON(http.StatusNotFound, gin.H{"error": "faculty not found"})
 		return
 	}
-
 
 	if err := db.DB.Create(&studyField).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := db.DB.
-		Preload("Faculty").
-		First(&studyField, studyField.ID).Error; err != nil {
-
-		c.JSON(http.StatusCreated, gin.H{
-			"data": studyField,
-		})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"data": studyField,
-	})
+	c.JSON(http.StatusCreated, studyField)
 }
