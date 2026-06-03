@@ -9,63 +9,56 @@ import (
 	"go_api/internal/models"
 )
 
-
 func GetUnits(c *gin.Context) {
-	var units []models.Unit
+	var items []models.UnitResponse
 
-	if err := db.DB.
-		Preload("Faculty").
-		Find(&units).Error; err != nil {
+	err := db.DB.Table("units").
+		Select(`
+			units.id,
+			units.unit_name,
+			units.faculty_id,
+			units.unit_short,
+			count(distinct employees.id) as lecturers_count,
+			count(distinct courses.course_code) as courses_count
+		`).
+		Joins("left join employees on employees.unit_id = units.id").
+		Joins("left join courses on courses.leading_unit = units.id").
+		Group("units.id").
+		Order("units.id").
+		Scan(&items).Error
 
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data": units,
-	})
+	c.JSON(http.StatusOK, models.UnitsListResponse{Items: items})
 }
 
 func CreateUnit(c *gin.Context) {
-	var unit models.Unit
+    var unit models.Unit
 
-	if err := c.ShouldBindJSON(&unit); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
+    if err := c.ShouldBindJSON(&unit); err != nil {
+       c.JSON(http.StatusBadRequest, gin.H{
+          "error": err.Error(),
+       })
+       return
+    }
 
-	// faculty exists?
-	var faculty models.Faculty
-	if err := db.DB.First(&faculty, unit.FacultyID).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "faculty not found",
-		})
-		return
-	}
+    var faculty models.Faculty
+    if err := db.DB.First(&faculty, unit.FacultyID).Error; err != nil {
+       c.JSON(http.StatusNotFound, gin.H{
+          "error": "faculty not found",
+       })
+       return
+    }
 
+    if err := db.DB.Create(&unit).Error; err != nil {
+       c.JSON(http.StatusInternalServerError, gin.H{
+          "error": err.Error(),
+       })
+       return
+    }
 
-	if err := db.DB.Create(&unit).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	if err := db.DB.
-		Preload("Faculty").
-		First(&unit, unit.ID).Error; err != nil {
-
-		c.JSON(http.StatusCreated, gin.H{
-			"data": unit,
-		})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"data": unit,
-	})
+    c.JSON(http.StatusCreated, unit)
 }
