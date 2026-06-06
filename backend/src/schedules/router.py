@@ -6,7 +6,6 @@ from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import cast, String
 
-from ..academics.models import Students, Employees
 from . import models
 from . import schemas
 from ..academics import models as ac_mod
@@ -1050,3 +1049,48 @@ async def update_schedule_session(
         )
 
     return None
+
+
+def get_academic_semester_configs(
+    db: Session,
+    academic_year: str,
+    semester_type: ac_mod.SemesterType,
+) -> list[dict]:
+    """
+    Returns all days for a given academic semester.
+
+    :param db: Session
+    :param academic_year: e.g. "2025/2026"
+    :param semester_type: SemesterType.WINTER or SemesterType.SUMMER
+    :return: List of dicts with keys:
+             physical_date (str), academic_day (str), week_number (int)
+    """
+
+    days = (
+        db.query(ac_mod.Academic_calendar)
+        .filter(
+            ac_mod.Academic_calendar.academic_year == academic_year,
+            ac_mod.Academic_calendar.semester_type == semester_type,
+        )
+        .order_by(ac_mod.Academic_calendar.calendar_date)
+        .all()
+    )
+
+    neo_days = {
+        1: "Mondays",
+        2: "Tuesdays",
+        3: "Wednesdays",
+        4: "Thursdays",
+        5: "Fridays",
+        6: "Saturdays",
+        7: "Sundays",
+    }
+
+    return [
+        {
+            "physical_date": d.calendar_date.isoformat(),
+            "academic_day": neo_days.get(d.academic_day_of_week),
+            "week_number": d.week_number,
+        }
+        for d in days
+    ]
