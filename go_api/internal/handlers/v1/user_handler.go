@@ -77,7 +77,7 @@ func GetUserProxy(c *gin.Context) {
 		return
 	}
 
-	conn, err := grpc.Dial("backend:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("backend:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to internal RPC service: " + err.Error()})
 		return
@@ -161,7 +161,7 @@ func getOptionalString(val string) *string {
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/users [post]
 func CreateUserProxy(c *gin.Context) {
-	conn, err := grpc.Dial("backend:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("backend:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to internal RPC service: " + err.Error()})
 		return
@@ -236,8 +236,8 @@ func DeleteUserProxy(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
 		return
 	}
-
-	conn, err := grpc.Dial("backend:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	
+	conn, err := grpc.NewClient("backend:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to internal RPC service: " + err.Error()})
 		return
