@@ -1,7 +1,6 @@
 import json
 import logging
 import secrets
-import hashlib
 from datetime import datetime, timezone, timedelta
 
 import pyotp
