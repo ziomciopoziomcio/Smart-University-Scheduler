@@ -40,6 +40,7 @@ services:
       DB_NAME: ${DB_NAME}
       SECRET_KEY: ${SECRET_KEY}
       BACKEND_URL: "http://backend:3000"
+      BACKEND_GRPC_TARGET: ${BACKEND_GRPC_TARGET}
     ports:
       - "8081:8080"
     depends_on:

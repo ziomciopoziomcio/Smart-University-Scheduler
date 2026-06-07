@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -78,7 +79,13 @@ func GetUserProxy(c *gin.Context) {
 		return
 	}
 
-	conn, err := grpc.NewClient("backend:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	grpcTarget := os.Getenv("BACKEND_GRPC_TARGET")
+	if grpcTarget == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Configuration error: BACKEND_GRPC_TARGET environment variable is not set"})
+		return
+	}
+
+	conn, err := grpc.Dial(grpcTarget, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to internal RPC service: " + err.Error()})
 		return
@@ -167,7 +174,13 @@ func getOptionalString(val string) *string {
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/users [post]
 func CreateUserProxy(c *gin.Context) {
-	conn, err := grpc.NewClient("backend:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	grpcTarget := os.Getenv("BACKEND_GRPC_TARGET")
+	if grpcTarget == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Configuration error: BACKEND_GRPC_TARGET environment variable is not set"})
+		return
+	}
+
+	conn, err := grpc.Dial(grpcTarget, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to internal RPC service: " + err.Error()})
 		return
@@ -248,7 +261,13 @@ func DeleteUserProxy(c *gin.Context) {
 		return
 	}
 
-	conn, err := grpc.NewClient("backend:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	grpcTarget := os.Getenv("BACKEND_GRPC_TARGET")
+	if grpcTarget == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Configuration error: BACKEND_GRPC_TARGET environment variable is not set"})
+		return
+	}
+
+	conn, err := grpc.Dial(grpcTarget, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to internal RPC service: " + err.Error()})
 		return
