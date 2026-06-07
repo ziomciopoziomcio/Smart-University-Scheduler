@@ -7,6 +7,7 @@ from src.database.database import SessionLocal
 from src.users.models import Users as UserModel
 from src.users.auth import hash_password, secrets
 from src.common.notifications import send_login_credentials_email
+from src.academics.models import Employees, Students
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +65,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
     def _handle_academic_profile(self, db, user_id, request):
         profile_type = request.WhichOneof("profile")
         if profile_type == "student":
-            from src.academics.models import Students
 
             new_student = Students(
                 user_id=user_id,
@@ -76,7 +76,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             db.add(new_student)
             logger.info(f"Adding student profile for user_id: {user_id}")
         elif profile_type == "employee":
-            from src.academics.models import Employees
 
             new_employee = Employees(
                 user_id=user_id,
@@ -97,7 +96,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
                     success=False, message="User not found"
                 )
 
-            from src.academics.models import Students, Employees
 
             db.query(Students).filter(Students.user_id == request.id).delete()
             db.query(Employees).filter(Employees.user_id == request.id).delete()
@@ -153,7 +151,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             db.close()
 
     def _enrich_user_response_profile(self, db, user_id, response):
-        from src.academics.models import Students, Employees
 
         student_profile = db.query(Students).filter(Students.user_id == user_id).first()
         if student_profile:
@@ -180,3 +177,8 @@ async def serve():
     logger.info("Starting gRPC server on port 50051...")
     await server.start()
     await server.wait_for_termination()
+
+if __name__ == "__main__":
+    import asyncio
+    logging.basicConfig(level=logging.INFO)
+    asyncio.run(serve())
