@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -85,7 +86,7 @@ func GetUserProxy(c *gin.Context) {
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
-
+			log.Printf("error: %v", err)
 		}
 	}(conn)
 
@@ -174,7 +175,7 @@ func CreateUserProxy(c *gin.Context) {
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
-
+			log.Printf("error: %v", err)
 		}
 	}(conn)
 
@@ -255,7 +256,7 @@ func DeleteUserProxy(c *gin.Context) {
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
-
+			log.Printf("error: %v", err)
 		}
 	}(conn)
 
