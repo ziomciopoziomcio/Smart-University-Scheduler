@@ -4,7 +4,7 @@ definitions:
       permission_id:
         type: integer
     required:
-    - permission_id
+      - permission_id
     type: object
   dto.CourseDetails:
     properties:
@@ -30,11 +30,11 @@ definitions:
       week_number:
         type: integer
     required:
-    - academic_day_of_week
-    - academic_year
-    - calendar_date
-    - semester_type
-    - week_number
+      - academic_day_of_week
+      - academic_year
+      - calendar_date
+      - semester_type
+      - week_number
     type: object
   dto.CreateBuildingRequest:
     properties:
@@ -45,9 +45,9 @@ definitions:
       campus_id:
         type: integer
     required:
-    - building_name
-    - building_number
-    - campus_id
+      - building_name
+      - building_number
+      - campus_id
     type: object
   dto.CreateCampusRequest:
     properties:
@@ -56,8 +56,8 @@ definitions:
       campus_short:
         type: string
     required:
-    - campus_name
-    - campus_short
+      - campus_name
+      - campus_short
     type: object
   dto.CreateCourseInstructorRequest:
     properties:
@@ -70,9 +70,9 @@ definitions:
       hours:
         type: integer
     required:
-    - class_type
-    - course
-    - employee
+      - class_type
+      - course
+      - employee
     type: object
   dto.CreateCourseRequest:
     properties:
@@ -89,12 +89,12 @@ definitions:
       leading_unit:
         type: integer
     required:
-    - course_code
-    - course_coordinator
-    - course_language
-    - course_name
-    - ects_points
-    - leading_unit
+      - course_code
+      - course_coordinator
+      - course_language
+      - course_name
+      - ects_points
+      - leading_unit
     type: object
   dto.CreateCourseTypeDetailRequest:
     properties:
@@ -119,8 +119,8 @@ definitions:
       slots_per_class:
         type: integer
     required:
-    - class_type
-    - course
+      - class_type
+      - course
     type: object
   dto.CreateCurriculumCourseRequest:
     properties:
@@ -135,9 +135,9 @@ definitions:
       study_program:
         type: integer
     required:
-    - course
-    - semester
-    - study_program
+      - course
+      - semester
+      - study_program
     type: object
   dto.CreateElectiveBlockRequest:
     properties:
@@ -146,8 +146,8 @@ definitions:
       study_field:
         type: integer
     required:
-    - elective_block_name
-    - study_field
+      - elective_block_name
+      - study_field
     type: object
   dto.CreateFacultyRequest:
     properties:
@@ -156,8 +156,8 @@ definitions:
       faculty_short:
         type: string
     required:
-    - faculty_name
-    - faculty_short
+      - faculty_name
+      - faculty_short
     type: object
   dto.CreateMajorRequest:
     properties:
@@ -166,8 +166,8 @@ definitions:
       study_field:
         type: integer
     required:
-    - major_name
-    - study_field
+      - major_name
+      - study_field
     type: object
   dto.CreatePermissionRequest:
     properties:
@@ -180,15 +180,15 @@ definitions:
       name:
         type: string
     required:
-    - code
-    - name
+      - code
+      - name
     type: object
   dto.CreateRoleRequest:
     properties:
       role_name:
         type: string
     required:
-    - role_name
+      - role_name
     type: object
   dto.CreateUserRequest:
     properties:
@@ -209,9 +209,9 @@ definitions:
       surname:
         type: string
     required:
-    - email
-    - name
-    - surname
+      - email
+      - name
+      - surname
     type: object
   dto.CurriculumCourseResponse:
     properties:
@@ -366,7 +366,7 @@ definitions:
         type: integer
       course_ref:
         allOf:
-        - $ref: '#/definitions/models.Course'
+          - $ref: '#/definitions/models.Course'
         description: Relations
       elective_block:
         type: integer
@@ -788,13 +788,13 @@ definitions:
         type: boolean
     type: object
 info:
-  contact: {}
+  contact: { }
 paths:
   /api/v1/academic-calendar:
     get:
       description: Returns all academic calendar entries
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -808,20 +808,20 @@ paths:
             type: object
       summary: Get academic calendar
       tags:
-      - Academic Calendar
+        - Academic Calendar
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new academic calendar record.
       parameters:
-      - description: Academic calendar data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateAcademicCalendarRequest'
+        - description: Academic calendar data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.CreateAcademicCalendarRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -841,12 +841,12 @@ paths:
             type: object
       summary: Create academic calendar entry
       tags:
-      - Academic Calendar
+        - Academic Calendar
   /api/v1/buildings:
     get:
       description: Returns list of buildings with number of rooms
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -860,20 +860,20 @@ paths:
             type: object
       summary: Get all buildings
       tags:
-      - buildings
+        - buildings
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new building.
       parameters:
-      - description: Building data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateBuildingRequest'
+        - description: Building data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.CreateBuildingRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -899,12 +899,12 @@ paths:
             type: object
       summary: Create building
       tags:
-      - buildings
+        - buildings
   /api/v1/campuses:
     get:
       description: Returns list of all campuses
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -918,20 +918,20 @@ paths:
             type: object
       summary: Get all campuses
       tags:
-      - campuses
+        - campuses
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new campus.
       parameters:
-      - description: Campus data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateCampusRequest'
+        - description: Campus data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.CreateCampusRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -951,13 +951,13 @@ paths:
             type: object
       summary: Create campus
       tags:
-      - campuses
+        - campuses
   /api/v1/course-type-details:
     get:
       description: Returns list of course type details sorted by course and class
         type
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -971,20 +971,20 @@ paths:
             type: object
       summary: Get course type details
       tags:
-      - course-type-details
+        - course-type-details
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new course type detail entry.
       parameters:
-      - description: Course type detail data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateCourseTypeDetailRequest'
+        - description: Course type detail data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.CreateCourseTypeDetailRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1004,12 +1004,12 @@ paths:
             type: object
       summary: Create course type detail
       tags:
-      - course-type-details
+        - course-type-details
   /api/v1/courses:
     get:
       description: Returns list of all courses sorted by course code
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1023,20 +1023,20 @@ paths:
             type: object
       summary: Get all courses
       tags:
-      - courses
+        - courses
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new course.
       parameters:
-      - description: Course data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateCourseRequest'
+        - description: Course data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.CreateCourseRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1056,12 +1056,12 @@ paths:
             type: object
       summary: Create course
       tags:
-      - courses
+        - courses
   /api/v1/courses-instructors:
     get:
       description: Returns list of course-instructor assignments
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1075,21 +1075,21 @@ paths:
             type: object
       summary: Get course instructors
       tags:
-      - courses-instructors
+        - courses-instructors
     post:
       consumes:
-      - application/json
+        - application/json
       description: Assigns an employee to a course and class type (after validating
         course type existence)
       parameters:
-      - description: Instructor assignment data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateCourseInstructorRequest'
+        - description: Instructor assignment data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.CreateCourseInstructorRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1109,13 +1109,13 @@ paths:
             type: object
       summary: Assign instructor to course
       tags:
-      - courses-instructors
+        - courses-instructors
   /api/v1/curriculum-courses:
     get:
       description: Returns curriculum courses with course, major and elective block
         details (with aggregated group counts)
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1133,20 +1133,20 @@ paths:
             type: object
       summary: Get curriculum courses
       tags:
-      - curriculum-courses
+        - curriculum-courses
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new curriculum course entry.
       parameters:
-      - description: Curriculum course data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateCurriculumCourseRequest'
+        - description: Curriculum course data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.CreateCurriculumCourseRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1166,12 +1166,12 @@ paths:
             type: object
       summary: Create curriculum course
       tags:
-      - curriculum-courses
+        - curriculum-courses
   /api/v1/elective-blocks:
     get:
       description: Returns list of elective blocks
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1185,20 +1185,20 @@ paths:
             type: object
       summary: Get elective blocks
       tags:
-      - elective-blocks
+        - elective-blocks
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new elective block.
       parameters:
-      - description: Elective block data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateElectiveBlockRequest'
+        - description: Elective block data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.CreateElectiveBlockRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1224,12 +1224,12 @@ paths:
             type: object
       summary: Create elective block
       tags:
-      - elective-blocks
+        - elective-blocks
   /api/v1/faculties:
     get:
       description: Returns faculties with lecturers and students count
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1243,20 +1243,20 @@ paths:
             type: object
       summary: Get faculties
       tags:
-      - faculties
+        - faculties
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new faculty.
       parameters:
-      - description: Faculty data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateFacultyRequest'
+        - description: Faculty data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.CreateFacultyRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1276,12 +1276,12 @@ paths:
             type: object
       summary: Create faculty
       tags:
-      - faculties
+        - faculties
   /api/v1/group-members:
     get:
       description: Returns list of group members with group relation
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1299,20 +1299,20 @@ paths:
             type: object
       summary: Get group members
       tags:
-      - group-members
+        - group-members
     post:
       consumes:
-      - application/json
+        - application/json
       description: Adds a user to a group
       parameters:
-      - description: Group member data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.GroupMember'
+        - description: Group member data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/models.GroupMember'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1334,12 +1334,12 @@ paths:
             type: object
       summary: Create group member
       tags:
-      - group-members
+        - group-members
   /api/v1/groups:
     get:
       description: Returns list of all groups
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1357,20 +1357,20 @@ paths:
             type: object
       summary: Get all groups
       tags:
-      - groups
+        - groups
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new group.
       parameters:
-      - description: Group data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.Group'
+        - description: Group data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/models.Group'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1392,12 +1392,12 @@ paths:
             type: object
       summary: Create group
       tags:
-      - groups
+        - groups
   /api/v1/majors:
     get:
       description: Returns list of majors with group count
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1411,20 +1411,20 @@ paths:
             type: object
       summary: Get majors
       tags:
-      - majors
+        - majors
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new major.
       parameters:
-      - description: Major data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateMajorRequest'
+        - description: Major data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.CreateMajorRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1450,12 +1450,12 @@ paths:
             type: object
       summary: Create major
       tags:
-      - majors
+        - majors
   /api/v1/permissions:
     get:
       description: Returns list of permissions
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1469,20 +1469,20 @@ paths:
             type: object
       summary: Get permissions
       tags:
-      - permissions
+        - permissions
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new permission
       parameters:
-      - description: Permission data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreatePermissionRequest'
+        - description: Permission data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.CreatePermissionRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1502,12 +1502,12 @@ paths:
             type: object
       summary: Create permission
       tags:
-      - permissions
+        - permissions
   /api/v1/roles:
     get:
       description: Returns list of roles with permissions and user count
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1521,20 +1521,20 @@ paths:
             type: object
       summary: Get roles
       tags:
-      - roles
+        - roles
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new role
       parameters:
-      - description: Role data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateRoleRequest'
+        - description: Role data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.CreateRoleRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1554,26 +1554,26 @@ paths:
             type: object
       summary: Create role
       tags:
-      - roles
+        - roles
   /api/v1/roles/{id}/permissions:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Assigns a permission to a role
       parameters:
-      - description: Role ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Permission assignment data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.AssignPermissionRequest'
+        - description: Role ID
+          in: path
+          name: id
+          required: true
+          type: integer
+        - description: Permission assignment data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.AssignPermissionRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1601,12 +1601,12 @@ paths:
             type: object
       summary: Assign permission to role
       tags:
-      - roles
+        - roles
   /api/v1/rooms:
     get:
       description: Returns list of rooms
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1620,21 +1620,21 @@ paths:
             type: object
       summary: Get rooms
       tags:
-      - rooms
+        - rooms
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new room. ID is generated by database and cannot be provided
         by client.
       parameters:
-      - description: Room data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.Room'
+        - description: Room data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/models.Room'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1656,13 +1656,13 @@ paths:
             type: object
       summary: Create room
       tags:
-      - rooms
+        - rooms
   /api/v1/study-fields:
     get:
       description: Returns study fields with aggregated counts (majors, programs,
         elective blocks, semesters)
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1676,20 +1676,20 @@ paths:
             type: object
       summary: Get study fields
       tags:
-      - study-fields
+        - study-fields
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new study field.
       parameters:
-      - description: Study field data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.StudyField'
+        - description: Study field data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/models.StudyField'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1715,13 +1715,13 @@ paths:
             type: object
       summary: Create study field
       tags:
-      - study-fields
+        - study-fields
   /api/v1/study-programs:
     get:
       description: Returns study programs with semester statistics (courses count
         and ECTS sum per semester)
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1735,21 +1735,21 @@ paths:
             type: object
       summary: Get study programs
       tags:
-      - study-programs
+        - study-programs
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new study program. ID is generated by database and cannot
         be provided by client.
       parameters:
-      - description: Study program data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.StudyProgram'
+        - description: Study program data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/models.StudyProgram'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1769,12 +1769,12 @@ paths:
             type: object
       summary: Create study program
       tags:
-      - study-programs
+        - study-programs
   /api/v1/units:
     get:
       description: Returns list of units with lecturers and courses counts
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1788,20 +1788,20 @@ paths:
             type: object
       summary: Get units
       tags:
-      - units
+        - units
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a new unit.
       parameters:
-      - description: Unit data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.Unit'
+        - description: Unit data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/models.Unit'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1827,12 +1827,12 @@ paths:
             type: object
       summary: Create unit
       tags:
-      - units
+        - units
   /api/v1/users:
     get:
       description: Returns list of users with roles
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1846,20 +1846,20 @@ paths:
             type: object
       summary: Get users
       tags:
-      - users
+        - users
     post:
       consumes:
-      - application/json
+        - application/json
       description: Creates a user via internal gRPC service
       parameters:
-      - description: User data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateUserRequest'
+        - description: User data
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/dto.CreateUserRequest'
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
@@ -1880,18 +1880,18 @@ paths:
             type: object
       summary: Create user (proxy)
       tags:
-      - users
+        - users
   /api/v1/users/{id}:
     delete:
       description: Deletes a user via internal gRPC service
       parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1912,18 +1912,18 @@ paths:
             type: object
       summary: Delete user (proxy)
       tags:
-      - users
+        - users
     get:
       description: Fetches user details from internal gRPC service and enriches with
         DB data
       parameters:
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: integer
+        - description: User ID
+          in: path
+          name: id
+          required: true
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
@@ -1949,5 +1949,5 @@ paths:
             type: object
       summary: Get user by ID (proxy)
       tags:
-      - users
+        - users
 swagger: "2.0"

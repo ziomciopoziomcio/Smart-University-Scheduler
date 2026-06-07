@@ -1,7 +1,7 @@
 package dto
 
 type GroupResponse struct {
-	ID            uint  `json:"id"`
+	ID            uint   `json:"id"`
 	GroupName     string `json:"group_name"`
 	StudyProgram  uint   `json:"study_program"`
 	Major         *uint  `json:"major"`

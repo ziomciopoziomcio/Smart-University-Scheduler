@@ -1,6 +1,5 @@
 package models
 
-
 type Group struct {
 	ID            uint   `json:"id" gorm:"primaryKey;autoIncrement"`
 	GroupName     string `json:"group_name" gorm:"size:255;unique;not null"`

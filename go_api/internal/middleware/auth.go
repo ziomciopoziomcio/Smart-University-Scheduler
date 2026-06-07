@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"strings"
 
+	"go_api/internal/models"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"go_api/internal/models"
 )
 
 func hashAPIKey(apiKey string) string {

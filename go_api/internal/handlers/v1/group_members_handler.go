@@ -9,7 +9,6 @@ import (
 	"go_api/internal/models"
 )
 
-
 // GetGroupMembers godoc
 // @Summary Get group members
 // @Description Returns list of group members with group relation
@@ -35,7 +34,6 @@ func GetGroupMembers(c *gin.Context) {
 		"data": members,
 	})
 }
-
 
 // CreateGroupMember godoc
 // @Summary Create group member

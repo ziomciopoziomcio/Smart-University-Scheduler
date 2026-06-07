@@ -11,7 +11,6 @@ import (
 	"go_api/internal/models"
 )
 
-
 // GetAcademicCalendar godoc
 // @Summary Get academic calendar
 // @Description Returns all academic calendar entries
@@ -44,7 +43,6 @@ func GetAcademicCalendar(c *gin.Context) {
 		Items: items,
 	})
 }
-
 
 // CreateAcademicCalendar godoc
 // @Summary Create academic calendar entry

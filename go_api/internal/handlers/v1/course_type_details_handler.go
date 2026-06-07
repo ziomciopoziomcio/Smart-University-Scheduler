@@ -10,7 +10,6 @@ import (
 	"go_api/internal/models"
 )
 
-
 // GetCourseTypeDetails godoc
 // @Summary Get course type details
 // @Description Returns list of course type details sorted by course and class type
@@ -31,7 +30,6 @@ func GetCourseTypeDetails(c *gin.Context) {
 		Items: courseTypeDetails,
 	})
 }
-
 
 // CreateCourseTypeDetail godoc
 // @Summary Create course type detail

@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/db"
-	"go_api/internal/models"
 	"go_api/internal/dto"
+	"go_api/internal/models"
 )
 
 // GetGroups godoc
@@ -46,7 +46,6 @@ func GetGroups(c *gin.Context) {
 		"data": items,
 	})
 }
-
 
 // CreateGroup godoc
 // @Summary Create group

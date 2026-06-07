@@ -10,7 +10,6 @@ import (
 	"go_api/internal/models"
 )
 
-
 // GetCourses godoc
 // @Summary Get all courses
 // @Description Returns list of all courses sorted by course code
@@ -31,7 +30,6 @@ func GetCourses(c *gin.Context) {
 		Items: courses,
 	})
 }
-
 
 // CreateCourse godoc
 // @Summary Create course

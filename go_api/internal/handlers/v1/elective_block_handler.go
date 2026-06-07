@@ -10,7 +10,6 @@ import (
 	"go_api/internal/models"
 )
 
-
 // GetElectiveBlocks godoc
 // @Summary Get elective blocks
 // @Description Returns list of elective blocks

@@ -22,11 +22,11 @@ func (FacultyBuilding) TableName() string {
 }
 
 type FacultyReadWithCounterResponse struct {
-	ID           int    `json:"id"`
-	FacultyName  string `json:"faculty_name"`
-	FacultyShort string `json:"faculty_short"`
-	LecturersCount int  `json:"lecturers_count"`
-	StudentsCount  int  `json:"students_count"`
+	ID             int    `json:"id"`
+	FacultyName    string `json:"faculty_name"`
+	FacultyShort   string `json:"faculty_short"`
+	LecturersCount int    `json:"lecturers_count"`
+	StudentsCount  int    `json:"students_count"`
 }
 
 type PaginatedFacultiesResponse struct {

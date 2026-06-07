@@ -1,6 +1,5 @@
 package models
 
-
 type CurriculumCourse struct {
 	StudyProgram int `json:"study_program" gorm:"primaryKey"`
 	Course       int `json:"course" gorm:"primaryKey"`
@@ -9,7 +8,7 @@ type CurriculumCourse struct {
 	Major         *int `json:"major"`
 	ElectiveBlock *int `json:"elective_block"`
 
-    // Relations
+	// Relations
 	CourseRef       Course       `json:"course_ref" gorm:"foreignKey:Course;references:CourseCode"`
 	StudyProgramRef StudyProgram `json:"study_program_ref" gorm:"foreignKey:StudyProgram;references:ID"`
 

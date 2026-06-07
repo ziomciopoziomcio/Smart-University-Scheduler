@@ -9,7 +9,6 @@ import (
 	"go_api/internal/models"
 )
 
-
 // GetUnits godoc
 // @Summary Get units
 // @Description Returns list of units with lecturers and courses counts
@@ -57,29 +56,29 @@ func GetUnits(c *gin.Context) {
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/units [post]
 func CreateUnit(c *gin.Context) {
-    var unit models.Unit
+	var unit models.Unit
 
-    if err := c.ShouldBindJSON(&unit); err != nil {
-       c.JSON(http.StatusBadRequest, gin.H{
-          "error": err.Error(),
-       })
-       return
-    }
+	if err := c.ShouldBindJSON(&unit); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
-    var faculty models.Faculty
-    if err := db.DB.First(&faculty, unit.FacultyID).Error; err != nil {
-       c.JSON(http.StatusNotFound, gin.H{
-          "error": "faculty not found",
-       })
-       return
-    }
+	var faculty models.Faculty
+	if err := db.DB.First(&faculty, unit.FacultyID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "faculty not found",
+		})
+		return
+	}
 
-    if err := db.DB.Create(&unit).Error; err != nil {
-       c.JSON(http.StatusInternalServerError, gin.H{
-          "error": err.Error(),
-       })
-       return
-    }
+	if err := db.DB.Create(&unit).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
-    c.JSON(http.StatusCreated, unit)
+	c.JSON(http.StatusCreated, unit)
 }

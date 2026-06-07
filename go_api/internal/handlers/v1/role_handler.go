@@ -11,7 +11,6 @@ import (
 	"go_api/internal/models"
 )
 
-
 // GetRoles godoc
 // @Summary Get roles
 // @Description Returns list of roles with permissions and user count
@@ -148,7 +147,6 @@ func CreatePermission(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, permission)
 }
-
 
 // AssignPermissionToRole godoc
 // @Summary Assign permission to role

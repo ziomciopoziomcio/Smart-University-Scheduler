@@ -10,7 +10,6 @@ import (
 	"go_api/internal/models"
 )
 
-
 // GetCoursesInstructors godoc
 // @Summary Get course instructors
 // @Description Returns list of course-instructor assignments

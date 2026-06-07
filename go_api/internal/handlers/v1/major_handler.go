@@ -28,7 +28,6 @@ func GetMajors(c *gin.Context) {
 			major.major_name,
 			coalesce(count(groups.id), 0) as group_count
 		`).
-
 		Joins("left join groups on groups.major = major.id").
 		Group("major.id").
 		Order("major.id").
@@ -43,7 +42,6 @@ func GetMajors(c *gin.Context) {
 		Items: items,
 	})
 }
-
 
 // CreateMajor godoc
 // @Summary Create major

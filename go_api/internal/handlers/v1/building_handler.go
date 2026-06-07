@@ -10,7 +10,6 @@ import (
 	"go_api/internal/models"
 )
 
-
 // GetBuildings godoc
 // @Summary Get all buildings
 // @Description Returns list of buildings with number of rooms
@@ -46,7 +45,6 @@ func GetBuildings(c *gin.Context) {
 		Items: items,
 	})
 }
-
 
 // CreateBuilding godoc
 // @Summary Create building

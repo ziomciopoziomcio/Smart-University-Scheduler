@@ -10,7 +10,6 @@ import (
 	"go_api/internal/models"
 )
 
-
 // GetCampuses godoc
 // @Summary Get all campuses
 // @Description Returns list of all campuses
@@ -31,7 +30,6 @@ func GetCampuses(c *gin.Context) {
 		Items: campuses,
 	})
 }
-
 
 // CreateCampus godoc
 // @Summary Create campus

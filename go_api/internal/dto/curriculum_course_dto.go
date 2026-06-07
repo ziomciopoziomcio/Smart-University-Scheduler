@@ -9,15 +9,15 @@ type CourseDetails struct {
 }
 
 type CurriculumCourseResponse struct {
-	StudyProgram int  `json:"study_program"`
-	Course       int  `json:"course"`
-	Semester     int  `json:"semester"`
-	Major        *int `json:"major"`
+	StudyProgram  int  `json:"study_program"`
+	Course        int  `json:"course"`
+	Semester      int  `json:"semester"`
+	Major         *int `json:"major"`
 	ElectiveBlock *int `json:"elective_block"`
 
-	CourseDetails        *CourseDetails                 `json:"course_details"`
-	MajorDetails         *models.MajorReadResponse      `json:"major_details"`
-	ElectiveBlockDetails *models.ElectiveBlock          `json:"elective_block_details"`
+	CourseDetails        *CourseDetails            `json:"course_details"`
+	MajorDetails         *models.MajorReadResponse `json:"major_details"`
+	ElectiveBlockDetails *models.ElectiveBlock     `json:"elective_block_details"`
 }
 
 type CreateCurriculumCourseRequest struct {

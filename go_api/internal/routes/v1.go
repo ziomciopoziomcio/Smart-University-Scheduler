@@ -7,9 +7,10 @@ import (
 	"go_api/internal/handlers/v1"
 	"go_api/internal/middleware"
 
+	_ "go_api/docs"
+
 	swaggerFiles "github.com/swaggo/files"
-    ginSwagger "github.com/swaggo/gin-swagger"
-    _ "go_api/docs"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func RegisterV1Routes(r *gin.Engine, db *gorm.DB) {
@@ -40,17 +41,17 @@ func RegisterV1Routes(r *gin.Engine, db *gorm.DB) {
 
 	// study fields
 	v1.GET("/study-fields", middleware.AdminOnly(db), handlers.GetStudyFields)
-    v1.POST("/study-fields", middleware.AdminOnly(db), handlers.CreateStudyField)
+	v1.POST("/study-fields", middleware.AdminOnly(db), handlers.CreateStudyField)
 
-    // major
-    v1.GET("/majors", middleware.AdminOnly(db), handlers.GetMajors)
+	// major
+	v1.GET("/majors", middleware.AdminOnly(db), handlers.GetMajors)
 	v1.POST("/majors", middleware.AdminOnly(db), handlers.CreateMajor)
 
-    // elective block
-    v1.GET("/elective-blocks", middleware.AdminOnly(db), middleware.AdminOnly(db), handlers.GetElectiveBlocks)
+	// elective block
+	v1.GET("/elective-blocks", middleware.AdminOnly(db), middleware.AdminOnly(db), handlers.GetElectiveBlocks)
 	v1.POST("/elective-blocks", middleware.AdminOnly(db), handlers.CreateElectiveBlock)
 
-    // study programs
+	// study programs
 	v1.GET("/study-programs", middleware.AdminOnly(db), handlers.GetStudyPrograms)
 	v1.POST("/study-programs", middleware.AdminOnly(db), handlers.CreateStudyProgram)
 
@@ -72,28 +73,28 @@ func RegisterV1Routes(r *gin.Engine, db *gorm.DB) {
 
 	// groups
 	v1.GET("/groups", middleware.AdminOnly(db), handlers.GetGroups)
-    v1.POST("/groups", middleware.AdminOnly(db), handlers.CreateGroup)
+	v1.POST("/groups", middleware.AdminOnly(db), handlers.CreateGroup)
 
-    // group members
-    v1.GET("/group-members", middleware.AdminOnly(db), handlers.GetGroupMembers)
-    v1.POST("/group-members", middleware.AdminOnly(db), handlers.CreateGroupMember)
+	// group members
+	v1.GET("/group-members", middleware.AdminOnly(db), handlers.GetGroupMembers)
+	v1.POST("/group-members", middleware.AdminOnly(db), handlers.CreateGroupMember)
 
-    // academic calendar
-    v1.GET("/academic-calendar", middleware.AdminOnly(db), handlers.GetAcademicCalendar)
-    v1.POST("/academic-calendar", middleware.AdminOnly(db), handlers.CreateAcademicCalendar)
+	// academic calendar
+	v1.GET("/academic-calendar", middleware.AdminOnly(db), handlers.GetAcademicCalendar)
+	v1.POST("/academic-calendar", middleware.AdminOnly(db), handlers.CreateAcademicCalendar)
 
 	// students
 	v1.POST("/users", middleware.AdminOnly(db), handlers.CreateUserProxy)
-    v1.DELETE("/users/:id", middleware.AdminOnly(db), handlers.DeleteUserProxy)
-    v1.GET("/users/:id", middleware.AdminOnly(db), handlers.GetUserProxy)
-    v1.GET("/users", middleware.AdminOnly(db), handlers.GetUsers)
+	v1.DELETE("/users/:id", middleware.AdminOnly(db), handlers.DeleteUserProxy)
+	v1.GET("/users/:id", middleware.AdminOnly(db), handlers.GetUserProxy)
+	v1.GET("/users", middleware.AdminOnly(db), handlers.GetUsers)
 
-    // roles
-    v1.GET("/roles", middleware.AdminOnly(db), handlers.GetRoles)
-    v1.POST("/roles", middleware.AdminOnly(db), handlers.CreateRole)
-    v1.POST("/roles/:id/permissions", middleware.AdminOnly(db), handlers.AssignPermissionToRole)
+	// roles
+	v1.GET("/roles", middleware.AdminOnly(db), handlers.GetRoles)
+	v1.POST("/roles", middleware.AdminOnly(db), handlers.CreateRole)
+	v1.POST("/roles/:id/permissions", middleware.AdminOnly(db), handlers.AssignPermissionToRole)
 
-    // permissions
-    v1.GET("/permissions", middleware.AdminOnly(db), handlers.GetPermissions)
-    v1.POST("/permissions", middleware.AdminOnly(db), handlers.CreatePermission)
+	// permissions
+	v1.GET("/permissions", middleware.AdminOnly(db), handlers.GetPermissions)
+	v1.POST("/permissions", middleware.AdminOnly(db), handlers.CreatePermission)
 }

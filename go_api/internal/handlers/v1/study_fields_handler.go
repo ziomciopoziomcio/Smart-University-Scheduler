@@ -9,7 +9,6 @@ import (
 	"go_api/internal/models"
 )
 
-
 // GetStudyFields godoc
 // @Summary Get study fields
 // @Description Returns study fields with aggregated counts (majors, programs, elective blocks, semesters)
@@ -58,7 +57,6 @@ func GetStudyFields(c *gin.Context) {
 		Items: items,
 	})
 }
-
 
 // CreateStudyField godoc
 // @Summary Create study field
