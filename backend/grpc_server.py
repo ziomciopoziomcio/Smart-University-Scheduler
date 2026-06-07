@@ -9,6 +9,8 @@ from src.users.models import Users as UserModel
 from src.users.auth import hash_password, secrets
 from src.common.email_client import send_email
 
+logger = logging.getLogger(__name__)
+
 
 class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
     async def CreateUserRPC(self, request, context):
@@ -48,7 +50,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
 
         except Exception as e:
             db.rollback()
-            logging.error(f"Error gRPC CreateUser: {str(e)}")
+            logger.exception(f"Error gRPC CreateUser: {str(e)}")
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(str(e))
             return user_pb2.UserCreateResponse()
@@ -68,7 +70,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
                 ),
             )
             db.add(new_student)
-            logging.info(f"Adding student profile for user_id: {user_id}")
+            logger.info(f"Adding student profile for user_id: {user_id}")
         elif profile_type == "employee":
             from src.academics.models import Employees
 
@@ -78,7 +80,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
                 unit_id=request.employee.unit_id,
             )
             db.add(new_employee)
-            logging.info(f"Adding employee profile for user_id: {user_id}")
+            logger.info(f"Adding employee profile for user_id: {user_id}")
 
     def _send_credentials_email(self, user, plaintext_password):
         try:
@@ -86,7 +88,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             body_text = f"Hello {user.name},\n\nLogin: {user.email}\nPassword: {plaintext_password}"
             send_email(to_email=user.email, subject=subject, body_text=body_text)
         except Exception as e:
-            logging.error(f"Couldn't send email: {e}")
+            logger.error(f"Couldn't send email: {e}")
 
     async def DeleteUserRPC(self, request, context):
         db = SessionLocal()
@@ -108,7 +110,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             db.delete(user)
             db.commit()
 
-            logging.info(
+            logger.info(
                 f"Successfully deleted user with ID: {request.id} and all their academic profiles."
             )
             return user_pb2.UserDeleteResponse(
@@ -118,7 +120,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
 
         except Exception as e:
             db.rollback()
-            logging.error(f"Error gRPC DeleteUser: {str(e)}")
+            logger.error(f"Error gRPC DeleteUser: {str(e)}")
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(str(e))
             return user_pb2.UserDeleteResponse(success=False, message=str(e))
@@ -147,7 +149,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             return response
 
         except Exception as e:
-            logging.error(f"Error gRPC GetUser: {str(e)}")
+            logger.error(f"Error gRPC GetUser: {str(e)}")
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(str(e))
             return user_pb2.UserGetResponse()
@@ -179,11 +181,6 @@ async def serve():
     server = grpc.aio.server()
     user_pb2_grpc.add_UserRpcServiceServicer_to_server(UserRpcServiceServicer(), server)
     server.add_insecure_port("[::]:50051")
-    logging.info("Starting gRPC server on port 50051...")
+    logger.info("Starting gRPC server on port 50051...")
     await server.start()
     await server.wait_for_termination()
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    asyncio.run(serve())
