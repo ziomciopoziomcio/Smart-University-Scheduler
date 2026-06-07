@@ -6,7 +6,7 @@ import user_pb2_grpc
 from src.database.database import SessionLocal
 from src.users.models import Users as UserModel
 from src.users.auth import hash_password, secrets
-from src.common.email_client import send_email
+from src.common.notifications import send_login_credentials_email
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,13 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             db.refresh(new_user)
 
             if request.send_login_credentials_email:
-                self._send_credentials_email(new_user, generated_password)
+                try:
+                    send_login_credentials_email(
+                        user_email=new_user.email,
+                        temporary_password=generated_password
+                    )
+                except Exception as e:
+                    logger.error(f"Couldn't send email via credentials function: {e}")
 
             return user_pb2.UserCreateResponse(
                 id=new_user.id, email=new_user.email, status="created"
@@ -80,14 +86,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             )
             db.add(new_employee)
             logger.info(f"Adding employee profile for user_id: {user_id}")
-
-    def _send_credentials_email(self, user, plaintext_password):
-        try:
-            subject = "Your login info for Smart University Scheduler"
-            body_text = f"Hello {user.name},\n\nLogin: {user.email}\nPassword: {plaintext_password}"
-            send_email(to_email=user.email, subject=subject, body_text=body_text)
-        except Exception as e:
-            logger.error(f"Couldn't send email: {e}")
 
     async def DeleteUserRPC(self, request, context):
         db = SessionLocal()
