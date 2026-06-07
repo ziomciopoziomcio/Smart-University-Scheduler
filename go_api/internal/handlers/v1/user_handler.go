@@ -126,17 +126,17 @@ func buildUserDetailResponse(userId int64, resp *pb.UserGetResponse) models.User
 		Roles:            roleNames,
 	}
 
-	if resp.GetStudent() != nil {
+	if student := resp.GetStudent(); student != nil {
 		userDetail.Student = map[string]interface{}{
-			"id":               resp.GetStudent().Id,
-			"study_program_id": resp.GetStudent().StudyProgramId,
-			"major_id":         resp.GetStudent().MajorId,
+			"id":               student.Id,
+			"study_program_id": student.StudyProgramId,
+			"major_id":         student.MajorId,
 		}
-	} else if resp.GetEmployee() != nil {
+	} else if employee := resp.GetEmployee(); employee != nil {
 		userDetail.Employee = map[string]interface{}{
-			"id":         resp.GetEmployee().Id,
-			"faculty_id": resp.GetEmployee().FacultyId,
-			"unit_id":    resp.GetEmployee().UnitId,
+			"id":         employee.Id,
+			"faculty_id": employee.FacultyId,
+			"unit_id":    employee.UnitId,
 		}
 	}
 	return userDetail
@@ -236,7 +236,7 @@ func DeleteUserProxy(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
 		return
 	}
-	
+
 	conn, err := grpc.NewClient("backend:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to internal RPC service: " + err.Error()})
