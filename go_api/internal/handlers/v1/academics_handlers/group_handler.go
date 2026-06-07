@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/internal/app"
-	"go_api/internal/dto"
+	"go_api/internal/dto/academics_dto"
 	"go_api/internal/models"
 )
 
@@ -15,7 +15,7 @@ import (
 // @Description Returns list of all groups
 // @Tags groups
 // @Produce json
-// @Success 200 {object} map[string][]dto.GroupResponse
+// @Success 200 {object} map[string][]academics_dto.GroupResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/groups [get]
 func GetGroups(app *app.App) gin.HandlerFunc {
@@ -30,10 +30,10 @@ func GetGroups(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		items := make([]dto.GroupResponse, 0, len(groups))
+		items := make([]academics_dto.GroupResponse, 0, len(groups))
 
 		for _, g := range groups {
-			items = append(items, dto.GroupResponse{
+			items = append(items, academics_dto.GroupResponse{
 				ID:            g.ID,
 				GroupName:     g.GroupName,
 				StudyProgram:  g.StudyProgram,

@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/internal/app"
-	"go_api/internal/dto"
+	"go_api/internal/dto/courses_dto"
 	"go_api/internal/models"
 )
 
@@ -15,7 +15,7 @@ import (
 // @Description Returns curriculum courses with course, major and elective block details (with aggregated group counts)
 // @Tags curriculum-courses
 // @Produce json
-// @Success 200 {object} map[string][]dto.CurriculumCourseResponse
+// @Success 200 {object} map[string][]courses_dto.CurriculumCourseResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/curriculum-courses [get]
 func GetCurriculumCourses(app *app.App) gin.HandlerFunc {
@@ -68,9 +68,9 @@ func fetchMajorGroupCounts(app *app.App) map[int]int {
 func mapToCurriculumResponses(
 	courses []models.CurriculumCourse,
 	majorCounts map[int]int,
-) []dto.CurriculumCourseResponse {
+) []courses_dto.CurriculumCourseResponse {
 
-	items := make([]dto.CurriculumCourseResponse, 0, len(courses))
+	items := make([]courses_dto.CurriculumCourseResponse, 0, len(courses))
 
 	for _, cc := range courses {
 		var majorDetails *models.MajorReadResponse
@@ -84,13 +84,13 @@ func mapToCurriculumResponses(
 			}
 		}
 
-		items = append(items, dto.CurriculumCourseResponse{
+		items = append(items, courses_dto.CurriculumCourseResponse{
 			StudyProgram:  cc.StudyProgram,
 			Course:        cc.Course,
 			Semester:      cc.Semester,
 			Major:         cc.Major,
 			ElectiveBlock: cc.ElectiveBlock,
-			CourseDetails: &dto.CourseDetails{
+			CourseDetails: &courses_dto.CourseDetails{
 				CourseCode:  cc.CourseRef.CourseCode,
 				CourseName:  cc.CourseRef.CourseName,
 				ECTSPoints:  cc.CourseRef.EctsPoints,
@@ -109,7 +109,7 @@ func mapToCurriculumResponses(
 // @Tags curriculum-courses
 // @Accept json
 // @Produce json
-// @Param request body dto.CreateCurriculumCourseRequest true "Curriculum course data"
+// @Param request body courses_dto.CreateCurriculumCourseRequest true "Curriculum course data"
 // @Success 201 {object} models.CurriculumCourse
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -117,7 +117,7 @@ func mapToCurriculumResponses(
 func CreateCurriculumCourse(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		var req dto.CreateCurriculumCourseRequest
+		var req courses_dto.CreateCurriculumCourseRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

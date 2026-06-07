@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/internal/app"
-	"go_api/internal/dto"
+	"go_api/internal/dto/facilities_dto"
 	"go_api/internal/models"
 )
 
@@ -86,14 +86,14 @@ func GetFaculties(app *app.App) gin.HandlerFunc {
 // @Tags faculties
 // @Accept json
 // @Produce json
-// @Param request body dto.CreateFacultyRequest true "Faculty data"
+// @Param request body facilities_dto.CreateFacultyRequest true "Faculty data"
 // @Success 201 {object} models.Faculty
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/faculties [post]
 func CreateFaculty(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req dto.CreateFacultyRequest
+		var req facilities_dto.CreateFacultyRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

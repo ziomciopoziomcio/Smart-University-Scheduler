@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/internal/app"
-	"go_api/internal/dto"
+	"go_api/internal/dto/facilities_dto"
 	"go_api/internal/models"
 )
 
@@ -80,7 +80,7 @@ func GetBuildings(app *app.App) gin.HandlerFunc {
 // @Tags buildings
 // @Accept json
 // @Produce json
-// @Param request body dto.CreateBuildingRequest true "Building data"
+// @Param request body facilities_dto.CreateBuildingRequest true "Building data"
 // @Success 201 {object} models.Building
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -88,7 +88,7 @@ func GetBuildings(app *app.App) gin.HandlerFunc {
 // @Router /api/v1/buildings [post]
 func CreateBuilding(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req dto.CreateBuildingRequest
+		var req facilities_dto.CreateBuildingRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

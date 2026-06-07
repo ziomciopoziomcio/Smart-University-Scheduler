@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/internal/app"
-	"go_api/internal/dto"
+	"go_api/internal/dto/academics_dto"
 	"go_api/internal/models"
 )
 
@@ -75,14 +75,14 @@ func GetAcademicCalendar(app *app.App) gin.HandlerFunc {
 // @Tags Academic Calendar
 // @Accept json
 // @Produce json
-// @Param request body dto.CreateAcademicCalendarRequest true "Academic calendar data"
+// @Param request body academics_dto.CreateAcademicCalendarRequest true "Academic calendar data"
 // @Success 201 {object} models.AcademicCalendarResponse
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/academic-calendar [post]
 func CreateAcademicCalendar(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req dto.CreateAcademicCalendarRequest
+		var req academics_dto.CreateAcademicCalendarRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

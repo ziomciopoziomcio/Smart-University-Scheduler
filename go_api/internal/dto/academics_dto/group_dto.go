@@ -1,4 +1,4 @@
-package dto
+package academics_dto
 
 type GroupResponse struct {
 	ID            uint   `json:"id"`

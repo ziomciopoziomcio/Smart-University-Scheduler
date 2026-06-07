@@ -1,4 +1,4 @@
-package dto
+package facilities_dto
 
 type CreateBuildingRequest struct {
 	BuildingName   string `json:"building_name" binding:"required"`

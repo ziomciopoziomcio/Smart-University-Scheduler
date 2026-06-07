@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/internal/app"
-	"go_api/internal/dto"
+	"go_api/internal/dto/courses_dto"
 	"go_api/internal/models"
 )
 
@@ -77,7 +77,7 @@ func GetMajors(app *app.App) gin.HandlerFunc {
 // @Tags majors
 // @Accept json
 // @Produce json
-// @Param request body dto.CreateMajorRequest true "Major data"
+// @Param request body courses_dto.CreateMajorRequest true "Major data"
 // @Success 201 {object} models.Major
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -85,7 +85,7 @@ func GetMajors(app *app.App) gin.HandlerFunc {
 // @Router /api/v1/majors [post]
 func CreateMajor(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req dto.CreateMajorRequest
+		var req courses_dto.CreateMajorRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

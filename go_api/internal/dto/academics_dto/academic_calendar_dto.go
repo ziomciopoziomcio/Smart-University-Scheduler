@@ -1,4 +1,4 @@
-package dto
+package academics_dto
 
 type CreateAcademicCalendarRequest struct {
 	CalendarDate      string  `json:"calendar_date" binding:"required"`

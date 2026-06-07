@@ -1,4 +1,4 @@
-package dto
+package courses_dto
 
 type CreateCourseTypeDetailRequest struct {
 	Course                     int    `json:"course" binding:"required"`

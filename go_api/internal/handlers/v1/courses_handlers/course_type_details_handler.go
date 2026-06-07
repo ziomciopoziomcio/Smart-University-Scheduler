@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/internal/app"
-	"go_api/internal/dto"
+	"go_api/internal/dto/courses_dto"
 	"go_api/internal/models"
 )
 
@@ -67,14 +67,14 @@ func GetCourseTypeDetails(app *app.App) gin.HandlerFunc {
 // @Tags course-type-details
 // @Accept json
 // @Produce json
-// @Param request body dto.CreateCourseTypeDetailRequest true "Course type detail data"
+// @Param request body courses_dto.CreateCourseTypeDetailRequest true "Course type detail data"
 // @Success 201 {object} models.CourseTypeDetail
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/course-type-details [post]
 func CreateCourseTypeDetail(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req dto.CreateCourseTypeDetailRequest
+		var req courses_dto.CreateCourseTypeDetailRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

@@ -1,4 +1,4 @@
-package dto
+package users_dto
 
 type StudentProfileDTO struct {
 	StudyProgramId int32 `json:"study_program_id"`

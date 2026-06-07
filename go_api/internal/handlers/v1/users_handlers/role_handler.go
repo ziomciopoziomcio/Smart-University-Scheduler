@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/internal/app"
-	"go_api/internal/dto"
+	"go_api/internal/dto/users_dto"
 	"go_api/internal/models"
 )
 
@@ -118,14 +118,14 @@ func mapRolesToResponse(roles []models.Role, countsMap map[int]int) []models.Rol
 // @Tags roles
 // @Accept json
 // @Produce json
-// @Param request body dto.CreateRoleRequest true "Role data"
+// @Param request body users_dto.CreateRoleRequest true "Role data"
 // @Success 201 {object} models.Role
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/roles [post]
 func CreateRole(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req dto.CreateRoleRequest
+		var req users_dto.CreateRoleRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -197,14 +197,14 @@ func GetPermissions(app *app.App) gin.HandlerFunc {
 // @Tags roles
 // @Accept json
 // @Produce json
-// @Param request body dto.CreatePermissionRequest true "Permission data"
+// @Param request body users_dto.CreatePermissionRequest true "Permission data"
 // @Success 201 {object} models.Permission
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/permissions [post]
 func CreatePermission(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req dto.CreatePermissionRequest
+		var req users_dto.CreatePermissionRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -234,7 +234,7 @@ func CreatePermission(app *app.App) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param id path int true "Role ID"
-// @Param request body dto.AssignPermissionRequest true "Permission Assignment data"
+// @Param request body users_dto.AssignPermissionRequest true "Permission Assignment data"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -249,7 +249,7 @@ func AssignPermissionToRole(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		var req dto.AssignPermissionRequest
+		var req users_dto.AssignPermissionRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

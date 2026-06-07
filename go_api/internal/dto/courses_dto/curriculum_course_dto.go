@@ -1,4 +1,4 @@
-package dto
+package courses_dto
 
 import "go_api/internal/models"
 

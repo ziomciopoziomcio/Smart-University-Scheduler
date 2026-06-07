@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/internal/app"
-	"go_api/internal/dto"
+	"go_api/internal/dto/courses_dto"
 	"go_api/internal/models"
 )
 
@@ -67,7 +67,7 @@ func GetElectiveBlocks(app *app.App) gin.HandlerFunc {
 // @Tags elective-blocks
 // @Accept json
 // @Produce json
-// @Param request body dto.CreateElectiveBlockRequest true "Elective block data"
+// @Param request body courses_dto.CreateElectiveBlockRequest true "Elective block data"
 // @Success 201 {object} models.ElectiveBlock
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -75,7 +75,7 @@ func GetElectiveBlocks(app *app.App) gin.HandlerFunc {
 // @Router /api/v1/elective-blocks [post]
 func CreateElectiveBlock(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var req dto.CreateElectiveBlockRequest
+		var req courses_dto.CreateElectiveBlockRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

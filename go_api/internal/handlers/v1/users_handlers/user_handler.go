@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"go_api/internal/app"
-	"go_api/internal/dto"
+	"go_api/internal/dto/users_dto"
 	"go_api/internal/models"
 	pb "go_api/internal/rpc/user"
 )
@@ -177,7 +177,7 @@ func getOptionalString(val string) *string {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param request body dto.CreateUserRequest true "User data"
+// @Param request body users_dto.CreateUserRequest true "User data"
 // @Success 201 {object} map[string]interface{}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -202,7 +202,7 @@ func CreateUserProxy() gin.HandlerFunc {
 			}
 		}(conn)
 
-		var reqBody dto.CreateUserRequest
+		var reqBody users_dto.CreateUserRequest
 		if err := c.ShouldBindJSON(&reqBody); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -232,7 +232,7 @@ func CreateUserProxy() gin.HandlerFunc {
 	}
 }
 
-func buildGrpcCreateRequest(reqBody *dto.CreateUserRequest) *pb.UserCreateRequest {
+func buildGrpcCreateRequest(reqBody *users_dto.CreateUserRequest) *pb.UserCreateRequest {
 	grpcReq := &pb.UserCreateRequest{
 		Email:                     reqBody.Email,
 		Name:                      reqBody.Name,

@@ -1,4 +1,4 @@
-package dto
+package facilities_dto
 
 type CreateFacultyRequest struct {
 	FacultyName  string `json:"faculty_name" binding:"required"`
