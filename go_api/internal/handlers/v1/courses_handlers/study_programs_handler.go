@@ -1,4 +1,4 @@
-package handlers
+package courses_handlers
 
 import (
 	"net/http"

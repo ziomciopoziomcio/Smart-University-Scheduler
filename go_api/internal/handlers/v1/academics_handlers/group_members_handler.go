@@ -1,4 +1,4 @@
-package handlers
+package academics_handlers
 
 import (
 	"net/http"
