@@ -97,6 +97,14 @@ def generate_api_key(
     """
     Generates a new API Key for the currently authenticated user.
     The previous key is overwritten (invalidated).
+
+    :param current_user: The currently authenticated user object.
+    :type current_user: models.Users
+    :param db: The active database session.
+    :type db: Session
+
+    :return: A dictionary containing the raw api key and a detail message.
+    :rtype: dict
     """
     raw_api_key = secrets.token_hex(32)
 
