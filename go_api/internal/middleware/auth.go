@@ -29,14 +29,32 @@ func AdminOnly(db *gorm.DB) gin.HandlerFunc {
 
 		hashedKey := hashAPIKey(providedAPIKey)
 
-		var user models.User
-		err := db.Preload("Roles").Where("api_key_hash = ?", hashedKey).First(&user).Error
+		type UserApiKey struct {
+			UserID     uint   `gorm:"column:user_id"`
+			ApiKeyHash string `gorm:"column:api_key_hash"`
+		}
+
+		var keyRecord UserApiKey
+
+		err := db.Table("user_api_keys").Where("api_key_hash = ?", hashedKey).First(&keyRecord).Error
 
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Invalid API key or insufficient permissions"})
 			} else {
 				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error during key verification"})
+			}
+			return
+		}
+
+		var user models.User
+		err = db.Preload("Roles").Where("id = ?", keyRecord.UserID).First(&user).Error
+
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "User associated with this key not found"})
+			} else {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error during user verification"})
 			}
 			return
 		}

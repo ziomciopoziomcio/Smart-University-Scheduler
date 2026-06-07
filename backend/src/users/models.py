@@ -70,9 +70,6 @@ class Users(Base):
         Boolean, nullable=False, server_default=text("false")
     )
 
-    api_key_hash: Mapped[str | None] = mapped_column(
-        String(64), nullable=True, unique=True, index=True
-    )
 
     roles: Mapped[list["Roles"]] = relationship(
         secondary=user_roles, back_populates="users"
@@ -87,6 +84,15 @@ class Users(Base):
                     perms.add(perm.code)
         return sorted(perms)
 
+
+class UserApiKey(Base):
+    """Dedicated model for storing user API keys."""
+
+    __tablename__ = "user_api_keys"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
+    api_key_hash: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
 
 role_permissions = Table(
     "role_permissions",

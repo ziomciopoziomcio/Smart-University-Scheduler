@@ -22,7 +22,6 @@ type User struct {
 	EmailVerificationTokenHash *string    `json:"-" gorm:"column:email_verification_token_hash;type:varchar(64)"`
 	EmailVerificationExpiresAt *time.Time `json:"-" gorm:"column:email_verification_expires_at;type:timestamp with time zone"`
 	ForcePasswordChange        bool       `json:"-" gorm:"column:force_password_change;default:false"` // Ukrywamy w liście
-	ApiKeyHash                 *string    `json:"-" gorm:"column:api_key_hash;type:varchar(64);unique;index"`
 
 	Roles []Role `json:"-" gorm:"many2many:user_roles;joinForeignKey:user_id;joinReferences:role_id"`
 }
