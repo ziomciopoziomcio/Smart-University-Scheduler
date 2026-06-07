@@ -70,7 +70,6 @@ class Users(Base):
         Boolean, nullable=False, server_default=text("false")
     )
 
-
     roles: Mapped[list["Roles"]] = relationship(
         secondary=user_roles, back_populates="users"
     )
@@ -91,8 +90,13 @@ class UserApiKey(Base):
     __tablename__ = "user_api_keys"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
-    api_key_hash: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False
+    )
+    api_key_hash: Mapped[str] = mapped_column(
+        String(255), nullable=False, unique=True, index=True
+    )
+
 
 role_permissions = Table(
     "role_permissions",

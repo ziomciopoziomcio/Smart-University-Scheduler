@@ -107,14 +107,15 @@ def generate_api_key(
     :return: A dictionary containing the raw api key and a detail message.
     :rtype: dict
     """
-    db.query(models.UserApiKey).filter(models.UserApiKey.user_id == current_user.id).delete()
+    db.query(models.UserApiKey).filter(
+        models.UserApiKey.user_id == current_user.id
+    ).delete()
 
     raw_api_key = secrets.token_hex(32)
     hashed_key = hashlib.sha256(raw_api_key.encode()).hexdigest()
 
     new_api_key_entry = models.UserApiKey(
-        user_id=current_user.id,
-        api_key_hash=hashed_key
+        user_id=current_user.id, api_key_hash=hashed_key
     )
 
     db.add(new_api_key_entry)
