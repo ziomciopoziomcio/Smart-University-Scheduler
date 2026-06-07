@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/api/v1/academic-calendar": {
             "get": {
-                "description": "Returns all academic calendar entries",
+                "description": "Returns paginated academic calendar entries",
                 "produces": [
                     "application/json"
                 ],
@@ -25,11 +25,27 @@ const docTemplate = `{
                     "Academic Calendar"
                 ],
                 "summary": "Get academic calendar",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedAcademicCalendarResponse"
+                            "$ref": "#/definitions/academics_models.PaginatedAcademicCalendarResponse"
                         }
                     },
                     "500": {
@@ -62,7 +78,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateAcademicCalendarRequest"
+                            "$ref": "#/definitions/academics_dto.CreateAcademicCalendarRequest"
                         }
                     }
                 ],
@@ -70,7 +86,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.AcademicCalendarResponse"
+                            "$ref": "#/definitions/academics_models.AcademicCalendarResponse"
                         }
                     },
                     "400": {
@@ -96,7 +112,7 @@ const docTemplate = `{
         },
         "/api/v1/buildings": {
             "get": {
-                "description": "Returns list of buildings with number of rooms",
+                "description": "Returns paginated list of buildings with number of rooms",
                 "produces": [
                     "application/json"
                 ],
@@ -104,11 +120,27 @@ const docTemplate = `{
                     "buildings"
                 ],
                 "summary": "Get all buildings",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedBuildingsResponse"
+                            "$ref": "#/definitions/facilities_models.PaginatedBuildingsResponse"
                         }
                     },
                     "500": {
@@ -141,7 +173,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateBuildingRequest"
+                            "$ref": "#/definitions/facilities_dto.CreateBuildingRequest"
                         }
                     }
                 ],
@@ -149,7 +181,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Building"
+                            "$ref": "#/definitions/facilities_models.Building"
                         }
                     },
                     "400": {
@@ -184,7 +216,7 @@ const docTemplate = `{
         },
         "/api/v1/campuses": {
             "get": {
-                "description": "Returns list of all campuses",
+                "description": "Returns paginated list of all campuses",
                 "produces": [
                     "application/json"
                 ],
@@ -192,11 +224,27 @@ const docTemplate = `{
                     "campuses"
                 ],
                 "summary": "Get all campuses",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedCampusesResponse"
+                            "$ref": "#/definitions/facilities_models.PaginatedCampusesResponse"
                         }
                     },
                     "500": {
@@ -229,7 +277,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateCampusRequest"
+                            "$ref": "#/definitions/facilities_dto.CreateCampusRequest"
                         }
                     }
                 ],
@@ -237,7 +285,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Campus"
+                            "$ref": "#/definitions/facilities_models.Campus"
                         }
                     },
                     "400": {
@@ -263,7 +311,7 @@ const docTemplate = `{
         },
         "/api/v1/course-type-details": {
             "get": {
-                "description": "Returns list of course type details sorted by course and class type",
+                "description": "Returns paginated list of course type details sorted by course and class type",
                 "produces": [
                     "application/json"
                 ],
@@ -271,11 +319,27 @@ const docTemplate = `{
                     "course-type-details"
                 ],
                 "summary": "Get course type details",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedCourseTypeDetailsResponse"
+                            "$ref": "#/definitions/courses_models.PaginatedCourseTypeDetailsResponse"
                         }
                     },
                     "500": {
@@ -308,7 +372,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateCourseTypeDetailRequest"
+                            "$ref": "#/definitions/courses_dto.CreateCourseTypeDetailRequest"
                         }
                     }
                 ],
@@ -316,7 +380,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.CourseTypeDetail"
+                            "$ref": "#/definitions/courses_models.CourseTypeDetail"
                         }
                     },
                     "400": {
@@ -342,7 +406,7 @@ const docTemplate = `{
         },
         "/api/v1/courses": {
             "get": {
-                "description": "Returns list of all courses sorted by course code",
+                "description": "Returns paginated list of all courses sorted by course code",
                 "produces": [
                     "application/json"
                 ],
@@ -350,11 +414,27 @@ const docTemplate = `{
                     "courses"
                 ],
                 "summary": "Get all courses",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedCoursesResponse"
+                            "$ref": "#/definitions/courses_models.PaginatedCoursesResponse"
                         }
                     },
                     "500": {
@@ -387,7 +467,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateCourseRequest"
+                            "$ref": "#/definitions/courses_dto.CreateCourseRequest"
                         }
                     }
                 ],
@@ -395,7 +475,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Course"
+                            "$ref": "#/definitions/courses_models.Course"
                         }
                     },
                     "400": {
@@ -421,7 +501,7 @@ const docTemplate = `{
         },
         "/api/v1/courses-instructors": {
             "get": {
-                "description": "Returns list of course-instructor assignments",
+                "description": "Returns paginated list of course-instructor assignments",
                 "produces": [
                     "application/json"
                 ],
@@ -429,11 +509,27 @@ const docTemplate = `{
                     "courses-instructors"
                 ],
                 "summary": "Get course instructors",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedCoursesInstructorsResponse"
+                            "$ref": "#/definitions/courses_models.PaginatedCoursesInstructorsResponse"
                         }
                     },
                     "500": {
@@ -466,7 +562,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateCourseInstructorRequest"
+                            "$ref": "#/definitions/courses_dto.CreateCourseInstructorRequest"
                         }
                     }
                 ],
@@ -474,7 +570,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.CoursesInstructors"
+                            "$ref": "#/definitions/courses_models.CoursesInstructors"
                         }
                     },
                     "400": {
@@ -500,7 +596,7 @@ const docTemplate = `{
         },
         "/api/v1/curriculum-courses": {
             "get": {
-                "description": "Returns curriculum courses with course, major and elective block details (with aggregated group counts)",
+                "description": "Returns paginated curriculum courses with course, major and elective block details (with aggregated group counts)",
                 "produces": [
                     "application/json"
                 ],
@@ -508,17 +604,27 @@ const docTemplate = `{
                     "curriculum-courses"
                 ],
                 "summary": "Get curriculum courses",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/dto.CurriculumCourseResponse"
-                                }
-                            }
+                            "$ref": "#/definitions/courses_models.PaginatedCurriculumCoursesResponse"
                         }
                     },
                     "500": {
@@ -551,7 +657,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateCurriculumCourseRequest"
+                            "$ref": "#/definitions/courses_dto.CreateCurriculumCourseRequest"
                         }
                     }
                 ],
@@ -559,7 +665,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.CurriculumCourse"
+                            "$ref": "#/definitions/courses_models.CurriculumCourse"
                         }
                     },
                     "400": {
@@ -585,7 +691,7 @@ const docTemplate = `{
         },
         "/api/v1/elective-blocks": {
             "get": {
-                "description": "Returns list of elective blocks",
+                "description": "Returns paginated list of elective blocks",
                 "produces": [
                     "application/json"
                 ],
@@ -593,11 +699,27 @@ const docTemplate = `{
                     "elective-blocks"
                 ],
                 "summary": "Get elective blocks",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedElectiveBlocksResponse"
+                            "$ref": "#/definitions/courses_models.PaginatedElectiveBlocksResponse"
                         }
                     },
                     "500": {
@@ -630,7 +752,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateElectiveBlockRequest"
+                            "$ref": "#/definitions/courses_dto.CreateElectiveBlockRequest"
                         }
                     }
                 ],
@@ -638,7 +760,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.ElectiveBlock"
+                            "$ref": "#/definitions/courses_models.ElectiveBlock"
                         }
                     },
                     "400": {
@@ -673,7 +795,7 @@ const docTemplate = `{
         },
         "/api/v1/faculties": {
             "get": {
-                "description": "Returns faculties with lecturers and students count",
+                "description": "Returns paginated faculties with lecturers and students count",
                 "produces": [
                     "application/json"
                 ],
@@ -681,11 +803,27 @@ const docTemplate = `{
                     "faculties"
                 ],
                 "summary": "Get faculties",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedFacultiesResponse"
+                            "$ref": "#/definitions/facilities_models.PaginatedFacultiesResponse"
                         }
                     },
                     "500": {
@@ -718,7 +856,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateFacultyRequest"
+                            "$ref": "#/definitions/facilities_dto.CreateFacultyRequest"
                         }
                     }
                 ],
@@ -726,7 +864,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Faculty"
+                            "$ref": "#/definitions/facilities_models.Faculty"
                         }
                     },
                     "400": {
@@ -768,7 +906,7 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/models.GroupMember"
+                                    "$ref": "#/definitions/academics_models.GroupMember"
                                 }
                             }
                         }
@@ -803,7 +941,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.GroupMember"
+                            "$ref": "#/definitions/academics_models.GroupMember"
                         }
                     }
                 ],
@@ -813,7 +951,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
-                                "$ref": "#/definitions/models.GroupMember"
+                                "$ref": "#/definitions/academics_models.GroupMember"
                             }
                         }
                     },
@@ -856,7 +994,7 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/definitions/dto.GroupResponse"
+                                    "$ref": "#/definitions/academics_dto.GroupResponse"
                                 }
                             }
                         }
@@ -891,7 +1029,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Group"
+                            "$ref": "#/definitions/academics_models.Group"
                         }
                     }
                 ],
@@ -901,7 +1039,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
-                                "$ref": "#/definitions/models.Group"
+                                "$ref": "#/definitions/academics_models.Group"
                             }
                         }
                     },
@@ -928,7 +1066,7 @@ const docTemplate = `{
         },
         "/api/v1/majors": {
             "get": {
-                "description": "Returns list of majors with group count",
+                "description": "Returns paginated list of majors with group count",
                 "produces": [
                     "application/json"
                 ],
@@ -936,11 +1074,27 @@ const docTemplate = `{
                     "majors"
                 ],
                 "summary": "Get majors",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedMajorsResponse"
+                            "$ref": "#/definitions/courses_models.PaginatedMajorsResponse"
                         }
                     },
                     "500": {
@@ -973,7 +1127,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateMajorRequest"
+                            "$ref": "#/definitions/courses_dto.CreateMajorRequest"
                         }
                     }
                 ],
@@ -981,7 +1135,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Major"
+                            "$ref": "#/definitions/courses_models.Major"
                         }
                     },
                     "400": {
@@ -1016,19 +1170,35 @@ const docTemplate = `{
         },
         "/api/v1/permissions": {
             "get": {
-                "description": "Returns list of permissions",
+                "description": "Returns paginated list of permissions",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "permissions"
+                    "roles"
                 ],
                 "summary": "Get permissions",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedPermissionsResponse"
+                            "$ref": "#/definitions/users_models.PaginatedPermissionsResponse"
                         }
                     },
                     "500": {
@@ -1043,7 +1213,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Creates a new permission",
+                "description": "Creates a new application permission entry",
                 "consumes": [
                     "application/json"
                 ],
@@ -1051,7 +1221,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "permissions"
+                    "roles"
                 ],
                 "summary": "Create permission",
                 "parameters": [
@@ -1061,7 +1231,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreatePermissionRequest"
+                            "$ref": "#/definitions/users_dto.CreatePermissionRequest"
                         }
                     }
                 ],
@@ -1069,7 +1239,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Permission"
+                            "$ref": "#/definitions/users_models.Permission"
                         }
                     },
                     "400": {
@@ -1095,7 +1265,7 @@ const docTemplate = `{
         },
         "/api/v1/roles": {
             "get": {
-                "description": "Returns list of roles with permissions and user count",
+                "description": "Returns paginated list of roles with permissions and user count",
                 "produces": [
                     "application/json"
                 ],
@@ -1103,11 +1273,27 @@ const docTemplate = `{
                     "roles"
                 ],
                 "summary": "Get roles",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedRolesResponse"
+                            "$ref": "#/definitions/users_models.PaginatedRolesResponse"
                         }
                     },
                     "500": {
@@ -1140,7 +1326,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateRoleRequest"
+                            "$ref": "#/definitions/users_dto.CreateRoleRequest"
                         }
                     }
                 ],
@@ -1148,7 +1334,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Role"
+                            "$ref": "#/definitions/users_models.Role"
                         }
                     },
                     "400": {
@@ -1174,7 +1360,7 @@ const docTemplate = `{
         },
         "/api/v1/roles/{id}/permissions": {
             "post": {
-                "description": "Assigns a permission to a role",
+                "description": "Binds a specific permission to an existing role entity",
                 "consumes": [
                     "application/json"
                 ],
@@ -1194,12 +1380,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Permission assignment data",
+                        "description": "Permission Assignment data",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.AssignPermissionRequest"
+                            "$ref": "#/definitions/users_dto.AssignPermissionRequest"
                         }
                     }
                 ],
@@ -1245,7 +1431,7 @@ const docTemplate = `{
         },
         "/api/v1/rooms": {
             "get": {
-                "description": "Returns list of rooms",
+                "description": "Returns paginated list of rooms",
                 "produces": [
                     "application/json"
                 ],
@@ -1253,11 +1439,27 @@ const docTemplate = `{
                     "rooms"
                 ],
                 "summary": "Get rooms",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedRoomsResponse"
+                            "$ref": "#/definitions/facilities_models.PaginatedRoomsResponse"
                         }
                     },
                     "500": {
@@ -1290,7 +1492,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Room"
+                            "$ref": "#/definitions/facilities_models.Room"
                         }
                     }
                 ],
@@ -1300,7 +1502,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
-                                "$ref": "#/definitions/models.Room"
+                                "$ref": "#/definitions/facilities_models.Room"
                             }
                         }
                     },
@@ -1327,7 +1529,7 @@ const docTemplate = `{
         },
         "/api/v1/study-fields": {
             "get": {
-                "description": "Returns study fields with aggregated counts (majors, programs, elective blocks, semesters)",
+                "description": "Returns paginated study fields with aggregated counts (majors, programs, elective blocks, semesters)",
                 "produces": [
                     "application/json"
                 ],
@@ -1335,11 +1537,27 @@ const docTemplate = `{
                     "study-fields"
                 ],
                 "summary": "Get study fields",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedStudyFieldsResponse"
+                            "$ref": "#/definitions/courses_models.PaginatedStudyFieldsResponse"
                         }
                     },
                     "500": {
@@ -1372,7 +1590,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.StudyField"
+                            "$ref": "#/definitions/courses_models.StudyField"
                         }
                     }
                 ],
@@ -1380,7 +1598,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.StudyField"
+                            "$ref": "#/definitions/courses_models.StudyField"
                         }
                     },
                     "400": {
@@ -1415,7 +1633,7 @@ const docTemplate = `{
         },
         "/api/v1/study-programs": {
             "get": {
-                "description": "Returns study programs with semester statistics (courses count and ECTS sum per semester)",
+                "description": "Returns paginated study programs with semester statistics",
                 "produces": [
                     "application/json"
                 ],
@@ -1423,11 +1641,27 @@ const docTemplate = `{
                     "study-programs"
                 ],
                 "summary": "Get study programs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedStudyProgramsResponse"
+                            "$ref": "#/definitions/courses_models.PaginatedStudyProgramsResponse"
                         }
                     },
                     "500": {
@@ -1442,7 +1676,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Creates a new study program. ID is generated by database and cannot be provided by client.",
+                "description": "Creates a new study program",
                 "consumes": [
                     "application/json"
                 ],
@@ -1460,7 +1694,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.StudyProgram"
+                            "$ref": "#/definitions/courses_models.StudyProgram"
                         }
                     }
                 ],
@@ -1468,7 +1702,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.StudyProgram"
+                            "$ref": "#/definitions/courses_models.StudyProgram"
                         }
                     },
                     "400": {
@@ -1506,7 +1740,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.UnitsListResponse"
+                            "$ref": "#/definitions/academics_models.UnitsListResponse"
                         }
                     },
                     "500": {
@@ -1539,7 +1773,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Unit"
+                            "$ref": "#/definitions/academics_models.Unit"
                         }
                     }
                 ],
@@ -1547,7 +1781,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Unit"
+                            "$ref": "#/definitions/academics_models.Unit"
                         }
                     },
                     "400": {
@@ -1582,7 +1816,7 @@ const docTemplate = `{
         },
         "/api/v1/users": {
             "get": {
-                "description": "Returns list of users with roles",
+                "description": "Returns paginated list of users with roles",
                 "produces": [
                     "application/json"
                 ],
@@ -1590,11 +1824,27 @@ const docTemplate = `{
                     "users"
                 ],
                 "summary": "Get users",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.PaginatedUsersResponse"
+                            "$ref": "#/definitions/users_models.PaginatedUsersResponse"
                         }
                     },
                     "500": {
@@ -1627,7 +1877,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateUserRequest"
+                            "$ref": "#/definitions/users_dto.CreateUserRequest"
                         }
                     }
                 ],
@@ -1683,7 +1933,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.UserDetailResponse"
+                            "$ref": "#/definitions/users_models.UserDetailResponse"
                         }
                     },
                     "400": {
@@ -1764,32 +2014,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.AssignPermissionRequest": {
-            "type": "object",
-            "required": [
-                "permission_id"
-            ],
-            "properties": {
-                "permission_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "dto.CourseDetails": {
-            "type": "object",
-            "properties": {
-                "course_code": {
-                    "type": "integer"
-                },
-                "course_name": {
-                    "type": "string"
-                },
-                "ects_points": {
-                    "type": "integer"
-                }
-            }
-        },
-        "dto.CreateAcademicCalendarRequest": {
+        "academics_dto.CreateAcademicCalendarRequest": {
             "type": "object",
             "required": [
                 "academic_day_of_week",
@@ -1819,41 +2044,170 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateBuildingRequest": {
+        "academics_dto.GroupResponse": {
             "type": "object",
-            "required": [
-                "building_name",
-                "building_number",
-                "campus_id"
-            ],
             "properties": {
-                "building_name": {
+                "elective_block": {
+                    "type": "integer"
+                },
+                "group_name": {
                     "type": "string"
                 },
-                "building_number": {
-                    "type": "string"
+                "id": {
+                    "type": "integer"
                 },
-                "campus_id": {
+                "is_active": {
+                    "type": "boolean"
+                },
+                "major": {
+                    "type": "integer"
+                },
+                "semester": {
+                    "type": "integer"
+                },
+                "study_program": {
                     "type": "integer"
                 }
             }
         },
-        "dto.CreateCampusRequest": {
+        "academics_models.AcademicCalendarResponse": {
             "type": "object",
-            "required": [
-                "campus_name",
-                "campus_short"
-            ],
             "properties": {
-                "campus_name": {
+                "academic_day_of_week": {
+                    "type": "integer"
+                },
+                "academic_year": {
                     "type": "string"
                 },
-                "campus_short": {
+                "calendar_date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "semester_type": {
+                    "type": "string"
+                },
+                "week_number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "academics_models.Group": {
+            "type": "object",
+            "properties": {
+                "elective_block": {
+                    "type": "integer"
+                },
+                "group_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "major": {
+                    "type": "integer"
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/academics_models.GroupMember"
+                    }
+                },
+                "semester": {
+                    "type": "integer"
+                },
+                "study_program": {
+                    "type": "integer"
+                }
+            }
+        },
+        "academics_models.GroupMember": {
+            "type": "object",
+            "properties": {
+                "group": {
+                    "type": "integer"
+                },
+                "student": {
+                    "type": "integer"
+                }
+            }
+        },
+        "academics_models.PaginatedAcademicCalendarResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/academics_models.AcademicCalendarResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "academics_models.Unit": {
+            "type": "object",
+            "properties": {
+                "faculty_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "unit_name": {
+                    "type": "string"
+                },
+                "unit_short": {
                     "type": "string"
                 }
             }
         },
-        "dto.CreateCourseInstructorRequest": {
+        "academics_models.UnitResponse": {
+            "type": "object",
+            "properties": {
+                "courses_count": {
+                    "type": "integer"
+                },
+                "faculty_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "lecturers_count": {
+                    "type": "integer"
+                },
+                "unit_name": {
+                    "type": "string"
+                },
+                "unit_short": {
+                    "type": "string"
+                }
+            }
+        },
+        "academics_models.UnitsListResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/academics_models.UnitResponse"
+                    }
+                }
+            }
+        },
+        "courses_dto.CreateCourseInstructorRequest": {
             "type": "object",
             "required": [
                 "class_type",
@@ -1875,7 +2229,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateCourseRequest": {
+        "courses_dto.CreateCourseRequest": {
             "type": "object",
             "required": [
                 "course_code",
@@ -1906,7 +2260,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateCourseTypeDetailRequest": {
+        "courses_dto.CreateCourseTypeDetailRequest": {
             "type": "object",
             "required": [
                 "class_type",
@@ -1945,7 +2299,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateCurriculumCourseRequest": {
+        "courses_dto.CreateCurriculumCourseRequest": {
             "type": "object",
             "required": [
                 "course",
@@ -1970,7 +2324,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateElectiveBlockRequest": {
+        "courses_dto.CreateElectiveBlockRequest": {
             "type": "object",
             "required": [
                 "elective_block_name",
@@ -1985,22 +2339,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateFacultyRequest": {
-            "type": "object",
-            "required": [
-                "faculty_name",
-                "faculty_short"
-            ],
-            "properties": {
-                "faculty_name": {
-                    "type": "string"
-                },
-                "faculty_short": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.CreateMajorRequest": {
+        "courses_dto.CreateMajorRequest": {
             "type": "object",
             "required": [
                 "major_name",
@@ -2015,224 +2354,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreatePermissionRequest": {
-            "type": "object",
-            "required": [
-                "code",
-                "name"
-            ],
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "group": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.CreateRoleRequest": {
-            "type": "object",
-            "required": [
-                "role_name"
-            ],
-            "properties": {
-                "role_name": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.CreateUserRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "name",
-                "surname"
-            ],
-            "properties": {
-                "degree": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "employee": {
-                    "$ref": "#/definitions/dto.EmployeeProfileDTO"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "phone_number": {
-                    "type": "string"
-                },
-                "send_login_credentials_email": {
-                    "type": "boolean"
-                },
-                "student": {
-                    "$ref": "#/definitions/dto.StudentProfileDTO"
-                },
-                "surname": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.CurriculumCourseResponse": {
-            "type": "object",
-            "properties": {
-                "course": {
-                    "type": "integer"
-                },
-                "course_details": {
-                    "$ref": "#/definitions/dto.CourseDetails"
-                },
-                "elective_block": {
-                    "type": "integer"
-                },
-                "elective_block_details": {
-                    "$ref": "#/definitions/models.ElectiveBlock"
-                },
-                "major": {
-                    "type": "integer"
-                },
-                "major_details": {
-                    "$ref": "#/definitions/models.MajorReadResponse"
-                },
-                "semester": {
-                    "type": "integer"
-                },
-                "study_program": {
-                    "type": "integer"
-                }
-            }
-        },
-        "dto.EmployeeProfileDTO": {
-            "type": "object",
-            "properties": {
-                "faculty_id": {
-                    "type": "integer"
-                },
-                "unit_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "dto.GroupResponse": {
-            "type": "object",
-            "properties": {
-                "elective_block": {
-                    "type": "integer"
-                },
-                "group_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "major": {
-                    "type": "integer"
-                },
-                "semester": {
-                    "type": "integer"
-                },
-                "study_program": {
-                    "type": "integer"
-                }
-            }
-        },
-        "dto.StudentProfileDTO": {
-            "type": "object",
-            "properties": {
-                "major_id": {
-                    "type": "integer"
-                },
-                "study_program_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.AcademicCalendarResponse": {
-            "type": "object",
-            "properties": {
-                "academic_day_of_week": {
-                    "type": "integer"
-                },
-                "academic_year": {
-                    "type": "string"
-                },
-                "calendar_date": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "semester_type": {
-                    "type": "string"
-                },
-                "week_number": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.Building": {
-            "type": "object",
-            "properties": {
-                "building_name": {
-                    "type": "string"
-                },
-                "building_number": {
-                    "type": "string"
-                },
-                "campus_id": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.BuildingReadResponse": {
-            "type": "object",
-            "properties": {
-                "building_name": {
-                    "type": "string"
-                },
-                "building_number": {
-                    "type": "string"
-                },
-                "campus_id": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "rooms_number": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.Campus": {
-            "type": "object",
-            "properties": {
-                "campus_name": {
-                    "type": "string"
-                },
-                "campus_short": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.Course": {
+        "courses_models.Course": {
             "type": "object",
             "properties": {
                 "course_code": {
@@ -2255,7 +2377,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.CourseTypeDetail": {
+        "courses_models.CourseTypeDetail": {
             "type": "object",
             "properties": {
                 "class_hours": {
@@ -2290,7 +2412,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.CoursesInstructors": {
+        "courses_models.CoursesInstructors": {
             "type": "object",
             "properties": {
                 "class_type": {
@@ -2307,7 +2429,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.CurriculumCourse": {
+        "courses_models.CurriculumCourse": {
             "type": "object",
             "properties": {
                 "course": {
@@ -2317,7 +2439,7 @@ const docTemplate = `{
                     "description": "Relations",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/models.Course"
+                            "$ref": "#/definitions/courses_models.Course"
                         }
                     ]
                 },
@@ -2325,13 +2447,13 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "elective_block_ref": {
-                    "$ref": "#/definitions/models.ElectiveBlock"
+                    "$ref": "#/definitions/courses_models.ElectiveBlock"
                 },
                 "major": {
                     "type": "integer"
                 },
                 "major_ref": {
-                    "$ref": "#/definitions/models.Major"
+                    "$ref": "#/definitions/courses_models.Major"
                 },
                 "semester": {
                     "type": "integer"
@@ -2340,11 +2462,11 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "study_program_ref": {
-                    "$ref": "#/definitions/models.StudyProgram"
+                    "$ref": "#/definitions/courses_models.StudyProgram"
                 }
             }
         },
-        "models.ElectiveBlock": {
+        "courses_models.ElectiveBlock": {
             "type": "object",
             "properties": {
                 "elective_block_name": {
@@ -2358,84 +2480,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Faculty": {
-            "type": "object",
-            "properties": {
-                "faculty_name": {
-                    "type": "string"
-                },
-                "faculty_short": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.FacultyReadWithCounterResponse": {
-            "type": "object",
-            "properties": {
-                "faculty_name": {
-                    "type": "string"
-                },
-                "faculty_short": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "lecturers_count": {
-                    "type": "integer"
-                },
-                "students_count": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.Group": {
-            "type": "object",
-            "properties": {
-                "elective_block": {
-                    "type": "integer"
-                },
-                "group_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "is_active": {
-                    "type": "boolean"
-                },
-                "major": {
-                    "type": "integer"
-                },
-                "members": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.GroupMember"
-                    }
-                },
-                "semester": {
-                    "type": "integer"
-                },
-                "study_program": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.GroupMember": {
-            "type": "object",
-            "properties": {
-                "group": {
-                    "type": "integer"
-                },
-                "student": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.Major": {
+        "courses_models.Major": {
             "type": "object",
             "properties": {
                 "id": {
@@ -2449,7 +2494,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.MajorReadResponse": {
+        "courses_models.MajorReadResponse": {
             "type": "object",
             "properties": {
                 "group_count": {
@@ -2466,264 +2511,167 @@ const docTemplate = `{
                 }
             }
         },
-        "models.PaginatedAcademicCalendarResponse": {
+        "courses_models.PaginatedCourseTypeDetailsResponse": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.AcademicCalendarResponse"
+                        "$ref": "#/definitions/courses_models.CourseTypeDetail"
                     }
-                }
-            }
-        },
-        "models.PaginatedBuildingsResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.BuildingReadResponse"
-                    }
-                }
-            }
-        },
-        "models.PaginatedCampusesResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Campus"
-                    }
-                }
-            }
-        },
-        "models.PaginatedCourseTypeDetailsResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.CourseTypeDetail"
-                    }
-                }
-            }
-        },
-        "models.PaginatedCoursesInstructorsResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.CoursesInstructors"
-                    }
-                }
-            }
-        },
-        "models.PaginatedCoursesResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Course"
-                    }
-                }
-            }
-        },
-        "models.PaginatedElectiveBlocksResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ElectiveBlock"
-                    }
-                }
-            }
-        },
-        "models.PaginatedFacultiesResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.FacultyReadWithCounterResponse"
-                    }
-                }
-            }
-        },
-        "models.PaginatedMajorsResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.MajorReadResponse"
-                    }
-                }
-            }
-        },
-        "models.PaginatedPermissionsResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Permission"
-                    }
-                }
-            }
-        },
-        "models.PaginatedRolesResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.RoleWithCountResponse"
-                    }
-                }
-            }
-        },
-        "models.PaginatedRoomsResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Room"
-                    }
-                }
-            }
-        },
-        "models.PaginatedStudyFieldsResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.StudyFieldListSummaryResponse"
-                    }
-                }
-            }
-        },
-        "models.PaginatedStudyProgramsResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.StudyProgramDetailResponse"
-                    }
-                }
-            }
-        },
-        "models.PaginatedUsersResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.UserResponse"
-                    }
-                }
-            }
-        },
-        "models.Permission": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
                 },
-                "description": {
-                    "type": "string"
-                },
-                "group": {
-                    "type": "string"
-                },
-                "id": {
+                "limit": {
                     "type": "integer"
                 },
-                "name": {
-                    "type": "string"
-                },
-                "roles": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Role"
-                    }
-                }
-            }
-        },
-        "models.Role": {
-            "type": "object",
-            "properties": {
-                "id": {
+                "offset": {
                     "type": "integer"
                 },
-                "permissions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Permission"
-                    }
-                },
-                "role_name": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.RoleWithCountResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "permissions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Permission"
-                    }
-                },
-                "role_name": {
-                    "type": "string"
-                },
-                "users_count": {
+                "total": {
                     "type": "integer"
                 }
             }
         },
-        "models.Room": {
+        "courses_models.PaginatedCoursesInstructorsResponse": {
             "type": "object",
             "properties": {
-                "building_id": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/courses_models.CoursesInstructors"
+                    }
+                },
+                "limit": {
                     "type": "integer"
                 },
-                "faculty_id": {
+                "offset": {
                     "type": "integer"
                 },
-                "id": {
-                    "type": "integer"
-                },
-                "pc_amount": {
-                    "type": "integer"
-                },
-                "projector_availability": {
-                    "type": "boolean"
-                },
-                "room_capacity": {
-                    "type": "integer"
-                },
-                "room_name": {
-                    "type": "string"
-                },
-                "unit_id": {
+                "total": {
                     "type": "integer"
                 }
             }
         },
-        "models.SemesterSummary": {
+        "courses_models.PaginatedCoursesResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/courses_models.Course"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "courses_models.PaginatedCurriculumCoursesResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/courses_models.CurriculumCourse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "courses_models.PaginatedElectiveBlocksResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/courses_models.ElectiveBlock"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "courses_models.PaginatedMajorsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/courses_models.MajorReadResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "courses_models.PaginatedStudyFieldsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/courses_models.StudyFieldListSummaryResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "courses_models.PaginatedStudyProgramsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/courses_models.StudyProgramDetailResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "courses_models.SemesterSummary": {
             "type": "object",
             "properties": {
                 "courses_count": {
@@ -2737,7 +2685,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.StudyField": {
+        "courses_models.StudyField": {
             "type": "object",
             "properties": {
                 "degree": {
@@ -2760,7 +2708,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.StudyFieldListSummaryResponse": {
+        "courses_models.StudyFieldListSummaryResponse": {
             "type": "object",
             "properties": {
                 "degree": {
@@ -2795,7 +2743,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.StudyProgram": {
+        "courses_models.StudyProgram": {
             "type": "object",
             "properties": {
                 "id": {
@@ -2812,7 +2760,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.StudyProgramDetailResponse": {
+        "courses_models.StudyProgramDetailResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -2824,7 +2772,7 @@ const docTemplate = `{
                 "semester_summary": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.SemesterSummary"
+                        "$ref": "#/definitions/courses_models.SemesterSummary"
                     }
                 },
                 "semesters_count": {
@@ -2838,31 +2786,128 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Unit": {
+        "facilities_dto.CreateBuildingRequest": {
+            "type": "object",
+            "required": [
+                "building_name",
+                "building_number",
+                "campus_id"
+            ],
+            "properties": {
+                "building_name": {
+                    "type": "string"
+                },
+                "building_number": {
+                    "type": "string"
+                },
+                "campus_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "facilities_dto.CreateCampusRequest": {
+            "type": "object",
+            "required": [
+                "campus_name",
+                "campus_short"
+            ],
+            "properties": {
+                "campus_name": {
+                    "type": "string"
+                },
+                "campus_short": {
+                    "type": "string"
+                }
+            }
+        },
+        "facilities_dto.CreateFacultyRequest": {
+            "type": "object",
+            "required": [
+                "faculty_name",
+                "faculty_short"
+            ],
+            "properties": {
+                "faculty_name": {
+                    "type": "string"
+                },
+                "faculty_short": {
+                    "type": "string"
+                }
+            }
+        },
+        "facilities_models.Building": {
             "type": "object",
             "properties": {
-                "faculty_id": {
+                "building_name": {
+                    "type": "string"
+                },
+                "building_number": {
+                    "type": "string"
+                },
+                "campus_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "facilities_models.BuildingReadResponse": {
+            "type": "object",
+            "properties": {
+                "building_name": {
+                    "type": "string"
+                },
+                "building_number": {
+                    "type": "string"
+                },
+                "campus_id": {
                     "type": "integer"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "unit_name": {
-                    "type": "string"
-                },
-                "unit_short": {
-                    "type": "string"
+                "rooms_number": {
+                    "type": "integer"
                 }
             }
         },
-        "models.UnitResponse": {
+        "facilities_models.Campus": {
             "type": "object",
             "properties": {
-                "courses_count": {
-                    "type": "integer"
+                "campus_name": {
+                    "type": "string"
                 },
-                "faculty_id": {
+                "campus_short": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "integer"
+                }
+            }
+        },
+        "facilities_models.Faculty": {
+            "type": "object",
+            "properties": {
+                "faculty_name": {
+                    "type": "string"
+                },
+                "faculty_short": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "facilities_models.FacultyReadWithCounterResponse": {
+            "type": "object",
+            "properties": {
+                "faculty_name": {
+                    "type": "string"
+                },
+                "faculty_short": {
+                    "type": "string"
                 },
                 "id": {
                     "type": "integer"
@@ -2870,26 +2915,343 @@ const docTemplate = `{
                 "lecturers_count": {
                     "type": "integer"
                 },
-                "unit_name": {
-                    "type": "string"
-                },
-                "unit_short": {
-                    "type": "string"
+                "students_count": {
+                    "type": "integer"
                 }
             }
         },
-        "models.UnitsListResponse": {
+        "facilities_models.PaginatedBuildingsResponse": {
             "type": "object",
             "properties": {
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.UnitResponse"
+                        "$ref": "#/definitions/facilities_models.BuildingReadResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "facilities_models.PaginatedCampusesResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/facilities_models.Campus"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "facilities_models.PaginatedFacultiesResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/facilities_models.FacultyReadWithCounterResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "facilities_models.PaginatedRoomsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/facilities_models.Room"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "facilities_models.Room": {
+            "type": "object",
+            "properties": {
+                "building_id": {
+                    "type": "integer"
+                },
+                "faculty_id": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "pc_amount": {
+                    "type": "integer"
+                },
+                "projector_availability": {
+                    "type": "boolean"
+                },
+                "room_capacity": {
+                    "type": "integer"
+                },
+                "room_name": {
+                    "type": "string"
+                },
+                "unit_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "users_dto.AssignPermissionRequest": {
+            "type": "object",
+            "required": [
+                "permission_id"
+            ],
+            "properties": {
+                "permission_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "users_dto.CreatePermissionRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "name"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "users_dto.CreateRoleRequest": {
+            "type": "object",
+            "required": [
+                "role_name"
+            ],
+            "properties": {
+                "role_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "users_dto.CreateUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name",
+                "surname"
+            ],
+            "properties": {
+                "degree": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "employee": {
+                    "$ref": "#/definitions/users_dto.EmployeeProfileDTO"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "send_login_credentials_email": {
+                    "type": "boolean"
+                },
+                "student": {
+                    "$ref": "#/definitions/users_dto.StudentProfileDTO"
+                },
+                "surname": {
+                    "type": "string"
+                }
+            }
+        },
+        "users_dto.EmployeeProfileDTO": {
+            "type": "object",
+            "properties": {
+                "faculty_id": {
+                    "type": "integer"
+                },
+                "unit_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "users_dto.StudentProfileDTO": {
+            "type": "object",
+            "properties": {
+                "major_id": {
+                    "type": "integer"
+                },
+                "study_program_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "users_models.PaginatedPermissionsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users_models.Permission"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "users_models.PaginatedRolesResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users_models.RoleWithCountResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "users_models.PaginatedUsersResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users_models.UserResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "users_models.Permission": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users_models.Role"
                     }
                 }
             }
         },
-        "models.UserDetailResponse": {
+        "users_models.Role": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users_models.Permission"
+                    }
+                },
+                "role_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "users_models.RoleWithCountResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/users_models.Permission"
+                    }
+                },
+                "role_name": {
+                    "type": "string"
+                },
+                "users_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "users_models.UserDetailResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -2932,7 +3294,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.UserResponse": {
+        "users_models.UserResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
