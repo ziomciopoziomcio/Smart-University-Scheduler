@@ -35,31 +35,7 @@ func GetBuildings(app *app.App) gin.HandlerFunc {
 			offset = 0
 		}
 
-		var total int64
-		if err := app.DB.Model(&facilities_models.Building{}).Count(&total).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		var items []facilities_models.BuildingReadResponse
-
-		roomsSubq := app.DB.Table("rooms").
-			Select("count(id)").
-			Where("rooms.building_id = buildings.id")
-
-		err = app.DB.Table("buildings").
-			Select(`
-             buildings.id,
-             buildings.building_name,
-             buildings.building_number,
-             buildings.campus_id,
-             coalesce((?), 0) as rooms_number
-          `, roomsSubq).
-			Order("buildings.id").
-			Limit(limit).
-			Offset(offset).
-			Scan(&items).Error
-
+		items, total, err := app.Facilities.GetBuildings(limit, offset)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -107,7 +83,7 @@ func CreateBuilding(app *app.App) gin.HandlerFunc {
 			CampusID:       req.CampusID,
 		}
 
-		if err := app.DB.Create(&building).Error; err != nil {
+		if err := app.Facilities.CreateBuilding(&building); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

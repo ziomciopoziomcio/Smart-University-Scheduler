@@ -36,14 +36,8 @@ func GetAcademicCalendar(app *app.App) gin.HandlerFunc {
 			offset = 0
 		}
 
-		var total int64
-		if err := app.DB.Model(&academics_models.AcademicCalendar{}).Count(&total).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		var records []academics_models.AcademicCalendar
-		if err := app.DB.Order("calendar_date").Limit(limit).Offset(offset).Find(&records).Error; err != nil {
+		records, total, err := app.Academics.GetAcademicCalendar(limit, offset)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -106,7 +100,7 @@ func CreateAcademicCalendar(app *app.App) gin.HandlerFunc {
 			Description:       req.Description,
 		}
 
-		if err := app.DB.Create(&record).Error; err != nil {
+		if err := app.Academics.CreateAcademicCalendar(&record); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

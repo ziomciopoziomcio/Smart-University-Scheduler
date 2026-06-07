@@ -35,18 +35,8 @@ func GetCoursesInstructors(app *app.App) gin.HandlerFunc {
 			offset = 0
 		}
 
-		var total int64
-		if err := app.DB.Model(&courses_models.CoursesInstructors{}).Count(&total).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		var coursesInstructors []courses_models.CoursesInstructors
-
-		if err := app.DB.Order("employee, course, class_type").
-			Limit(limit).
-			Offset(offset).
-			Find(&coursesInstructors).Error; err != nil {
+		coursesInstructors, total, err := app.Courses.GetCoursesInstructors(limit, offset)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -80,11 +70,8 @@ func CreateCoursesInstructor(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		var ctd courses_models.CourseTypeDetail
-
-		if err := app.DB.
-			Where("course = ? AND class_type = ?", req.Course, req.ClassType).
-			First(&ctd).Error; err != nil {
+		_, err := app.Courses.FindCourseTypeDetail(req.Course, req.ClassType)
+		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Cannot assign instructor: class type is not defined for this course",
 			})
@@ -98,7 +85,7 @@ func CreateCoursesInstructor(app *app.App) gin.HandlerFunc {
 			Hours:     req.Hours,
 		}
 
-		if err := app.DB.Create(&coursesInstructor).Error; err != nil {
+		if err := app.Courses.CreateCoursesInstructor(&coursesInstructor); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

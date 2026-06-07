@@ -2,6 +2,7 @@ package facilities_handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -11,23 +12,39 @@ import (
 
 // GetRooms godoc
 // @Summary Get rooms
-// @Description Returns list of rooms
+// @Description Returns paginated list of rooms
 // @Tags rooms
 // @Produce json
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
 // @Success 200 {object} facilities_models.PaginatedRoomsResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/rooms [get]
 func GetRooms(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var rooms []facilities_models.Room
+		limitStr := c.DefaultQuery("limit", "10")
+		offsetStr := c.DefaultQuery("offset", "0")
 
-		if err := app.DB.Order("id").Find(&rooms).Error; err != nil {
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			limit = 10
+		}
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			offset = 0
+		}
+
+		rooms, total, err := app.Facilities.GetRooms(limit, offset)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		c.JSON(http.StatusOK, facilities_models.PaginatedRoomsResponse{
-			Items: rooms,
+			Total:  total,
+			Limit:  limit,
+			Offset: offset,
+			Items:  rooms,
 		})
 	}
 }
@@ -54,7 +71,7 @@ func CreateRoom(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		if err := app.DB.Create(&room).Error; err != nil {
+		if err := app.Facilities.CreateRoom(&room); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
 			})

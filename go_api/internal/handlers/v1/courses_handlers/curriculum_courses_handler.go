@@ -2,6 +2,7 @@ package courses_handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -12,57 +13,44 @@ import (
 
 // GetCurriculumCourses godoc
 // @Summary Get curriculum courses
-// @Description Returns curriculum courses with course, major and elective block details (with aggregated group counts)
+// @Description Returns paginated curriculum courses with course, major and elective block details (with aggregated group counts)
 // @Tags curriculum-courses
 // @Produce json
-// @Success 200 {object} map[string][]courses_dto.CurriculumCourseResponse
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {object} courses_models.PaginatedCurriculumCoursesResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/curriculum-courses [get]
 func GetCurriculumCourses(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		limitStr := c.DefaultQuery("limit", "10")
+		offsetStr := c.DefaultQuery("offset", "0")
 
-		var curriculumCourses []courses_models.CurriculumCourse
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			limit = 10
+		}
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			offset = 0
+		}
 
-		if err := app.DB.
-			Preload("CourseRef").
-			Preload("MajorRef").
-			Preload("ElectiveBlockRef").
-			Order("study_program, course, semester").
-			Find(&curriculumCourses).Error; err != nil {
-
+		curriculumCourses, total, err := app.Courses.GetCurriculumCourses(limit, offset)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		majorCounts := fetchMajorGroupCounts(app)
+		majorCounts := app.Courses.FetchMajorGroupCounts()
 		items := mapToCurriculumResponses(curriculumCourses, majorCounts)
 
 		c.JSON(http.StatusOK, gin.H{
-			"items": items,
+			"total":  total,
+			"limit":  limit,
+			"offset": offset,
+			"items":  items,
 		})
 	}
-}
-
-func fetchMajorGroupCounts(app *app.App) map[int]int {
-	type MajorCountRow struct {
-		MajorID    int
-		GroupCount int
-	}
-
-	var countRows []MajorCountRow
-
-	app.DB.Table("groups").
-		Select("major as major_id, count(id) as group_count").
-		Where("major is not null").
-		Group("major").
-		Scan(&countRows)
-
-	majorCounts := make(map[int]int)
-	for _, row := range countRows {
-		majorCounts[row.MajorID] = row.GroupCount
-	}
-
-	return majorCounts
 }
 
 func mapToCurriculumResponses(
@@ -91,9 +79,9 @@ func mapToCurriculumResponses(
 			Major:         cc.Major,
 			ElectiveBlock: cc.ElectiveBlock,
 			CourseDetails: &courses_dto.CourseDetails{
-				CourseCode:  cc.CourseRef.CourseCode,
-				CourseName:  cc.CourseRef.CourseName,
-				ECTSPoints:  cc.CourseRef.EctsPoints,
+				CourseCode: cc.CourseRef.CourseCode,
+				CourseName: cc.CourseRef.CourseName,
+				ECTSPoints: cc.CourseRef.EctsPoints,
 			},
 			MajorDetails:         majorDetails,
 			ElectiveBlockDetails: cc.ElectiveBlockRef,
@@ -116,7 +104,6 @@ func mapToCurriculumResponses(
 // @Router /api/v1/curriculum-courses [post]
 func CreateCurriculumCourse(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var req courses_dto.CreateCurriculumCourseRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -132,7 +119,7 @@ func CreateCurriculumCourse(app *app.App) gin.HandlerFunc {
 			ElectiveBlock: req.ElectiveBlock,
 		}
 
-		if err := app.DB.Create(&curriculumCourse).Error; err != nil {
+		if err := app.Courses.CreateCurriculumCourse(&curriculumCourse); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

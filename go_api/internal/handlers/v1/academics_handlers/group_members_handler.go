@@ -19,22 +19,13 @@ import (
 // @Router /api/v1/group-members [get]
 func GetGroupMembers(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
-		var members []academics_models.GroupMember
-
-		if err := app.DB.
-			Preload("Group").
-			Find(&members).Error; err != nil {
-
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+		members, err := app.Academics.GetGroupMembers()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"data": members,
-		})
+		c.JSON(http.StatusOK, gin.H{"data": members})
 	}
 }
 
@@ -51,25 +42,18 @@ func GetGroupMembers(app *app.App) gin.HandlerFunc {
 // @Router /api/v1/group-members [post]
 func CreateGroupMember(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var member academics_models.GroupMember
 
 		if err := c.ShouldBindJSON(&member); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		if err := app.DB.Create(&member).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+		if err := app.Academics.CreateGroupMember(&member); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusCreated, gin.H{
-			"data": member,
-		})
+		c.JSON(http.StatusCreated, gin.H{"data": member})
 	}
 }

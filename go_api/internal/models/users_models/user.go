@@ -18,10 +18,10 @@ type User struct {
 	BackupCodes                *string    `json:"-" gorm:"column:backup_codes;type:text"`
 	PasswordResetTokenHash     *string    `json:"-" gorm:"column:password_reset_token_hash;type:varchar(64)"`
 	PasswordResetExpiresAt     *time.Time `json:"-" gorm:"column:password_reset_expires_at;type:timestamp with time zone"`
-	EmailVerified              bool       `json:"-" gorm:"column:email_verified;default:false"` // Ukrywamy w liście
+	EmailVerified              bool       `json:"-" gorm:"column:email_verified;default:false"`
 	EmailVerificationTokenHash *string    `json:"-" gorm:"column:email_verification_token_hash;type:varchar(64)"`
 	EmailVerificationExpiresAt *time.Time `json:"-" gorm:"column:email_verification_expires_at;type:timestamp with time zone"`
-	ForcePasswordChange        bool       `json:"-" gorm:"column:force_password_change;default:false"` // Ukrywamy w liście
+	ForcePasswordChange        bool       `json:"-" gorm:"column:force_password_change;default:false"`
 
 	Roles []Role `json:"-" gorm:"many2many:user_roles;joinForeignKey:user_id;joinReferences:role_id"`
 }
@@ -43,7 +43,10 @@ type UserResponse struct {
 }
 
 type PaginatedUsersResponse struct {
-	Items []UserResponse `json:"items"`
+	Total  int64          `json:"total"`
+	Limit  int            `json:"limit"`
+	Offset int            `json:"offset"`
+	Items  []UserResponse `json:"items"`
 }
 
 type UserDetailResponse struct {

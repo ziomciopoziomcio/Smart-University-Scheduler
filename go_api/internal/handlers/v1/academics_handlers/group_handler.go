@@ -20,18 +20,13 @@ import (
 // @Router /api/v1/groups [get]
 func GetGroups(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
-		var groups []academics_models.Group
-
-		if err := app.DB.Find(&groups).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+		groups, err := app.Academics.GetGroups()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		items := make([]academics_dto.GroupResponse, 0, len(groups))
-
 		for _, g := range groups {
 			items = append(items, academics_dto.GroupResponse{
 				ID:            g.ID,
@@ -44,9 +39,7 @@ func GetGroups(app *app.App) gin.HandlerFunc {
 			})
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"data": items,
-		})
+		c.JSON(http.StatusOK, gin.H{"data": items})
 	}
 }
 
@@ -63,25 +56,18 @@ func GetGroups(app *app.App) gin.HandlerFunc {
 // @Router /api/v1/groups [post]
 func CreateGroup(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var group academics_models.Group
 
 		if err := c.ShouldBindJSON(&group); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		if err := app.DB.Create(&group).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+		if err := app.Academics.CreateGroup(&group); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusCreated, gin.H{
-			"data": group,
-		})
+		c.JSON(http.StatusCreated, gin.H{"data": group})
 	}
 }

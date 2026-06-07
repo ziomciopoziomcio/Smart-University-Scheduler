@@ -35,28 +35,7 @@ func GetMajors(app *app.App) gin.HandlerFunc {
 			offset = 0
 		}
 
-		var total int64
-		if err := app.DB.Model(&courses_models.Major{}).Count(&total).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		var items []courses_models.MajorReadResponse
-
-		err = app.DB.Table("major").
-			Select(`
-             major.id,
-             major.study_field,
-             major.major_name,
-             coalesce(count(groups.id), 0) as group_count
-          `).
-			Joins("left join groups on groups.major = major.id").
-			Group("major.id").
-			Order("major.id").
-			Limit(limit).
-			Offset(offset).
-			Find(&items).Error
-
+		items, total, err := app.Courses.GetMajors(limit, offset)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -108,7 +87,7 @@ func CreateMajor(app *app.App) gin.HandlerFunc {
 			MajorName:    req.MajorName,
 		}
 
-		if err := app.DB.Create(&major).Error; err != nil {
+		if err := app.Courses.CreateMajor(&major); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

@@ -35,19 +35,8 @@ func GetCourseTypeDetails(app *app.App) gin.HandlerFunc {
 			offset = 0
 		}
 
-		var total int64
-		if err := app.DB.Model(&courses_models.CourseTypeDetail{}).Count(&total).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		var courseTypeDetails []courses_models.CourseTypeDetail
-
-		if err := app.DB.
-			Order("course, class_type").
-			Limit(limit).
-			Offset(offset).
-			Find(&courseTypeDetails).Error; err != nil {
+		courseTypeDetails, total, err := app.Courses.GetCourseTypeDetails(limit, offset)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -93,7 +82,7 @@ func CreateCourseTypeDetail(app *app.App) gin.HandlerFunc {
 			MaxGroupParticipantsNumber: req.MaxGroupParticipantsNumber,
 		}
 
-		if err := app.DB.Create(&courseTypeDetail).Error; err != nil {
+		if err := app.Courses.CreateCourseTypeDetail(&courseTypeDetail); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

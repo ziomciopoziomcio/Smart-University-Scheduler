@@ -25,29 +25,13 @@ func GetRoles(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		limit, offset := parsePaginationParams(c)
 
-		var total int64
-		if err := app.DB.Model(&users_models.Role{}).Count(&total).Error; err != nil {
+		roles, total, err := app.Users.GetRoles(limit, offset)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		var roleIDs []int
-		if err := app.DB.Model(&users_models.Role{}).Order("id").Limit(limit).Offset(offset).Pluck("id", &roleIDs).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		var roles []users_models.Role
-		if len(roleIDs) > 0 {
-			if err := app.DB.Preload("Permissions").Order("id").Where("id IN ?", roleIDs).Find(&roles).Error; err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-		} else {
-			roles = []users_models.Role{}
-		}
-
-		countsMap := fetchRoleUsersCount(app)
+		countsMap := app.Users.FetchRoleUsersCount()
 		items := mapRolesToResponse(roles, countsMap)
 
 		c.JSON(http.StatusOK, users_models.PaginatedRolesResponse{
@@ -72,26 +56,6 @@ func parsePaginationParams(c *gin.Context) (int, int) {
 		offset = 0
 	}
 	return limit, offset
-}
-
-func fetchRoleUsersCount(app *app.App) map[int]int {
-	type RoleCountRow struct {
-		RoleID     int
-		UsersCount int
-	}
-	var countRows []RoleCountRow
-
-	app.DB.Table("roles").
-		Select("roles.id as role_id, count(user_roles.user_id) as users_count").
-		Joins("left join user_roles on user_roles.role_id = roles.id").
-		Group("roles.id").
-		Scan(&countRows)
-
-	countsMap := make(map[int]int)
-	for _, row := range countRows {
-		countsMap[row.RoleID] = row.UsersCount
-	}
-	return countsMap
 }
 
 func mapRolesToResponse(roles []users_models.Role, countsMap map[int]int) []users_models.RoleWithCountResponse {
@@ -136,7 +100,7 @@ func CreateRole(app *app.App) gin.HandlerFunc {
 			RoleName: req.RoleName,
 		}
 
-		if err := app.DB.Create(&role).Error; err != nil {
+		if err := app.Users.CreateRole(&role); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -169,15 +133,8 @@ func GetPermissions(app *app.App) gin.HandlerFunc {
 			offset = 0
 		}
 
-		var total int64
-		if err := app.DB.Model(&users_models.Permission{}).Count(&total).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		var permissions []users_models.Permission
-
-		if err := app.DB.Order("id").Limit(limit).Offset(offset).Find(&permissions).Error; err != nil {
+		permissions, total, err := app.Users.GetPermissions(limit, offset)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -218,7 +175,7 @@ func CreatePermission(app *app.App) gin.HandlerFunc {
 			Group:       req.Group,
 		}
 
-		if err := app.DB.Create(&permission).Error; err != nil {
+		if err := app.Users.CreatePermission(&permission); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -255,19 +212,13 @@ func AssignPermissionToRole(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		var role users_models.Role
-		if err := app.DB.First(&role, roleID).Error; err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "role not found"})
+		role, permission, err := app.Users.FindRoleAndPermission(roleID, req.PermissionID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "role or permission not found"})
 			return
 		}
 
-		var permission users_models.Permission
-		if err := app.DB.First(&permission, req.PermissionID).Error; err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "permission not found"})
-			return
-		}
-
-		if err := app.DB.Model(&role).Association("Permissions").Append(&permission); err != nil {
+		if err := app.Users.AssignPermissionToRole(role, permission); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

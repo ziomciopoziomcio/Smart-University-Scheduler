@@ -2,6 +2,7 @@ package courses_handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -12,51 +13,39 @@ import (
 
 // GetStudyFields godoc
 // @Summary Get study fields
-// @Description Returns study fields with aggregated counts (majors, programs, elective blocks, semesters)
+// @Description Returns paginated study fields with aggregated counts (majors, programs, elective blocks, semesters)
 // @Tags study-fields
 // @Produce json
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
 // @Success 200 {object} courses_models.PaginatedStudyFieldsResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/study-fields [get]
 func GetStudyFields(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var items []courses_models.StudyFieldListSummaryResponse
+		limitStr := c.DefaultQuery("limit", "10")
+		offsetStr := c.DefaultQuery("offset", "0")
 
-		electiveBlocksSubq := app.DB.Table("elective_block").
-			Select("count(id)").
-			Where("elective_block.study_field = study_fields.id")
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			limit = 10
+		}
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			offset = 0
+		}
 
-		programsSubq := app.DB.Table("study_programs").
-			Select("count(id)").
-			Where("study_programs.study_field = study_fields.id")
-
-		err := app.DB.Table("study_fields").
-			Select(`
-				study_fields.id,
-				study_fields.faculty as faculty,
-				study_fields.field_name,
-				study_fields.language,
-				study_fields.mode,
-				study_fields.degree,
-				coalesce(count(distinct major.id), 0) as specializations_count,
-				coalesce(max(curriculum_courses.semester), 0) as semesters_count,
-				coalesce((?), 0) as elective_blocks_count,
-				coalesce((?), 0) as programs_count
-			`, electiveBlocksSubq, programsSubq).
-			Joins("left join major on study_fields.id = major.study_field").
-			Joins("left join study_programs on study_fields.id = study_programs.study_field").
-			Joins("left join curriculum_courses on study_programs.id = curriculum_courses.study_program").
-			Group("study_fields.id").
-			Order("study_fields.id").
-			Scan(&items).Error
-
+		items, total, err := app.Courses.GetStudyFields(limit, offset)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		c.JSON(http.StatusOK, courses_models.PaginatedStudyFieldsResponse{
-			Items: items,
+			Total:  total,
+			Limit:  limit,
+			Offset: offset,
+			Items:  items,
 		})
 	}
 }
@@ -88,7 +77,7 @@ func CreateStudyField(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		if err := app.DB.Create(&studyField).Error; err != nil {
+		if err := app.Courses.CreateStudyField(&studyField); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

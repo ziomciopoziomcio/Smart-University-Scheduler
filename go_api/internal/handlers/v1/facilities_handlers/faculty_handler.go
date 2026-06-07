@@ -35,37 +35,7 @@ func GetFaculties(app *app.App) gin.HandlerFunc {
 			offset = 0
 		}
 
-		var total int64
-		if err := app.DB.Model(&facilities_models.Faculty{}).Count(&total).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		var items []facilities_models.FacultyReadWithCounterResponse
-
-		lecturersSubq := app.DB.Table("employees").
-			Select("count(id)").
-			Where("employees.faculty_id = faculties.id")
-
-		studentsSubq := app.DB.Table("students").
-			Joins("join study_programs on students.study_program = study_programs.id").
-			Joins("join study_fields on study_programs.study_field = study_fields.id").
-			Select("count(students.id)").
-			Where("study_fields.faculty = faculties.id")
-
-		err = app.DB.Table("faculties").
-			Select(`
-             faculties.id,
-             faculties.faculty_name,
-             faculties.faculty_short,
-             coalesce((?), 0) as lecturers_count,
-             coalesce((?), 0) as students_count
-          `, lecturersSubq, studentsSubq).
-			Order("faculties.id").
-			Limit(limit).
-			Offset(offset).
-			Find(&items).Error
-
+		items, total, err := app.Facilities.GetFaculties(limit, offset)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -105,7 +75,7 @@ func CreateFaculty(app *app.App) gin.HandlerFunc {
 			FacultyShort: req.FacultyShort,
 		}
 
-		if err := app.DB.Create(&faculty).Error; err != nil {
+		if err := app.Facilities.CreateFaculty(&faculty); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

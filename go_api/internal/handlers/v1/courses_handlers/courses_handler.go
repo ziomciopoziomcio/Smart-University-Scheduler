@@ -35,18 +35,8 @@ func GetCourses(app *app.App) gin.HandlerFunc {
 			offset = 0
 		}
 
-		var total int64
-		if err := app.DB.Model(&courses_models.Course{}).Count(&total).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		var courses []courses_models.Course
-
-		if err := app.DB.Order("course_code").
-			Limit(limit).
-			Offset(offset).
-			Find(&courses).Error; err != nil {
+		courses, total, err := app.Courses.GetCourses(limit, offset)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -89,7 +79,7 @@ func CreateCourse(app *app.App) gin.HandlerFunc {
 			CourseCoordinator: req.CourseCoordinator,
 		}
 
-		if err := app.DB.Create(&course).Error; err != nil {
+		if err := app.Courses.CreateCourse(&course); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

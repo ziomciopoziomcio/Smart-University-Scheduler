@@ -22,18 +22,30 @@ import (
 
 // GetUsers godoc
 // @Summary Get users
-// @Description Returns list of users with roles
+// @Description Returns paginated list of users with roles
 // @Tags users
 // @Produce json
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
 // @Success 200 {object} users_models.PaginatedUsersResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/users [get]
 func GetUsers(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		limitStr := c.DefaultQuery("limit", "10")
+		offsetStr := c.DefaultQuery("offset", "0")
 
-		var users []users_models.User
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			limit = 10
+		}
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			offset = 0
+		}
 
-		if err := app.DB.Preload("Roles").Order("id").Find(&users).Error; err != nil {
+		users, total, err := app.Users.GetUsers(limit, offset)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -59,7 +71,10 @@ func GetUsers(app *app.App) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, users_models.PaginatedUsersResponse{
-			Items: mappedItems,
+			Total:  total,
+			Limit:  limit,
+			Offset: offset,
+			Items:  mappedItems,
 		})
 	}
 }
@@ -126,10 +141,10 @@ func handleGrpcError(c *gin.Context, err error) {
 }
 
 func buildUserDetailResponse(app *app.App, userId int64, resp *pb.UserGetResponse) users_models.UserDetailResponse {
-	var dbUser users_models.User
+	dbUser, err := app.Users.GetUserByID(userId)
 	var roleNames []string
 
-	if err := app.DB.Preload("Roles").First(&dbUser, userId).Error; err == nil {
+	if err == nil {
 		for _, r := range dbUser.Roles {
 			roleNames = append(roleNames, r.RoleName)
 		}

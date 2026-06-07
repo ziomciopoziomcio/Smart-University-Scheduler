@@ -35,19 +35,8 @@ func GetElectiveBlocks(app *app.App) gin.HandlerFunc {
 			offset = 0
 		}
 
-		var total int64
-		if err := app.DB.Model(&courses_models.ElectiveBlock{}).Count(&total).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		var blocks []courses_models.ElectiveBlock
-
-		if err := app.DB.
-			Order("id").
-			Limit(limit).
-			Offset(offset).
-			Find(&blocks).Error; err != nil {
+		blocks, total, err := app.Courses.GetElectiveBlocks(limit, offset)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -93,7 +82,7 @@ func CreateElectiveBlock(app *app.App) gin.HandlerFunc {
 			ElectiveBlockName: req.ElectiveBlockName,
 		}
 
-		if err := app.DB.Create(&block).Error; err != nil {
+		if err := app.Courses.CreateElectiveBlock(&block); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

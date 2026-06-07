@@ -19,3 +19,10 @@ type CurriculumCourse struct {
 func (CurriculumCourse) TableName() string {
 	return "curriculum_courses"
 }
+
+type PaginatedCurriculumCoursesResponse struct {
+	Total  int64              `json:"total"`
+	Limit  int                `json:"limit"`
+	Offset int                `json:"offset"`
+	Items  []CurriculumCourse `json:"items"`
+}

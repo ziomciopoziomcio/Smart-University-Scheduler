@@ -19,5 +19,8 @@ func (Room) TableName() string {
 }
 
 type PaginatedRoomsResponse struct {
-	Items []Room `json:"items"`
+	Total  int64  `json:"total"`
+	Limit  int    `json:"limit"`
+	Offset int    `json:"offset"`
+	Items  []Room `json:"items"`
 }

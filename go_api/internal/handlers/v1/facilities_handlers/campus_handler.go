@@ -35,14 +35,8 @@ func GetCampuses(app *app.App) gin.HandlerFunc {
 			offset = 0
 		}
 
-		var total int64
-		if err := app.DB.Model(&facilities_models.Campus{}).Count(&total).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		var campuses []facilities_models.Campus
-		if err := app.DB.Order("id").Limit(limit).Offset(offset).Find(&campuses).Error; err != nil {
+		campuses, total, err := app.Facilities.GetCampuses(limit, offset)
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -81,7 +75,7 @@ func CreateCampus(app *app.App) gin.HandlerFunc {
 			CampusShort: req.CampusShort,
 		}
 
-		if err := app.DB.Create(&campus).Error; err != nil {
+		if err := app.Facilities.CreateCampus(&campus); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

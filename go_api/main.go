@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go_api/internal/repository"
 	"log"
 	"net/http"
 
@@ -18,7 +19,11 @@ func main() {
 	}
 
 	application := &app.App{
-		DB: database,
+		DB:         database,
+		Academics:  repository.NewAcademicsRepository(database),
+		Courses:    repository.NewCoursesRepository(database),
+		Facilities: repository.NewFacilitiesRepository(database),
+		Users:      repository.NewUsersRepository(database),
 	}
 
 	r := gin.Default()

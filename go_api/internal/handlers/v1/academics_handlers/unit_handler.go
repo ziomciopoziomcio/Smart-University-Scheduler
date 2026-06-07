@@ -20,24 +20,7 @@ import (
 // @Router /api/v1/units [get]
 func GetUnits(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
-		var items []academics_models.UnitResponse
-
-		err := app.DB.Table("units").
-			Select(`
-				units.id,
-				units.unit_name,
-				units.faculty_id,
-				units.unit_short,
-				count(distinct employees.id) as lecturers_count,
-				count(distinct courses.course_code) as courses_count
-			`).
-			Joins("left join employees on employees.unit_id = units.id").
-			Joins("left join courses on courses.leading_unit = units.id").
-			Group("units.id").
-			Order("units.id").
-			Scan(&items).Error
-
+		items, err := app.Academics.GetUnits()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -63,28 +46,21 @@ func GetUnits(app *app.App) gin.HandlerFunc {
 // @Router /api/v1/units [post]
 func CreateUnit(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var unit academics_models.Unit
 
 		if err := c.ShouldBindJSON(&unit); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
 		var faculty facilities_models.Faculty
 		if err := app.DB.First(&faculty, unit.FacultyID).Error; err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "faculty not found",
-			})
+			c.JSON(http.StatusNotFound, gin.H{"error": "faculty not found"})
 			return
 		}
 
-		if err := app.DB.Create(&unit).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+		if err := app.Academics.CreateUnit(&unit); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
