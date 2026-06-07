@@ -13,31 +13,49 @@ import (
 	"gorm.io/gorm"
 )
 
+type UserApiKey struct {
+	UserID     uint   `gorm:"column:user_id"`
+	ApiKeyHash string `gorm:"column:api_key_hash"`
+}
+
 func hashAPIKey(apiKey string) string {
 	hash := sha256.Sum256([]byte(apiKey))
 	return hex.EncodeToString(hash[:])
 }
 
+func authenticateKey(db *gorm.DB, hashedKey string) (*models.User, error) {
+	var keyRecord UserApiKey
+	if err := db.Table("user_api_keys").Where("api_key_hash = ?", hashedKey).First(&keyRecord).Error; err != nil {
+		return nil, err
+	}
+
+	var user models.User
+	if err := db.Preload("Roles").Where("id = ?", keyRecord.UserID).First(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func hasAdminRole(user *models.User) bool {
+	for _, r := range user.Roles {
+		roleName := strings.ToLower(r.RoleName)
+		if roleName == "administrator" || roleName == "admin" {
+			return true
+		}
+	}
+	return false
+}
+
 func AdminOnly(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		providedAPIKey := c.GetHeader("X-API-Key")
-
 		if providedAPIKey == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing X-API-Key header"})
 			return
 		}
 
-		hashedKey := hashAPIKey(providedAPIKey)
-
-		type UserApiKey struct {
-			UserID     uint   `gorm:"column:user_id"`
-			ApiKeyHash string `gorm:"column:api_key_hash"`
-		}
-
-		var keyRecord UserApiKey
-
-		err := db.Table("user_api_keys").Where("api_key_hash = ?", hashedKey).First(&keyRecord).Error
-
+		user, err := authenticateKey(db, hashAPIKey(providedAPIKey))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Invalid API key or insufficient permissions"})
@@ -47,27 +65,7 @@ func AdminOnly(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		var user models.User
-		err = db.Preload("Roles").Where("id = ?", keyRecord.UserID).First(&user).Error
-
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "User associated with this key not found"})
-			} else {
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error during user verification"})
-			}
-			return
-		}
-
-		isAdmin := false
-		for _, r := range user.Roles {
-			if strings.ToLower(r.RoleName) == "administrator" || strings.ToLower(r.RoleName) == "admin" {
-				isAdmin = true
-				break
-			}
-		}
-
-		if !isAdmin {
+		if !hasAdminRole(user) {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Required administrator privileges missing"})
 			return
 		}
