@@ -96,7 +96,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
                     success=False, message="User not found"
                 )
 
-
             db.query(Students).filter(Students.user_id == request.id).delete()
             db.query(Employees).filter(Employees.user_id == request.id).delete()
             db.flush()
@@ -178,7 +177,9 @@ async def serve():
     await server.start()
     await server.wait_for_termination()
 
+
 if __name__ == "__main__":
     import asyncio
+
     logging.basicConfig(level=logging.INFO)
     asyncio.run(serve())
