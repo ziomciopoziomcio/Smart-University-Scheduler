@@ -10,31 +10,27 @@ permissions:
   contents: read
 
 jobs:
-  lint:
-    name: Code Linting
+  golangci:
+    name: lint
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.25.10'
-          cache: true
 
-      - name: Run golangci-lint
-        # nosemgrep: yaml.github-actions.action-not-pinned-to-commit-sha
+      - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.70.0
-          working-directory: go_api
-          args: --timeout=5m
+          version: latest
+          only-new-issues: false
 
   build:
     name: Code Build
     runs-on: ubuntu-latest
-    needs: lint
+    needs: golangci
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
