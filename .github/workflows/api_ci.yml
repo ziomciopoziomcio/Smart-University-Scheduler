@@ -23,12 +23,11 @@ jobs:
           go-version: '1.24'
           cache: true
 
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@aaa42aa0628b4ae2578232a66b5410ed79774303
-        with:
-          version: v1.61.0
-          working-directory: go_api
-          args: --timeout=5m
+      - name: Install and Run golangci-lint
+        run: |
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.61.0
+          cd go_api
+          golangci-lint run --timeout=5m
 
   build:
     name: Code Build
