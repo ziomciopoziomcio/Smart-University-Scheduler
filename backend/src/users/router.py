@@ -101,7 +101,7 @@ def generate_api_key(
     """
     raw_api_key = secrets.token_hex(32)
 
-    hashed_key = hashlib.sha256(raw_api_key.encode("utf-8")).hexdigest()
+    hashed_key = hash_password(raw_api_key)
 
     current_user.api_key_hash = hashed_key
     db.add(current_user)
