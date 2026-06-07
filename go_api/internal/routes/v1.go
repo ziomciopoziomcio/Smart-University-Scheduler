@@ -43,17 +43,17 @@ func RegisterV1Routes(r *gin.Engine, app *app.App) {
 
 	// study fields
 	v1.GET("/study-fields", middleware.AdminOnly(app.DB), handlers.GetStudyFields(app))
-    v1.POST("/study-fields", middleware.AdminOnly(app.DB), handlers.CreateStudyField(app))
+	v1.POST("/study-fields", middleware.AdminOnly(app.DB), handlers.CreateStudyField(app))
 
-    // major
-    v1.GET("/majors", middleware.AdminOnly(app.DB), handlers.GetMajors(app))
+	// major
+	v1.GET("/majors", middleware.AdminOnly(app.DB), handlers.GetMajors(app))
 	v1.POST("/majors", middleware.AdminOnly(app.DB), handlers.CreateMajor(app))
 
-    // elective block
-    v1.GET("/elective-blocks", middleware.AdminOnly(app.DB), handlers.GetElectiveBlocks(app))
+	// elective block
+	v1.GET("/elective-blocks", middleware.AdminOnly(app.DB), handlers.GetElectiveBlocks(app))
 	v1.POST("/elective-blocks", middleware.AdminOnly(app.DB), handlers.CreateElectiveBlock(app))
 
-    // study programs
+	// study programs
 	v1.GET("/study-programs", middleware.AdminOnly(app.DB), handlers.GetStudyPrograms(app))
 	v1.POST("/study-programs", middleware.AdminOnly(app.DB), handlers.CreateStudyProgram(app))
 
@@ -75,28 +75,28 @@ func RegisterV1Routes(r *gin.Engine, app *app.App) {
 
 	// groups
 	v1.GET("/groups", middleware.AdminOnly(app.DB), handlers.GetGroups(app))
-    v1.POST("/groups", middleware.AdminOnly(app.DB), handlers.CreateGroup(app))
+	v1.POST("/groups", middleware.AdminOnly(app.DB), handlers.CreateGroup(app))
 
-    // group members
-    v1.GET("/group-members", middleware.AdminOnly(app.DB), handlers.GetGroupMembers(app))
-    v1.POST("/group-members", middleware.AdminOnly(app.DB), handlers.CreateGroupMember(app))
+	// group members
+	v1.GET("/group-members", middleware.AdminOnly(app.DB), handlers.GetGroupMembers(app))
+	v1.POST("/group-members", middleware.AdminOnly(app.DB), handlers.CreateGroupMember(app))
 
-    // academic calendar
-    v1.GET("/academic-calendar", middleware.AdminOnly(app.DB), handlers.GetAcademicCalendar(app))
-    v1.POST("/academic-calendar", middleware.AdminOnly(app.DB), handlers.CreateAcademicCalendar(app))
+	// academic calendar
+	v1.GET("/academic-calendar", middleware.AdminOnly(app.DB), handlers.GetAcademicCalendar(app))
+	v1.POST("/academic-calendar", middleware.AdminOnly(app.DB), handlers.CreateAcademicCalendar(app))
 
 	// students
-	v1.POST("/users", middleware.AdminOnly(app.DB), handlers.CreateUserProxy(app))
-    v1.DELETE("/users/:id", middleware.AdminOnly(app.DB), handlers.DeleteUserProxy(app))
-    v1.GET("/users/:id", middleware.AdminOnly(app.DB), handlers.GetUserProxy(app))
-    v1.GET("/users", middleware.AdminOnly(app.DB), handlers.GetUsers(app))
+	v1.POST("/users", middleware.AdminOnly(app.DB), handlers.CreateUserProxy())
+	v1.DELETE("/users/:id", middleware.AdminOnly(app.DB), handlers.DeleteUserProxy())
+	v1.GET("/users/:id", middleware.AdminOnly(app.DB), handlers.GetUserProxy(app))
+	v1.GET("/users", middleware.AdminOnly(app.DB), handlers.GetUsers(app))
 
-    // roles
-    v1.GET("/roles", middleware.AdminOnly(app.DB), handlers.GetRoles(app))
-    v1.POST("/roles", middleware.AdminOnly(app.DB), handlers.CreateRole(app))
-    v1.POST("/roles/:id/permissions", middleware.AdminOnly(app.DB), handlers.AssignPermissionToRole(app))
+	// roles
+	v1.GET("/roles", middleware.AdminOnly(app.DB), handlers.GetRoles(app))
+	v1.POST("/roles", middleware.AdminOnly(app.DB), handlers.CreateRole(app))
+	v1.POST("/roles/:id/permissions", middleware.AdminOnly(app.DB), handlers.AssignPermissionToRole(app))
 
-    // permissions
-    v1.GET("/permissions", middleware.AdminOnly(app.DB), handlers.GetPermissions(app))
-    v1.POST("/permissions", middleware.AdminOnly(app.DB), handlers.CreatePermission(app))
+	// permissions
+	v1.GET("/permissions", middleware.AdminOnly(app.DB), handlers.GetPermissions(app))
+	v1.POST("/permissions", middleware.AdminOnly(app.DB), handlers.CreatePermission(app))
 }

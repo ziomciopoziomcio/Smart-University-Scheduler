@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,7 @@ func main() {
 		return
 	}
 
-    application := &app.App{
+	application := &app.App{
 		DB: database,
 	}
 
@@ -30,5 +31,7 @@ func main() {
 
 	routes.RegisterV1Routes(r, application)
 
-	r.Run(":8080")
+	if err := r.Run(":8080"); err != nil {
+		log.Fatalf("failed to run server: %v", err)
+	}
 }

@@ -182,7 +182,7 @@ func getOptionalString(val string) *string {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/users [post]
-func CreateUserProxy(app *app.App) gin.HandlerFunc {
+func CreateUserProxy() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		grpcTarget := os.Getenv("BACKEND_GRPC_TARGET")
@@ -271,7 +271,7 @@ func buildGrpcCreateRequest(reqBody *dto.CreateUserRequest) *pb.UserCreateReques
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/users/{id} [delete]
-func DeleteUserProxy(app *app.App) gin.HandlerFunc {
+func DeleteUserProxy() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		idParam := c.Param("id")
