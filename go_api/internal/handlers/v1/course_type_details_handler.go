@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"go_api/db"
+	"go_api/internal/app"
 	"go_api/internal/dto"
 	"go_api/internal/models"
 )
@@ -18,17 +18,23 @@ import (
 // @Success 200 {object} models.PaginatedCourseTypeDetailsResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/course-type-details [get]
-func GetCourseTypeDetails(c *gin.Context) {
-	var courseTypeDetails []models.CourseTypeDetail
+func GetCourseTypeDetails(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	if err := db.DB.Order("course, class_type").Find(&courseTypeDetails).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		var courseTypeDetails []models.CourseTypeDetail
+
+		if err := app.DB.
+			Order("course, class_type").
+			Find(&courseTypeDetails).Error; err != nil {
+
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, models.PaginatedCourseTypeDetailsResponse{
+			Items: courseTypeDetails,
+		})
 	}
-
-	c.JSON(http.StatusOK, models.PaginatedCourseTypeDetailsResponse{
-		Items: courseTypeDetails,
-	})
 }
 
 // CreateCourseTypeDetail godoc
@@ -42,29 +48,33 @@ func GetCourseTypeDetails(c *gin.Context) {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/course-type-details [post]
-func CreateCourseTypeDetail(c *gin.Context) {
-	var req dto.CreateCourseTypeDetailRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+func CreateCourseTypeDetail(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	courseTypeDetail := models.CourseTypeDetail{
-		Course:                     req.Course,
-		ClassType:                  req.ClassType,
-		ClassHours:                 req.ClassHours,
-		SlotsPerClass:              req.SlotsPerClass,
-		Frequency:                  req.Frequency,
-		ManualWeeks:                req.ManualWeeks,
-		PCNeeded:                   req.PCNeeded,
-		ProjectorNeeded:            req.ProjectorNeeded,
-		MaxGroupParticipantsNumber: req.MaxGroupParticipantsNumber,
-	}
+		var req dto.CreateCourseTypeDetailRequest
 
-	if err := db.DB.Create(&courseTypeDetail).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
-	c.JSON(http.StatusCreated, courseTypeDetail)
+		courseTypeDetail := models.CourseTypeDetail{
+			Course:                     req.Course,
+			ClassType:                  req.ClassType,
+			ClassHours:                 req.ClassHours,
+			SlotsPerClass:              req.SlotsPerClass,
+			Frequency:                  req.Frequency,
+			ManualWeeks:                req.ManualWeeks,
+			PCNeeded:                   req.PCNeeded,
+			ProjectorNeeded:            req.ProjectorNeeded,
+			MaxGroupParticipantsNumber: req.MaxGroupParticipantsNumber,
+		}
+
+		if err := app.DB.Create(&courseTypeDetail).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusCreated, courseTypeDetail)
+	}
 }

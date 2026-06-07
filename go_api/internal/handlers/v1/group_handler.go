@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"go_api/db"
+	"go_api/internal/app"
 	"go_api/internal/dto"
 	"go_api/internal/models"
 )
@@ -18,33 +18,36 @@ import (
 // @Success 200 {object} map[string][]dto.GroupResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/groups [get]
-func GetGroups(c *gin.Context) {
-	var groups []models.Group
+func GetGroups(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	if err := db.DB.Find(&groups).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+		var groups []models.Group
+
+		if err := app.DB.Find(&groups).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		items := make([]dto.GroupResponse, 0, len(groups))
+
+		for _, g := range groups {
+			items = append(items, dto.GroupResponse{
+				ID:            g.ID,
+				GroupName:     g.GroupName,
+				StudyProgram:  g.StudyProgram,
+				Major:         g.Major,
+				ElectiveBlock: g.ElectiveBlock,
+				Semester:      g.Semester,
+				IsActive:      g.IsActive,
+			})
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"data": items,
 		})
-		return
 	}
-
-	items := make([]dto.GroupResponse, 0, len(groups))
-
-	for _, g := range groups {
-		items = append(items, dto.GroupResponse{
-			ID:            g.ID,
-			GroupName:     g.GroupName,
-			StudyProgram:  g.StudyProgram,
-			Major:         g.Major,
-			ElectiveBlock: g.ElectiveBlock,
-			Semester:      g.Semester,
-			IsActive:      g.IsActive,
-		})
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"data": items,
-	})
 }
 
 // CreateGroup godoc
@@ -58,24 +61,27 @@ func GetGroups(c *gin.Context) {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/groups [post]
-func CreateGroup(c *gin.Context) {
-	var group models.Group
+func CreateGroup(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	if err := c.ShouldBindJSON(&group); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+		var group models.Group
+
+		if err := c.ShouldBindJSON(&group); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		if err := app.DB.Create(&group).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"data": group,
 		})
-		return
 	}
-
-	if err := db.DB.Create(&group).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"data": group,
-	})
 }

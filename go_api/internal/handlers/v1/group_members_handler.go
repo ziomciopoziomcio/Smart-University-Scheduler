@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"go_api/db"
+	"go_api/internal/app"
 	"go_api/internal/models"
 )
 
@@ -17,22 +17,25 @@ import (
 // @Success 200 {object} map[string][]models.GroupMember
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/group-members [get]
-func GetGroupMembers(c *gin.Context) {
-	var members []models.GroupMember
+func GetGroupMembers(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	if err := db.DB.
-		Preload("Group").
-		Find(&members).Error; err != nil {
+		var members []models.GroupMember
 
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+		if err := app.DB.
+			Preload("Group").
+			Find(&members).Error; err != nil {
+
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"data": members,
 		})
-		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"data": members,
-	})
 }
 
 // CreateGroupMember godoc
@@ -46,24 +49,27 @@ func GetGroupMembers(c *gin.Context) {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/group-members [post]
-func CreateGroupMember(c *gin.Context) {
-	var member models.GroupMember
+func CreateGroupMember(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	if err := c.ShouldBindJSON(&member); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+		var member models.GroupMember
+
+		if err := c.ShouldBindJSON(&member); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		if err := app.DB.Create(&member).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"data": member,
 		})
-		return
 	}
-
-	if err := db.DB.Create(&member).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"data": member,
-	})
 }

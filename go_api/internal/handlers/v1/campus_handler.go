@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"go_api/db"
+	"go_api/internal/app"
 	"go_api/internal/dto"
 	"go_api/internal/models"
 )
@@ -18,17 +18,20 @@ import (
 // @Success 200 {object} models.PaginatedCampusesResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/campuses [get]
-func GetCampuses(c *gin.Context) {
-	var campuses []models.Campus
+func GetCampuses(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	if err := db.DB.Order("id").Find(&campuses).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		var campuses []models.Campus
+
+		if err := app.DB.Order("id").Find(&campuses).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, models.PaginatedCampusesResponse{
+			Items: campuses,
+		})
 	}
-
-	c.JSON(http.StatusOK, models.PaginatedCampusesResponse{
-		Items: campuses,
-	})
 }
 
 // CreateCampus godoc
@@ -42,23 +45,26 @@ func GetCampuses(c *gin.Context) {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/campuses [post]
-func CreateCampus(c *gin.Context) {
-	var req dto.CreateCampusRequest
+func CreateCampus(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		var req dto.CreateCampusRequest
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		campus := models.Campus{
+			CampusName:  req.CampusName,
+			CampusShort: req.CampusShort,
+		}
+
+		if err := app.DB.Create(&campus).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusCreated, campus)
 	}
-
-	campus := models.Campus{
-		CampusName:  req.CampusName,
-		CampusShort: req.CampusShort,
-	}
-
-	if err := db.DB.Create(&campus).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusCreated, campus)
 }

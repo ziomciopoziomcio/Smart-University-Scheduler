@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"go_api/db"
+	"go_api/internal/app"
 	"go_api/internal/dto"
 	"go_api/internal/models"
 )
@@ -18,17 +18,22 @@ import (
 // @Success 200 {object} models.PaginatedCoursesResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/courses [get]
-func GetCourses(c *gin.Context) {
-	var courses []models.Course
+func GetCourses(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	if err := db.DB.Order("course_code").Find(&courses).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		var courses []models.Course
+
+		if err := app.DB.Order("course_code").
+			Find(&courses).Error; err != nil {
+
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, models.PaginatedCoursesResponse{
+			Items: courses,
+		})
 	}
-
-	c.JSON(http.StatusOK, models.PaginatedCoursesResponse{
-		Items: courses,
-	})
 }
 
 // CreateCourse godoc
@@ -42,27 +47,30 @@ func GetCourses(c *gin.Context) {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/courses [post]
-func CreateCourse(c *gin.Context) {
-	var req dto.CreateCourseRequest
+func CreateCourse(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		var req dto.CreateCourseRequest
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		course := models.Course{
+			CourseCode:        req.CourseCode,
+			EctsPoints:        req.EctsPoints,
+			CourseName:        req.CourseName,
+			CourseLanguage:    req.CourseLanguage,
+			LeadingUnit:       req.LeadingUnit,
+			CourseCoordinator: req.CourseCoordinator,
+		}
+
+		if err := app.DB.Create(&course).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusCreated, course)
 	}
-
-	course := models.Course{
-		CourseCode:        req.CourseCode,
-		EctsPoints:        req.EctsPoints,
-		CourseName:        req.CourseName,
-		CourseLanguage:    req.CourseLanguage,
-		LeadingUnit:       req.LeadingUnit,
-		CourseCoordinator: req.CourseCoordinator,
-	}
-
-	if err := db.DB.Create(&course).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusCreated, course)
 }

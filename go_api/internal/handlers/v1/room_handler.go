@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"go_api/db"
+	"go_api/internal/app"
 	"go_api/internal/models"
 )
 
@@ -17,17 +17,19 @@ import (
 // @Success 200 {object} models.PaginatedRoomsResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/rooms [get]
-func GetRooms(c *gin.Context) {
-	var rooms []models.Room
+func GetRooms(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var rooms []models.Room
 
-	if err := db.DB.Order("id").Find(&rooms).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		if err := app.DB.Order("id").Find(&rooms).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, models.PaginatedRoomsResponse{
+			Items: rooms,
+		})
 	}
-
-	c.JSON(http.StatusOK, models.PaginatedRoomsResponse{
-		Items: rooms,
-	})
 }
 
 // CreateRoom godoc
@@ -41,24 +43,26 @@ func GetRooms(c *gin.Context) {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/rooms [post]
-func CreateRoom(c *gin.Context) {
-	var room models.Room
+func CreateRoom(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var room models.Room
 
-	if err := c.ShouldBindJSON(&room); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+		if err := c.ShouldBindJSON(&room); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		if err := app.DB.Create(&room).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"data": room,
 		})
-		return
 	}
-
-	if err := db.DB.Create(&room).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"data": room,
-	})
 }

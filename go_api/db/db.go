@@ -8,9 +8,9 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
+// var DB *gorm.DB
 
-func Connect() {
+func Connect() (*gorm.DB, error) {
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		os.Getenv("DB_HOST"),
@@ -20,10 +20,10 @@ func Connect() {
 		os.Getenv("DB_PORT"),
 	)
 
-	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic("failed to connect to database")
+		return nil, err
 	}
 
-	DB = database
+	return db, nil
 }

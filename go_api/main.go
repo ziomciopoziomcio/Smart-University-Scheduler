@@ -6,24 +6,29 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/db"
+	"go_api/internal/app"
 	"go_api/internal/routes"
 )
 
 func main() {
-	db.Connect()
+	database, err := db.Connect()
+	if err != nil {
+		return
+	}
+
+    application := &app.App{
+		DB: database,
+	}
 
 	r := gin.Default()
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"status": "ok_new",
+			"status": "ok_new22",
 		})
 	})
 
-	routes.RegisterV1Routes(r, db.DB)
+	routes.RegisterV1Routes(r, application)
 
-	err := r.Run(":8080")
-	if err != nil {
-		return
-	}
+	r.Run(":8080")
 }

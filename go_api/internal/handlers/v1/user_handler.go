@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
-	"go_api/db"
+	"go_api/internal/app"
 	"go_api/internal/dto"
 	"go_api/internal/models"
 	pb "go_api/internal/rpc/user"
@@ -28,37 +28,40 @@ import (
 // @Success 200 {object} models.PaginatedUsersResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/users [get]
-func GetUsers(c *gin.Context) {
-	var users []models.User
+func GetUsers(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	if err := db.DB.Preload("Roles").Order("id").Find(&users).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+		var users []models.User
 
-	var mappedItems []models.UserResponse
-	for _, u := range users {
-		var roleNames []string
-		for _, r := range u.Roles {
-			roleNames = append(roleNames, r.RoleName)
+		if err := app.DB.Preload("Roles").Order("id").Find(&users).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
 
-		mappedItems = append(mappedItems, models.UserResponse{
-			ID:               u.ID,
-			Email:            u.Email,
-			PhoneNumber:      u.PhoneNumber,
-			Name:             u.Name,
-			Surname:          u.Surname,
-			Degree:           u.Degree,
-			CreatedAt:        u.CreatedAt,
-			Roles:            roleNames,
-			TwoFactorEnabled: u.TwoFactorEnabled,
+		var mappedItems []models.UserResponse
+		for _, u := range users {
+			var roleNames []string
+			for _, r := range u.Roles {
+				roleNames = append(roleNames, r.RoleName)
+			}
+
+			mappedItems = append(mappedItems, models.UserResponse{
+				ID:               u.ID,
+				Email:            u.Email,
+				PhoneNumber:      u.PhoneNumber,
+				Name:             u.Name,
+				Surname:          u.Surname,
+				Degree:           u.Degree,
+				CreatedAt:        u.CreatedAt,
+				Roles:            roleNames,
+				TwoFactorEnabled: u.TwoFactorEnabled,
+			})
+		}
+
+		c.JSON(http.StatusOK, models.PaginatedUsersResponse{
+			Items: mappedItems,
 		})
 	}
-
-	c.JSON(http.StatusOK, models.PaginatedUsersResponse{
-		Items: mappedItems,
-	})
 }
 
 // GetUserProxy godoc
@@ -72,41 +75,45 @@ func GetUsers(c *gin.Context) {
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/users/{id} [get]
-func GetUserProxy(c *gin.Context) {
-	userId, err := strconv.ParseInt(c.Param("id"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
-		return
-	}
+func GetUserProxy(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	grpcTarget := os.Getenv("BACKEND_GRPC_TARGET")
-	if grpcTarget == "" {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Configuration error: BACKEND_GRPC_TARGET environment variable is not set"})
-		return
-	}
-
-	conn, err := grpc.NewClient(grpcTarget, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to internal RPC service: " + err.Error()})
-		return
-	}
-	defer func(conn *grpc.ClientConn) {
-		err := conn.Close()
+		userId, err := strconv.ParseInt(c.Param("id"), 10, 32)
 		if err != nil {
-			log.Printf("error: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+			return
 		}
-	}(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+		grpcTarget := os.Getenv("BACKEND_GRPC_TARGET")
+		if grpcTarget == "" {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Configuration error: BACKEND_GRPC_TARGET environment variable is not set"})
+			return
+		}
 
-	resp, err := pb.NewUserRpcServiceClient(conn).GetUserRPC(ctx, &pb.UserGetRequest{Id: int32(userId)})
-	if err != nil {
-		handleGrpcError(c, err)
-		return
+		conn, err := grpc.NewClient(grpcTarget, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to internal RPC service: " + err.Error()})
+			return
+		}
+		defer func(conn *grpc.ClientConn) {
+			if err := conn.Close(); err != nil {
+				log.Printf("error: %v", err)
+			}
+		}(conn)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		resp, err := pb.NewUserRpcServiceClient(conn).
+			GetUserRPC(ctx, &pb.UserGetRequest{Id: int32(userId)})
+
+		if err != nil {
+			handleGrpcError(c, err)
+			return
+		}
+
+		c.JSON(http.StatusOK, buildUserDetailResponse(app, userId, resp))
 	}
-
-	c.JSON(http.StatusOK, buildUserDetailResponse(userId, resp))
 }
 
 func handleGrpcError(c *gin.Context, err error) {
@@ -118,10 +125,11 @@ func handleGrpcError(c *gin.Context, err error) {
 	}
 }
 
-func buildUserDetailResponse(userId int64, resp *pb.UserGetResponse) models.UserDetailResponse {
+func buildUserDetailResponse(app *app.App, userId int64, resp *pb.UserGetResponse) models.UserDetailResponse {
 	var dbUser models.User
 	var roleNames []string
-	if err := db.DB.Preload("Roles").First(&dbUser, userId).Error; err == nil {
+
+	if err := app.DB.Preload("Roles").First(&dbUser, userId).Error; err == nil {
 		for _, r := range dbUser.Roles {
 			roleNames = append(roleNames, r.RoleName)
 		}
@@ -152,6 +160,7 @@ func buildUserDetailResponse(userId int64, resp *pb.UserGetResponse) models.User
 			"unit_id":    employee.UnitId,
 		}
 	}
+
 	return userDetail
 }
 
@@ -173,46 +182,54 @@ func getOptionalString(val string) *string {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/users [post]
-func CreateUserProxy(c *gin.Context) {
-	grpcTarget := os.Getenv("BACKEND_GRPC_TARGET")
-	if grpcTarget == "" {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Configuration error: BACKEND_GRPC_TARGET environment variable is not set"})
-		return
-	}
+func CreateUserProxy(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	conn, err := grpc.NewClient(grpcTarget, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to internal RPC service: " + err.Error()})
-		return
-	}
-	defer func(conn *grpc.ClientConn) {
-		err := conn.Close()
+		grpcTarget := os.Getenv("BACKEND_GRPC_TARGET")
+		if grpcTarget == "" {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Configuration error: BACKEND_GRPC_TARGET environment variable is not set"})
+			return
+		}
+
+		conn, err := grpc.NewClient(grpcTarget, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
-			log.Printf("error: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to internal RPC service: " + err.Error()})
+			return
 		}
-	}(conn)
+		defer func(conn *grpc.ClientConn) {
+			if err := conn.Close(); err != nil {
+				log.Printf("error: %v", err)
+			}
+		}(conn)
 
-	var reqBody dto.CreateUserRequest
-	if err := c.ShouldBindJSON(&reqBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	resp, err := pb.NewUserRpcServiceClient(conn).CreateUserRPC(ctx, buildGrpcCreateRequest(&reqBody))
-	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
-			c.JSON(http.StatusBadRequest, gin.H{"error": st.Message()})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal RPC error: " + err.Error()})
+		var reqBody dto.CreateUserRequest
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
 		}
-		return
-	}
 
-	c.JSON(http.StatusCreated, gin.H{"id": resp.Id, "email": resp.Email, "status": resp.Status})
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		resp, err := pb.NewUserRpcServiceClient(conn).
+			CreateUserRPC(ctx, buildGrpcCreateRequest(&reqBody))
+
+		if err != nil {
+			st, ok := status.FromError(err)
+			if ok {
+				c.JSON(http.StatusBadRequest, gin.H{"error": st.Message()})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal RPC error: " + err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusCreated, gin.H{
+			"id":     resp.Id,
+			"email":  resp.Email,
+			"status": resp.Status,
+		})
+	}
 }
 
 func buildGrpcCreateRequest(reqBody *dto.CreateUserRequest) *pb.UserCreateRequest {
@@ -240,6 +257,7 @@ func buildGrpcCreateRequest(reqBody *dto.CreateUserRequest) *pb.UserCreateReques
 			},
 		}
 	}
+
 	return grpcReq
 }
 
@@ -253,50 +271,52 @@ func buildGrpcCreateRequest(reqBody *dto.CreateUserRequest) *pb.UserCreateReques
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/users/{id} [delete]
-func DeleteUserProxy(c *gin.Context) {
-	idParam := c.Param("id")
-	userId, err := strconv.ParseInt(idParam, 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
-		return
-	}
+func DeleteUserProxy(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	grpcTarget := os.Getenv("BACKEND_GRPC_TARGET")
-	if grpcTarget == "" {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Configuration error: BACKEND_GRPC_TARGET environment variable is not set"})
-		return
-	}
-
-	conn, err := grpc.NewClient(grpcTarget, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to internal RPC service: " + err.Error()})
-		return
-	}
-	defer func(conn *grpc.ClientConn) {
-		err := conn.Close()
+		idParam := c.Param("id")
+		userId, err := strconv.ParseInt(idParam, 10, 32)
 		if err != nil {
-			log.Printf("error: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
+			return
 		}
-	}(conn)
 
-	client := pb.NewUserRpcServiceClient(conn)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	resp, err := client.DeleteUserRPC(ctx, &pb.UserDeleteRequest{Id: int32(userId)})
-	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
-			c.JSON(http.StatusBadRequest, gin.H{"error": st.Message()})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		grpcTarget := os.Getenv("BACKEND_GRPC_TARGET")
+		if grpcTarget == "" {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Configuration error: BACKEND_GRPC_TARGET environment variable is not set"})
+			return
 		}
-		return
+
+		conn, err := grpc.NewClient(grpcTarget, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to internal RPC service: " + err.Error()})
+			return
+		}
+		defer func(conn *grpc.ClientConn) {
+			if err := conn.Close(); err != nil {
+				log.Printf("error: %v", err)
+			}
+		}(conn)
+
+		client := pb.NewUserRpcServiceClient(conn)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		resp, err := client.DeleteUserRPC(ctx, &pb.UserDeleteRequest{Id: int32(userId)})
+		if err != nil {
+			st, ok := status.FromError(err)
+			if ok {
+				c.JSON(http.StatusBadRequest, gin.H{"error": st.Message()})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"success": resp.Success,
+			"message": resp.Message,
+		})
 	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"success": resp.Success,
-		"message": resp.Message,
-	})
 }

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"go_api/db"
+	"go_api/internal/app"
 	"go_api/internal/dto"
 	"go_api/internal/models"
 )
@@ -18,34 +18,40 @@ import (
 // @Success 200 {object} map[string][]dto.CurriculumCourseResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/curriculum-courses [get]
-func GetCurriculumCourses(c *gin.Context) {
-	var curriculumCourses []models.CurriculumCourse
+func GetCurriculumCourses(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	if err := db.DB.
-		Preload("CourseRef").
-		Preload("MajorRef").
-		Preload("ElectiveBlockRef").
-		Order("study_program, course, semester").
-		Find(&curriculumCourses).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		var curriculumCourses []models.CurriculumCourse
+
+		if err := app.DB.
+			Preload("CourseRef").
+			Preload("MajorRef").
+			Preload("ElectiveBlockRef").
+			Order("study_program, course, semester").
+			Find(&curriculumCourses).Error; err != nil {
+
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		majorCounts := fetchMajorGroupCounts(app)
+		items := mapToCurriculumResponses(curriculumCourses, majorCounts)
+
+		c.JSON(http.StatusOK, gin.H{
+			"items": items,
+		})
 	}
-
-	majorCounts := fetchMajorGroupCounts()
-	items := mapToCurriculumResponses(curriculumCourses, majorCounts)
-
-	c.JSON(http.StatusOK, gin.H{
-		"items": items,
-	})
 }
 
-func fetchMajorGroupCounts() map[int]int {
+func fetchMajorGroupCounts(app *app.App) map[int]int {
 	type MajorCountRow struct {
 		MajorID    int
 		GroupCount int
 	}
+
 	var countRows []MajorCountRow
-	db.DB.Table("groups").
+
+	app.DB.Table("groups").
 		Select("major as major_id, count(id) as group_count").
 		Where("major is not null").
 		Group("major").
@@ -55,14 +61,20 @@ func fetchMajorGroupCounts() map[int]int {
 	for _, row := range countRows {
 		majorCounts[row.MajorID] = row.GroupCount
 	}
+
 	return majorCounts
 }
 
-func mapToCurriculumResponses(courses []models.CurriculumCourse, majorCounts map[int]int) []dto.CurriculumCourseResponse {
+func mapToCurriculumResponses(
+	courses []models.CurriculumCourse,
+	majorCounts map[int]int,
+) []dto.CurriculumCourseResponse {
+
 	items := make([]dto.CurriculumCourseResponse, 0, len(courses))
 
 	for _, cc := range courses {
 		var majorDetails *models.MajorReadResponse
+
 		if cc.MajorRef != nil {
 			majorDetails = &models.MajorReadResponse{
 				ID:         cc.MajorRef.ID,
@@ -79,14 +91,15 @@ func mapToCurriculumResponses(courses []models.CurriculumCourse, majorCounts map
 			Major:         cc.Major,
 			ElectiveBlock: cc.ElectiveBlock,
 			CourseDetails: &dto.CourseDetails{
-				CourseCode: cc.CourseRef.CourseCode,
-				CourseName: cc.CourseRef.CourseName,
-				ECTSPoints: cc.CourseRef.EctsPoints,
+				CourseCode:  cc.CourseRef.CourseCode,
+				CourseName:  cc.CourseRef.CourseName,
+				ECTSPoints:  cc.CourseRef.EctsPoints,
 			},
 			MajorDetails:         majorDetails,
 			ElectiveBlockDetails: cc.ElectiveBlockRef,
 		})
 	}
+
 	return items
 }
 
@@ -101,25 +114,29 @@ func mapToCurriculumResponses(courses []models.CurriculumCourse, majorCounts map
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/curriculum-courses [post]
-func CreateCurriculumCourse(c *gin.Context) {
-	var req dto.CreateCurriculumCourseRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+func CreateCurriculumCourse(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	curriculumCourse := models.CurriculumCourse{
-		StudyProgram:  req.StudyProgram,
-		Course:        req.Course,
-		Semester:      req.Semester,
-		Major:         req.Major,
-		ElectiveBlock: req.ElectiveBlock,
-	}
+		var req dto.CreateCurriculumCourseRequest
 
-	if err := db.DB.Create(&curriculumCourse).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
-	c.JSON(http.StatusCreated, curriculumCourse)
+		curriculumCourse := models.CurriculumCourse{
+			StudyProgram:  req.StudyProgram,
+			Course:        req.Course,
+			Semester:      req.Semester,
+			Major:         req.Major,
+			ElectiveBlock: req.ElectiveBlock,
+		}
+
+		if err := app.DB.Create(&curriculumCourse).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusCreated, curriculumCourse)
+	}
 }
