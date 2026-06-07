@@ -142,7 +142,7 @@ services:
       - "3000:3000"
     volumes:
       - ../../backend:/app
-    command: uvicorn main.app --host 0.0.0.0 --port 3000 --reload
+    command: uvicorn main:app --host 0.0.0.0 --port 3000 --reload
 
   grpc_backend:
     build:
