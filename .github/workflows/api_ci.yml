@@ -21,7 +21,7 @@ jobs:
           cache: true
 
       - name: Run golangci-lint
-        uses: golangci-lint/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v6
         with:
           version: v1.61
           working-directory: go_api
@@ -30,7 +30,7 @@ jobs:
   build:
     name: Code Build
     runs-on: ubuntu-latest
-    needs: lint 
+    needs: lint
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
