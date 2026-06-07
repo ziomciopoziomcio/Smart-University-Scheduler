@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import grpc
 import user_pb2
@@ -179,7 +180,5 @@ async def serve():
 
 
 if __name__ == "__main__":
-    import asyncio
-
     logging.basicConfig(level=logging.INFO)
     asyncio.run(serve())
