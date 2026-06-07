@@ -43,8 +43,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             if request.send_login_credentials_email:
                 try:
                     send_login_credentials_email(
-                        user_email=new_user.email,
-                        temporary_password=generated_password
+                        user_email=new_user.email, temporary_password=generated_password
                     )
                 except Exception as e:
                     logger.error(f"Couldn't send email via credentials function: {e}")
