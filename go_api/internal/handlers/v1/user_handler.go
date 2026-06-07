@@ -36,7 +36,7 @@ func GetUsers(c *gin.Context) {
 
 	var mappedItems []models.UserResponse
 	for _, u := range users {
-		roleNames := []string{}
+		var roleNames []string
 		for _, r := range u.Roles {
 			roleNames = append(roleNames, r.RoleName)
 		}
@@ -107,7 +107,7 @@ func handleGrpcError(c *gin.Context, err error) {
 
 func buildUserDetailResponse(userId int64, resp *pb.UserGetResponse) models.UserDetailResponse {
 	var dbUser models.User
-	roleNames := []string{}
+	var roleNames []string
 	if err := db.DB.Preload("Roles").First(&dbUser, userId).Error; err == nil {
 		for _, r := range dbUser.Roles {
 			roleNames = append(roleNames, r.RoleName)
