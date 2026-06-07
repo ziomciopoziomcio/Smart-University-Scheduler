@@ -24,7 +24,7 @@ jobs:
           cache: true
 
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@aaa42aa0628b4ae2578232a66b5410ed79774303
+        uses: golangci/golangci-lint-action@9715aed4da79e67377ff33b39803c200ed434250
         with:
           version: v1.69
           working-directory: go_api
