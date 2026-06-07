@@ -23,10 +23,11 @@ jobs:
           cache: true
 
       - name: Install and Run golangci-lint
-        run: |
-          brew install golangci-lint
-          cd go_api
-          golangci-lint run --timeout=5m    
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest
+          working-directory: go_api
+          args: --timeout=5m
 
   build:
     name: Code Build
