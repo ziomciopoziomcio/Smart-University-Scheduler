@@ -789,8 +789,8 @@ definitions:
     type: object
 info:
   contact: { }
-  version:
-  title:
+  version: "1.0.0"
+  title: "Smart University Scheduler API"
 paths:
   /api/v1/academic-calendar:
     get:
