@@ -1,6 +1,6 @@
 package courses_dto
 
-import "go_api/internal/models"
+import "go_api/internal/models/courses_models"
 
 type CourseDetails struct {
 	CourseCode int    `json:"course_code"`
@@ -16,8 +16,8 @@ type CurriculumCourseResponse struct {
 	ElectiveBlock *int `json:"elective_block"`
 
 	CourseDetails        *CourseDetails            `json:"course_details"`
-	MajorDetails         *models.MajorReadResponse `json:"major_details"`
-	ElectiveBlockDetails *models.ElectiveBlock     `json:"elective_block_details"`
+	MajorDetails         *courses_models.MajorReadResponse `json:"major_details"`
+	ElectiveBlockDetails *courses_models.ElectiveBlock     `json:"elective_block_details"`
 }
 
 type CreateCurriculumCourseRequest struct {

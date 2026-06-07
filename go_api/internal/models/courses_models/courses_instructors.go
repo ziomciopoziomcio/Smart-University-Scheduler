@@ -1,4 +1,4 @@
-package models
+package courses_models
 
 type CoursesInstructors struct {
 	Employee  int    `json:"employee" gorm:"primaryKey"`

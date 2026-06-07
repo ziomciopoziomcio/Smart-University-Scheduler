@@ -1,4 +1,4 @@
-package models
+package users_models
 
 type Role struct {
 	ID       int    `json:"id" gorm:"primaryKey;autoIncrement"`

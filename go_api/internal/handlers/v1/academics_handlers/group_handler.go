@@ -7,7 +7,7 @@ import (
 
 	"go_api/internal/app"
 	"go_api/internal/dto/academics_dto"
-	"go_api/internal/models"
+	"go_api/internal/models/academics_models"
 )
 
 // GetGroups godoc
@@ -21,7 +21,7 @@ import (
 func GetGroups(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		var groups []models.Group
+		var groups []academics_models.Group
 
 		if err := app.DB.Find(&groups).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -56,15 +56,15 @@ func GetGroups(app *app.App) gin.HandlerFunc {
 // @Tags groups
 // @Accept json
 // @Produce json
-// @Param request body models.Group true "Group data"
-// @Success 201 {object} map[string]models.Group
+// @Param request body academics_models.Group true "Group data"
+// @Success 201 {object} map[string]academics_models.Group
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/groups [post]
 func CreateGroup(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		var group models.Group
+		var group academics_models.Group
 
 		if err := c.ShouldBindJSON(&group); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{

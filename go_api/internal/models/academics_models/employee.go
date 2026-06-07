@@ -1,4 +1,4 @@
-package models
+package academics_models
 
 type Employee struct {
 	ID     int `json:"id" gorm:"primaryKey;autoIncrement"`

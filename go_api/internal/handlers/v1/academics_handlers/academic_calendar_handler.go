@@ -9,7 +9,7 @@ import (
 
 	"go_api/internal/app"
 	"go_api/internal/dto/academics_dto"
-	"go_api/internal/models"
+	"go_api/internal/models/academics_models"
 )
 
 // GetAcademicCalendar godoc
@@ -19,7 +19,7 @@ import (
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} models.PaginatedAcademicCalendarResponse
+// @Success 200 {object} academics_models.PaginatedAcademicCalendarResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/academic-calendar [get]
 func GetAcademicCalendar(app *app.App) gin.HandlerFunc {
@@ -37,20 +37,20 @@ func GetAcademicCalendar(app *app.App) gin.HandlerFunc {
 		}
 
 		var total int64
-		if err := app.DB.Model(&models.AcademicCalendar{}).Count(&total).Error; err != nil {
+		if err := app.DB.Model(&academics_models.AcademicCalendar{}).Count(&total).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		var records []models.AcademicCalendar
+		var records []academics_models.AcademicCalendar
 		if err := app.DB.Order("calendar_date").Limit(limit).Offset(offset).Find(&records).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		items := make([]models.AcademicCalendarResponse, 0, len(records))
+		items := make([]academics_models.AcademicCalendarResponse, 0, len(records))
 		for _, r := range records {
-			items = append(items, models.AcademicCalendarResponse{
+			items = append(items, academics_models.AcademicCalendarResponse{
 				CalendarDate:      r.CalendarDate.Format("2006-01-02"),
 				AcademicYear:      r.AcademicYear,
 				SemesterType:      r.SemesterType,
@@ -60,7 +60,7 @@ func GetAcademicCalendar(app *app.App) gin.HandlerFunc {
 			})
 		}
 
-		c.JSON(http.StatusOK, models.PaginatedAcademicCalendarResponse{
+		c.JSON(http.StatusOK, academics_models.PaginatedAcademicCalendarResponse{
 			Total:  total,
 			Limit:  limit,
 			Offset: offset,
@@ -76,7 +76,7 @@ func GetAcademicCalendar(app *app.App) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param request body academics_dto.CreateAcademicCalendarRequest true "Academic calendar data"
-// @Success 201 {object} models.AcademicCalendarResponse
+// @Success 201 {object} academics_models.AcademicCalendarResponse
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/academic-calendar [post]
@@ -97,7 +97,7 @@ func CreateAcademicCalendar(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		record := models.AcademicCalendar{
+		record := academics_models.AcademicCalendar{
 			CalendarDate:      parsedDate,
 			AcademicYear:      req.AcademicYear,
 			SemesterType:      req.SemesterType,
@@ -111,7 +111,7 @@ func CreateAcademicCalendar(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusCreated, models.AcademicCalendarResponse{
+		c.JSON(http.StatusCreated, academics_models.AcademicCalendarResponse{
 			CalendarDate:      record.CalendarDate.Format("2006-01-02"),
 			AcademicYear:      record.AcademicYear,
 			SemesterType:      record.SemesterType,

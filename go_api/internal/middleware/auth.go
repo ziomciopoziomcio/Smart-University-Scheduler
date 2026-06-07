@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go_api/internal/models"
+	"go_api/internal/models/users_models"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -23,13 +23,13 @@ func hashAPIKey(apiKey string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-func authenticateKey(db *gorm.DB, hashedKey string) (*models.User, error) {
+func authenticateKey(db *gorm.DB, hashedKey string) (*users_models.User, error) {
 	var keyRecord UserApiKey
 	if err := db.Table("user_api_keys").Where("api_key_hash = ?", hashedKey).First(&keyRecord).Error; err != nil {
 		return nil, err
 	}
 
-	var user models.User
+	var user users_models.User
 	if err := db.Preload("Roles").Where("id = ?", keyRecord.UserID).First(&user).Error; err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func authenticateKey(db *gorm.DB, hashedKey string) (*models.User, error) {
 	return &user, nil
 }
 
-func hasAdminRole(user *models.User) bool {
+func hasAdminRole(user *users_models.User) bool {
 	for _, r := range user.Roles {
 		roleName := strings.ToLower(r.RoleName)
 		if roleName == "administrator" || roleName == "admin" {

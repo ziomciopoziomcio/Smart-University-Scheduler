@@ -6,7 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/internal/app"
-	"go_api/internal/models"
+	"go_api/internal/models/courses_models"
+	"go_api/internal/models/facilities_models"
 )
 
 // GetStudyFields godoc
@@ -14,12 +15,12 @@ import (
 // @Description Returns study fields with aggregated counts (majors, programs, elective blocks, semesters)
 // @Tags study-fields
 // @Produce json
-// @Success 200 {object} models.PaginatedStudyFieldsResponse
+// @Success 200 {object} courses_models.PaginatedStudyFieldsResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/study-fields [get]
 func GetStudyFields(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var items []models.StudyFieldListSummaryResponse
+		var items []courses_models.StudyFieldListSummaryResponse
 
 		electiveBlocksSubq := app.DB.Table("elective_block").
 			Select("count(id)").
@@ -54,7 +55,7 @@ func GetStudyFields(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, models.PaginatedStudyFieldsResponse{
+		c.JSON(http.StatusOK, courses_models.PaginatedStudyFieldsResponse{
 			Items: items,
 		})
 	}
@@ -66,22 +67,22 @@ func GetStudyFields(app *app.App) gin.HandlerFunc {
 // @Tags study-fields
 // @Accept json
 // @Produce json
-// @Param request body models.StudyField true "Study field data"
-// @Success 201 {object} models.StudyField
+// @Param request body courses_models.StudyField true "Study field data"
+// @Success 201 {object} courses_models.StudyField
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/study-fields [post]
 func CreateStudyField(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var studyField models.StudyField
+		var studyField courses_models.StudyField
 
 		if err := c.ShouldBindJSON(&studyField); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		var faculty models.Faculty
+		var faculty facilities_models.Faculty
 		if err := app.DB.First(&faculty, studyField.FacultyID).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "faculty not found"})
 			return

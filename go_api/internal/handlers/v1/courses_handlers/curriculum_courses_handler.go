@@ -7,7 +7,7 @@ import (
 
 	"go_api/internal/app"
 	"go_api/internal/dto/courses_dto"
-	"go_api/internal/models"
+	"go_api/internal/models/courses_models"
 )
 
 // GetCurriculumCourses godoc
@@ -21,7 +21,7 @@ import (
 func GetCurriculumCourses(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		var curriculumCourses []models.CurriculumCourse
+		var curriculumCourses []courses_models.CurriculumCourse
 
 		if err := app.DB.
 			Preload("CourseRef").
@@ -66,17 +66,17 @@ func fetchMajorGroupCounts(app *app.App) map[int]int {
 }
 
 func mapToCurriculumResponses(
-	courses []models.CurriculumCourse,
+	courses []courses_models.CurriculumCourse,
 	majorCounts map[int]int,
 ) []courses_dto.CurriculumCourseResponse {
 
 	items := make([]courses_dto.CurriculumCourseResponse, 0, len(courses))
 
 	for _, cc := range courses {
-		var majorDetails *models.MajorReadResponse
+		var majorDetails *courses_models.MajorReadResponse
 
 		if cc.MajorRef != nil {
-			majorDetails = &models.MajorReadResponse{
+			majorDetails = &courses_models.MajorReadResponse{
 				ID:         cc.MajorRef.ID,
 				StudyField: cc.MajorRef.StudyFieldID,
 				MajorName:  cc.MajorRef.MajorName,
@@ -110,7 +110,7 @@ func mapToCurriculumResponses(
 // @Accept json
 // @Produce json
 // @Param request body courses_dto.CreateCurriculumCourseRequest true "Curriculum course data"
-// @Success 201 {object} models.CurriculumCourse
+// @Success 201 {object} courses_models.CurriculumCourse
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/curriculum-courses [post]
@@ -124,7 +124,7 @@ func CreateCurriculumCourse(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		curriculumCourse := models.CurriculumCourse{
+		curriculumCourse := courses_models.CurriculumCourse{
 			StudyProgram:  req.StudyProgram,
 			Course:        req.Course,
 			Semester:      req.Semester,

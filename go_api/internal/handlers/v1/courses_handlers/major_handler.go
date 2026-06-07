@@ -8,7 +8,7 @@ import (
 
 	"go_api/internal/app"
 	"go_api/internal/dto/courses_dto"
-	"go_api/internal/models"
+	"go_api/internal/models/courses_models"
 )
 
 // GetMajors godoc
@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} models.PaginatedMajorsResponse
+// @Success 200 {object} courses_models.PaginatedMajorsResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/majors [get]
 func GetMajors(app *app.App) gin.HandlerFunc {
@@ -36,12 +36,12 @@ func GetMajors(app *app.App) gin.HandlerFunc {
 		}
 
 		var total int64
-		if err := app.DB.Model(&models.Major{}).Count(&total).Error; err != nil {
+		if err := app.DB.Model(&courses_models.Major{}).Count(&total).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		var items []models.MajorReadResponse
+		var items []courses_models.MajorReadResponse
 
 		err = app.DB.Table("major").
 			Select(`
@@ -62,7 +62,7 @@ func GetMajors(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, models.PaginatedMajorsResponse{
+		c.JSON(http.StatusOK, courses_models.PaginatedMajorsResponse{
 			Total:  total,
 			Limit:  limit,
 			Offset: offset,
@@ -78,7 +78,7 @@ func GetMajors(app *app.App) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param request body courses_dto.CreateMajorRequest true "Major data"
-// @Success 201 {object} models.Major
+// @Success 201 {object} courses_models.Major
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -97,13 +97,13 @@ func CreateMajor(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		var studyField models.StudyField
+		var studyField courses_models.StudyField
 		if err := app.DB.First(&studyField, *req.StudyField).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "study field not found"})
 			return
 		}
 
-		major := models.Major{
+		major := courses_models.Major{
 			StudyFieldID: req.StudyField,
 			MajorName:    req.MajorName,
 		}

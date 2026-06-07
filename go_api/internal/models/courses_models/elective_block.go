@@ -1,4 +1,4 @@
-package models
+package courses_models
 
 type ElectiveBlock struct {
 	ID                int        `json:"id" gorm:"primaryKey;autoIncrement"`

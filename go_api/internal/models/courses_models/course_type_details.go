@@ -1,4 +1,4 @@
-package models
+package courses_models
 
 type CourseTypeDetail struct {
 	Course                     int    `json:"course" gorm:"primaryKey"`

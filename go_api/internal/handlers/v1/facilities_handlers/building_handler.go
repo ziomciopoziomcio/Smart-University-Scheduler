@@ -8,7 +8,7 @@ import (
 
 	"go_api/internal/app"
 	"go_api/internal/dto/facilities_dto"
-	"go_api/internal/models"
+	"go_api/internal/models/facilities_models"
 )
 
 // GetBuildings godoc
@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} models.PaginatedBuildingsResponse
+// @Success 200 {object} facilities_models.PaginatedBuildingsResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/buildings [get]
 func GetBuildings(app *app.App) gin.HandlerFunc {
@@ -36,12 +36,12 @@ func GetBuildings(app *app.App) gin.HandlerFunc {
 		}
 
 		var total int64
-		if err := app.DB.Model(&models.Building{}).Count(&total).Error; err != nil {
+		if err := app.DB.Model(&facilities_models.Building{}).Count(&total).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		var items []models.BuildingReadResponse
+		var items []facilities_models.BuildingReadResponse
 
 		roomsSubq := app.DB.Table("rooms").
 			Select("count(id)").
@@ -65,7 +65,7 @@ func GetBuildings(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, models.PaginatedBuildingsResponse{
+		c.JSON(http.StatusOK, facilities_models.PaginatedBuildingsResponse{
 			Total:  total,
 			Limit:  limit,
 			Offset: offset,
@@ -81,7 +81,7 @@ func GetBuildings(app *app.App) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param request body facilities_dto.CreateBuildingRequest true "Building data"
-// @Success 201 {object} models.Building
+// @Success 201 {object} facilities_models.Building
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -95,13 +95,13 @@ func CreateBuilding(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		var campus models.Campus
+		var campus facilities_models.Campus
 		if err := app.DB.First(&campus, req.CampusID).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "campus not found"})
 			return
 		}
 
-		building := models.Building{
+		building := facilities_models.Building{
 			BuildingName:   req.BuildingName,
 			BuildingNumber: req.BuildingNumber,
 			CampusID:       req.CampusID,

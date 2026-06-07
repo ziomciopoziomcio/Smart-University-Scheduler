@@ -16,7 +16,7 @@ import (
 
 	"go_api/internal/app"
 	"go_api/internal/dto/users_dto"
-	"go_api/internal/models"
+	"go_api/internal/models/users_models"
 	pb "go_api/internal/rpc/user"
 )
 
@@ -25,27 +25,27 @@ import (
 // @Description Returns list of users with roles
 // @Tags users
 // @Produce json
-// @Success 200 {object} models.PaginatedUsersResponse
+// @Success 200 {object} users_models.PaginatedUsersResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/users [get]
 func GetUsers(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		var users []models.User
+		var users []users_models.User
 
 		if err := app.DB.Preload("Roles").Order("id").Find(&users).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		var mappedItems []models.UserResponse
+		var mappedItems []users_models.UserResponse
 		for _, u := range users {
 			var roleNames []string
 			for _, r := range u.Roles {
 				roleNames = append(roleNames, r.RoleName)
 			}
 
-			mappedItems = append(mappedItems, models.UserResponse{
+			mappedItems = append(mappedItems, users_models.UserResponse{
 				ID:               u.ID,
 				Email:            u.Email,
 				PhoneNumber:      u.PhoneNumber,
@@ -58,7 +58,7 @@ func GetUsers(app *app.App) gin.HandlerFunc {
 			})
 		}
 
-		c.JSON(http.StatusOK, models.PaginatedUsersResponse{
+		c.JSON(http.StatusOK, users_models.PaginatedUsersResponse{
 			Items: mappedItems,
 		})
 	}
@@ -70,7 +70,7 @@ func GetUsers(app *app.App) gin.HandlerFunc {
 // @Tags users
 // @Produce json
 // @Param id path int true "User ID"
-// @Success 200 {object} models.UserDetailResponse
+// @Success 200 {object} users_models.UserDetailResponse
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -125,8 +125,8 @@ func handleGrpcError(c *gin.Context, err error) {
 	}
 }
 
-func buildUserDetailResponse(app *app.App, userId int64, resp *pb.UserGetResponse) models.UserDetailResponse {
-	var dbUser models.User
+func buildUserDetailResponse(app *app.App, userId int64, resp *pb.UserGetResponse) users_models.UserDetailResponse {
+	var dbUser users_models.User
 	var roleNames []string
 
 	if err := app.DB.Preload("Roles").First(&dbUser, userId).Error; err == nil {
@@ -135,7 +135,7 @@ func buildUserDetailResponse(app *app.App, userId int64, resp *pb.UserGetRespons
 		}
 	}
 
-	userDetail := models.UserDetailResponse{
+	userDetail := users_models.UserDetailResponse{
 		ID:               int(resp.Id),
 		Email:            resp.Email,
 		PhoneNumber:      getOptionalString(resp.PhoneNumber),

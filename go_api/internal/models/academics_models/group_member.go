@@ -1,4 +1,4 @@
-package models
+package academics_models
 
 type GroupMember struct {
 	GroupID   uint `json:"group" gorm:"primaryKey;column:group"`

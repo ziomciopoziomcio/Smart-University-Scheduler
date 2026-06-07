@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/internal/app"
-	"go_api/internal/models"
+	"go_api/internal/models/courses_models"
 )
 
 // GetStudyPrograms godoc
@@ -14,25 +14,25 @@ import (
 // @Description Returns study programs with semester statistics
 // @Tags study-programs
 // @Produce json
-// @Success 200 {object} models.PaginatedStudyProgramsResponse
+// @Success 200 {object} courses_models.PaginatedStudyProgramsResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/study-programs [get]
 func GetStudyPrograms(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		var programs []models.StudyProgram
+		var programs []courses_models.StudyProgram
 
 		if err := app.DB.Order("id").Find(&programs).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		var mappedItems []models.StudyProgramDetailResponse
+		var mappedItems []courses_models.StudyProgramDetailResponse
 
 		for _, p := range programs {
 			semesterSummary, maxSem := fetchSemesterSummary(app, p.ID)
 
-			mappedItems = append(mappedItems, models.StudyProgramDetailResponse{
+			mappedItems = append(mappedItems, courses_models.StudyProgramDetailResponse{
 				ID:             p.ID,
 				StudyField:     p.StudyField,
 				StartYear:      p.StartYear,
@@ -42,14 +42,14 @@ func GetStudyPrograms(app *app.App) gin.HandlerFunc {
 			})
 		}
 
-		c.JSON(http.StatusOK, models.PaginatedStudyProgramsResponse{
+		c.JSON(http.StatusOK, courses_models.PaginatedStudyProgramsResponse{
 			Items: mappedItems,
 		})
 	}
 }
 
 // helper
-func fetchSemesterSummary(app *app.App, programID int) ([]models.SemesterSummary, int) {
+func fetchSemesterSummary(app *app.App, programID int) ([]courses_models.SemesterSummary, int) {
 
 	type SummaryRow struct {
 		Semester     int
@@ -72,27 +72,27 @@ func fetchSemesterSummary(app *app.App, programID int) ([]models.SemesterSummary
 		Scan(&rows)
 
 	maxSem := 0
-	perSemMap := make(map[int]models.SemesterSummary)
+	perSemMap := make(map[int]courses_models.SemesterSummary)
 
 	for _, r := range rows {
 		if r.Semester > maxSem {
 			maxSem = r.Semester
 		}
 
-		perSemMap[r.Semester] = models.SemesterSummary{
+		perSemMap[r.Semester] = courses_models.SemesterSummary{
 			SemesterNumber: r.Semester,
 			CoursesCount:   r.CoursesCount,
 			EctsSum:        r.EctsSum,
 		}
 	}
 
-	var semesterSummary []models.SemesterSummary
+	var semesterSummary []courses_models.SemesterSummary
 
 	for s := 1; s <= maxSem; s++ {
 		if entry, ok := perSemMap[s]; ok {
 			semesterSummary = append(semesterSummary, entry)
 		} else {
-			semesterSummary = append(semesterSummary, models.SemesterSummary{
+			semesterSummary = append(semesterSummary, courses_models.SemesterSummary{
 				SemesterNumber: s,
 				CoursesCount:   0,
 				EctsSum:        0,
@@ -109,15 +109,15 @@ func fetchSemesterSummary(app *app.App, programID int) ([]models.SemesterSummary
 // @Tags study-programs
 // @Accept json
 // @Produce json
-// @Param request body models.StudyProgram true "Study program data"
-// @Success 201 {object} models.StudyProgram
+// @Param request body courses_models.StudyProgram true "Study program data"
+// @Success 201 {object} courses_models.StudyProgram
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/study-programs [post]
 func CreateStudyProgram(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		var studyProgram models.StudyProgram
+		var studyProgram courses_models.StudyProgram
 
 		if err := c.ShouldBindJSON(&studyProgram); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

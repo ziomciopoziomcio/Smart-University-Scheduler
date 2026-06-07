@@ -8,7 +8,7 @@ import (
 
 	"go_api/internal/app"
 	"go_api/internal/dto/courses_dto"
-	"go_api/internal/models"
+	"go_api/internal/models/courses_models"
 )
 
 // GetCourseTypeDetails godoc
@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} models.PaginatedCourseTypeDetailsResponse
+// @Success 200 {object} courses_models.PaginatedCourseTypeDetailsResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/course-type-details [get]
 func GetCourseTypeDetails(app *app.App) gin.HandlerFunc {
@@ -36,12 +36,12 @@ func GetCourseTypeDetails(app *app.App) gin.HandlerFunc {
 		}
 
 		var total int64
-		if err := app.DB.Model(&models.CourseTypeDetail{}).Count(&total).Error; err != nil {
+		if err := app.DB.Model(&courses_models.CourseTypeDetail{}).Count(&total).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		var courseTypeDetails []models.CourseTypeDetail
+		var courseTypeDetails []courses_models.CourseTypeDetail
 
 		if err := app.DB.
 			Order("course, class_type").
@@ -52,7 +52,7 @@ func GetCourseTypeDetails(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, models.PaginatedCourseTypeDetailsResponse{
+		c.JSON(http.StatusOK, courses_models.PaginatedCourseTypeDetailsResponse{
 			Total:  total,
 			Limit:  limit,
 			Offset: offset,
@@ -68,7 +68,7 @@ func GetCourseTypeDetails(app *app.App) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param request body courses_dto.CreateCourseTypeDetailRequest true "Course type detail data"
-// @Success 201 {object} models.CourseTypeDetail
+// @Success 201 {object} courses_models.CourseTypeDetail
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/course-type-details [post]
@@ -81,7 +81,7 @@ func CreateCourseTypeDetail(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		courseTypeDetail := models.CourseTypeDetail{
+		courseTypeDetail := courses_models.CourseTypeDetail{
 			Course:                     req.Course,
 			ClassType:                  req.ClassType,
 			ClassHours:                 req.ClassHours,

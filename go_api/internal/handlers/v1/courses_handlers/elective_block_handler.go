@@ -8,7 +8,7 @@ import (
 
 	"go_api/internal/app"
 	"go_api/internal/dto/courses_dto"
-	"go_api/internal/models"
+	"go_api/internal/models/courses_models"
 )
 
 // GetElectiveBlocks godoc
@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} models.PaginatedElectiveBlocksResponse
+// @Success 200 {object} courses_models.PaginatedElectiveBlocksResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/elective-blocks [get]
 func GetElectiveBlocks(app *app.App) gin.HandlerFunc {
@@ -36,12 +36,12 @@ func GetElectiveBlocks(app *app.App) gin.HandlerFunc {
 		}
 
 		var total int64
-		if err := app.DB.Model(&models.ElectiveBlock{}).Count(&total).Error; err != nil {
+		if err := app.DB.Model(&courses_models.ElectiveBlock{}).Count(&total).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		var blocks []models.ElectiveBlock
+		var blocks []courses_models.ElectiveBlock
 
 		if err := app.DB.
 			Order("id").
@@ -52,7 +52,7 @@ func GetElectiveBlocks(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, models.PaginatedElectiveBlocksResponse{
+		c.JSON(http.StatusOK, courses_models.PaginatedElectiveBlocksResponse{
 			Total:  total,
 			Limit:  limit,
 			Offset: offset,
@@ -68,7 +68,7 @@ func GetElectiveBlocks(app *app.App) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param request body courses_dto.CreateElectiveBlockRequest true "Elective block data"
-// @Success 201 {object} models.ElectiveBlock
+// @Success 201 {object} courses_models.ElectiveBlock
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -82,13 +82,13 @@ func CreateElectiveBlock(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		var studyField models.StudyField
+		var studyField courses_models.StudyField
 		if err := app.DB.First(&studyField, req.StudyField).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "study field not found"})
 			return
 		}
 
-		block := models.ElectiveBlock{
+		block := courses_models.ElectiveBlock{
 			StudyFieldID:      req.StudyField,
 			ElectiveBlockName: req.ElectiveBlockName,
 		}

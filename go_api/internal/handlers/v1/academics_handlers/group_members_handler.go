@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go_api/internal/app"
-	"go_api/internal/models"
+	"go_api/internal/models/academics_models"
 )
 
 // GetGroupMembers godoc
@@ -14,13 +14,13 @@ import (
 // @Description Returns list of group members with group relation
 // @Tags group-members
 // @Produce json
-// @Success 200 {object} map[string][]models.GroupMember
+// @Success 200 {object} map[string][]academics_models.GroupMember
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/group-members [get]
 func GetGroupMembers(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		var members []models.GroupMember
+		var members []academics_models.GroupMember
 
 		if err := app.DB.
 			Preload("Group").
@@ -44,15 +44,15 @@ func GetGroupMembers(app *app.App) gin.HandlerFunc {
 // @Tags group-members
 // @Accept json
 // @Produce json
-// @Param request body models.GroupMember true "Group member data"
-// @Success 201 {object} map[string]models.GroupMember
+// @Param request body academics_models.GroupMember true "Group member data"
+// @Success 201 {object} map[string]academics_models.GroupMember
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/group-members [post]
 func CreateGroupMember(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		var member models.GroupMember
+		var member academics_models.GroupMember
 
 		if err := c.ShouldBindJSON(&member); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{

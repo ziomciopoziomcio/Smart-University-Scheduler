@@ -8,7 +8,7 @@ import (
 
 	"go_api/internal/app"
 	"go_api/internal/dto/facilities_dto"
-	"go_api/internal/models"
+	"go_api/internal/models/facilities_models"
 )
 
 // GetCampuses godoc
@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} models.PaginatedCampusesResponse
+// @Success 200 {object} facilities_models.PaginatedCampusesResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/campuses [get]
 func GetCampuses(app *app.App) gin.HandlerFunc {
@@ -36,18 +36,18 @@ func GetCampuses(app *app.App) gin.HandlerFunc {
 		}
 
 		var total int64
-		if err := app.DB.Model(&models.Campus{}).Count(&total).Error; err != nil {
+		if err := app.DB.Model(&facilities_models.Campus{}).Count(&total).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		var campuses []models.Campus
+		var campuses []facilities_models.Campus
 		if err := app.DB.Order("id").Limit(limit).Offset(offset).Find(&campuses).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusOK, models.PaginatedCampusesResponse{
+		c.JSON(http.StatusOK, facilities_models.PaginatedCampusesResponse{
 			Total:  total,
 			Limit:  limit,
 			Offset: offset,
@@ -63,7 +63,7 @@ func GetCampuses(app *app.App) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param request body facilities_dto.CreateCampusRequest true "Campus data"
-// @Success 201 {object} models.Campus
+// @Success 201 {object} facilities_models.Campus
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/campuses [post]
@@ -76,7 +76,7 @@ func CreateCampus(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		campus := models.Campus{
+		campus := facilities_models.Campus{
 			CampusName:  req.CampusName,
 			CampusShort: req.CampusShort,
 		}

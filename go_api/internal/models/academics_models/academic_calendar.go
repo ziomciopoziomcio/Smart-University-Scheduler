@@ -1,4 +1,4 @@
-package models
+package academics_models
 
 import "time"
 

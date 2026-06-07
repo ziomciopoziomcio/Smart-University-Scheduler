@@ -1,4 +1,4 @@
-package models
+package facilities_models
 
 type Campus struct {
 	ID          int        `json:"id" gorm:"primaryKey;autoIncrement"`

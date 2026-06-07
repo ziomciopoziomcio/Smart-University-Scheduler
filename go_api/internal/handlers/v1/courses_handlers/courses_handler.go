@@ -8,7 +8,7 @@ import (
 
 	"go_api/internal/app"
 	"go_api/internal/dto/courses_dto"
-	"go_api/internal/models"
+	"go_api/internal/models/courses_models"
 )
 
 // GetCourses godoc
@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} models.PaginatedCoursesResponse
+// @Success 200 {object} courses_models.PaginatedCoursesResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/courses [get]
 func GetCourses(app *app.App) gin.HandlerFunc {
@@ -36,12 +36,12 @@ func GetCourses(app *app.App) gin.HandlerFunc {
 		}
 
 		var total int64
-		if err := app.DB.Model(&models.Course{}).Count(&total).Error; err != nil {
+		if err := app.DB.Model(&courses_models.Course{}).Count(&total).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		var courses []models.Course
+		var courses []courses_models.Course
 
 		if err := app.DB.Order("course_code").
 			Limit(limit).
@@ -51,7 +51,7 @@ func GetCourses(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, models.PaginatedCoursesResponse{
+		c.JSON(http.StatusOK, courses_models.PaginatedCoursesResponse{
 			Total:  total,
 			Limit:  limit,
 			Offset: offset,
@@ -67,7 +67,7 @@ func GetCourses(app *app.App) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param request body courses_dto.CreateCourseRequest true "Course data"
-// @Success 201 {object} models.Course
+// @Success 201 {object} courses_models.Course
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/courses [post]
@@ -80,7 +80,7 @@ func CreateCourse(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		course := models.Course{
+		course := courses_models.Course{
 			CourseCode:        req.CourseCode,
 			EctsPoints:        req.EctsPoints,
 			CourseName:        req.CourseName,

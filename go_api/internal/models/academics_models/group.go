@@ -1,4 +1,4 @@
-package models
+package academics_models
 
 type Group struct {
 	ID            uint   `json:"id" gorm:"primaryKey;autoIncrement"`

@@ -8,7 +8,7 @@ import (
 
 	"go_api/internal/app"
 	"go_api/internal/dto/users_dto"
-	"go_api/internal/models"
+	"go_api/internal/models/users_models"
 )
 
 // GetRoles godoc
@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} models.PaginatedRolesResponse
+// @Success 200 {object} users_models.PaginatedRolesResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/roles [get]
 func GetRoles(app *app.App) gin.HandlerFunc {
@@ -26,31 +26,31 @@ func GetRoles(app *app.App) gin.HandlerFunc {
 		limit, offset := parsePaginationParams(c)
 
 		var total int64
-		if err := app.DB.Model(&models.Role{}).Count(&total).Error; err != nil {
+		if err := app.DB.Model(&users_models.Role{}).Count(&total).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		var roleIDs []int
-		if err := app.DB.Model(&models.Role{}).Order("id").Limit(limit).Offset(offset).Pluck("id", &roleIDs).Error; err != nil {
+		if err := app.DB.Model(&users_models.Role{}).Order("id").Limit(limit).Offset(offset).Pluck("id", &roleIDs).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		var roles []models.Role
+		var roles []users_models.Role
 		if len(roleIDs) > 0 {
 			if err := app.DB.Preload("Permissions").Order("id").Where("id IN ?", roleIDs).Find(&roles).Error; err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
 		} else {
-			roles = []models.Role{}
+			roles = []users_models.Role{}
 		}
 
 		countsMap := fetchRoleUsersCount(app)
 		items := mapRolesToResponse(roles, countsMap)
 
-		c.JSON(http.StatusOK, models.PaginatedRolesResponse{
+		c.JSON(http.StatusOK, users_models.PaginatedRolesResponse{
 			Total:  total,
 			Limit:  limit,
 			Offset: offset,
@@ -94,15 +94,15 @@ func fetchRoleUsersCount(app *app.App) map[int]int {
 	return countsMap
 }
 
-func mapRolesToResponse(roles []models.Role, countsMap map[int]int) []models.RoleWithCountResponse {
-	items := make([]models.RoleWithCountResponse, 0, len(roles))
+func mapRolesToResponse(roles []users_models.Role, countsMap map[int]int) []users_models.RoleWithCountResponse {
+	items := make([]users_models.RoleWithCountResponse, 0, len(roles))
 	for _, r := range roles {
 		perms := r.Permissions
 		if perms == nil {
-			perms = []models.Permission{}
+			perms = []users_models.Permission{}
 		}
 
-		items = append(items, models.RoleWithCountResponse{
+		items = append(items, users_models.RoleWithCountResponse{
 			ID:          r.ID,
 			RoleName:    r.RoleName,
 			Permissions: perms,
@@ -119,7 +119,7 @@ func mapRolesToResponse(roles []models.Role, countsMap map[int]int) []models.Rol
 // @Accept json
 // @Produce json
 // @Param request body users_dto.CreateRoleRequest true "Role data"
-// @Success 201 {object} models.Role
+// @Success 201 {object} users_models.Role
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/roles [post]
@@ -132,7 +132,7 @@ func CreateRole(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		role := models.Role{
+		role := users_models.Role{
 			RoleName: req.RoleName,
 		}
 
@@ -152,7 +152,7 @@ func CreateRole(app *app.App) gin.HandlerFunc {
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} models.PaginatedPermissionsResponse
+// @Success 200 {object} users_models.PaginatedPermissionsResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/permissions [get]
 func GetPermissions(app *app.App) gin.HandlerFunc {
@@ -170,19 +170,19 @@ func GetPermissions(app *app.App) gin.HandlerFunc {
 		}
 
 		var total int64
-		if err := app.DB.Model(&models.Permission{}).Count(&total).Error; err != nil {
+		if err := app.DB.Model(&users_models.Permission{}).Count(&total).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		var permissions []models.Permission
+		var permissions []users_models.Permission
 
 		if err := app.DB.Order("id").Limit(limit).Offset(offset).Find(&permissions).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		c.JSON(http.StatusOK, models.PaginatedPermissionsResponse{
+		c.JSON(http.StatusOK, users_models.PaginatedPermissionsResponse{
 			Total:  total,
 			Limit:  limit,
 			Offset: offset,
@@ -198,7 +198,7 @@ func GetPermissions(app *app.App) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param request body users_dto.CreatePermissionRequest true "Permission data"
-// @Success 201 {object} models.Permission
+// @Success 201 {object} users_models.Permission
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/permissions [post]
@@ -211,7 +211,7 @@ func CreatePermission(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		permission := models.Permission{
+		permission := users_models.Permission{
 			Code:        req.Code,
 			Name:        req.Name,
 			Description: req.Description,
@@ -255,13 +255,13 @@ func AssignPermissionToRole(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		var role models.Role
+		var role users_models.Role
 		if err := app.DB.First(&role, roleID).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "role not found"})
 			return
 		}
 
-		var permission models.Permission
+		var permission users_models.Permission
 		if err := app.DB.First(&permission, req.PermissionID).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "permission not found"})
 			return

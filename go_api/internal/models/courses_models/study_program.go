@@ -1,4 +1,4 @@
-package models
+package courses_models
 
 type StudyProgram struct {
 	ID          int     `json:"id" gorm:"primaryKey;autoIncrement"`

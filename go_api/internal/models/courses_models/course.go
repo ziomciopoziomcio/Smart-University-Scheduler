@@ -1,4 +1,4 @@
-package models
+package courses_models
 
 type Course struct {
 	CourseCode        int    `json:"course_code" gorm:"primaryKey;autoIncrement:false"`

@@ -8,7 +8,7 @@ import (
 
 	"go_api/internal/app"
 	"go_api/internal/dto/courses_dto"
-	"go_api/internal/models"
+	"go_api/internal/models/courses_models"
 )
 
 // GetCoursesInstructors godoc
@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} models.PaginatedCoursesInstructorsResponse
+// @Success 200 {object} courses_models.PaginatedCoursesInstructorsResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/courses-instructors [get]
 func GetCoursesInstructors(app *app.App) gin.HandlerFunc {
@@ -36,12 +36,12 @@ func GetCoursesInstructors(app *app.App) gin.HandlerFunc {
 		}
 
 		var total int64
-		if err := app.DB.Model(&models.CoursesInstructors{}).Count(&total).Error; err != nil {
+		if err := app.DB.Model(&courses_models.CoursesInstructors{}).Count(&total).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		var coursesInstructors []models.CoursesInstructors
+		var coursesInstructors []courses_models.CoursesInstructors
 
 		if err := app.DB.Order("employee, course, class_type").
 			Limit(limit).
@@ -51,7 +51,7 @@ func GetCoursesInstructors(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, models.PaginatedCoursesInstructorsResponse{
+		c.JSON(http.StatusOK, courses_models.PaginatedCoursesInstructorsResponse{
 			Total:  total,
 			Limit:  limit,
 			Offset: offset,
@@ -67,7 +67,7 @@ func GetCoursesInstructors(app *app.App) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param request body courses_dto.CreateCourseInstructorRequest true "Instructor assignment data"
-// @Success 201 {object} models.CoursesInstructors
+// @Success 201 {object} courses_models.CoursesInstructors
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/courses-instructors [post]
@@ -80,7 +80,7 @@ func CreateCoursesInstructor(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		var ctd models.CourseTypeDetail
+		var ctd courses_models.CourseTypeDetail
 
 		if err := app.DB.
 			Where("course = ? AND class_type = ?", req.Course, req.ClassType).
@@ -91,7 +91,7 @@ func CreateCoursesInstructor(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		coursesInstructor := models.CoursesInstructors{
+		coursesInstructor := courses_models.CoursesInstructors{
 			Employee:  req.Employee,
 			Course:    req.Course,
 			ClassType: req.ClassType,

@@ -8,7 +8,7 @@ import (
 
 	"go_api/internal/app"
 	"go_api/internal/dto/facilities_dto"
-	"go_api/internal/models"
+	"go_api/internal/models/facilities_models"
 )
 
 // GetFaculties godoc
@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} models.PaginatedFacultiesResponse
+// @Success 200 {object} facilities_models.PaginatedFacultiesResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/faculties [get]
 func GetFaculties(app *app.App) gin.HandlerFunc {
@@ -36,12 +36,12 @@ func GetFaculties(app *app.App) gin.HandlerFunc {
 		}
 
 		var total int64
-		if err := app.DB.Model(&models.Faculty{}).Count(&total).Error; err != nil {
+		if err := app.DB.Model(&facilities_models.Faculty{}).Count(&total).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		var items []models.FacultyReadWithCounterResponse
+		var items []facilities_models.FacultyReadWithCounterResponse
 
 		lecturersSubq := app.DB.Table("employees").
 			Select("count(id)").
@@ -71,7 +71,7 @@ func GetFaculties(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, models.PaginatedFacultiesResponse{
+		c.JSON(http.StatusOK, facilities_models.PaginatedFacultiesResponse{
 			Total:  total,
 			Limit:  limit,
 			Offset: offset,
@@ -87,7 +87,7 @@ func GetFaculties(app *app.App) gin.HandlerFunc {
 // @Accept json
 // @Produce json
 // @Param request body facilities_dto.CreateFacultyRequest true "Faculty data"
-// @Success 201 {object} models.Faculty
+// @Success 201 {object} facilities_models.Faculty
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/faculties [post]
@@ -100,7 +100,7 @@ func CreateFaculty(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		faculty := models.Faculty{
+		faculty := facilities_models.Faculty{
 			FacultyName:  req.FacultyName,
 			FacultyShort: req.FacultyShort,
 		}
