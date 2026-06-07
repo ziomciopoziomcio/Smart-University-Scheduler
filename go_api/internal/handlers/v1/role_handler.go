@@ -31,7 +31,6 @@ func GetRoles(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		// 1. KROK: Pobieramy tylko ID ról, które mieszczą się w wybranym limicie i offsecie
 		var roleIDs []int
 		if err := app.DB.Model(&models.Role{}).Order("id").Limit(limit).Offset(offset).Pluck("id", &roleIDs).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -39,7 +38,6 @@ func GetRoles(app *app.App) gin.HandlerFunc {
 		}
 
 		var roles []models.Role
-		// 2. KROK: Jeśli znaleźliśmy jakieś ID, dociągamy pełne dane wraz z relacjami tylko dla tej paczki
 		if len(roleIDs) > 0 {
 			if err := app.DB.Preload("Permissions").Order("id").Where("id IN ?", roleIDs).Find(&roles).Error; err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -193,7 +191,16 @@ func GetPermissions(app *app.App) gin.HandlerFunc {
 	}
 }
 
-// CreatePermission godoc
+// @Summary Create permission
+// @Description Creates a new application permission entry
+// @Tags roles
+// @Accept json
+// @Produce json
+// @Param request body dto.CreatePermissionRequest true "Permission data"
+// @Success 201 {object} models.Permission
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/permissions [post]
 func CreatePermission(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req dto.CreatePermissionRequest
@@ -219,7 +226,18 @@ func CreatePermission(app *app.App) gin.HandlerFunc {
 	}
 }
 
-// AssignPermissionToRole godoc
+// @Summary Assign permission to role
+// @Description Binds a specific permission to an existing role entity
+// @Tags roles
+// @Accept json
+// @Produce json
+// @Param id path int true "Role ID"
+// @Param request body dto.AssignPermissionRequest true "Permission Assignment data"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/roles/{id}/permissions [post]
 func AssignPermissionToRole(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		roleIDStr := c.Param("id")
