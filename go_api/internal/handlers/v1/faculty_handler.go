@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -12,14 +13,33 @@ import (
 
 // GetFaculties godoc
 // @Summary Get faculties
-// @Description Returns faculties with lecturers and students count
+// @Description Returns paginated faculties with lecturers and students count
 // @Tags faculties
 // @Produce json
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
 // @Success 200 {object} models.PaginatedFacultiesResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/faculties [get]
 func GetFaculties(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		limitStr := c.DefaultQuery("limit", "10")
+		offsetStr := c.DefaultQuery("offset", "0")
+
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			limit = 10
+		}
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			offset = 0
+		}
+
+		var total int64
+		if err := app.DB.Model(&models.Faculty{}).Count(&total).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 
 		var items []models.FacultyReadWithCounterResponse
 
@@ -33,16 +53,18 @@ func GetFaculties(app *app.App) gin.HandlerFunc {
 			Select("count(students.id)").
 			Where("study_fields.faculty = faculties.id")
 
-		err := app.DB.Table("faculties").
+		err = app.DB.Table("faculties").
 			Select(`
-				faculties.id,
-				faculties.faculty_name,
-				faculties.faculty_short,
-				coalesce((?), 0) as lecturers_count,
-				coalesce((?), 0) as students_count
-			`, lecturersSubq, studentsSubq).
+             faculties.id,
+             faculties.faculty_name,
+             faculties.faculty_short,
+             coalesce((?), 0) as lecturers_count,
+             coalesce((?), 0) as students_count
+          `, lecturersSubq, studentsSubq).
 			Order("faculties.id").
-			Scan(&items).Error
+			Limit(limit).
+			Offset(offset).
+			Find(&items).Error
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -50,7 +72,10 @@ func GetFaculties(app *app.App) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, models.PaginatedFacultiesResponse{
-			Items: items,
+			Total:  total,
+			Limit:  limit,
+			Offset: offset,
+			Items:  items,
 		})
 	}
 }
@@ -68,7 +93,6 @@ func GetFaculties(app *app.App) gin.HandlerFunc {
 // @Router /api/v1/faculties [post]
 func CreateFaculty(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var req dto.CreateFacultyRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {

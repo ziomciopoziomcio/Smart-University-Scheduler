@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -12,26 +13,49 @@ import (
 
 // GetCourses godoc
 // @Summary Get all courses
-// @Description Returns list of all courses sorted by course code
+// @Description Returns paginated list of all courses sorted by course code
 // @Tags courses
 // @Produce json
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
 // @Success 200 {object} models.PaginatedCoursesResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/courses [get]
 func GetCourses(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		limitStr := c.DefaultQuery("limit", "10")
+		offsetStr := c.DefaultQuery("offset", "0")
+
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			limit = 10
+		}
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			offset = 0
+		}
+
+		var total int64
+		if err := app.DB.Model(&models.Course{}).Count(&total).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 
 		var courses []models.Course
 
 		if err := app.DB.Order("course_code").
+			Limit(limit).
+			Offset(offset).
 			Find(&courses).Error; err != nil {
-
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		c.JSON(http.StatusOK, models.PaginatedCoursesResponse{
-			Items: courses,
+			Total:  total,
+			Limit:  limit,
+			Offset: offset,
+			Items:  courses,
 		})
 	}
 }
@@ -49,7 +73,6 @@ func GetCourses(app *app.App) gin.HandlerFunc {
 // @Router /api/v1/courses [post]
 func CreateCourse(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var req dto.CreateCourseRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {

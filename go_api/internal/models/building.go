@@ -24,5 +24,8 @@ type BuildingReadResponse struct {
 }
 
 type PaginatedBuildingsResponse struct {
-	Items []BuildingReadResponse `json:"items"`
+	Total  int64                  `json:"total"`
+	Limit  int                    `json:"limit"`
+	Offset int                    `json:"offset"`
+	Items  []BuildingReadResponse `json:"items"`
 }

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -12,14 +13,33 @@ import (
 
 // GetBuildings godoc
 // @Summary Get all buildings
-// @Description Returns list of buildings with number of rooms
+// @Description Returns paginated list of buildings with number of rooms
 // @Tags buildings
 // @Produce json
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
 // @Success 200 {object} models.PaginatedBuildingsResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/buildings [get]
 func GetBuildings(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		limitStr := c.DefaultQuery("limit", "10")
+		offsetStr := c.DefaultQuery("offset", "0")
+
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			limit = 10
+		}
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			offset = 0
+		}
+
+		var total int64
+		if err := app.DB.Model(&models.Building{}).Count(&total).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 
 		var items []models.BuildingReadResponse
 
@@ -27,15 +47,17 @@ func GetBuildings(app *app.App) gin.HandlerFunc {
 			Select("count(id)").
 			Where("rooms.building_id = buildings.id")
 
-		err := app.DB.Table("buildings").
+		err = app.DB.Table("buildings").
 			Select(`
-				buildings.id,
-				buildings.building_name,
-				buildings.building_number,
-				buildings.campus_id,
-				coalesce((?), 0) as rooms_number
-			`, roomsSubq).
+             buildings.id,
+             buildings.building_name,
+             buildings.building_number,
+             buildings.campus_id,
+             coalesce((?), 0) as rooms_number
+          `, roomsSubq).
 			Order("buildings.id").
+			Limit(limit).
+			Offset(offset).
 			Scan(&items).Error
 
 		if err != nil {
@@ -44,7 +66,10 @@ func GetBuildings(app *app.App) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, models.PaginatedBuildingsResponse{
-			Items: items,
+			Total:  total,
+			Limit:  limit,
+			Offset: offset,
+			Items:  items,
 		})
 	}
 }
@@ -63,7 +88,6 @@ func GetBuildings(app *app.App) gin.HandlerFunc {
 // @Router /api/v1/buildings [post]
 func CreateBuilding(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var req dto.CreateBuildingRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -12,26 +13,49 @@ import (
 
 // GetCoursesInstructors godoc
 // @Summary Get course instructors
-// @Description Returns list of course-instructor assignments
+// @Description Returns paginated list of course-instructor assignments
 // @Tags courses-instructors
 // @Produce json
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
 // @Success 200 {object} models.PaginatedCoursesInstructorsResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/courses-instructors [get]
 func GetCoursesInstructors(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		limitStr := c.DefaultQuery("limit", "10")
+		offsetStr := c.DefaultQuery("offset", "0")
+
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			limit = 10
+		}
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			offset = 0
+		}
+
+		var total int64
+		if err := app.DB.Model(&models.CoursesInstructors{}).Count(&total).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 
 		var coursesInstructors []models.CoursesInstructors
 
 		if err := app.DB.Order("employee, course, class_type").
+			Limit(limit).
+			Offset(offset).
 			Find(&coursesInstructors).Error; err != nil {
-
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		c.JSON(http.StatusOK, models.PaginatedCoursesInstructorsResponse{
-			Items: coursesInstructors,
+			Total:  total,
+			Limit:  limit,
+			Offset: offset,
+			Items:  coursesInstructors,
 		})
 	}
 }
@@ -49,7 +73,6 @@ func GetCoursesInstructors(app *app.App) gin.HandlerFunc {
 // @Router /api/v1/courses-instructors [post]
 func CreateCoursesInstructor(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var req dto.CreateCourseInstructorRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -62,7 +85,6 @@ func CreateCoursesInstructor(app *app.App) gin.HandlerFunc {
 		if err := app.DB.
 			Where("course = ? AND class_type = ?", req.Course, req.ClassType).
 			First(&ctd).Error; err != nil {
-
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Cannot assign instructor: class type is not defined for this course",
 			})

@@ -20,5 +20,8 @@ type MajorReadResponse struct {
 }
 
 type PaginatedMajorsResponse struct {
-	Items []MajorReadResponse `json:"items"`
+	Total  int64               `json:"total"`
+	Limit  int                 `json:"limit"`
+	Offset int                 `json:"offset"`
+	Items  []MajorReadResponse `json:"items"`
 }

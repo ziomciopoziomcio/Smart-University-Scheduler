@@ -19,9 +19,15 @@ type RoleWithCountResponse struct {
 }
 
 type PaginatedRolesResponse struct {
-	Items []RoleWithCountResponse `json:"items"`
+	Total  int64                   `json:"total"`
+	Limit  int                     `json:"limit"`
+	Offset int                     `json:"offset"`
+	Items  []RoleWithCountResponse `json:"items"`
 }
 
 type PaginatedPermissionsResponse struct {
-	Items []Permission `json:"items"`
+	Total  int64        `json:"total"`
+	Limit  int          `json:"limit"`
+	Offset int          `json:"offset"`
+	Items  []Permission `json:"items"`
 }

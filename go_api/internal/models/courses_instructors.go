@@ -14,5 +14,8 @@ func (CoursesInstructors) TableName() string {
 }
 
 type PaginatedCoursesInstructorsResponse struct {
-	Items []CoursesInstructors `json:"items"`
+	Total  int64                `json:"total"`
+	Limit  int                  `json:"limit"`
+	Offset int                  `json:"offset"`
+	Items  []CoursesInstructors `json:"items"`
 }

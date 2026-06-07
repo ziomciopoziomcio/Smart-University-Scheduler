@@ -12,5 +12,8 @@ func (ElectiveBlock) TableName() string {
 }
 
 type PaginatedElectiveBlocksResponse struct {
-	Items []ElectiveBlock `json:"items"`
+	Total  int64           `json:"total"`
+	Limit  int             `json:"limit"`
+	Offset int             `json:"offset"`
+	Items  []ElectiveBlock `json:"items"`
 }

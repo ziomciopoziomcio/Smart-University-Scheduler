@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -12,27 +13,50 @@ import (
 
 // GetCourseTypeDetails godoc
 // @Summary Get course type details
-// @Description Returns list of course type details sorted by course and class type
+// @Description Returns paginated list of course type details sorted by course and class type
 // @Tags course-type-details
 // @Produce json
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
 // @Success 200 {object} models.PaginatedCourseTypeDetailsResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/course-type-details [get]
 func GetCourseTypeDetails(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		limitStr := c.DefaultQuery("limit", "10")
+		offsetStr := c.DefaultQuery("offset", "0")
+
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			limit = 10
+		}
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			offset = 0
+		}
+
+		var total int64
+		if err := app.DB.Model(&models.CourseTypeDetail{}).Count(&total).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 
 		var courseTypeDetails []models.CourseTypeDetail
 
 		if err := app.DB.
 			Order("course, class_type").
+			Limit(limit).
+			Offset(offset).
 			Find(&courseTypeDetails).Error; err != nil {
-
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		c.JSON(http.StatusOK, models.PaginatedCourseTypeDetailsResponse{
-			Items: courseTypeDetails,
+			Total:  total,
+			Limit:  limit,
+			Offset: offset,
+			Items:  courseTypeDetails,
 		})
 	}
 }
@@ -50,7 +74,6 @@ func GetCourseTypeDetails(app *app.App) gin.HandlerFunc {
 // @Router /api/v1/course-type-details [post]
 func CreateCourseTypeDetail(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var req dto.CreateCourseTypeDetailRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {

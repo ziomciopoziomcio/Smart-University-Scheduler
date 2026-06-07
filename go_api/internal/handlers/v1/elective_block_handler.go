@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -12,27 +13,50 @@ import (
 
 // GetElectiveBlocks godoc
 // @Summary Get elective blocks
-// @Description Returns list of elective blocks
+// @Description Returns paginated list of elective blocks
 // @Tags elective-blocks
 // @Produce json
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
 // @Success 200 {object} models.PaginatedElectiveBlocksResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/elective-blocks [get]
 func GetElectiveBlocks(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		limitStr := c.DefaultQuery("limit", "10")
+		offsetStr := c.DefaultQuery("offset", "0")
+
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			limit = 10
+		}
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			offset = 0
+		}
+
+		var total int64
+		if err := app.DB.Model(&models.ElectiveBlock{}).Count(&total).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 
 		var blocks []models.ElectiveBlock
 
 		if err := app.DB.
 			Order("id").
+			Limit(limit).
+			Offset(offset).
 			Find(&blocks).Error; err != nil {
-
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		c.JSON(http.StatusOK, models.PaginatedElectiveBlocksResponse{
-			Items: blocks,
+			Total:  total,
+			Limit:  limit,
+			Offset: offset,
+			Items:  blocks,
 		})
 	}
 }
@@ -51,7 +75,6 @@ func GetElectiveBlocks(app *app.App) gin.HandlerFunc {
 // @Router /api/v1/elective-blocks [post]
 func CreateElectiveBlock(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var req dto.CreateElectiveBlockRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {

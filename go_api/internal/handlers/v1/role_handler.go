@@ -13,17 +13,37 @@ import (
 
 // GetRoles godoc
 // @Summary Get roles
-// @Description Returns list of roles with permissions and user count
+// @Description Returns paginated list of roles with permissions and user count
 // @Tags roles
 // @Produce json
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
 // @Success 200 {object} models.PaginatedRolesResponse
 // @Failure 500 {object} map[string]string
 // @Router /api/v1/roles [get]
 func GetRoles(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		limitStr := c.DefaultQuery("limit", "10")
+		offsetStr := c.DefaultQuery("offset", "0")
+
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			limit = 10
+		}
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			offset = 0
+		}
+
+		var total int64
+		if err := app.DB.Model(&models.Role{}).Count(&total).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
 		var roles []models.Role
 
-		if err := app.DB.Preload("Permissions").Order("id").Find(&roles).Error; err != nil {
+		if err := app.DB.Preload("Permissions").Order("id").Limit(limit).Offset(offset).Find(&roles).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -63,7 +83,10 @@ func GetRoles(app *app.App) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, models.PaginatedRolesResponse{
-			Items: items,
+			Total:  total,
+			Limit:  limit,
+			Offset: offset,
+			Items:  items,
 		})
 	}
 }
@@ -97,22 +120,52 @@ func CreateRole(app *app.App) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusCreated, role)
+		c.Status(http.StatusCreated)
 	}
 }
 
 // GetPermissions godoc
+// @Summary Get permissions
+// @Description Returns paginated list of permissions
+// @Tags roles
+// @Produce json
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {object} models.PaginatedPermissionsResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/permissions [get]
 func GetPermissions(app *app.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		limitStr := c.DefaultQuery("limit", "10")
+		offsetStr := c.DefaultQuery("offset", "0")
+
+		limit, err := strconv.Atoi(limitStr)
+		if err != nil || limit <= 0 {
+			limit = 10
+		}
+		offset, err := strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			offset = 0
+		}
+
+		var total int64
+		if err := app.DB.Model(&models.Permission{}).Count(&total).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
 		var permissions []models.Permission
 
-		if err := app.DB.Order("id").Find(&permissions).Error; err != nil {
+		if err := app.DB.Order("id").Limit(limit).Offset(offset).Find(&permissions).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		c.JSON(http.StatusOK, models.PaginatedPermissionsResponse{
-			Items: permissions,
+			Total:  total,
+			Limit:  limit,
+			Offset: offset,
+			Items:  permissions,
 		})
 	}
 }

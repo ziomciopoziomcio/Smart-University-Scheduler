@@ -30,5 +30,8 @@ type FacultyReadWithCounterResponse struct {
 }
 
 type PaginatedFacultiesResponse struct {
-	Items []FacultyReadWithCounterResponse `json:"items"`
+	Total  int64                            `json:"total"`
+	Limit  int                              `json:"limit"`
+	Offset int                              `json:"offset"`
+	Items  []FacultyReadWithCounterResponse `json:"items"`
 }
