@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import grpc
 import user_pb2
