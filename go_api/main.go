@@ -22,5 +22,8 @@ func main() {
 
 	routes.RegisterV1Routes(r, db.DB)
 
-	r.Run(":8080")
+	err := r.Run(":8080")
+	if err != nil {
+		return
+	}
 }
