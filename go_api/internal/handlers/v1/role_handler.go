@@ -191,6 +191,7 @@ func GetPermissions(app *app.App) gin.HandlerFunc {
 	}
 }
 
+// CreatePermission godoc
 // @Summary Create permission
 // @Description Creates a new application permission entry
 // @Tags roles
@@ -226,6 +227,7 @@ func CreatePermission(app *app.App) gin.HandlerFunc {
 	}
 }
 
+// AssignPermissionToRole godoc
 // @Summary Assign permission to role
 // @Description Binds a specific permission to an existing role entity
 // @Tags roles
