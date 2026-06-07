@@ -230,5 +230,3 @@ class VerifyEmailResponse(BaseModel):
 class APIKeyResponse(BaseModel):
     detail: str
     api_key: str
-
-    model_config = ConfigDict(from_attributes=True)
