@@ -6,7 +6,7 @@ from groq.types.chat import (
     ChatCompletionToolParam,
 )
 
-from .tools import RescheduleSuggestionTool, CheckAvailabilityTool
+from .tools import RescheduleSuggestionTool, SearchAvailableTimesTool
 
 client = Groq()
 
@@ -47,7 +47,7 @@ def call_agent(messages: list[ChatCompletionMessageParam]):
                 "name": "check_availability",
                 "description": "Check if a proposed timeslot has any group or instructor conflicts, and find available rooms. "
                 "Always use this before suggesting a reschedule.",
-                "parameters": CheckAvailabilityTool.model_json_schema(),
+                "parameters": SearchAvailableTimesTool.model_json_schema(),
             },
         },
         {
