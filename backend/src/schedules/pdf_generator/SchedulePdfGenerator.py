@@ -5,6 +5,7 @@ from reportlab.lib.pagesizes import landscape, A4
 from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from io import BytesIO
 
 from src.schedules.pdf_generator.models import Lesson, Day, Schedule
 
@@ -30,9 +31,9 @@ except Exception as e:
 
 
 class SchedulePdfGenerator:
-    def __init__(self, filename):
-        self.filename = filename
-        self.c = canvas.Canvas(filename, pagesize=landscape(A4))
+    def __init__(self):  # <--- Usuwamy 'filename' z konstruktora
+        self.buffer = BytesIO()  # <--- Zapisujemy do bufora w pamięci RAM
+        self.c = canvas.Canvas(self.buffer, pagesize=landscape(A4))
         self.width, self.height = landscape(A4)
 
         self.time_col_x = 25
@@ -301,7 +302,7 @@ class SchedulePdfGenerator:
     # BUILD
     # =================================================
 
-    def build(self, schedule: Schedule):
+    def build(self, schedule: Schedule) -> BytesIO:
         self.c.setFont(FONT_BOLD, 14)
         self.c.drawCentredString(self.width / 2, self.height - 30, schedule.title)
 
@@ -309,4 +310,5 @@ class SchedulePdfGenerator:
         self.draw_lessons(schedule)
 
         self.c.save()
-        print("PDF generated:", self.filename)
+        self.buffer.seek(0)
+        return self.buffer
