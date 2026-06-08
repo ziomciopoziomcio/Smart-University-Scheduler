@@ -291,7 +291,7 @@ def get_schedule_suggestion(suggestion_id: int, db: Session = Depends(get_db)):
 @router.patch(
     "/suggestions/{suggestion_id}", response_model=schemas.ScheduleSuggestionRead
 )
-async def resolve_schedule_suggestion(
+async def resolve_schedule_suggestion(  # todo: handle tab of class sessions
     suggestion_id: int,
     payload: schemas.ScheduleSuggestionUpdate,
     db: Session = Depends(get_db),
