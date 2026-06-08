@@ -141,6 +141,33 @@ def _build_profile_list_filter(profiles_list, student_exists, employee_exists):
     return or_(*conds) if conds else None
 
 
+def _apply_profile_exclusions(
+    query, count_query, exclude_profiles_list, student_exists, employee_exists
+):
+    ex_lower = [p.lower() for p in exclude_profiles_list]
+    if "student" in ex_lower:
+        query, count_query = query.filter(~student_exists), count_query.filter(
+            ~student_exists
+        )
+    if "employee" in ex_lower:
+        query, count_query = query.filter(~employee_exists), count_query.filter(
+            ~employee_exists
+        )
+    return query, count_query
+
+
+def _apply_profile_presence(
+    query, count_query, has_profiles, student_exists, employee_exists
+):
+    if has_profiles is True:
+        hp_filter = or_(student_exists, employee_exists)
+        query, count_query = query.filter(hp_filter), count_query.filter(hp_filter)
+    elif has_profiles is False:
+        hp_filter = and_(~student_exists, ~employee_exists)
+        query, count_query = query.filter(hp_filter), count_query.filter(hp_filter)
+    return query, count_query
+
+
 def _apply_profile_filters(
     query,
     count_query,
@@ -158,24 +185,75 @@ def _apply_profile_filters(
             query, count_query = query.filter(p_filter), count_query.filter(p_filter)
 
     if exclude_profiles_list:
-        ex_lower = [p.lower() for p in exclude_profiles_list]
-        if "student" in ex_lower:
-            query, count_query = query.filter(~student_exists), count_query.filter(
-                ~student_exists
-            )
-        if "employee" in ex_lower:
-            query, count_query = query.filter(~employee_exists), count_query.filter(
-                ~employee_exists
-            )
+        query, count_query = _apply_profile_exclusions(
+            query, count_query, exclude_profiles_list, student_exists, employee_exists
+        )
 
-    if has_profiles is True:
-        hp_filter = or_(student_exists, employee_exists)
-        query, count_query = query.filter(hp_filter), count_query.filter(hp_filter)
-    elif has_profiles is False:
-        hp_filter = and_(~student_exists, ~employee_exists)
-        query, count_query = query.filter(hp_filter), count_query.filter(hp_filter)
+    return _apply_profile_presence(
+        query, count_query, has_profiles, student_exists, employee_exists
+    )
 
-    return query, count_query
+
+def _build_filtered_users_query(db: Session, filters: dict) -> tuple:
+    query = db.query(models.Users).options(selectinload(models.Users.roles))
+    count_query = db.query(models.Users.id)
+
+    query, count_query = _apply_basic_filters(
+        query,
+        count_query,
+        filters["email"],
+        filters["phone_number"],
+        filters["name"],
+        filters["surname"],
+        filters["degree"],
+    )
+
+    if filters["search"]:
+        query, count_query = apply_search_to_queries(
+            search=filters["search"],
+            query=query,
+            count_query=count_query,
+            columns=[
+                models.Users.email,
+                models.Users.phone_number,
+                models.Users.name,
+                models.Users.surname,
+                models.Users.degree,
+            ],
+            extra_phrase_columns=[
+                func.concat(models.Users.name, " ", models.Users.surname),
+                func.concat(models.Users.surname, " ", models.Users.name),
+            ],
+        )
+
+    query, count_query = _apply_role_filters(
+        query,
+        count_query,
+        parse_csv_param(filters["roles"]),
+        parse_csv_param(filters["exclude_roles"]),
+        filters["has_roles"],
+    )
+
+    st_ex = (
+        db.query(academics_models.Students.id)
+        .filter(academics_models.Students.user_id == models.Users.id)
+        .exists()
+    )
+    emp_ex = (
+        db.query(academics_models.Employees.id)
+        .filter(academics_models.Employees.user_id == models.Users.id)
+        .exists()
+    )
+
+    return _apply_profile_filters(
+        query,
+        count_query,
+        st_ex,
+        emp_ex,
+        parse_csv_param(filters["profiles"]),
+        parse_csv_param(filters["exclude_profiles"]),
+        filters["has_profiles"],
+    )
 
 
 @router.get("/", response_model=PaginatedResponse[schemas.UserRead])
@@ -197,60 +275,22 @@ def list_users(
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("users:view")),
 ):
-    query = db.query(models.Users).options(selectinload(models.Users.roles))
-    count_query = db.query(models.Users.id)
+    filters = {
+        "email": email,
+        "phone_number": phone_number,
+        "name": name,
+        "surname": surname,
+        "degree": degree,
+        "roles": roles,
+        "exclude_roles": exclude_roles,
+        "has_roles": has_roles,
+        "profiles": profiles,
+        "exclude_profiles": exclude_profiles,
+        "has_profiles": has_profiles,
+        "search": search,
+    }
 
-    query, count_query = _apply_basic_filters(
-        query, count_query, email, phone_number, name, surname, degree
-    )
-
-    if search:
-        query, count_query = apply_search_to_queries(
-            search=search,
-            query=query,
-            count_query=count_query,
-            columns=[
-                models.Users.email,
-                models.Users.phone_number,
-                models.Users.name,
-                models.Users.surname,
-                models.Users.degree,
-            ],
-            extra_phrase_columns=[
-                func.concat(models.Users.name, " ", models.Users.surname),
-                func.concat(models.Users.surname, " ", models.Users.name),
-            ],
-        )
-
-    query, count_query = _apply_role_filters(
-        query,
-        count_query,
-        parse_csv_param(roles),
-        parse_csv_param(exclude_roles),
-        has_roles,
-    )
-
-    st_ex = (
-        db.query(academics_models.Students.id)
-        .filter(academics_models.Students.user_id == models.Users.id)
-        .exists()
-    )
-    emp_ex = (
-        db.query(academics_models.Employees.id)
-        .filter(academics_models.Employees.user_id == models.Users.id)
-        .exists()
-    )
-
-    query, count_query = _apply_profile_filters(
-        query,
-        count_query,
-        st_ex,
-        emp_ex,
-        parse_csv_param(profiles),
-        parse_csv_param(exclude_profiles),
-        has_profiles,
-    )
-
+    query, count_query = _build_filtered_users_query(db, filters)
     return paginate(
         query, limit, offset, order_by=models.Users.id, count_query=count_query
     )
