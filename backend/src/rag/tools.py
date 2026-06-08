@@ -30,14 +30,10 @@ class RescheduleSuggestionTool(BaseModel):
     )
 
 
-class CheckAvailabilityTool(BaseModel):
+class SearchAvailableTimesTool(BaseModel):
     """RAG tool for checking availability of a class session."""
 
     session_id: str = Field(
         ...,
-        description="The session id of the class to check",
-    )
-    proposed_timeslot_id: int = Field(
-        ...,
-        description="The proposed timeslot id of the class to check",
+        description="The session id of the class you want to reschedule",
     )
