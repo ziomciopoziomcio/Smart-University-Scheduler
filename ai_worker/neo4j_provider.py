@@ -126,7 +126,7 @@ class Neo4jProvider:
         """
         raw_class_session_id = session_data.get("class_session_id")
         new_room_id = session_data.get("new_room_id")
-        new_timeslot_id = session_data.get("new_timeslot_id")
+        new_timeslot_ids = session_data.get("new_timeslot_ids")
 
         if raw_class_session_id is None or (
             isinstance(raw_class_session_id, str) and not raw_class_session_id.strip()
@@ -136,6 +136,7 @@ class Neo4jProvider:
         class_session_id = str(raw_class_session_id)
         queries = []
         parameters = {"session_id": class_session_id}
+
         if new_room_id is not None:
             queries.append(
                 {
@@ -152,21 +153,25 @@ class Neo4jProvider:
             )
             parameters["new_room_id"] = int(new_room_id)
 
-        if new_timeslot_id is not None:
+        if new_timeslot_ids is not None and len(new_timeslot_ids) > 0:
             queries.append(
                 {
                     "cypher": """
             MATCH (s:ClassSession {sessionId: $session_id})
-            MATCH (new_t:TimeSlot {timeSlotId: $new_timeslot_id})
             OPTIONAL MATCH (s)-[old_rel:AT_TIME]->(:TimeSlot)
             DELETE old_rel
+
+            WITH s
+            UNWIND $new_timeslot_ids AS t_id
+            MATCH (new_t:TimeSlot {timeSlotId: t_id})
             MERGE (s)-[:AT_TIME]->(new_t)
+
             RETURN s.sessionId AS updated_id
             """,
-                    "error_msg": f"Failed to update timeslot: ClassSession '{class_session_id}' or TimeSlot '{new_timeslot_id}' not found in Neo4j.",
+                    "error_msg": f"Failed to update timeslots: ClassSession '{class_session_id}' or one of the TimeSlots not found in Neo4j.",
                 }
             )
-            parameters["new_timeslot_id"] = int(new_timeslot_id)
+            parameters["new_timeslot_ids"] = [int(t) for t in new_timeslot_ids]
 
         if not queries:
             logger.info(
