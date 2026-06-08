@@ -18,3 +18,4 @@ groq
 neo4j>=5,<6
 grpcio
 grpcio-tools
+reportlab

@@ -189,3 +189,13 @@ class CustomEventUpdate(BaseModel):
             if self.start_dt > self.end_dt:
                 raise ValueError("start_dt must be before or equal to end_dt")
         return self
+
+class ScheduleEntryWithWeekNumber(BaseModel):
+    id: str
+    title: str
+    date: date
+    start_time: str
+    end_time: str
+    variant: str  # ClassType
+    week_number: int
+    academic_day_of_week: int
