@@ -41,7 +41,7 @@ class FitnessCalculator:
         self.W_INSTR_ROOM_CHANGE = 15
 
         self.W_TOO_MUCH_STUDENTS = 5000
-        self.W_HARD_PENALTY = 100000
+        self.W_HARD_PENALTY = 5000000
         self.W_WORKLOAD_MISMATCH = 500
 
         self.base_workload_penalty = sum(
