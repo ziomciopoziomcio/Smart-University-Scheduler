@@ -194,7 +194,7 @@ def _apply_profile_filters(
     )
 
 
-def _build_filtered_users_query(db: Session, filters: dict) -> tuple:
+def _apply_identity_and_search_filters(db: Session, filters: dict) -> tuple:
     query = db.query(models.Users).options(selectinload(models.Users.roles))
     count_query = db.query(models.Users.id)
 
@@ -225,6 +225,11 @@ def _build_filtered_users_query(db: Session, filters: dict) -> tuple:
                 func.concat(models.Users.surname, " ", models.Users.name),
             ],
         )
+    return query, count_query
+
+
+def _build_filtered_users_query(db: Session, filters: dict) -> tuple:
+    query, count_query = _apply_identity_and_search_filters(db, filters)
 
     query, count_query = _apply_role_filters(
         query,
