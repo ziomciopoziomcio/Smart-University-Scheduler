@@ -44,9 +44,8 @@ def call_agent(messages: list[ChatCompletionMessageParam]):
         {
             "type": "function",
             "function": {
-                "name": "check_availability",
-                "description": "Check if a proposed timeslot has any group or instructor conflicts, and find available rooms. "
-                "Always use this before suggesting a reschedule.",
+                "name": "search_available_times",
+                "description": "Find exact available time windows (timeslot_ids array) and free rooms for a session.",
                 "parameters": SearchAvailableTimesTool.model_json_schema(),
             },
         },
@@ -54,7 +53,7 @@ def call_agent(messages: list[ChatCompletionMessageParam]):
             "type": "function",
             "function": {
                 "name": "create_reschedule_suggestion",
-                "description": "Submit a formal request to reschedule a class session. Call this ONLY after verifying availability with check_availability.",
+                "description": "Submit a formal request to reschedule a class session.",
                 "parameters": RescheduleSuggestionTool.model_json_schema(),
             },
         },
