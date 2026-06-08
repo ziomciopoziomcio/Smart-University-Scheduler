@@ -88,6 +88,91 @@ def create_user(
     return obj
 
 
+def _apply_basic_filters(
+    query, count_query, email, phone_number, name, surname, degree
+):
+    if email is not None:
+        f = models.Users.email.ilike(f"%{email}%")
+        query, count_query = query.filter(f), count_query.filter(f)
+    if phone_number is not None:
+        f = models.Users.phone_number.ilike(f"%{phone_number}%")
+        query, count_query = query.filter(f), count_query.filter(f)
+    if name is not None:
+        f = models.Users.name.ilike(f"%{name}%")
+        query, count_query = query.filter(f), count_query.filter(f)
+    if surname is not None:
+        f = models.Users.surname.ilike(f"%{surname}%")
+        query, count_query = query.filter(f), count_query.filter(f)
+    if degree is not None:
+        f = models.Users.degree.ilike(f"%{degree}%")
+        query, count_query = query.filter(f), count_query.filter(f)
+    return query, count_query
+
+
+def _apply_role_filters(query, count_query, roles_list, exclude_roles_list, has_roles):
+    if roles_list:
+        role_filter = models.Users.roles.any(models.Roles.role_name.in_(roles_list))
+        query, count_query = query.filter(role_filter), count_query.filter(role_filter)
+
+    if exclude_roles_list:
+        exclude_role_filter = ~models.Users.roles.any(
+            models.Roles.role_name.in_(exclude_roles_list)
+        )
+        query, count_query = query.filter(exclude_role_filter), count_query.filter(
+            exclude_role_filter
+        )
+
+    if has_roles is True:
+        hr_filter = models.Users.roles.any()
+        query, count_query = query.filter(hr_filter), count_query.filter(hr_filter)
+    elif has_roles is False:
+        hr_filter = ~models.Users.roles.any()
+        query, count_query = query.filter(hr_filter), count_query.filter(hr_filter)
+    return query, count_query
+
+
+def _apply_profile_filters(
+    query,
+    count_query,
+    student_exists,
+    employee_exists,
+    profiles_list,
+    exclude_profiles_list,
+    has_profiles,
+):
+    if profiles_list:
+        conds = []
+        profiles_lower = [p.lower() for p in profiles_list]
+        if "student" in profiles_lower:
+            conds.append(student_exists)
+        if "employee" in profiles_lower:
+            conds.append(employee_exists)
+        if conds:
+            profile_filter = or_(*conds)
+            query, count_query = query.filter(profile_filter), count_query.filter(
+                profile_filter
+            )
+
+    if exclude_profiles_list:
+        exclude_lower = [p.lower() for p in exclude_profiles_list]
+        if "student" in exclude_lower:
+            query, count_query = query.filter(~student_exists), count_query.filter(
+                ~student_exists
+            )
+        if "employee" in exclude_lower:
+            query, count_query = query.filter(~employee_exists), count_query.filter(
+                ~employee_exists
+            )
+
+    if has_profiles:
+        hp_filter = or_(student_exists, employee_exists)
+        query, count_query = query.filter(hp_filter), count_query.filter(hp_filter)
+    elif has_profiles is False:
+        hp_filter = and_(~student_exists, ~employee_exists)
+        query, count_query = query.filter(hp_filter), count_query.filter(hp_filter)
+    return query, count_query
+
+
 @router.get("/", response_model=PaginatedResponse[schemas.UserRead])
 def list_users(
     email: str | None = Query(None, min_length=1),
@@ -115,21 +200,9 @@ def list_users(
     query = db.query(models.Users).options(selectinload(models.Users.roles))
     count_query = db.query(models.Users.id)
 
-    if email is not None:
-        f = models.Users.email.ilike(f"%{email}%")
-        query, count_query = query.filter(f), count_query.filter(f)
-    if phone_number is not None:
-        f = models.Users.phone_number.ilike(f"%{phone_number}%")
-        query, count_query = query.filter(f), count_query.filter(f)
-    if name is not None:
-        f = models.Users.name.ilike(f"%{name}%")
-        query, count_query = query.filter(f), count_query.filter(f)
-    if surname is not None:
-        f = models.Users.surname.ilike(f"%{surname}%")
-        query, count_query = query.filter(f), count_query.filter(f)
-    if degree is not None:
-        f = models.Users.degree.ilike(f"%{degree}%")
-        query, count_query = query.filter(f), count_query.filter(f)
+    query, count_query = _apply_basic_filters(
+        query, count_query, email, phone_number, name, surname, degree
+    )
 
     if search:
         query, count_query = apply_search_to_queries(
@@ -149,67 +222,30 @@ def list_users(
             ],
         )
 
-    if roles_list:
-        role_filter = models.Users.roles.any(models.Roles.role_name.in_(roles_list))
-        query, count_query = query.filter(role_filter), count_query.filter(role_filter)
-
-    if exclude_roles_list:
-        exclude_role_filter = ~models.Users.roles.any(
-            models.Roles.role_name.in_(exclude_roles_list)
-        )
-        query, count_query = query.filter(exclude_role_filter), count_query.filter(
-            exclude_role_filter
-        )
-
-    if has_roles is True:
-        hr_filter = models.Users.roles.any()
-        query, count_query = query.filter(hr_filter), count_query.filter(hr_filter)
-    elif has_roles is False:
-        hr_filter = ~models.Users.roles.any()
-        query, count_query = query.filter(hr_filter), count_query.filter(hr_filter)
+    query, count_query = _apply_role_filters(
+        query, count_query, roles_list, exclude_roles_list, has_roles
+    )
 
     student_exists = (
         db.query(academics_models.Students.id)
         .filter(academics_models.Students.user_id == models.Users.id)
         .exists()
     )
-
     employee_exists = (
         db.query(academics_models.Employees.id)
         .filter(academics_models.Employees.user_id == models.Users.id)
         .exists()
     )
-    if profiles_list:
-        conds = []
-        profiles_lower = [p.lower() for p in profiles_list]
-        if "student" in profiles_lower:
-            conds.append(student_exists)
-        if "employee" in profiles_lower:
-            conds.append(employee_exists)
 
-        if conds:
-            profile_filter = or_(*conds)
-            query, count_query = query.filter(profile_filter), count_query.filter(
-                profile_filter
-            )
-
-    if exclude_profiles_list:
-        exclude_lower = [p.lower() for p in exclude_profiles_list]
-        if "student" in exclude_lower:
-            query, count_query = query.filter(~student_exists), count_query.filter(
-                ~student_exists
-            )
-        if "employee" in exclude_lower:
-            query, count_query = query.filter(~employee_exists), count_query.filter(
-                ~employee_exists
-            )
-
-    if has_profiles:
-        hp_filter = or_(student_exists, employee_exists)
-        query, count_query = query.filter(hp_filter), count_query.filter(hp_filter)
-    elif has_profiles is False:
-        hp_filter = and_(~student_exists, ~employee_exists)
-        query, count_query = query.filter(hp_filter), count_query.filter(hp_filter)
+    query, count_query = _apply_profile_filters(
+        query,
+        count_query,
+        student_exists,
+        employee_exists,
+        profiles_list,
+        exclude_profiles_list,
+        has_profiles,
+    )
 
     return paginate(
         query, limit, offset, order_by=models.Users.id, count_query=count_query
