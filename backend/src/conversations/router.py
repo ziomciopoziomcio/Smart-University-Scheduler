@@ -20,8 +20,8 @@ from . import models, schemas
 from ..academics import models as academics_models
 from ..common.require_permission import require_permission
 from ..database.database import get_db
-from ..database.neo4j import get_neo4j_session, check_availability_in_neo4j
-from ..rag.retriever import get_user_schedule_context
+from ..database.neo4j import get_neo4j_session
+from ..rag.retriever import get_user_schedule_context, search_available_times_in_neo4j
 from ..users import models as user_models
 from ..users.auth import get_current_user
 from ..users.models import Users
@@ -207,7 +207,7 @@ def _save_ai_msg_sync(
                     "context_snapshot": context,
                 },
                 state_after={
-                    "proposed_timeslot_id": sugg_data.get("proposed_timeslot_id"),
+                    "proposed_timeslot_ids": sugg_data.get("proposed_timeslot_ids"),
                     "proposed_room_id": sugg_data.get("proposed_room_id"),
                 },
                 status=schedule_models.SuggestionStatus.PENDING,
@@ -251,9 +251,9 @@ async def _process_llm_tool_chain(
         tool_name, args = resp.get("tool_name"), resp.get("arguments", {})
         messages.append(resp["raw_message"])
 
-        if tool_name == "check_availability":
-            res = await check_availability_in_neo4j(
-                args.get("session_id"), args.get("proposed_timeslot_id"), neo4j_session
+        if tool_name == "search_available_times":
+            res = await search_available_times_in_neo4j(
+                args.get("session_id"), neo4j_session
             )
             messages.append(
                 {"role": "tool", "tool_call_id": resp["tool_call_id"], "content": res}
