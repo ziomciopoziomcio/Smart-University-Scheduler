@@ -1,6 +1,7 @@
 import logging
 import os
 import uuid
+from typing import LiteralString
 
 import pandas as pd
 from neo4j import AsyncGraphDatabase, Query
@@ -9,12 +10,12 @@ from optimizer import models
 
 logger = logging.getLogger(__name__)
 
-DELETE_SCHEDULE_QUERY = Query("""
+DELETE_SCHEDULE_QUERY: LiteralString = """
     MATCH (s:ClassSession {facultyId: $faculty_id})
     DETACH DELETE s
-""")
+"""
 
-SAVE_SCHEDULE_QUERY = Query("""
+SAVE_SCHEDULE_QUERY: LiteralString = """
     UNWIND $batch AS row
 
     MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
@@ -31,6 +32,7 @@ SAVE_SCHEDULE_QUERY = Query("""
     WITH row, c, matched_groups, faculty_id, matched_slots, i, r
     WHERE (row.instructor_id IS NULL OR i IS NOT NULL)
       AND (row.room_id IS NULL OR r IS NOT NULL)
+
     CREATE (s:ClassSession {sessionId: row.session_id, weeks: row.weeks, facultyId: faculty_id, createdAt: datetime()})
     MERGE (s)-[:OF_COURSE]->(c)
 
@@ -40,7 +42,7 @@ SAVE_SCHEDULE_QUERY = Query("""
     FOREACH (ms IN matched_slots | MERGE (s)-[:AT_TIME]->(ms))
 
     RETURN count(DISTINCT s) as created_count
-""")
+"""
 
 
 class Neo4jProvider:
