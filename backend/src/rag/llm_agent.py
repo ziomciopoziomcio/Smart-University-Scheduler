@@ -25,11 +25,11 @@ def get_system_prompt(schedule_context: str) -> str:
     {schedule_context}
 
     RULES:
-    1. If the user wants to reschedule or move a class, you MUST ALWAYS call 'check_availability' first to check for conflicts and find available rooms.
-    2. If 'check_availability' returns a CONFLICT or NO ROOMS, inform the user and ask them to select a different time.
-     DO NOT call 'create_reschedule_suggestion'.
-    3. If 'check_availability' returns OK, use one of the available Room IDs provided in the tool response and then call 'create_reschedule_suggestion'.
-    4. ALWAYS use the Class Session IDs provided in the context above.
+    1. If the user wants to reschedule a class, you MUST ALWAYS call 'search_available_times' first.
+    2. 'search_available_times' will return a list of valid options containing the day, time, 'timeslot_ids' (array), and 'available_room_ids'.
+    3. Present these options to the user clearly. Do NOT call 'create_reschedule_suggestion' yet.
+    4. Once the user replies and selects an option, call 'create_reschedule_suggestion' using the EXACT 'timeslot_ids' array and ONE 'room_id' from the chosen option.
+    5. ALWAYS use the Class Session IDs provided in the context above.
     """  # TODO: Block another topics
 
 
