@@ -18,9 +18,9 @@ class RescheduleSuggestionTool(BaseModel):
         ...,
         description="EXACT list of timeslot IDs returned by SearchAvailableTimesTool (e.g., [12, 13, 14])",
     )
-    proposed_room_id: int | None = Field(
-        None,
-        description="The proposed room id of the class to reschedule",
+    proposed_room_id: int = Field(
+        ...,
+        description="The ID of the room chosen from the SearchAvailableTimesTool results",
     )
     confirmation_message: str = Field(
         ...,
