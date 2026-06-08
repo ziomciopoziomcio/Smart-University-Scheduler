@@ -16,40 +16,30 @@ DELETE_SCHEDULE_QUERY = Query("""
 
 SAVE_SCHEDULE_QUERY = Query("""
     UNWIND $batch AS row
+
     MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
     MATCH (g:Group) WHERE g.groupId IN row.group_ids
     WITH row, c, collect(g) AS matched_groups, $faculty_id AS faculty_id
     WHERE size(matched_groups) = size(row.group_ids)
 
+    OPTIONAL MATCH (t:TimeSlot) WHERE t.timeSlotId IN row.timeslot_ids
+    WITH row, c, matched_groups, faculty_id, collect(t) AS matched_slots
+    WHERE size(row.timeslot_ids) = 0 OR size(matched_slots) = size(row.timeslot_ids)
+
+    OPTIONAL MATCH (i:Instructor {instructorId: row.instructor_id})
+    OPTIONAL MATCH (r:Room {roomId: row.room_id})
+    WITH row, c, matched_groups, faculty_id, matched_slots, i, r
+    WHERE (row.instructor_id IS NULL OR i IS NOT NULL)
+      AND (row.room_id IS NULL OR r IS NOT NULL)
     CREATE (s:ClassSession {sessionId: row.session_id, weeks: row.weeks, facultyId: faculty_id, createdAt: datetime()})
     MERGE (s)-[:OF_COURSE]->(c)
 
-    WITH s, row, matched_groups
-
-    OPTIONAL MATCH (i:Instructor {instructorId: row.instructor_id})
-    WHERE row.instructor_id IS NULL OR i IS NOT NULL
-
-    OPTIONAL MATCH (r:Room {roomId: row.room_id})
-    WHERE row.room_id IS NULL OR r IS NOT NULL
-
     FOREACH (_ IN CASE WHEN i IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:TAUGHT_BY]->(i))
     FOREACH (_ IN CASE WHEN r IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:HELD_IN]->(r))
+    FOREACH (mg IN matched_groups | MERGE (s)-[:FOR_GROUP]->(mg))
+    FOREACH (ms IN matched_slots | MERGE (s)-[:AT_TIME]->(ms))
 
-    WITH s, row, matched_groups
-    UNWIND matched_groups AS mg
-    MERGE (s)-[:FOR_GROUP]->(mg)
-
-    WITH DISTINCT s, row
-    UNWIND (CASE WHEN size(row.timeslot_ids) > 0 THEN row.timeslot_ids ELSE [null] END) AS t_id
-    OPTIONAL MATCH (t:TimeSlot {timeSlotId: t_id})
-    FOREACH (_ IN CASE WHEN t IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:AT_TIME]->(t))
-
-    WITH count(DISTINCT s) as created_count, size($batch) as total_size
-    RETURN
-        CASE
-            WHEN created_count = total_size THEN created_count
-            ELSE 1 / (created_count - created_count)
-        END as result
+    RETURN count(DISTINCT s) as created_count
 """)
 
 
@@ -433,18 +423,36 @@ class Neo4jProvider:
 
         try:
             async with self.driver.session() as session:
-                await session.run(DELETE_SCHEDULE_QUERY, faculty_id=faculty_id)
+                tx = await session.begin_transaction()
+                try:
+                    await tx.run(DELETE_SCHEDULE_QUERY, faculty_id=faculty_id)
 
-                for i in range(0, len(data_to_save), batch_size):
-                    chunk = data_to_save[i : i + batch_size]
-                    result = await session.run(
-                        SAVE_SCHEDULE_QUERY, batch=chunk, faculty_id=faculty_id
-                    )
-                    await result.consume()
+                    total_saved = 0
+                    for i in range(0, len(data_to_save), batch_size):
+                        chunk = data_to_save[i : i + batch_size]
+                        result = await tx.run(
+                            SAVE_SCHEDULE_QUERY, batch=chunk, faculty_id=faculty_id
+                        )
+                        record = await result.single()
+                        if record:
+                            total_saved += record["created_count"]
 
-                logger.info(
-                    f"Successfully exported schedule for faculty {faculty_id} in {len(data_to_save) // batch_size + 1} batches."
-                )
+                    await tx.commit()
+
+                    if total_saved < len(data_to_save):
+                        logger.warning(
+                            f"Saved {total_saved}/{len(data_to_save)} sessions. "
+                            f"{len(data_to_save) - total_saved} genes were rejected by DB constraints (e.g., missing timeslots)."
+                        )
+                    else:
+                        logger.info(
+                            f"Successfully exported all {total_saved} sessions for faculty {faculty_id}."
+                        )
+
+                except Exception as e:
+                    await tx.rollback()
+                    raise e
+
                 return incomplete_genes
         except Exception as e:
             logger.error(f"Failed to save schedule: {e}")
