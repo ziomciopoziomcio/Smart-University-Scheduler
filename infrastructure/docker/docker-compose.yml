@@ -145,9 +145,12 @@ services:
       KAFKA_URL: "kafka:29092"
       GA_MAX_WORKERS: ${GA_MAX_WORKERS:-4}
     depends_on:
-      - postgres
-      - neo4j
-      - kafka
+      postgres:
+        condition: service_started
+      neo4j:
+        condition: service_started
+      kafka:
+        condition: service_healthy
     volumes:
       - ../../ai_worker:/app
     command: python worker.py
