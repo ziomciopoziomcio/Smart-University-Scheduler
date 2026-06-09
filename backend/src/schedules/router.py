@@ -649,18 +649,59 @@ def _get_filtered_group_ids(
 
 
 def _map_schedule_entries(records: list[dict]) -> list[schemas.ScheduleEntry]:
-    """Maps Neo4j records to ScheduleEntry Pydantic schemas."""
-    return [
-        schemas.ScheduleEntry(
-            id=rec["session_id"],
-            title=rec["title"],
-            date=date.fromisoformat(rec["physical_date"]),
-            startTime=rec["start_time"],
-            endTime=rec["end_time"],
-            variant=_parse_variant(rec["class_type"]),
-        )
-        for rec in records
-    ]
+    """Maps Neo4j records to ScheduleEntry Pydantic schemas, grouping consecutive slots."""
+    if not records:
+        return []
+
+    sorted_records = sorted(
+        records, key=lambda x: (x.get("physical_date", ""), x.get("start_time", ""))
+    )
+
+    grouped_entries: list[schemas.ScheduleEntry] = []
+
+    for rec in sorted_records:
+        rec_id = rec["session_id"]
+        rec_title = rec["title"]
+        rec_date = date.fromisoformat(rec["physical_date"])
+        rec_start = rec["start_time"]
+        rec_end = rec["end_time"]
+        rec_variant = _parse_variant(rec["class_type"])
+
+        if not grouped_entries:
+            grouped_entries.append(
+                schemas.ScheduleEntry(
+                    id=rec_id,
+                    title=rec_title,
+                    date=rec_date,
+                    startTime=rec_start,
+                    endTime=rec_end,
+                    variant=rec_variant,
+                )
+            )
+            continue
+
+        last_entry = grouped_entries[-1]
+
+        if (
+            last_entry.id == rec_id
+            and last_entry.date == rec_date
+            and last_entry.variant == rec_variant
+            and rec_start >= last_entry.endTime
+        ):
+            last_entry.endTime = rec_end
+        else:
+            grouped_entries.append(
+                schemas.ScheduleEntry(
+                    id=rec_id,
+                    title=rec_title,
+                    date=rec_date,
+                    startTime=rec_start,
+                    endTime=rec_end,
+                    variant=rec_variant,
+                )
+            )
+
+    return grouped_entries
 
 
 @router.get("/study-field-plan", response_model=list[schemas.ScheduleEntry])
