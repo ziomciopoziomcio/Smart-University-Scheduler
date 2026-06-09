@@ -89,3 +89,10 @@ class Employee_absences(Base):
     __table_args__ = (
         CheckConstraint("start_date <= end_date", name="chk_employee_absences_dates"),
     )
+
+
+class CustomEventType(str, enum.Enum):
+    PERSONAL = "PERSONAL"
+    MEETING = "MEETING"
+    PROJECT = "PROJECT"
+    OTHER = "OTHER"
