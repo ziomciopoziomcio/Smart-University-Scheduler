@@ -6,10 +6,18 @@ import user_pb2_grpc
 
 from src.database.database import SessionLocal
 from src.users.models import Users as UserModel
-from src.users.auth import hash_password, secrets, verify_password
+from src.users.auth import secrets, verify_password
 from src.common.notifications import send_login_credentials_email
 from src.academics.models import Employees, Students
 from src.users import models
+
+from src.common.user_service import (
+    _validate_signup,
+    _prepare_user_and_token,
+    _stage_user,
+)
+from src.common.notifications import send_verification_email
+from src.users.schemas import SignupRequest
 
 logger = logging.getLogger(__name__)
 
@@ -18,38 +26,40 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
     async def CreateUserRPC(self, request, context):
         db = SessionLocal()
         try:
-            existing_user = (
-                db.query(UserModel).filter(UserModel.email == request.email).first()
-            )
-            if existing_user:
-                context.set_code(grpc.StatusCode.ALREADY_EXISTS)
-                context.set_details("User with this email already exists.")
-                return user_pb2.UserCreateResponse()
-
-            generated_password = secrets.token_urlsafe(12)
-            new_user = UserModel(
+            generated_pass = secrets.token_urlsafe(12)
+            signup_payload = SignupRequest(
                 email=request.email,
+                password=generated_pass,
+                password2=generated_pass,
                 name=request.name,
                 surname=request.surname,
                 phone_number=request.phone_number if request.phone_number else None,
                 degree=request.degree if request.degree else None,
-                password_hash=hash_password(generated_password),
-                force_password_change=True,
             )
-            db.add(new_user)
-            db.flush()
+
+            _validate_signup(signup_payload, db)
+
+            new_user, token = _prepare_user_and_token(signup_payload)
+
+            _stage_user(db, new_user)
 
             self._handle_academic_profile(db, new_user.id, request)
+
             db.commit()
             db.refresh(new_user)
+
+            try:
+                send_verification_email(new_user.email, token)
+            except Exception as e:
+                logger.error(f"Couldn't send verification email: {e}")
 
             if request.send_login_credentials_email:
                 try:
                     send_login_credentials_email(
-                        user_email=new_user.email, temporary_password=generated_password
+                        user_email=new_user.email, temporary_password=generated_pass
                     )
                 except Exception as e:
-                    logger.error(f"Couldn't send email via credentials function: {e}")
+                    logger.error(f"Couldn't send credentials email: {e}")
 
             return user_pb2.UserCreateResponse(
                 id=new_user.id, email=new_user.email, status="created"
@@ -58,8 +68,14 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
         except Exception as e:
             db.rollback()
             logger.exception(f"Error gRPC CreateUser: {str(e)}")
-            context.set_code(grpc.StatusCode.INTERNAL)
-            context.set_details(str(e))
+
+            if hasattr(e, "status_code") and e.status_code == 409:
+                context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+                context.set_details("User with this email already exists.")
+            else:
+                context.set_code(grpc.StatusCode.INTERNAL)
+                context.set_details(str(e))
+
             return user_pb2.UserCreateResponse()
         finally:
             db.close()
@@ -75,7 +91,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
                 ),
             )
             db.add(new_student)
-            logger.info(f"Adding student profile for user_id: {user_id}")
         elif profile_type == "employee":
             new_employee = Employees(
                 user_id=user_id,
@@ -83,7 +98,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
                 unit_id=request.employee.unit_id,
             )
             db.add(new_employee)
-            logger.info(f"Adding employee profile for user_id: {user_id}")
 
     async def DeleteUserRPC(self, request, context):
         db = SessionLocal()
@@ -102,20 +116,12 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
 
             db.delete(user)
             db.commit()
-
-            logger.info(
-                f"Successfully deleted user with ID: {request.id} and all their academic profiles."
-            )
             return user_pb2.UserDeleteResponse(
-                success=True,
-                message="User and associated profiles deleted successfully.",
+                success=True, message="Deleted successfully."
             )
-
         except Exception as e:
             db.rollback()
-            logger.error(f"Error gRPC DeleteUser: {str(e)}")
             context.set_code(grpc.StatusCode.INTERNAL)
-            context.set_details(str(e))
             return user_pb2.UserDeleteResponse(success=False, message=str(e))
         finally:
             db.close()
@@ -126,7 +132,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             user = db.query(UserModel).filter(UserModel.id == request.id).first()
             if not user:
                 context.set_code(grpc.StatusCode.NOT_FOUND)
-                context.set_details("User not found")
                 return user_pb2.UserGetResponse()
 
             response = user_pb2.UserGetResponse(
@@ -137,14 +142,10 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
                 phone_number=user.phone_number if user.phone_number else "",
                 degree=user.degree if user.degree else "",
             )
-
             self._enrich_user_response_profile(db, user.id, response)
             return response
-
         except Exception as e:
-            logger.error(f"Error gRPC GetUser: {str(e)}")
             context.set_code(grpc.StatusCode.INTERNAL)
-            context.set_details(str(e))
             return user_pb2.UserGetResponse()
         finally:
             db.close()
@@ -173,7 +174,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             db.query(models.UserApiKey).filter(
                 models.UserApiKey.user_id == request.user_id
             ).delete()
-
             new_key = models.UserApiKey(
                 user_id=request.user_id, api_key_hash=request.api_key_hash
             )
@@ -183,7 +183,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
         except Exception as e:
             db.rollback()
             context.set_code(grpc.StatusCode.INTERNAL)
-            context.set_details(str(e))
             return user_pb2.SaveUserApiKeyResponse(success=False)
         finally:
             db.close()
@@ -194,7 +193,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             matched_user_id = self._find_user_by_api_key(db, request.provided_api_key)
             if not matched_user_id:
                 context.set_code(grpc.StatusCode.UNAUTHENTICATED)
-                context.set_details("Invalid API Key")
                 return user_pb2.AuthenticateApiKeyResponse(user_id=0, is_admin=False)
 
             user = db.query(UserModel).filter(UserModel.id == matched_user_id).first()
@@ -203,17 +201,13 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             return user_pb2.AuthenticateApiKeyResponse(
                 user_id=matched_user_id, is_admin=is_admin
             )
-
         except Exception as e:
-            logger.error(f"Error in AuthenticateApiKeyRPC: {e}")
             context.set_code(grpc.StatusCode.INTERNAL)
-            context.set_details(str(e))
             return user_pb2.AuthenticateApiKeyResponse(user_id=0, is_admin=False)
         finally:
             db.close()
 
     def _find_user_by_api_key(self, db, provided_key: str):
-        """Pomocnicza metoda sprawdzająca klucz w bazie danych."""
         api_keys = db.query(models.UserApiKey).all()
         for key_entry in api_keys:
             if verify_password(provided_key, key_entry.api_key_hash):
@@ -221,7 +215,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
         return None
 
     def _has_admin_role(self, user) -> bool:
-        """Pomocnicza metoda izolująca sprawdzanie uprawnień admina."""
         if not user or not hasattr(user, "roles"):
             return False
         for r in user.roles:
