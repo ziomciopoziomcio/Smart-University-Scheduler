@@ -16,6 +16,7 @@ import (
     "google.golang.org/grpc/status"
 )
 
+func ApiKeyAdminOnly(application *app.App) gin.HandlerFunc {
     return func(c *gin.Context) {
        providedAPIKey := c.GetHeader("X-API-Key")
        if providedAPIKey == "" {
