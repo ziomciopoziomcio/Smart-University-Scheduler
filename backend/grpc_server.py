@@ -145,6 +145,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             self._enrich_user_response_profile(db, user.id, response)
             return response
         except Exception as e:
+            logger.exception(f"Error in GetUserRPC: {e}")
             context.set_code(grpc.StatusCode.INTERNAL)
             return user_pb2.UserGetResponse()
         finally:
@@ -180,7 +181,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             db.add(new_key)
             db.commit()
             return user_pb2.SaveUserApiKeyResponse(success=True)
-        except Exception as e:
+        except Exception:
             db.rollback()
             context.set_code(grpc.StatusCode.INTERNAL)
             return user_pb2.SaveUserApiKeyResponse(success=False)
@@ -201,7 +202,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             return user_pb2.AuthenticateApiKeyResponse(
                 user_id=matched_user_id, is_admin=is_admin
             )
-        except Exception as e:
+        except Exception:
             context.set_code(grpc.StatusCode.INTERNAL)
             return user_pb2.AuthenticateApiKeyResponse(user_id=0, is_admin=False)
         finally:
