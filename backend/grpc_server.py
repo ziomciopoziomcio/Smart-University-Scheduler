@@ -67,7 +67,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
     def _handle_academic_profile(self, db, user_id, request):
         profile_type = request.WhichOneof("profile")
         if profile_type == "student":
-
             new_student = Students(
                 user_id=user_id,
                 study_program=request.student.study_program_id,
@@ -78,7 +77,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             db.add(new_student)
             logger.info(f"Adding student profile for user_id: {user_id}")
         elif profile_type == "employee":
-
             new_employee = Employees(
                 user_id=user_id,
                 faculty_id=request.employee.faculty_id,
@@ -152,7 +150,6 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             db.close()
 
     def _enrich_user_response_profile(self, db, user_id, response):
-
         student_profile = db.query(Students).filter(Students.user_id == user_id).first()
         if student_profile:
             response.student.id = student_profile.id
@@ -194,41 +191,43 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
     async def AuthenticateApiKeyRPC(self, request, context):
         db = SessionLocal()
         try:
-            api_keys = db.query(models.UserApiKey).all()
-
-            matched_user_id = None
-            for key_entry in api_keys:
-                if verify_password(request.provided_api_key, key_entry.api_key_hash):
-                    matched_user_id = key_entry.user_id
-                    break
-
+            matched_user_id = self._find_user_by_api_key(db, request.provided_api_key)
             if not matched_user_id:
                 context.set_code(grpc.StatusCode.UNAUTHENTICATED)
                 context.set_details("Invalid API Key")
-                # Zmiana: false -> False
                 return user_pb2.AuthenticateApiKeyResponse(user_id=0, is_admin=False)
 
             user = db.query(UserModel).filter(UserModel.id == matched_user_id).first()
-
-            is_admin = False
-            if user and hasattr(user, "roles"):
-                for r in user.roles:
-                    role_name = r.role_name.lower()
-                    if role_name in ["administrator", "admin"]:
-                        is_admin = True
-                        break
+            is_admin = self._has_admin_role(user)
 
             return user_pb2.AuthenticateApiKeyResponse(
                 user_id=matched_user_id, is_admin=is_admin
             )
 
         except Exception as e:
+            logger.error(f"Error in AuthenticateApiKeyRPC: {e}")
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(str(e))
-            # Zmiana: false -> False
             return user_pb2.AuthenticateApiKeyResponse(user_id=0, is_admin=False)
         finally:
             db.close()
+
+    def _find_user_by_api_key(self, db, provided_key: str):
+        """Pomocnicza metoda sprawdzająca klucz w bazie danych."""
+        api_keys = db.query(models.UserApiKey).all()
+        for key_entry in api_keys:
+            if verify_password(provided_key, key_entry.api_key_hash):
+                return key_entry.user_id
+        return None
+
+    def _has_admin_role(self, user) -> bool:
+        """Pomocnicza metoda izolująca sprawdzanie uprawnień admina."""
+        if not user or not hasattr(user, "roles"):
+            return False
+        for r in user.roles:
+            if r.role_name.lower() in ["administrator", "admin"]:
+                return True
+        return False
 
 
 async def serve():
