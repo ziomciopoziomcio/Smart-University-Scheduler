@@ -27,39 +27,17 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
         db = SessionLocal()
         try:
             generated_pass = secrets.token_urlsafe(12)
-            signup_payload = SignupRequest(
-                email=request.email,
-                password=generated_pass,
-                password2=generated_pass,
-                name=request.name,
-                surname=request.surname,
-                phone_number=request.phone_number if request.phone_number else None,
-                degree=request.degree if request.degree else None,
-            )
+            signup_payload = self._build_signup_payload(request, generated_pass)
 
             _validate_signup(signup_payload, db)
-
             new_user, token = _prepare_user_and_token(signup_payload)
-
             _stage_user(db, new_user)
 
             self._handle_academic_profile(db, new_user.id, request)
-
             db.commit()
             db.refresh(new_user)
 
-            try:
-                send_verification_email(new_user.email, token)
-            except Exception as e:
-                logger.error(f"Couldn't send verification email: {e}")
-
-            if request.send_login_credentials_email:
-                try:
-                    send_login_credentials_email(
-                        user_email=new_user.email, temporary_password=generated_pass
-                    )
-                except Exception as e:
-                    logger.error(f"Couldn't send credentials email: {e}")
+            self._send_notifications(request, new_user.email, token, generated_pass)
 
             return user_pb2.UserCreateResponse(
                 id=new_user.id, email=new_user.email, status="created"
@@ -79,6 +57,31 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             return user_pb2.UserCreateResponse()
         finally:
             db.close()
+
+    def _build_signup_payload(self, request, generated_pass: str) -> SignupRequest:
+        return SignupRequest(
+            email=request.email,
+            password=generated_pass,
+            password2=generated_pass,
+            name=request.name,
+            surname=request.surname,
+            phone_number=request.phone_number if request.phone_number else None,
+            degree=request.degree if request.degree else None,
+        )
+
+    def _send_notifications(self, request, email: str, token: str, generated_pass: str):
+        try:
+            send_verification_email(email, token)
+        except Exception as e:
+            logger.error(f"Couldn't send verification email: {e}")
+
+        if request.send_login_credentials_email:
+            try:
+                send_login_credentials_email(
+                    user_email=email, temporary_password=generated_pass
+                )
+            except Exception as e:
+                logger.error(f"Couldn't send credentials email: {e}")
 
     def _handle_academic_profile(self, db, user_id, request):
         profile_type = request.WhichOneof("profile")
