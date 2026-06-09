@@ -88,7 +88,7 @@ def process_chat_message(messages: list[ChatCompletionMessageParam]) -> dict:
 
         return {
             "type": "tool_call",
-            "tool_name": tool_call.function_name,
+            "tool_name": tool_call.function.name,
             "tool_call_id": tool_call.id,
             "arguments": arguments,
             "raw_message": response_message,
