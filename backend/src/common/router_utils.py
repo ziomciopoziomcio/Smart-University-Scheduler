@@ -75,7 +75,7 @@ def _apply_patch_or_reject_nulls(
         setattr(obj, k, v)
 
 
-def serialize_student_nested(row: tuple[Any, Any, Any, Any, Any]) -> dict:
+def serialize_student_nested(row: tuple[Any, Any, Any, Any, Any], groups: list) -> dict:
     """
     Row shape expected from academics.router:
     (student, user, study_program, study_field, major_obj)
@@ -87,36 +87,44 @@ def serialize_student_nested(row: tuple[Any, Any, Any, Any, Any]) -> dict:
     """
     student, user, study_program, study_field, major_obj = row
 
-    user_obj = {
-        "id": user.id,
-        "name": user.name,
-        "surname": user.surname,
-        "email": user.email,
-        "degree": user.degree,
-        "created_at": user.created_at,
-        "two_factor_enabled": user.two_factor_enabled,
-    }
-
-    study_program_details = {
-        "id": study_program.id,
-        "study_field": study_program.study_field,
-        "start_year": study_program.start_year,
-        "program_name": study_program.program_name
-        or getattr(study_field, "field_name", None),
-    }
-
-    major_details = None
-    if major_obj is not None:
-        major_details = {"id": major_obj.id, "major_name": major_obj.major_name}
-
     return {
         "id": student.id,
         "user_id": student.user_id,
         "study_program": student.study_program,
         "major": student.major,
-        "user": user_obj,
-        "study_program_details": study_program_details,
-        "major_details": major_details,
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "surname": user.surname,
+            "email": user.email,
+            "degree": user.degree,
+            "created_at": user.created_at,
+            "two_factor_enabled": user.two_factor_enabled,
+        },
+        "study_program_details": {
+            "id": study_program.id,
+            "study_field": study_program.study_field,
+            "start_year": study_program.start_year,
+            "program_name": study_program.program_name
+            or getattr(study_field, "field_name", None),
+        },
+        "major_details": (
+            {"id": major_obj.id, "major_name": major_obj.major_name}
+            if major_obj
+            else None
+        ),
+        "groups": [
+            {
+                "id": g.id,
+                "group_name": g.group_name,
+                "study_program": g.study_program,
+                "major": getattr(g, "major", None),
+                "elective_block": getattr(g, "elective_block", None),
+                "semester": g.semester,
+                "is_active": g.is_active,
+            }
+            for g in (groups or [])
+        ],
     }
 
 

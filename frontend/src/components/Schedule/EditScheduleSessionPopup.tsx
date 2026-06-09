@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState, useEffect} from 'react';
 import {
     Box,
     Button,
@@ -108,24 +108,13 @@ export function EditScheduleSessionPopup({
             instructorId: initialValues.instructorId,
             roomId: initialValues.roomId,
         };
-    }, [
-        fallbackValues,
-        initialValues?.dayOfWeek,
-        initialValues?.startTime,
-        initialValues?.endTime,
-        initialValues?.instructorId,
-        initialValues?.roomId,
-    ]);
+    }, [fallbackValues, initialValues]);
 
     const [formValues, setFormValues] = useState<FormValues>(valuesFromProps);
 
     useEffect(() => {
-        if (!open) {
-            return;
-        }
-
         setFormValues(valuesFromProps);
-    }, [open, valuesFromProps]);
+    }, [valuesFromProps]);
 
     const handleSave = async () => {
         await onSave({

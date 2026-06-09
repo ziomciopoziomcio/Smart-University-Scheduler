@@ -1,7 +1,8 @@
 {
   "common": {
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "saving": "Saving..."
   },
   "login": {
     "title": "Sign in",
@@ -107,6 +108,13 @@
   "navbar": {
     "guest": "Guest",
     "logout": "Logout"
+  },
+  "auth": {
+    "sessionExpired": {
+      "title": "Session expired",
+      "message": "Your session has expired. Please log in again to continue.",
+      "button": "Log in"
+    }
   },
   "calendar": {
     "month": "Month",
@@ -415,6 +423,46 @@
       "passwordMismatch": "Passwords do not match!"
     }
   },
+  "settings": {
+    "title": "System Settings",
+    "searchPlaceholder": "Search settings...",
+    "security": {
+      "title": "Security",
+      "password": {
+        "name": "Password",
+        "description": "Change your system access password.",
+        "changeButton": "Change password",
+        "title": "Change password",
+        "oldPassword": "Old password",
+        "newPassword": "New password",
+        "confirmPassword": "Repeat new password",
+        "success": "Password has been changed"
+      },
+      "twoFactor": {
+        "name": "Two-factor authentication (2FA)",
+        "description": "Increase account security by requiring a code from an app when logging in.",
+        "setup": "Set up 2FA",
+        "disable": "Disable 2FA",
+        "setupTitle": "2FA Setup",
+        "setupDesc": "Scan the QR code below in your authenticator app (e.g., Google Authenticator).",
+        "manualEntry": "If you cannot scan the code, enter this key manually in the app:",
+        "confirmCode": "Enter code from app",
+        "backupCodesTitle": "Backup codes",
+        "backupCodesDesc": "Save the codes below in a safe place. They will allow you to log in if you lose access to the app.",
+        "disableTitle": "Disabling 2FA",
+        "disableDesc": "To disable 2FA, enter your password and current code.",
+        "passwordLabel": "Password",
+        "codeLabel": "2FA Code",
+        "successEnabled": "2FA has been enabled",
+        "successDisabled": "2FA has been disabled"
+      }
+    },
+    "errors": {
+      "load": "Error loading settings",
+      "save": "Error saving settings"
+    },
+    "success": "Settings saved successfully"
+  },
   "roles": {
     "usersCount": "{count, plural, =0 {No users} one {1 user} other {# users}}",
     "title": "Roles",
@@ -499,6 +547,12 @@
           "fullTime": "full-time",
           "partTime": "part-time"
         },
+        "studyDegree": {
+          "bachelor": "Bachelor",
+          "master": "Master",
+          "uniformMaster": "Uniform Master",
+          "doctoral": "Doctoral"
+        },
         "semestersCount": "{count, plural, one {# semester} other {# semesters}}",
         "specializations": {
           "none": "no specializations",
@@ -571,9 +625,11 @@
     },
     "fieldDashboard": {
       "majorsTitle": "Majors",
-      "majorsDesc": "Manage majors for this field of study.",
-      "blocksTitle": "Elective Blocks",
-      "blocksDesc": "Manage elective blocks for this field of study."
+      "majorsDesc": "Manage majors and groups",
+      "blocksTitle": "Elective blocks",
+      "blocksDesc": "Configure elective courses",
+      "programsTitle": "Study programs",
+      "programsDesc": "Manage cycles and curriculum"
     },
     "common": {
       "search": "Search...",
@@ -594,10 +650,111 @@
       "deleteTitle": "Delete field of study",
       "deleteDesc": "Are you sure you want to delete the field of study \"{name}\"? This action cannot be undone.",
       "empty": "No fields of study in the system.",
-      "nameLabel": "Field of study name",
-      "namePlaceholder": "e.g. Computer Science",
-      "majorsCount": "{count, plural, one {# major} other {# majors}}",
-      "blocksCount": "{count, plural, =0 {No blocks} one {1 block} few {# blocks} many {# blocks} other {# blocks}}"
+      "nameLabel": "Field of Study Name",
+      "namePlaceholder": "e.g., Computer Science",
+      "degreeLabel": "Study Degree",
+      "modeLabel": "Study Mode",
+      "majorsCount": "{count, plural, =0 {No specializations} one {1 specialization} other {# specializations}}",
+      "blocksCount": "{count, plural, =0 {No blocks} one {1 block} other {# blocks}}",
+      "programsCount": "{count, plural, =0 {No cohorts} one {1 cohort} other {# cohorts}}",
+      "degrees": {
+        "Bachelor": "Bachelor",
+        "Master": "Master",
+        "Uniform_Master": "Uniform Master",
+        "Doctoral": "Doctoral"
+      },
+      "modes": {
+        "Full-time": "Full-time",
+        "Part-time": "Part-time"
+      }
+    },
+    "programs": {
+      "title": "Programs",
+      "semester": "Semester",
+      "searchPlaceholder": "Search...",
+      "noData": "No data to display.",
+      "addProgram": "Add cohort",
+      "addCourse": "Add course",
+      "errorLoading": "Error loading data",
+      "list": {
+        "title": "Study program",
+        "semestersCount": "{count, plural, =0 {No semesters} one {1 semester} other {# semesters}}",
+        "recruitment": "Recruitment: {year}"
+      },
+      "semesters": {
+        "title": "Semesters",
+        "coursesCount": "{count, plural, =0 {No courses} one {1 course} other {# courses}}"
+      },
+      "dashboard": {
+        "curriculumTitle": "Curriculum",
+        "curriculumDesc": "Manage courses in this semester",
+        "groupsTitle": "Student Groups",
+        "groupsDesc": "Manage groups and assign students"
+      },
+      "curriculum": {
+        "courseIdFallback": "Course ID: {id}",
+        "majorIdFallback": "Spec. ID: {id}",
+        "blockIdFallback": "Block ID: {id}"
+      },
+      "modal": {
+        "editProgram": "Edit cohort",
+        "addProgram": "Add new cohort",
+        "startYear": "Academic year (e.g., 2024/2025)",
+        "programName": "Custom program name (optional)",
+        "yearFrom": "From",
+        "yearTo": "To",
+        "yearErrorFormat": "Years must be 4-digit numbers",
+        "yearErrorDiff": "The difference between years must be exactly 1 year",
+        "yearErrorOrder": "The first year must be less than the second",
+        "yearFromPlaceholder": "2023",
+        "yearToPlaceholder": "2024",
+        "programNamePlaceholder": "e.g., Practical profile"
+      },
+      "curriculumModal": {
+        "title": "Add course to curriculum",
+        "course": "Select course",
+        "coursePlaceholder": "Type course code or name...",
+        "courseNoOptions": "No courses found",
+        "major": "Specialization (optional)",
+        "electiveBlock": "Elective block (optional)",
+        "none": "None",
+        "exclusivityHint": "Course can belong to a specialization OR to a block."
+      },
+      "groups": {
+        "title": "Groups",
+        "add": "Add group",
+        "edit": "Edit group",
+        "deleteTitle": "Delete group",
+        "deleteDesc": "Are you sure you want to delete group {name}?",
+        "empty": "No groups in this semester",
+        "studentsCount": "Students: {count}",
+        "active": "Active (has classes)",
+        "inactive": "Inactive (no classes)",
+        "chip": {
+          "major": "{name}",
+          "block": "{name}",
+          "general": "Cohort (General)"
+        },
+        "modal": {
+          "nameLabel": "Group name",
+          "namePlaceholder": "e.g., L1, W2, AI-1",
+          "majorLabel": "Specialization",
+          "blockLabel": "Elective block",
+          "activeLabel": "Group has classes this semester",
+          "none": "None",
+          "exclusivityHint": "* A group can be assigned to the whole cohort, a specialization OR an elective block."
+        }
+      },
+      "groupStudents": {
+        "title": "Students in group",
+        "empty": "No students assigned to this group",
+        "index": "Index: {id}"
+      }
+    },
+    "semesters": {
+      "title": "Semesters",
+      "coursesCount": "{count, plural, =0 {No courses} one {1 course} other {# courses}}",
+      "ectsSum": "{count} ECTS"
     },
     "majors": {
       "add": "Add Major",
@@ -639,7 +796,9 @@
       "noEmployees": "No employees available",
       "languagePolish": "Polish",
       "languageEnglish": "English",
-      "languageFrench": "French"
+      "languageFrench": "French",
+      "classTypesTitle": "Class types and hours:",
+      "hoursLabel": "Hours"
     },
     "instructors": {
       "title": "Course instructors",
@@ -650,7 +809,16 @@
       "empty": "No instructors assigned to this course.",
       "deleteTitle": "Delete instructor assignment",
       "deleteDesc": "Are you sure you want to delete the assignment of {employee} as an instructor for {course}? This action cannot be undone.",
-      "manage": "Manage instructors"
+      "manage": "Manage instructors",
+      "noTypesWarning": "This course has no class types defined. Please add them first in the course catalog."
+    },
+    "classTypes": {
+      "Lecture": "Lecture",
+      "Tutorials": "Tutorials",
+      "Laboratory": "Laboratory",
+      "Seminar": "Seminar",
+      "Other": "Other",
+      "E-learning": "E-learning"
     }
   },
   "generateSchedule": {
@@ -676,93 +844,6 @@
       "statusSuccess": "No issues",
       "statusWarnings": "Requires review",
       "statusErrors": "Issues detected"
-    }
-  },
-  "programs": {
-    "title": "Study Programs & Curriculums",
-    "semester": "Semester",
-    "searchPlaceholder": "Search...",
-    "noData": "No data available.",
-    "addProgram": "Add study program",
-    "addCourse": "Add course",
-    "errorLoading": "Error loading data",
-    "faculties": {
-      "title": "Faculty"
-    },
-    "fields": {
-      "title": "Field of Study",
-      "programsCount": "{count, plural, =0 {No programs} one {1 program} other {# programs}}"
-    },
-    "list": {
-      "title": "Study Program",
-      "semestersCount": "{count, plural, =0 {No semesters} one {1 semester} other {# semesters}}",
-      "recruitment": "Enrollment: {year}"
-    },
-    "semesters": {
-      "title": "Semesters",
-      "coursesCount": "{count, plural, =0 {No courses} one {1 course} other {# courses}}"
-    },
-    "dashboard": {
-      "curriculumTitle": "Curriculum",
-      "curriculumDesc": "Manage courses in this semester",
-      "groupsTitle": "Student Groups",
-      "groupsDesc": "Manage groups and assign students"
-    },
-    "curriculum": {
-      "courseIdFallback": "Course ID: {id}",
-      "majorIdFallback": "Major ID: {id}",
-      "blockIdFallback": "Block ID: {id}"
-    },
-    "modal": {
-      "editProgram": "Edit study program",
-      "addProgram": "Add new study program",
-      "startYear": "Academic year (e.g., 2024/2025)",
-      "programName": "Custom program name (optional)",
-      "yearFrom": "Year from",
-      "yearTo": "Year to",
-      "yearErrorFormat": "Years must be 4-digit numbers",
-      "yearErrorDiff": "The difference must be exactly 1 year",
-      "yearErrorOrder": "The first year must be earlier than the second",
-      "yearFromPlaceholder": "2023",
-      "yearToPlaceholder": "2024",
-      "programNamePlaceholder": "e.g., Practical profile"
-    },
-    "curriculumModal": {
-      "title": "Add course to curriculum",
-      "course": "Select course",
-      "coursePlaceholder": "Type course code or name...",
-      "courseNoOptions": "Course not found",
-      "major": "Major (optional)",
-      "electiveBlock": "Elective block (optional)",
-      "none": "None",
-      "exclusivityHint": "A course can belong to a major OR an elective block."
-    },
-    "groups": {
-      "title": "Groups",
-      "add": "Add group",
-      "edit": "Edit group",
-      "deleteTitle": "Delete group",
-      "deleteDesc": "Are you sure you want to delete group {name}?",
-      "empty": "No groups in this semester",
-      "studentsCount": "Students: {count}",
-      "chip": {
-        "major": "Major: {name}",
-        "block": "Block: {name}",
-        "general": "Year (General)"
-      },
-      "modal": {
-        "nameLabel": "Group name",
-        "namePlaceholder": "e.g., L1, W2, AI-1",
-        "majorLabel": "Major",
-        "blockLabel": "Elective block",
-        "none": "None",
-        "exclusivityHint": "* A group can be assigned to the whole year, a major OR an elective block."
-      }
-    },
-    "groupStudents": {
-      "title": "Students in group",
-      "empty": "No students assigned to this group",
-      "index": "Index: {id}"
     }
   },
   "chat": {

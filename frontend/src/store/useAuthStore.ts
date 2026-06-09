@@ -7,11 +7,13 @@ export interface AuthState {
     user: User | null;
     loading: boolean;
     error: string | null;
+    sessionExpired: boolean;
 
     login: (email: string, password: string) => Promise<AuthResponse>;
     finalizeLogin: (token: string) => Promise<void>;
     logout: () => void;
     initialize: () => Promise<void>;
+    setSessionExpired: (_expired: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -21,16 +23,15 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             loading: false,
             error: null,
-
+            sessionExpired: false,
 
             login: async (email, password) => {
-                set({loading: true, error: null});
+                set({loading: true, error: null, sessionExpired: false});
                 try {
                     const authData = await loginUser(email, password);
 
                     if (!authData.requires_2fa && authData.access_token) {
                         const userData = await fetchUserData(authData.access_token);
-
                         set({
                             token: authData.access_token,
                             user: userData,
@@ -48,7 +49,7 @@ export const useAuthStore = create<AuthState>()(
             },
 
             finalizeLogin: async (token) => {
-                set({loading: true, error: null});
+                set({loading: true, error: null, sessionExpired: false});
                 try {
                     const userData = await fetchUserData(token);
                     set({
@@ -70,13 +71,17 @@ export const useAuthStore = create<AuthState>()(
                 try {
                     const userData = await fetchUserData(token);
                     set({user: userData});
-                } catch (err) {
+                } catch {
                     set({token: null, user: null});
                 }
             },
 
             logout: () => {
-                set({token: null, user: null, error: null});
+                set({token: null, user: null, error: null, sessionExpired: false});
+            },
+
+            setSessionExpired: (expired) => {
+                set({sessionExpired: expired});
             }
         }),
         {

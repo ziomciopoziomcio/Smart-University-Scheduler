@@ -18,6 +18,7 @@ export function ScheduleCampusView({data}: ScheduleCampusViewProps) {
             icon={ApartmentIcon}
             variant="flat"
             iconSize={52}
+            stretch
             hideAdd
             hideMenu
             getTitle={(item) => item.campus_short}

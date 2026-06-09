@@ -196,6 +196,9 @@ def _candidate_cost(
                 )
             )
 
+        if not group_taken_set:
+            cost += 15.0
+
         cost += _cost_gap_penalty_for_day_span(
             start_slot=start_slot,
             duration=duration,

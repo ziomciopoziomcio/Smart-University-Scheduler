@@ -102,7 +102,7 @@ export function CurriculumModal({open, programId, semesterId, fieldId, onClose, 
         <Dialog open={open} onClose={isSubmitting ? undefined : onClose} maxWidth="sm" fullWidth
                 PaperProps={{sx: {borderRadius: '16px'}}}>
             <DialogTitle fontWeight={700}>
-                {intl.formatMessage({id: 'programs.curriculumModal.title'})}
+                {intl.formatMessage({id: 'didactics.programs.curriculumModal.title'})}
             </DialogTitle>
 
             <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1, overflow: 'visible'}}>
@@ -118,12 +118,12 @@ export function CurriculumModal({open, programId, semesterId, fieldId, onClose, 
                         setCourseSearchInput(newInputValue);
                     }}
                     loading={isSearchingCourses}
-                    noOptionsText={intl.formatMessage({id: 'programs.curriculumModal.courseNoOptions'})}
+                    noOptionsText={intl.formatMessage({id: 'didactics.programs.curriculumModal.courseNoOptions'})}
                     renderInput={(params) => (
                         <TextField
                             {...params}
-                            label={intl.formatMessage({id: 'programs.curriculumModal.course'})}
-                            placeholder={intl.formatMessage({id: 'programs.curriculumModal.coursePlaceholder'})}
+                            label={intl.formatMessage({id: 'didactics.programs.curriculumModal.course'})}
+                            placeholder={intl.formatMessage({id: 'didactics.programs.curriculumModal.coursePlaceholder'})}
                             InputProps={{
                                 ...params.InputProps,
                                 endAdornment: (
@@ -140,40 +140,40 @@ export function CurriculumModal({open, programId, semesterId, fieldId, onClose, 
                 <Box sx={{display: 'flex', gap: 2}}>
                     <FormControl fullWidth disabled={blockId !== ''}>
                         <InputLabel
-                            id="major-label">{intl.formatMessage({id: 'programs.curriculumModal.major'})}</InputLabel>
+                            id="major-label">{intl.formatMessage({id: 'didactics.programs.curriculumModal.major'})}</InputLabel>
                         <Select
                             labelId="major-label"
                             value={majorId}
-                            label={intl.formatMessage({id: 'programs.curriculumModal.major'})}
+                            label={intl.formatMessage({id: 'didactics.programs.curriculumModal.major'})}
                             onChange={(e) => {
                                 setMajorId(e.target.value as number | '');
                             }}
                         >
                             <MenuItem
-                                value=""><em>{intl.formatMessage({id: 'programs.curriculumModal.none'})}</em></MenuItem>
+                                value=""><em>{intl.formatMessage({id: 'didactics.programs.curriculumModal.none'})}</em></MenuItem>
                             {majors.map(m => <MenuItem key={m.id} value={m.id}>{m.major_name}</MenuItem>)}
                         </Select>
                     </FormControl>
 
                     <FormControl fullWidth disabled={majorId !== ''}>
                         <InputLabel
-                            id="block-label">{intl.formatMessage({id: 'programs.curriculumModal.electiveBlock'})}</InputLabel>
+                            id="block-label">{intl.formatMessage({id: 'didactics.programs.curriculumModal.electiveBlock'})}</InputLabel>
                         <Select
                             labelId="block-label"
                             value={blockId}
-                            label={intl.formatMessage({id: 'programs.curriculumModal.electiveBlock'})}
+                            label={intl.formatMessage({id: 'didactics.programs.curriculumModal.electiveBlock'})}
                             onChange={(e) => {
                                 setBlockId(e.target.value as number | '');
                             }}
                         >
                             <MenuItem
-                                value=""><em>{intl.formatMessage({id: 'programs.curriculumModal.none'})}</em></MenuItem>
+                                value=""><em>{intl.formatMessage({id: 'didactics.programs.curriculumModal.none'})}</em></MenuItem>
                             {blocks.map(b => <MenuItem key={b.id} value={b.id}>{b.elective_block_name}</MenuItem>)}
                         </Select>
                     </FormControl>
                 </Box>
                 <Typography variant="caption" color="text.secondary" sx={{mt: -1}}>
-                    {intl.formatMessage({id: 'programs.curriculumModal.exclusivityHint'})}
+                    {intl.formatMessage({id: 'didactics.programs.curriculumModal.exclusivityHint'})}
                 </Typography>
             </DialogContent>
 
@@ -181,10 +181,10 @@ export function CurriculumModal({open, programId, semesterId, fieldId, onClose, 
                 <Button onClick={onClose} sx={{
                     fontWeight: 600,
                     color: 'text.secondary'
-                }}>{intl.formatMessage({id: 'common.cancel'})}</Button>
+                }}>{intl.formatMessage({id: 'didactics.common.cancel'})}</Button>
                 <Button onClick={handleSubmit} variant="contained" disabled={isSubmitting || !selectedCourse}
                         sx={{borderRadius: '10px', px: 4, fontWeight: 600}}>
-                    {isSubmitting ? <CircularProgress size={24}/> : intl.formatMessage({id: 'common.save'})}
+                    {isSubmitting ? <CircularProgress size={24}/> : intl.formatMessage({id: 'didactics.common.save'})}
                 </Button>
             </DialogActions>
         </Dialog>

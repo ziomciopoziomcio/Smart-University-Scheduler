@@ -23,16 +23,16 @@ class FitnessCalculator:
         self.profile_counts = profile_counts
         self.instructor_assignments = instructor_assignments
 
-        self.W_DAY_USED = 100
+        self.W_DAY_USED = 800
         self.W_GAP_SLOT = 50
         self.W_MAX_GAP = 200  # gap longer than 2 slots
         self.W_ROOM_SIZE = 1  # per one free seat
         self.W_CAMPUS_CHANGE = 500  # without gap
-        self.W_FATIGUE = 150  # day longer than 6 time slots in a day
+        self.W_FATIGUE = 50  # day longer than 6 time slots in a day
         self.W_BUILDING_CHANGE = 20
         self.W_ROOM_CHANGE = 10
 
-        self.W_INSTR_DAY_USED = 150
+        self.W_INSTR_DAY_USED = 600
         self.W_INSTR_GAP_SLOT = 75
         self.W_INSTR_MAX_GAP = 300
         self.W_INSTR_CAMPUS_CHANGE = 750
@@ -41,7 +41,7 @@ class FitnessCalculator:
         self.W_INSTR_ROOM_CHANGE = 15
 
         self.W_TOO_MUCH_STUDENTS = 5000
-        self.W_HARD_PENALTY = 100000
+        self.W_HARD_PENALTY = 5000000
         self.W_WORKLOAD_MISMATCH = 500
 
         self.base_workload_penalty = sum(
@@ -564,8 +564,8 @@ class FitnessCalculator:
                     if gap > 2:
                         penalty += w_max_gap * multiplier
 
-        if daily_slots_count > 6:
-            penalty += (daily_slots_count - 6) * w_fatigue * multiplier
+        if daily_slots_count > 8:
+            penalty += (daily_slots_count - 8) * w_fatigue * multiplier
 
         return penalty
 

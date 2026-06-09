@@ -1,11 +1,12 @@
 import logging
 import uuid
-from datetime import timezone, datetime, date, timedelta
+from datetime import timezone, datetime, date, timedelta, time
 
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import cast, String
 
+from .schemas import CustomEventRead, CustomEventCreate, CustomEventUpdate
 from ..academics.models import Students, Employees
 from . import models
 from . import schemas
@@ -291,7 +292,7 @@ def get_schedule_suggestion(suggestion_id: int, db: Session = Depends(get_db)):
 @router.patch(
     "/suggestions/{suggestion_id}", response_model=schemas.ScheduleSuggestionRead
 )
-async def resolve_schedule_suggestion(
+async def resolve_schedule_suggestion(  # todo: handle tab of class sessions
     suggestion_id: int,
     payload: schemas.ScheduleSuggestionUpdate,
     db: Session = Depends(get_db),
@@ -869,3 +870,670 @@ async def get_room_plan(
     records = await result.data()
 
     return _map_room_plan(records)
+
+
+_UPDATE_SCHEDULE_QUERY = """
+    MATCH (s:ClassSession {sessionId: $session_id})
+    MATCH (t:TimeSlot {timeSlotId: $timeslot_id})
+    MATCH (r:Room {roomId: $room_id})
+    MATCH (i:Instructor {instructorId: $instructor_id})
+    
+    /* other ClassSession in the same TimeSlot */
+    OPTIONAL MATCH (other:ClassSession)-[:AT_TIME]->(t)
+    WHERE other.sessionId <> $session_id
+    
+    OPTIONAL MATCH (other)-[:TAUGHT_BY]->(oi:Instructor)
+    OPTIONAL MATCH (other)-[:HELD_IN]->(or:Room)
+    
+    /* conflict checker */
+    WITH s, t, r, i, other,
+         collect(
+            CASE
+                WHEN other IS NULL THEN null
+                WHEN oi.instructorId = $instructor_id THEN other
+                WHEN or.roomId = $room_id THEN other
+                ELSE null
+            END
+         ) AS conflicts
+    
+    /* remove NULL vals */
+    WITH s, t, r, i,
+         [x IN conflicts WHERE x IS NOT NULL] AS conflicts_filtered
+    
+    WITH s, t, r, i, size(conflicts_filtered) AS conflictCount
+    WHERE conflictCount = 0
+    
+    /* update */
+    OPTIONAL MATCH (s)-[old_time:AT_TIME]->(:TimeSlot)
+    DELETE old_time
+    
+    WITH s, t, r, i
+    
+    OPTIONAL MATCH (s)-[old_room:HELD_IN]->(:Room)
+    DELETE old_room
+    
+    WITH s, t, r, i
+    
+    OPTIONAL MATCH (s)-[old_instr:TAUGHT_BY]->(:Instructor)
+    DELETE old_instr
+    
+    WITH s, t, r, i
+    
+    MERGE (s)-[:AT_TIME]->(t)
+    MERGE (s)-[:HELD_IN]->(r)
+    MERGE (s)-[:TAUGHT_BY]->(i)
+    
+    RETURN s.sessionId AS sessionId
+"""
+
+_FIND_TIMESLOT_QUERY = """
+    MATCH (t:TimeSlot)
+    WHERE t.dayOfWeek = $dayOfWeek
+      AND t.startTime = $startTime
+      AND t.endTime = $endTime
+    RETURN t.timeSlotId AS timeSlotId
+    LIMIT 1
+"""
+
+
+async def update_schedule_atomic(
+    session_id: str,
+    timeslot_id: int,
+    room_id: int,
+    instructor_id: int,
+    neo4j_session,
+) -> bool:
+    result = await neo4j_session.run(
+        _UPDATE_SCHEDULE_QUERY,
+        session_id=session_id,
+        timeslot_id=timeslot_id,
+        room_id=room_id,
+        instructor_id=instructor_id,
+    )
+
+    record = await result.single()
+    return record is not None
+
+
+async def _get_timeslot_or_400(
+    neo4j_session,
+    day_of_week: str,
+    start_time: str,
+    end_time: str,
+) -> int:
+    result = await neo4j_session.run(
+        _FIND_TIMESLOT_QUERY,
+        dayOfWeek=day_of_week,
+        startTime=start_time,
+        endTime=end_time,
+    )
+
+    record = await result.single()
+
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Timeslot not found for {day_of_week} " f"{start_time}-{end_time}"
+            ),
+        )
+
+    return record["timeSlotId"]
+
+
+def _to_plural_day(dow: str) -> str:
+    mapping = {
+        "Monday": "Mondays",
+        "Tuesday": "Tuesdays",
+        "Wednesday": "Wednesdays",
+        "Thursday": "Thursdays",
+        "Friday": "Fridays",
+        "Saturday": "Saturdays",
+        "Sunday": "Sundays",
+    }
+    return mapping[dow]
+
+
+@router.put(
+    "/session/{session_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def update_schedule_session(
+    session_id: str,
+    payload: schemas.UpdateScheduleSessionRequest,
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(require_permission("schedule:update")),
+):
+    """
+    Update a scheduled class session.
+    Returns:
+    - 204: Session updated successfully.
+    - 400: Invalid timeslot.
+    - 404: Session not found.
+    - 409: Schedule conflict detected.
+    """
+
+    mapped_day_of_week = _to_plural_day(payload.day_of_week.value)
+
+    # check session
+    result = await neo4j_session.run(
+        "MATCH (s:ClassSession {sessionId: $session_id}) RETURN s",
+        session_id=session_id,
+    )
+
+    if not await result.single():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found",
+        )
+
+    # find timeslot
+    timeslot_id = await _get_timeslot_or_400(
+        neo4j_session=neo4j_session,
+        day_of_week=mapped_day_of_week,
+        start_time=payload.start_time,
+        end_time=payload.end_time,
+    )
+
+    # conflict check adn update
+    updated = await update_schedule_atomic(
+        session_id=session_id,
+        timeslot_id=timeslot_id,
+        room_id=payload.room_id,
+        instructor_id=payload.instructor_id,
+        neo4j_session=neo4j_session,
+    )
+
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Schedule conflict detected",
+        )
+
+    return None
+
+
+def _week_start_from_date(d: date) -> date:
+    return d - timedelta(days=d.weekday())
+
+
+async def _get_user_week_schedule_for_date(
+    db: Session, neo4j_session, user_id: int, reference_date: date
+) -> list[schemas.ScheduleEntry]:
+    """Returns a list of ScheduleEntry objects for the week containing the reference_date for the specified user_id."""
+    week_start = _week_start_from_date(reference_date)
+    day_configs = _get_academic_day_configs(db, week_start)
+    if not day_configs:
+        return []
+
+    student = _get_student_with_user_id(db, user_id)
+    employee = _get_employee_with_user_id(db, user_id)
+
+    if student:
+        group_ids = _get_student_group_ids(db, student.id)
+        if not group_ids:
+            return []
+        result = await neo4j_session.run(
+            STUDY_FIELD_PLAN_ACADEMIC_QUERY,
+            group_ids=group_ids,
+            day_configs=day_configs,
+        )
+        records = await result.data()
+        return _map_schedule_entries(records)
+    elif employee:
+        result = await neo4j_session.run(
+            EMPLOYEE_SCHEDULE_QUERY, instructor_id=employee.id, day_configs=day_configs
+        )
+        records = await result.data()
+        return _map_schedule_entries(records)
+    else:
+        return []
+
+
+def _parse_time_str_to_timeobj(tstr: str) -> time:
+    return datetime.strptime(tstr, "%H:%M").time()
+
+
+def _check_single_overlap(
+    rec: schemas.ScheduleEntry, event_start_dt: datetime, event_end_dt: datetime
+) -> dict | None:
+    """
+    Checks if a single schedule entry overlaps with the given time range.
+    Returns conflict dictionary if overlap occurs, else None.
+    """
+    sess_date = rec.date
+    if not (event_start_dt.date() <= sess_date <= event_end_dt.date()):
+        return None
+
+    sess_start = _parse_time_str_to_timeobj(rec.start_time)
+    sess_end = _parse_time_str_to_timeobj(rec.end_time)
+
+    sess_start_dt = datetime.combine(
+        sess_date, sess_start, tzinfo=event_start_dt.tzinfo
+    )
+    sess_end_dt = datetime.combine(sess_date, sess_end, tzinfo=event_start_dt.tzinfo)
+
+    if event_end_dt <= sess_start_dt or event_start_dt >= sess_end_dt:
+        return None
+
+    return {
+        "session_date": sess_date.isoformat(),
+        "session_start": sess_start.strftime("%H:%M"),
+        "session_end": sess_end.strftime("%H:%M"),
+        "session_title": rec.title,
+        "session_id": rec.id,
+    }
+
+
+def _event_overlaps_schedule(
+    event_start_dt: datetime,
+    event_end_dt: datetime,
+    schedule_entries: list[schemas.ScheduleEntry],
+) -> list[dict]:
+    """
+    Checks for overlaps against a list of schedule_entries.
+    Returns a list of conflicts (may be empty).
+    """
+    conflicts = []
+    for rec in schedule_entries:
+        conflict = _check_single_overlap(rec, event_start_dt, event_end_dt)
+        if conflict:
+            conflicts.append(conflict)
+
+    return conflicts
+
+
+CREATE_CUSTOM_EVENT_QUERY = """
+MERGE (u:User {userId: $user_id})
+CREATE (e:CustomEvent {
+    eventId: $event_id,
+    title: $title,
+    description: $description,
+    eventType: $event_type,
+    startDt: datetime($start_dt),
+    endDt: datetime($end_dt),
+    createdAt: datetime($created_at)
+})
+MERGE (u)-[:CREATED]->(e)
+
+WITH e
+OPTIONAL MATCH (r:Room {roomId: $room_id})
+FOREACH (_ IN CASE WHEN r IS NOT NULL THEN [1] ELSE [] END | MERGE (e)-[:HELD_IN]->(r))
+
+WITH e
+OPTIONAL MATCH (g:Group {groupId: $group_id})
+FOREACH (_ IN CASE WHEN g IS NOT NULL THEN [1] ELSE [] END | MERGE (e)-[:RELATED_TO_GROUP]->(g))
+
+WITH e
+OPTIONAL MATCH (s:ClassSession {sessionId: $session_id})
+FOREACH (_ IN CASE WHEN s IS NOT NULL THEN [1] ELSE [] END | MERGE (e)-[:RELATED_TO_SESSION]->(s))
+
+RETURN e.eventId AS event_id
+"""
+
+GET_CUSTOM_EVENTS_QUERY = """
+MATCH (u:User {userId: $user_id})-[:CREATED]->(e:CustomEvent)
+OPTIONAL MATCH (e)-[:HELD_IN]->(r:Room)
+OPTIONAL MATCH (e)-[:RELATED_TO_GROUP]->(g:Group)
+OPTIONAL MATCH (e)-[:RELATED_TO_SESSION]->(s:ClassSession)
+RETURN e.eventId AS event_id, e.title AS title, e.description AS description, 
+       e.eventType AS event_type, toString(e.startDt) AS start_dt, toString(e.endDt) AS end_dt, 
+       toString(e.createdAt) AS created_at, toString(e.updatedAt) AS updated_at,
+       $user_id AS user_id, u.userId AS created_by,
+       r.roomId AS related_room_id, g.groupId AS related_group_id, s.sessionId AS related_session_id
+ORDER BY e.startDt DESC
+SKIP $skip LIMIT $limit
+"""
+
+COUNT_CUSTOM_EVENTS_QUERY = """
+MATCH (u:User {userId: $user_id})-[:CREATED]->(e:CustomEvent)
+RETURN count(e) AS total
+"""
+
+GET_CUSTOM_EVENT_BY_ID_QUERY = """
+MATCH (e:CustomEvent {eventId: $event_id})<-[:CREATED]-(u:User)
+OPTIONAL MATCH (e)-[:HELD_IN]->(r:Room)
+OPTIONAL MATCH (e)-[:RELATED_TO_GROUP]->(g:Group)
+OPTIONAL MATCH (e)-[:RELATED_TO_SESSION]->(s:ClassSession)
+RETURN e.eventId AS event_id, e.title AS title, e.description AS description, 
+       e.eventType AS event_type, toString(e.startDt) AS start_dt, toString(e.endDt) AS end_dt, 
+       toString(e.createdAt) AS created_at, toString(e.updatedAt) AS updated_at,
+       u.userId AS user_id, u.userId AS created_by,
+       r.roomId AS related_room_id, g.groupId AS related_group_id, s.sessionId AS related_session_id
+"""
+
+UPDATE_CUSTOM_EVENT_QUERY = """
+MATCH (e:CustomEvent {eventId: $event_id})
+SET e.title = $title,
+    e.description = $description,
+    e.eventType = $event_type,
+    e.startDt = datetime($start_dt),
+    e.endDt = datetime($end_dt),
+    e.updatedAt = datetime($updated_at)
+
+WITH e
+OPTIONAL MATCH (e)-[old_r:HELD_IN]->(:Room)
+DELETE old_r
+WITH e
+OPTIONAL MATCH (r:Room {roomId: $room_id})
+FOREACH (_ IN CASE WHEN r IS NOT NULL THEN [1] ELSE [] END | MERGE (e)-[:HELD_IN]->(r))
+
+WITH e
+OPTIONAL MATCH (e)-[old_g:RELATED_TO_GROUP]->(:Group)
+DELETE old_g
+WITH e
+OPTIONAL MATCH (g:Group {groupId: $group_id})
+FOREACH (_ IN CASE WHEN g IS NOT NULL THEN [1] ELSE [] END | MERGE (e)-[:RELATED_TO_GROUP]->(g))
+
+WITH e
+OPTIONAL MATCH (e)-[old_s:RELATED_TO_SESSION]->(:ClassSession)
+DELETE old_s
+WITH e
+OPTIONAL MATCH (s:ClassSession {sessionId: $session_id})
+FOREACH (_ IN CASE WHEN s IS NOT NULL THEN [1] ELSE [] END | MERGE (e)-[:RELATED_TO_SESSION]->(s))
+
+RETURN e.eventId AS event_id
+"""
+
+DELETE_CUSTOM_EVENT_QUERY = """
+MATCH (e:CustomEvent {eventId: $event_id})
+DETACH DELETE e
+"""
+
+CHECK_CUSTOM_EVENT_CONFLICTS_QUERY = """
+MATCH (e:CustomEvent)
+WHERE ((e)<-[:CREATED]-(:User {userId: $user_id}) 
+       OR ($room_id IS NOT NULL AND (e)-[:HELD_IN]->(:Room {roomId: $room_id})))
+  AND e.startDt < datetime($end_dt) 
+  AND e.endDt > datetime($start_dt)
+  AND ($exclude_event_id IS NULL OR e.eventId <> $exclude_event_id)
+RETURN e.title AS title, toString(e.startDt) AS start_dt, toString(e.endDt) AS end_dt
+"""
+
+# --- HELPER FUNCTIONS ---
+
+
+def _parse_neo4j_dt(dt_str: str | None) -> datetime | None:
+    if not dt_str or dt_str == "null":
+        return None
+    return datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+
+
+async def _check_all_conflicts(
+    db, neo4j_session, user_id, start_dt, end_dt, room_id, exclude_event_id=None
+) -> list[dict]:
+    schedule_entries: list[schemas.ScheduleEntry] = []
+    week_cursor = _week_start_from_date(start_dt.date())
+    end_week = _week_start_from_date(end_dt.date())
+
+    while week_cursor <= end_week:
+        schedule_entries.extend(
+            await _get_user_week_schedule_for_date(
+                db, neo4j_session, user_id, week_cursor
+            )
+        )
+        week_cursor += timedelta(days=7)
+
+    conflicts = _event_overlaps_schedule(start_dt, end_dt, schedule_entries)
+
+    result = await neo4j_session.run(
+        CHECK_CUSTOM_EVENT_CONFLICTS_QUERY,
+        user_id=user_id,
+        room_id=room_id,
+        start_dt=start_dt.isoformat(),
+        end_dt=end_dt.isoformat(),
+        exclude_event_id=str(exclude_event_id) if exclude_event_id else None,
+    )
+    custom_records = await result.data()
+    for rec in custom_records:
+        start_obj = _parse_neo4j_dt(rec["start_dt"])
+        end_obj = _parse_neo4j_dt(rec["end_dt"])
+        conflicts.append(
+            {
+                "session_date": start_obj.date().isoformat(),
+                "session_start": start_obj.strftime("%H:%M"),
+                "session_end": end_obj.strftime("%H:%M"),
+                "session_title": rec["title"] + " (Custom Event)",
+            }
+        )
+
+    return conflicts
+
+
+@router.post(
+    "/custom-events",
+    response_model=CustomEventRead,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_custom_event(
+    payload: CustomEventCreate,
+    db: Session = Depends(get_db),
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(
+        require_permission("custom-events:create")
+    ),
+):
+    conflicts = await _check_all_conflicts(
+        db,
+        neo4j_session,
+        payload.user_id,
+        payload.start_dt,
+        payload.end_dt,
+        payload.related_room_id,
+    )
+
+    if conflicts:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "Event conflicts with existing scheduled sessions or custom events",
+                "conflicts": conflicts,
+            },
+        )
+
+    event_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc)
+
+    await neo4j_session.run(
+        CREATE_CUSTOM_EVENT_QUERY,
+        user_id=payload.user_id,
+        event_id=event_id,
+        title=payload.title,
+        description=payload.description,
+        event_type=payload.event_type.value,
+        start_dt=payload.start_dt.isoformat(),
+        end_dt=payload.end_dt.isoformat(),
+        created_at=now.isoformat(),
+        room_id=payload.related_room_id,
+        group_id=payload.related_group_id,
+        session_id=(
+            str(payload.related_session_id) if payload.related_session_id else None
+        ),
+    )
+
+    return await get_custom_event(
+        event_id, neo4j_session, _current_user, bypass_permission=True
+    )
+
+
+@router.get("/custom-events", response_model=PaginatedResponse[CustomEventRead])
+async def list_custom_events(
+    user_id: int | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(
+        require_permission("custom-events:view")
+    ),
+):
+    is_privileged = user_has_permission(_current_user, "custom-events:create")
+
+    if not is_privileged:
+        if user_id is not None and user_id != _current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only view your own custom events.",
+            )
+        user_id = _current_user.id
+
+    count_res = await neo4j_session.run(COUNT_CUSTOM_EVENTS_QUERY, user_id=user_id)
+    total_record = await count_res.single()
+    total = total_record["total"] if total_record else 0
+
+    result = await neo4j_session.run(
+        GET_CUSTOM_EVENTS_QUERY, user_id=user_id, skip=offset, limit=limit
+    )
+    records = await result.data()
+
+    items = [
+        CustomEventRead(
+            event_id=rec["event_id"],
+            user_id=rec["user_id"],
+            title=rec["title"],
+            description=rec["description"],
+            event_type=rec["event_type"],
+            start_dt=_parse_neo4j_dt(rec["start_dt"]),
+            end_dt=_parse_neo4j_dt(rec["end_dt"]),
+            related_room_id=rec["related_room_id"],
+            related_group_id=rec["related_group_id"],
+            related_session_id=rec["related_session_id"],
+            created_by=rec["created_by"],
+            created_at=_parse_neo4j_dt(rec["created_at"]),
+            updated_at=_parse_neo4j_dt(rec["updated_at"]),
+        )
+        for rec in records
+    ]
+
+    return {
+        "items": items,
+        "total": total,
+        "page": (offset // limit) + 1,
+        "size": limit,
+        "pages": (total + limit - 1) // limit,
+    }
+
+
+@router.get("/custom-events/{custom_event_id}", response_model=CustomEventRead)
+async def get_custom_event(
+    custom_event_id: str,
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(
+        require_permission("custom-events:view")
+    ),
+    bypass_permission: bool = False,
+):
+    result = await neo4j_session.run(
+        GET_CUSTOM_EVENT_BY_ID_QUERY, event_id=custom_event_id
+    )
+    record = await result.single()
+
+    if not record:
+        raise HTTPException(status_code=404, detail="Custom Event not found")
+
+    if not bypass_permission:
+        is_privileged = user_has_permission(_current_user, "custom-events:create")
+        if not is_privileged and record["user_id"] != _current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only view your own custom events.",
+            )
+
+    return CustomEventRead(
+        event_id=record["event_id"],
+        user_id=record["user_id"],
+        title=record["title"],
+        description=record["description"],
+        event_type=record["event_type"],
+        start_dt=_parse_neo4j_dt(record["start_dt"]),
+        end_dt=_parse_neo4j_dt(record["end_dt"]),
+        related_room_id=record["related_room_id"],
+        related_group_id=record["related_group_id"],
+        related_session_id=record["related_session_id"],
+        created_by=record["created_by"],
+        created_at=_parse_neo4j_dt(record["created_at"]),
+        updated_at=_parse_neo4j_dt(record["updated_at"]),
+    )
+
+
+def _prepare_update_params(
+    event_id: str, existing: CustomEventRead, payload: CustomEventUpdate
+) -> dict:
+    """Merges existing event data with the update payload to produce Neo4j parameters."""
+    merged = existing.model_dump()
+    merged.update(payload.model_dump(exclude_unset=True))
+
+    e_type = merged["event_type"]
+
+    return {
+        "event_id": event_id,
+        "title": merged["title"],
+        "description": merged["description"],
+        "event_type": e_type.value if hasattr(e_type, "value") else e_type,
+        "start_dt": merged["start_dt"],
+        "end_dt": merged["end_dt"],
+        "room_id": merged["related_room_id"],
+        "group_id": merged["related_group_id"],
+        "session_id": (
+            str(merged["related_session_id"]) if merged["related_session_id"] else None
+        ),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@router.patch("/custom-events/{custom_event_id}", response_model=CustomEventRead)
+async def update_custom_event(
+    custom_event_id: str,
+    payload: CustomEventUpdate,
+    db: Session = Depends(get_db),
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(
+        require_permission("custom-events:update")
+    ),
+):
+    existing = await get_custom_event(custom_event_id, neo4j_session, _current_user)
+    params = _prepare_update_params(custom_event_id, existing, payload)
+
+    updates = payload.model_dump(exclude_unset=True)
+    if any(k in updates for k in ("start_dt", "end_dt", "related_room_id")):
+        conflicts = await _check_all_conflicts(
+            db,
+            neo4j_session,
+            existing.user_id,
+            params["start_dt"],
+            params["end_dt"],
+            params["room_id"],
+            exclude_event_id=custom_event_id,
+        )
+        if conflicts:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "message": "Updated event conflicts with existing sessions or custom events",
+                    "conflicts": conflicts,
+                },
+            )
+
+    params["start_dt"] = params["start_dt"].isoformat()
+    params["end_dt"] = params["end_dt"].isoformat()
+
+    await neo4j_session.run(UPDATE_CUSTOM_EVENT_QUERY, **params)
+
+    return await get_custom_event(
+        custom_event_id, neo4j_session, _current_user, bypass_permission=True
+    )
+
+
+@router.delete(
+    "/custom-events/{custom_event_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_custom_event(
+    custom_event_id: str,
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(
+        require_permission("custom-events:delete")
+    ),
+):
+    await get_custom_event(custom_event_id, neo4j_session, _current_user)
+
+    await neo4j_session.run(DELETE_CUSTOM_EVENT_QUERY, event_id=custom_event_id)
+    return None

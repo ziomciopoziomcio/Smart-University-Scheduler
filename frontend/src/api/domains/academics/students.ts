@@ -4,17 +4,27 @@ import {type Student} from './types.ts';
 export const fetchStudents = async (
     page = 1,
     limit = 10,
-    search?: string
+    search?: string,
+    filters: {
+        study_program?: number;
+        major?: number;
+        group_id?: number;
+        exclude_group_id?: number;
+    } = {}
 ): Promise<PaginatedResponse<Student>> => {
     const offset = (page - 1) * limit;
-    const params = new URLSearchParams({
+    const query = new URLSearchParams({
         limit: limit.toString(),
-        offset: offset.toString()
+        offset: offset.toString(),
+        ...(filters.study_program !== undefined && {study_program: filters.study_program.toString()}),
+        ...(filters.major !== undefined && {major: filters.major.toString()}),
+        ...(filters.group_id !== undefined && {group_id: filters.group_id.toString()}),
+        ...(filters.exclude_group_id !== undefined && {exclude_group_id: filters.exclude_group_id.toString()})
     });
 
-    if (search) params.append('search', search);
+    if (search) query.append('search', search);
 
-    const response = await fetch(`${ACADEMICS_URL}/students?${params.toString()}`, {
+    const response = await fetch(`${ACADEMICS_URL}/students?${query.toString()}`, {
         headers: getHeaders()
     });
 

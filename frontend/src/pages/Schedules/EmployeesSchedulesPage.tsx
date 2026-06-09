@@ -97,9 +97,8 @@ export default function EmployeesSchedulesPage({view}: { view: 'faculties' | 'un
                 );
                 setData(res.items || []);
                 setTotalItems(res.total || 0);
-            } else if (view === 'lecturers' && facultyId && unitId) {
+            } else if (view === 'lecturers' && unitId) {
                 const res = await fetchEmployees(page, pageSize, debouncedSearch, {
-                    faculty_id: Number(facultyId),
                     unit_id: Number(unitId)
                 });
                 setData(res.items || []);

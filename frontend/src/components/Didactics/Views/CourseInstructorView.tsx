@@ -9,9 +9,11 @@ import {
     deleteCourseInstructor,
     fetchFacultyInstructors,
     getCourse,
-    type FacultyInstructor
+    type FacultyInstructor,
 } from '@api';
 import {CourseInstructorModal} from '../Modals/CourseInstructorModal';
+import {usePermissionStore} from '@store/usePermissionStore';
+import {PERMISSIONS} from '@constants/permissions';
 
 interface CourseInstructorsViewProps {
     courseCode: number;
@@ -22,8 +24,32 @@ interface CourseInstructorsViewProps {
 
 type InstructorListItem = CourseInstructor & { id: string; fullName: string };
 
-export function CourseInstructorsView({courseCode, facultyId, data, onRefresh}: CourseInstructorsViewProps) {
+export function CourseInstructorsView({
+                                          courseCode,
+                                          facultyId,
+                                          data,
+                                          onRefresh,
+                                      }: CourseInstructorsViewProps) {
     const intl = useIntl();
+    const hasAnyPermission = usePermissionStore((state) => state.hasAnyPermission);
+
+    const canUpdateCourseInstructor = hasAnyPermission([
+        PERMISSIONS.COURSE_INSTRUCTOR_CREATE,
+    ]);
+
+    const canDeleteCourseInstructor = hasAnyPermission([
+        PERMISSIONS.COURSE_INSTRUCTOR_DELETE,
+    ]);
+
+    const canUpdateCourse = hasAnyPermission([
+        PERMISSIONS.COURSE_UPDATE,
+    ]);
+
+    const canAddInstructor = canUpdateCourseInstructor;
+    const canEditInstructor = canUpdateCourseInstructor && canUpdateCourse;
+    const canDeleteInstructor = canDeleteCourseInstructor;
+
+    const canUseInstructorActions = canEditInstructor || canDeleteInstructor;
 
     const [course, setCourse] = useState<Course | null>(null);
     const [employees, setEmployees] = useState<FacultyInstructor[]>([]);
@@ -40,13 +66,68 @@ export function CourseInstructorsView({courseCode, facultyId, data, onRefresh}: 
     }, [courseCode, facultyId]);
 
     const mappedData: InstructorListItem[] = (data || []).map((item) => {
-        const emp = employees.find(e => e.id === item.employee);
+        const emp = employees.find((e) => e.id === item.employee);
+
         return {
             ...item,
             id: `${item.employee}-${item.class_type}`,
-            fullName: emp ? `${emp.degree || ''} ${emp.name} ${emp.surname}`.trim() : `ID: ${item.employee}`
+            fullName: emp
+                ? `${emp.degree || ''} ${emp.name} ${emp.surname}`.trim()
+                : `ID: ${item.employee}`,
         };
     });
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>, item: InstructorListItem) => {
+        if (!canUseInstructorActions) {
+            return;
+        }
+
+        e.stopPropagation();
+        setAnchorEl(e.currentTarget);
+        setSelected(item);
+    };
+
+    const handleAddClick = () => {
+        if (!canAddInstructor) {
+            return;
+        }
+
+        setSelected(null);
+        setIsModalOpen(true);
+    };
+
+    const handleEditClick = () => {
+        if (!canEditInstructor) {
+            return;
+        }
+
+        setIsModalOpen(true);
+        handleMenuClose();
+    };
+
+    const handleDeleteClick = () => {
+        if (!canDeleteInstructor) {
+            return;
+        }
+
+        setIsDeleteOpen(true);
+        handleMenuClose();
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!selected || !canDeleteInstructor) {
+            return;
+        }
+
+        await deleteCourseInstructor(selected.employee, courseCode, selected.class_type);
+        setIsDeleteOpen(false);
+        setSelected(null);
+        onRefresh();
+    };
 
     return (
         <Box sx={{width: '100%'}}>
@@ -55,49 +136,64 @@ export function CourseInstructorsView({courseCode, facultyId, data, onRefresh}: 
                 icon={AssignmentInd}
                 getTitle={(item) => item.fullName}
                 columns={[
-                    {render: (item) => item.class_type, icon: School, variant: 'primary', width: '200px'},
-                    {render: (item) => `${item.hours}h`, icon: Timer, variant: 'secondary', width: '120px'}
+                    {
+                        render: (item) => item.class_type,
+                        icon: School,
+                        variant: 'primary',
+                        width: '200px',
+                    },
+                    {
+                        render: (item) => `${item.hours}h`,
+                        icon: Timer,
+                        variant: 'secondary',
+                        width: '120px',
+                    },
                 ]}
-                onMenuOpen={(e, item) => {
-                    setAnchorEl(e.currentTarget);
-                    setSelected(item);
-                }}
-                onAddClick={() => {
-                    setSelected(null);
-                    setIsModalOpen(true);
-                }}
+                onMenuOpen={canUseInstructorActions ? handleMenuOpen : undefined}
+                onAddClick={canAddInstructor ? handleAddClick : undefined}
                 addLabel={intl.formatMessage({id: 'didactics.instructors.add'})}
                 emptyMessage={intl.formatMessage({id: 'didactics.instructors.empty'})}
             />
 
-            <ActionMenu
-                anchorEl={anchorEl}
-                onClose={() => {
-                    setAnchorEl(null);
-                }} onEdit={() => {
-                setIsModalOpen(true);
-                setAnchorEl(null);
-            }} onDelete={() => {
-                setIsDeleteOpen(true);
-                setAnchorEl(null);
-            }} editLabel={intl.formatMessage({id: 'didactics.common.edit'})}
-                deleteLabel={intl.formatMessage({id: 'didactics.common.delete'})}/>
+            {canUseInstructorActions && (
+                <ActionMenu
+                    anchorEl={anchorEl}
+                    onClose={handleMenuClose}
+                    onEdit={canEditInstructor ? handleEditClick : undefined}
+                    onDelete={canDeleteInstructor ? handleDeleteClick : undefined}
+                    editLabel={intl.formatMessage({id: 'didactics.common.edit'})}
+                    deleteLabel={intl.formatMessage({id: 'didactics.common.delete'})}
+                />
+            )}
 
-            <DeleteConfirmDialog open={isDeleteOpen}
-                                 title={intl.formatMessage({id: 'didactics.instructors.deleteTitle'})}
-                                 description={intl.formatMessage({id: 'didactics.instructors.deleteDesc'})}
-                                 onConfirm={async () => {
-                                     if (selected) await deleteCourseInstructor(selected.employee, courseCode, selected.class_type);
-                                     setIsDeleteOpen(false);
-                                     onRefresh();
-                                 }}
-                                 onClose={() => setIsDeleteOpen(false)}
-                                 cancelButtonLabel={intl.formatMessage({id: 'didactics.common.cancel'})}
-                                 confirmButtonLabel={intl.formatMessage({id: 'didactics.common.delete'})}
-            />
+            {canDeleteInstructor && (
+                <DeleteConfirmDialog
+                    open={isDeleteOpen}
+                    title={intl.formatMessage({id: 'didactics.instructors.deleteTitle'})}
+                    description={intl.formatMessage({id: 'didactics.instructors.deleteDesc'})}
+                    onConfirm={() => {
+                        void handleConfirmDelete();
+                    }}
+                    onClose={() => {
+                        setIsDeleteOpen(false);
+                    }}
+                    cancelButtonLabel={intl.formatMessage({id: 'didactics.common.cancel'})}
+                    confirmButtonLabel={intl.formatMessage({id: 'didactics.common.delete'})}
+                />
+            )}
 
-            <CourseInstructorModal open={isModalOpen} course={course} instructor={selected} facultyId={facultyId}
-                                   onClose={() => setIsModalOpen(false)} onSuccess={onRefresh}/>
+            {(canAddInstructor || canEditInstructor) && (
+                <CourseInstructorModal
+                    open={isModalOpen}
+                    course={course}
+                    instructor={selected}
+                    facultyId={facultyId}
+                    onClose={() => {
+                        setIsModalOpen(false);
+                    }}
+                    onSuccess={onRefresh}
+                />
+            )}
         </Box>
     );
 }

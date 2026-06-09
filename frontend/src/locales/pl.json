@@ -1,7 +1,8 @@
 {
   "common": {
     "cancel": "Anuluj",
-    "save": "Zapisz"
+    "save": "Zapisz",
+    "saving": "Zapisywanie..."
   },
   "login": {
     "title": "Zaloguj się",
@@ -107,6 +108,13 @@
   "navbar": {
     "guest": "Gość",
     "logout": "Wyloguj się"
+  },
+  "auth": {
+    "sessionExpired": {
+      "title": "Sesja wygasła",
+      "message": "Twoja sesja dobiegła końca. Zaloguj się ponownie, aby kontynuować pracę.",
+      "button": "Przejdź do logowania"
+    }
   },
   "calendar": {
     "month": "Miesiąc",
@@ -410,6 +418,46 @@
       "passwordMismatch": "Podane hasła nie są identyczne!"
     }
   },
+  "settings": {
+    "title": "Ustawienia systemowe",
+    "searchPlaceholder": "Szukaj ustawień...",
+    "security": {
+      "title": "Bezpieczeństwo",
+      "password": {
+        "name": "Hasło",
+        "description": "Zmień swoje hasło dostępu do systemu.",
+        "changeButton": "Zmień hasło",
+        "title": "Zmiana hasła",
+        "oldPassword": "Stare hasło",
+        "newPassword": "Nowe hasło",
+        "confirmPassword": "Powtórz nowe hasło",
+        "success": "Hasło zostało zmienione"
+      },
+      "twoFactor": {
+        "name": "Uwierzytelnianie dwuetapowe (2FA)",
+        "description": "Zwiększ bezpieczeństwo konta, wymagając kodu z aplikacji przy logowaniu.",
+        "setup": "Skonfiguruj 2FA",
+        "disable": "Wyłącz 2FA",
+        "setupTitle": "Konfiguracja 2FA",
+        "setupDesc": "Zeskanuj poniższy kod QR w swojej aplikacji uwierzytelniającej (np. Google Authenticator).",
+        "manualEntry": "Jeśli nie możesz zeskanować kodu, wprowadź ten klucz ręcznie w aplikacji:",
+        "confirmCode": "Wprowadź kod z aplikacji",
+        "backupCodesTitle": "Kody zapasowe",
+        "backupCodesDesc": "Zapisz poniższe kody w bezpiecznym miejscu. Pozwolą Ci one zalogować się w przypadku utraty dostępu do aplikacji.",
+        "disableTitle": "Wyłączanie 2FA",
+        "disableDesc": "Aby wyłączyć 2FA, podaj hasło i aktualny kod.",
+        "passwordLabel": "Hasło",
+        "codeLabel": "Kod 2FA",
+        "successEnabled": "2FA zostało włączone",
+        "successDisabled": "2FA zostało wyłączone"
+      }
+    },
+    "errors": {
+      "load": "Błąd podczas ładowania ustawień",
+      "save": "Błąd podczas zapisywania ustawień"
+    },
+    "success": "Ustawienia zostały zapisane pomyślnie"
+  },
   "roles": {
     "usersCount": "{count, plural, =0 {Brak użytkowników} one {1 użytkownik} few {# użytkowników} many {# użytkowników} other {# użytkownika}}",
     "title": "Role systemowe",
@@ -494,6 +542,12 @@
           "fullTime": "stacjonarnie",
           "partTime": "niestacjonarnie"
         },
+        "studyDegree": {
+          "bachelor": "inżynierskie",
+          "master": "magisterskie",
+          "uniformMaster": "jednolite magisterskie",
+          "doctoral": "doktoranckie"
+        },
         "semestersCount": "{count, plural, one {# semestr} few {# semestry} many {# semestrów} other {# semestru}}",
         "specializations": {
           "none": "bez specjalizacji",
@@ -565,10 +619,12 @@
       "coursesDesc": "Globalna baza wszystkich przedmiotów uczelnianych. Dodawaj, edytuj nazwy, punkty ECTS i języki."
     },
     "fieldDashboard": {
-      "majorsTitle": "Specjalizacje",
-      "majorsDesc": "Zarządzaj specjalizacjami.",
-      "blocksTitle": "Bloki Obieralne",
-      "blocksDesc": "Konfiguruj bloki obieralne."
+      "majorsTitle": "Specjalności",
+      "majorsDesc": "Zarządzaj specjalnościami i grupami",
+      "blocksTitle": "Bloki obieralne",
+      "blocksDesc": "Konfiguruj przedmioty do wyboru",
+      "programsTitle": "Programy studiów",
+      "programsDesc": "Zarządzaj cyklami i siatką zajęć"
     },
     "common": {
       "search": "Szukaj...",
@@ -580,6 +636,10 @@
       "noData": "Brak danych.",
       "faculty": "Wydział",
       "unit": "Jednostka",
+      "languageLabel": "Język wykładowy",
+      "languagePolish": "Polski",
+      "languageEnglish": "Angielski",
+      "languageFrench": "Francuski",
       "errorRequired": "To pole jest wymagane.",
       "errorSave": "Wystąpił błąd podczas zapisywania."
     },
@@ -591,8 +651,109 @@
       "empty": "Brak kierunków studiów na tym wydziale.",
       "nameLabel": "Nazwa Kierunku",
       "namePlaceholder": "np. Informatyka Stosowana",
-      "majorsCount": "Specjalizacji",
-      "blocksCount": "{count, plural, =0 {Brak bloków} one {1 blok} few {# bloki} many {# bloków} other {# bloku}}"
+      "degreeLabel": "Stopień studiów",
+      "modeLabel": "Tryb studiów",
+      "majorsCount": "{count, plural, =0 {Brak specjalizacji} one {1 specjalizacja} few {# specjalizacje} many {# specjalizacji} other {# specjalizacji}}",
+      "blocksCount": "{count, plural, =0 {Brak bloków} one {1 blok} few {# bloki} many {# bloków} other {# bloku}}",
+      "programsCount": "{count, plural, =0 {Brak roczników} one {1 rocznik} few {# roczniki} many {# roczników} other {# rocznika}}",
+      "degrees": {
+        "Bachelor": "Inżynierskie",
+        "Master": "Magisterskie",
+        "Uniform_Master": "Jednolite Magisterskie",
+        "Doctoral": "Doktoranckie"
+      },
+      "modes": {
+        "Full-time": "Stacjonarne",
+        "Part-time": "Niestacjonarne"
+      }
+    },
+    "programs": {
+      "title": "Programy",
+      "semester": "Semestr",
+      "searchPlaceholder": "Szukaj...",
+      "noData": "Brak danych do wyświetlenia.",
+      "addProgram": "Dodaj rocznik",
+      "addCourse": "Dodaj przedmiot",
+      "errorLoading": "Błąd ładowania danych",
+      "list": {
+        "title": "Program studiów",
+        "semestersCount": "{count, plural, =0 {Brak semestrów} one {1 semestr} few {# semestry} many {# semestrów} other {# semestru}}",
+        "recruitment": "Nabór: {year}"
+      },
+      "semesters": {
+        "title": "Semestry",
+        "coursesCount": "{count, plural, =0 {Brak przedmiotów} one {1 przedmiot} few {# przedmioty} many {# przedmiotów} other {# przedmiotu}}"
+      },
+      "dashboard": {
+        "curriculumTitle": "Siatka zajęć",
+        "curriculumDesc": "Zarządzaj przedmiotami w tym semestrze",
+        "groupsTitle": "Grupy dziekańskie",
+        "groupsDesc": "Zarządzaj grupami i przypisuj studentów"
+      },
+      "curriculum": {
+        "courseIdFallback": "ID Przedmiotu: {id}",
+        "majorIdFallback": "Spec. ID: {id}",
+        "blockIdFallback": "Blok ID: {id}"
+      },
+      "modal": {
+        "editProgram": "Edytuj rocznik",
+        "addProgram": "Dodaj nowy rocznik",
+        "startYear": "Rok akademicki (np. 2024/2025)",
+        "programName": "Nazwa własna programu (opcjonalnie)",
+        "yearFrom": "Rok od",
+        "yearTo": "Rok do",
+        "yearErrorFormat": "Lata muszą być liczbami 4-cyfrowymi",
+        "yearErrorDiff": "Różnica między latami musi wynosić dokładnie 1 rok",
+        "yearErrorOrder": "Pierwszy rok musi być mniejszy od drugiego",
+        "yearFromPlaceholder": "2023",
+        "yearToPlaceholder": "2024",
+        "programNamePlaceholder": "np. Profil praktyczny"
+      },
+      "curriculumModal": {
+        "title": "Dodaj przedmiot do siatki",
+        "course": "Wybierz przedmiot",
+        "coursePlaceholder": "Wpisz kod lub nazwę przedmiotu...",
+        "courseNoOptions": "Nie znaleziono przedmiotu",
+        "major": "Specjalność (opcjonalnie)",
+        "electiveBlock": "Blok obieralny (opcjonalnie)",
+        "none": "Brak",
+        "exclusivityHint": "Przedmiot może należeć do specjalności ALBO do bloku."
+      },
+      "groups": {
+        "title": "Grupy",
+        "add": "Dodaj grupę",
+        "edit": "Edytuj grupę",
+        "deleteTitle": "Usuń grupę",
+        "deleteDesc": "Czy na pewno chcesz usunąć grupę {name}?",
+        "empty": "Brak grup w tym semestrze",
+        "studentsCount": "Studenci: {count}",
+        "active": "Aktywna (ma zajęcia)",
+        "inactive": "Nieaktywna (brak zajęć)",
+        "chip": {
+          "major": "{name}",
+          "block": "{name}",
+          "general": "Rocznik (Ogólna)"
+        },
+        "modal": {
+          "nameLabel": "Nazwa grupy",
+          "namePlaceholder": "np. W1, L2, AI-1",
+          "majorLabel": "Specjalność",
+          "blockLabel": "Blok obieralny",
+          "activeLabel": "Grupa ma zajęcia w tym semestrze",
+          "none": "Brak",
+          "exclusivityHint": "* Grupa może być przypisana do całego rocznika, specjalności ALBO bloku obieralnego."
+        }
+      },
+      "groupStudents": {
+        "title": "Studenci w grupie",
+        "empty": "Brak studentów przypisanych do tej grupy",
+        "index": "Indeks: {id}"
+      }
+    },
+    "semesters": {
+      "title": "Semestry",
+      "coursesCount": "{count, plural, =0 {Brak przedmiotów} one {1 przedmiot} few {# przedmioty} many {# przedmiotów} other {# przedmiotów}}",
+      "ectsSum": "{count} ECTS"
     },
     "majors": {
       "add": "Dodaj Specjalizację",
@@ -634,7 +795,9 @@
       "noEmployees": "Brak dostępnych pracowników",
       "languagePolish": "Polski",
       "languageEnglish": "Angielski",
-      "languageFrench": "Francuski"
+      "languageFrench": "Francuski",
+      "classTypesTitle": "Typy zajęć i godziny:",
+      "hoursLabel": "Godziny"
     },
     "instructors": {
       "title": "Prowadzący przedmiot: {course}",
@@ -645,7 +808,16 @@
       "empty": "Brak przypisanych prowadzących.",
       "deleteTitle": "Usuń przypisanie",
       "deleteDesc": "Czy na pewno chcesz usunąć to przypisanie prowadzącego?",
-      "manage": "Zarządzaj prowadzącymi"
+      "manage": "Zarządzaj prowadzącymi",
+      "noTypesWarning": "Przedmiot nie ma zdefiniowanych typów zajęć. Dodaj je najpierw w katalogu przedmiotów."
+    },
+    "classTypes": {
+      "Lecture": "Wykład",
+      "Tutorials": "Ćwiczenia",
+      "Laboratory": "Laboratorium",
+      "Seminar": "Seminarium",
+      "Other": "Inne",
+      "E-learning": "E-learning"
     }
   },
   "generateSchedule": {
@@ -671,93 +843,6 @@
       "statusSuccess": "Brak problemów",
       "statusWarnings": "Wymaga sprawdzenia",
       "statusErrors": "Wykryto problemy"
-    }
-  },
-  "programs": {
-    "title": "Programy",
-    "semester": "Semestr",
-    "searchPlaceholder": "Szukaj...",
-    "noData": "Brak danych do wyświetlenia.",
-    "addProgram": "Dodaj rocznik",
-    "addCourse": "Dodaj przedmiot",
-    "errorLoading": "Błąd ładowania danych",
-    "faculties": {
-      "title": "Wydział"
-    },
-    "fields": {
-      "title": "Kierunek",
-      "programsCount": "{count, plural, =0 {Brak roczników} one {1 rocznik} few {# roczniki} many {# roczników} other {# rocznika}}"
-    },
-    "list": {
-      "title": "Program studiów",
-      "semestersCount": "{count, plural, =0 {Brak semestrów} one {1 semestr} few {# semestry} many {# semestrów} other {# semestru}}",
-      "recruitment": "Nabór: {year}"
-    },
-    "semesters": {
-      "title": "Semestry",
-      "coursesCount": "{count, plural, =0 {Brak przedmiotów} one {1 przedmiot} few {# przedmioty} many {# przedmiotów} other {# przedmiotu}}"
-    },
-    "dashboard": {
-      "curriculumTitle": "Siatka zajęć",
-      "curriculumDesc": "Zarządzaj przedmiotami w tym semestrze",
-      "groupsTitle": "Grupy dziekańskie",
-      "groupsDesc": "Zarządzaj grupami i przypisuj studentów"
-    },
-    "curriculum": {
-      "courseIdFallback": "ID Przedmiotu: {id}",
-      "majorIdFallback": "Spec. ID: {id}",
-      "blockIdFallback": "Blok ID: {id}"
-    },
-    "modal": {
-      "editProgram": "Edytuj rocznik",
-      "addProgram": "Dodaj nowy rocznik",
-      "startYear": "Rok akademicki (np. 2024/2025)",
-      "programName": "Nazwa własna programu (opcjonalnie)",
-      "yearFrom": "Rok od",
-      "yearTo": "Rok do",
-      "yearErrorFormat": "Lata muszą być liczbami 4-cyfrowymi",
-      "yearErrorDiff": "Różnica między latami musi wynosić dokładnie 1 rok",
-      "yearErrorOrder": "Pierwszy rok musi być mniejszy od drugiego",
-      "yearFromPlaceholder": "2023",
-      "yearToPlaceholder": "2024",
-      "programNamePlaceholder": "np. Profil praktyczny"
-    },
-    "curriculumModal": {
-      "title": "Dodaj przedmiot do siatki",
-      "course": "Wybierz przedmiot",
-      "coursePlaceholder": "Wpisz kod lub nazwę przedmiotu...",
-      "courseNoOptions": "Nie znaleziono przedmiotu",
-      "major": "Specjalność (opcjonalnie)",
-      "electiveBlock": "Blok obieralny (opcjonalnie)",
-      "none": "Brak",
-      "exclusivityHint": "Przedmiot może należeć do specjalności ALBO do bloku."
-    },
-    "groups": {
-      "title": "Grupy",
-      "add": "Dodaj grupę",
-      "edit": "Edytuj grupę",
-      "deleteTitle": "Usuń grupę",
-      "deleteDesc": "Czy na pewno chcesz usunąć grupę {name}?",
-      "empty": "Brak grup w tym semestrze",
-      "studentsCount": "Studenci: {count}",
-      "chip": {
-        "major": "Specjalność: {name}",
-        "block": "Blok: {name}",
-        "general": "Rocznik (Ogólna)"
-      },
-      "modal": {
-        "nameLabel": "Nazwa grupy",
-        "namePlaceholder": "np. W1, L2, AI-1",
-        "majorLabel": "Specjalność",
-        "blockLabel": "Blok obieralny",
-        "none": "Brak",
-        "exclusivityHint": "* Grupa może być przypisana do całego rocznika, specjalności ALBO bloku obieralnego."
-      }
-    },
-    "groupStudents": {
-      "title": "Studenci w grupie",
-      "empty": "Brak studentów przypisanych do tej grupy",
-      "index": "Indeks: {id}"
     }
   },
   "chat": {
