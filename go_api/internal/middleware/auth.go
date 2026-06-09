@@ -1,76 +1,66 @@
 package middleware
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"errors"
-	"net/http"
-	"strings"
+    "context"
+    "net/http"
+    "os"
+    "time"
 
-	"go_api/internal/models/users_models"
+    "go_api/internal/app"
+    pb "go_api/internal/rpc/user"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
+    "github.com/gin-gonic/gin"
+    "google.golang.org/grpc"
+    "google.golang.org/grpc/codes"
+    "google.golang.org/grpc/credentials/insecure"
+    "google.golang.org/grpc/status"
 )
 
-type UserApiKey struct {
-	UserID     uint   `gorm:"column:user_id"`
-	ApiKeyHash string `gorm:"column:api_key_hash"`
-}
+    return func(c *gin.Context) {
+       providedAPIKey := c.GetHeader("X-API-Key")
+       if providedAPIKey == "" {
+          c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing X-API-Key header"})
+          return
+       }
 
-func hashAPIKey(apiKey string) string {
-	hash := sha256.Sum256([]byte(apiKey))
-	return hex.EncodeToString(hash[:])
-}
+       grpcTarget := os.Getenv("BACKEND_GRPC_TARGET")
+       if grpcTarget == "" {
+          c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Configuration error: BACKEND_GRPC_TARGET environment variable is not set"})
+          return
+       }
 
-func authenticateKey(db *gorm.DB, hashedKey string) (*users_models.User, error) {
-	var keyRecord UserApiKey
-	if err := db.Table("user_api_keys").Where("api_key_hash = ?", hashedKey).First(&keyRecord).Error; err != nil {
-		return nil, err
-	}
+       conn, err := grpc.NewClient(grpcTarget, grpc.WithTransportCredentials(insecure.NewCredentials()))
+       if err != nil {
+          c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to connect to internal RPC service"})
+          return
+       }
+       defer conn.Close()
 
-	var user users_models.User
-	if err := db.Preload("Roles").Where("id = ?", keyRecord.UserID).First(&user).Error; err != nil {
-		return nil, err
-	}
+       client := pb.NewUserRpcServiceClient(conn)
 
-	return &user, nil
-}
+       ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+       defer cancel()
 
-func hasAdminRole(user *users_models.User) bool {
-	for _, r := range user.Roles {
-		roleName := strings.ToLower(r.RoleName)
-		if roleName == "administrator" || roleName == "admin" {
-			return true
-		}
-	}
-	return false
-}
+       resp, err := client.AuthenticateApiKeyRPC(ctx, &pb.AuthenticateApiKeyRequest{
+          ProvidedApiKey: providedAPIKey,
+       })
 
-func AdminOnly(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		providedAPIKey := c.GetHeader("X-API-Key")
-		if providedAPIKey == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing X-API-Key header"})
-			return
-		}
+       if err != nil {
+          st, ok := status.FromError(err)
+          if ok && st.Code() == codes.Unauthenticated {
+             c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Invalid API key or insufficient permissions"})
+          } else {
+             c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error during key verification via RPC"})
+          }
+          return
+       }
 
-		user, err := authenticateKey(db, hashAPIKey(providedAPIKey))
-		if err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Invalid API key or insufficient permissions"})
-			} else {
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal server error during key verification"})
-			}
-			return
-		}
+       if !resp.IsAdmin {
+          c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Required administrator privileges missing"})
+          return
+       }
 
-		if !hasAdminRole(user) {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Required administrator privileges missing"})
-			return
-		}
-
-		c.Set("admin_id", user.ID)
-		c.Next()
-	}
+       c.Set("admin_id", uint(resp.UserId))
+       c.Next()
+    }
 }

@@ -7,6 +7,8 @@ service UserRpcService {
   rpc CreateUserRPC (UserCreateRequest) returns (UserCreateResponse);
   rpc DeleteUserRPC (UserDeleteRequest) returns (UserDeleteResponse);
   rpc GetUserRPC (UserGetRequest) returns (UserGetResponse);
+  rpc SaveUserApiKeyRPC (SaveUserApiKeyRequest) returns (SaveUserApiKeyResponse);
+  rpc AuthenticateApiKeyRPC (AuthenticateApiKeyRequest) returns (AuthenticateApiKeyResponse);
 }
 
 message StudentProfile {
@@ -66,4 +68,22 @@ message UserGetResponse {
     StudentProfile student = 7;
     EmployeeProfile employee = 8;
   }
+}
+
+message SaveUserApiKeyRequest {
+    int32 user_id = 1;
+    string api_key_hash = 2;
+}
+
+message SaveUserApiKeyResponse {
+    bool success = 1;
+}
+
+message AuthenticateApiKeyRequest {
+    string provided_api_key = 1;
+}
+
+message AuthenticateApiKeyResponse {
+    int32 user_id = 1;
+    bool is_admin = 2;
 }

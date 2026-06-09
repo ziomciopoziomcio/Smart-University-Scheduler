@@ -6,9 +6,10 @@ import user_pb2_grpc
 
 from src.database.database import SessionLocal
 from src.users.models import Users as UserModel
-from src.users.auth import hash_password, secrets
+from src.users.auth import hash_password, secrets, verify_password
 from src.common.notifications import send_login_credentials_email
 from src.academics.models import Employees, Students
+from src.users import models
 
 logger = logging.getLogger(__name__)
 
@@ -168,6 +169,66 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             response.employee.id = employee_profile.id
             response.employee.faculty_id = employee_profile.faculty_id
             response.employee.unit_id = employee_profile.unit_id
+
+    async def SaveUserApiKeyRPC(self, request, context):
+        db = SessionLocal()
+        try:
+            db.query(models.UserApiKey).filter(
+                models.UserApiKey.user_id == request.user_id
+            ).delete()
+
+            new_key = models.UserApiKey(
+                user_id=request.user_id, api_key_hash=request.api_key_hash
+            )
+            db.add(new_key)
+            db.commit()
+            return user_pb2.SaveUserApiKeyResponse(success=True)
+        except Exception as e:
+            db.rollback()
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(str(e))
+            return user_pb2.SaveUserApiKeyResponse(success=False)
+        finally:
+            db.close()
+
+    async def AuthenticateApiKeyRPC(self, request, context):
+        db = SessionLocal()
+        try:
+            api_keys = db.query(models.UserApiKey).all()
+
+            matched_user_id = None
+            for key_entry in api_keys:
+                if verify_password(request.provided_api_key, key_entry.api_key_hash):
+                    matched_user_id = key_entry.user_id
+                    break
+
+            if not matched_user_id:
+                context.set_code(grpc.StatusCode.UNAUTHENTICATED)
+                context.set_details("Invalid API Key")
+                # Zmiana: false -> False
+                return user_pb2.AuthenticateApiKeyResponse(user_id=0, is_admin=False)
+
+            user = db.query(UserModel).filter(UserModel.id == matched_user_id).first()
+
+            is_admin = False
+            if user and hasattr(user, "roles"):
+                for r in user.roles:
+                    role_name = r.role_name.lower()
+                    if role_name in ["administrator", "admin"]:
+                        is_admin = True
+                        break
+
+            return user_pb2.AuthenticateApiKeyResponse(
+                user_id=matched_user_id, is_admin=is_admin
+            )
+
+        except Exception as e:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(str(e))
+            # Zmiana: false -> False
+            return user_pb2.AuthenticateApiKeyResponse(user_id=0, is_admin=False)
+        finally:
+            db.close()
 
 
 async def serve():

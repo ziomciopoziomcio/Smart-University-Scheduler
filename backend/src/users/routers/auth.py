@@ -22,6 +22,7 @@ from ..auth import (
     _get_user_id_from_pre_token,
     verify_2fa_code,
     verify_password,
+    hash_password,
 )
 from ...common.require_permission import require_permission
 from ...database.database import get_db
@@ -78,7 +79,8 @@ def generate_api_key(
     ).delete()
 
     raw_api_key = secrets.token_hex(32)
-    hashed_key = hashlib.sha256(raw_api_key.encode()).hexdigest()
+
+    hashed_key = hash_password(raw_api_key)
 
     new_api_key_entry = models.UserApiKey(
         user_id=current_user.id, api_key_hash=hashed_key
