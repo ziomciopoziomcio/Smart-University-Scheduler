@@ -1,6 +1,7 @@
 import logging
 import os
 import uuid
+from typing import LiteralString
 
 import pandas as pd
 from neo4j import AsyncGraphDatabase, Query
@@ -9,47 +10,39 @@ from optimizer import models
 
 logger = logging.getLogger(__name__)
 
-DELETE_SCHEDULE_QUERY = Query("""
+DELETE_SCHEDULE_QUERY: LiteralString = """
     MATCH (s:ClassSession {facultyId: $faculty_id})
     DETACH DELETE s
-""")
+"""
 
-SAVE_SCHEDULE_QUERY = Query("""
+SAVE_SCHEDULE_QUERY: LiteralString = """
     UNWIND $batch AS row
+
     MATCH (c:Course {courseCode: row.course_code, classType: row.class_type})
     MATCH (g:Group) WHERE g.groupId IN row.group_ids
     WITH row, c, collect(g) AS matched_groups, $faculty_id AS faculty_id
     WHERE size(matched_groups) = size(row.group_ids)
 
+    OPTIONAL MATCH (t:TimeSlot) WHERE t.timeSlotId IN row.timeslot_ids
+    WITH row, c, matched_groups, faculty_id, collect(t) AS matched_slots
+    WHERE size(row.timeslot_ids) = 0 OR size(matched_slots) = size(row.timeslot_ids)
+
+    OPTIONAL MATCH (i:Instructor {instructorId: row.instructor_id})
+    OPTIONAL MATCH (r:Room {roomId: row.room_id})
+    WITH row, c, matched_groups, faculty_id, matched_slots, i, r
+    WHERE (row.instructor_id IS NULL OR i IS NOT NULL)
+      AND (row.room_id IS NULL OR r IS NOT NULL)
+
     CREATE (s:ClassSession {sessionId: row.session_id, weeks: row.weeks, facultyId: faculty_id, createdAt: datetime()})
     MERGE (s)-[:OF_COURSE]->(c)
 
-    WITH s, row, matched_groups
-
-    OPTIONAL MATCH (i:Instructor {instructorId: row.instructor_id})
-    WHERE row.instructor_id IS NULL OR i IS NOT NULL
-
-    OPTIONAL MATCH (r:Room {roomId: row.room_id})
-    WHERE row.room_id IS NULL OR r IS NOT NULL
-
-    OPTIONAL MATCH (t:TimeSlot {timeSlotId: row.timeslot_id})
-    WHERE row.timeslot_id IS NULL OR t IS NOT NULL
-
     FOREACH (_ IN CASE WHEN i IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:TAUGHT_BY]->(i))
     FOREACH (_ IN CASE WHEN r IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:HELD_IN]->(r))
-    FOREACH (_ IN CASE WHEN t IS NOT NULL THEN [1] ELSE [] END | MERGE (s)-[:AT_TIME]->(t))
+    FOREACH (mg IN matched_groups | MERGE (s)-[:FOR_GROUP]->(mg))
+    FOREACH (ms IN matched_slots | MERGE (s)-[:AT_TIME]->(ms))
 
-    WITH s, matched_groups
-    UNWIND matched_groups AS mg
-    MERGE (s)-[:FOR_GROUP]->(mg)
-
-    WITH count(DISTINCT s) as created_count, size($batch) as total_size
-    RETURN
-        CASE
-            WHEN created_count = total_size THEN created_count
-            ELSE 1 / (created_count - created_count)
-        END as result
-""")
+    RETURN count(DISTINCT s) as created_count
+"""
 
 
 class Neo4jProvider:
@@ -135,7 +128,7 @@ class Neo4jProvider:
         """
         raw_class_session_id = session_data.get("class_session_id")
         new_room_id = session_data.get("new_room_id")
-        new_timeslot_id = session_data.get("new_timeslot_id")
+        new_timeslot_ids = session_data.get("new_timeslot_ids")
 
         if raw_class_session_id is None or (
             isinstance(raw_class_session_id, str) and not raw_class_session_id.strip()
@@ -145,6 +138,7 @@ class Neo4jProvider:
         class_session_id = str(raw_class_session_id)
         queries = []
         parameters = {"session_id": class_session_id}
+
         if new_room_id is not None:
             queries.append(
                 {
@@ -161,21 +155,25 @@ class Neo4jProvider:
             )
             parameters["new_room_id"] = int(new_room_id)
 
-        if new_timeslot_id is not None:
+        if new_timeslot_ids is not None and len(new_timeslot_ids) > 0:
             queries.append(
                 {
                     "cypher": """
             MATCH (s:ClassSession {sessionId: $session_id})
-            MATCH (new_t:TimeSlot {timeSlotId: $new_timeslot_id})
             OPTIONAL MATCH (s)-[old_rel:AT_TIME]->(:TimeSlot)
             DELETE old_rel
+
+            WITH s
+            UNWIND $new_timeslot_ids AS t_id
+            MATCH (new_t:TimeSlot {timeSlotId: t_id})
             MERGE (s)-[:AT_TIME]->(new_t)
+
             RETURN s.sessionId AS updated_id
             """,
-                    "error_msg": f"Failed to update timeslot: ClassSession '{class_session_id}' or TimeSlot '{new_timeslot_id}' not found in Neo4j.",
+                    "error_msg": f"Failed to update timeslots: ClassSession '{class_session_id}' or one of the TimeSlots not found in Neo4j.",
                 }
             )
-            parameters["new_timeslot_id"] = int(new_timeslot_id)
+            parameters["new_timeslot_ids"] = [int(t) for t in new_timeslot_ids]
 
         if not queries:
             logger.info(
@@ -403,8 +401,10 @@ class Neo4jProvider:
                 ),
                 "room_id": int(gene.room_id) if gene.room_id is not None else None,
                 "group_ids": [int(g_id) for g_id in gene.group_ids],
-                "timeslot_id": (
-                    int(gene.timeslot_id) if gene.timeslot_id is not None else None
+                "timeslot_ids": (
+                    [int(gene.timeslot_id) + i for i in range(gene.duration_slots)]
+                    if gene.timeslot_id is not None
+                    else []
                 ),
                 "course_code": int(gene.course_code),
                 "class_type": str(gene.class_type).upper(),
@@ -430,18 +430,36 @@ class Neo4jProvider:
 
         try:
             async with self.driver.session() as session:
-                await session.run(DELETE_SCHEDULE_QUERY, faculty_id=faculty_id)
+                tx = await session.begin_transaction()
+                try:
+                    await tx.run(DELETE_SCHEDULE_QUERY, faculty_id=faculty_id)
 
-                for i in range(0, len(data_to_save), batch_size):
-                    chunk = data_to_save[i : i + batch_size]
-                    result = await session.run(
-                        SAVE_SCHEDULE_QUERY, batch=chunk, faculty_id=faculty_id
-                    )
-                    await result.consume()
+                    total_saved = 0
+                    for i in range(0, len(data_to_save), batch_size):
+                        chunk = data_to_save[i : i + batch_size]
+                        result = await tx.run(
+                            SAVE_SCHEDULE_QUERY, batch=chunk, faculty_id=faculty_id
+                        )
+                        record = await result.single()
+                        if record:
+                            total_saved += record["created_count"]
 
-                logger.info(
-                    f"Successfully exported schedule for faculty {faculty_id} in {len(data_to_save) // batch_size + 1} batches."
-                )
+                    await tx.commit()
+
+                    if total_saved < len(data_to_save):
+                        logger.warning(
+                            f"Saved {total_saved}/{len(data_to_save)} sessions. "
+                            f"{len(data_to_save) - total_saved} genes were rejected by DB constraints (e.g., missing timeslots)."
+                        )
+                    else:
+                        logger.info(
+                            f"Successfully exported all {total_saved} sessions for faculty {faculty_id}."
+                        )
+
+                except Exception as e:
+                    await tx.rollback()
+                    raise e
+
                 return incomplete_genes
         except Exception as e:
             logger.error(f"Failed to save schedule: {e}")
