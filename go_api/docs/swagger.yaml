@@ -863,6 +863,8 @@ definitions:
         type: boolean
     type: object
 info:
+  title: "Smart University Scheduler API"
+  version: "1.0.0"
   contact: {}
 paths:
   /api/v1/academic-calendar:
