@@ -141,42 +141,49 @@ func handleGrpcError(c *gin.Context, err error) {
 }
 
 func buildUserDetailResponse(app *app.App, userId int64, resp *pb.UserGetResponse) users_models.UserDetailResponse {
-	dbUser, err := app.Users.GetUserByID(userId)
-	var roleNames []string
+    dbUser, err := app.Users.GetUserByID(userId)
 
-	if err == nil {
-		for _, r := range dbUser.Roles {
-			roleNames = append(roleNames, r.RoleName)
-		}
-	}
+    var roleNames []string
+    var createdAt time.Time
+    var twoFactorEnabled bool
 
-	userDetail := users_models.UserDetailResponse{
-		ID:               int(resp.Id),
-		Email:            resp.Email,
-		PhoneNumber:      getOptionalString(resp.PhoneNumber),
-		Name:             resp.Name,
-		Surname:          resp.Surname,
-		Degree:           getOptionalString(resp.Degree),
-		CreatedAt:        dbUser.CreatedAt,
-		TwoFactorEnabled: dbUser.TwoFactorEnabled,
-		Roles:            roleNames,
-	}
+    if err == nil && dbUser != nil {
+       createdAt = dbUser.CreatedAt
+       twoFactorEnabled = dbUser.TwoFactorEnabled
+       for _, r := range dbUser.Roles {
+          roleNames = append(roleNames, r.RoleName)
+       }
+    } else if err != nil {
+       log.Printf("Warning: details for user %d found in gRPC but missing in local DB: %v", userId, err)
+    }
 
-	if student := resp.GetStudent(); student != nil {
-		userDetail.Student = map[string]interface{}{
-			"id":               student.Id,
-			"study_program_id": student.StudyProgramId,
-			"major_id":         student.MajorId,
-		}
-	} else if employee := resp.GetEmployee(); employee != nil {
-		userDetail.Employee = map[string]interface{}{
-			"id":         employee.Id,
-			"faculty_id": employee.FacultyId,
-			"unit_id":    employee.UnitId,
-		}
-	}
+    userDetail := users_models.UserDetailResponse{
+       ID:               int(resp.Id),
+       Email:            resp.Email,
+       PhoneNumber:      getOptionalString(resp.PhoneNumber),
+       Name:             resp.Name,
+       Surname:          resp.Surname,
+       Degree:           getOptionalString(resp.Degree),
+       CreatedAt:        createdAt,       
+       TwoFactorEnabled: twoFactorEnabled,
+       Roles:            roleNames,
+    }
 
-	return userDetail
+    if student := resp.GetStudent(); student != nil {
+       userDetail.Student = map[string]interface{}{
+          "id":               student.Id,
+          "study_program_id": student.StudyProgramId,
+          "major_id":         student.MajorId,
+       }
+    } else if employee := resp.GetEmployee(); employee != nil {
+       userDetail.Employee = map[string]interface{}{
+          "id":         employee.Id,
+          "faculty_id": employee.FacultyId,
+          "unit_id":    employee.UnitId,
+       }
+    }
+
+    return userDetail
 }
 
 func getOptionalString(val string) *string {
