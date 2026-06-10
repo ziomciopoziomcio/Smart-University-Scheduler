@@ -1712,6 +1712,18 @@ def _group_exists(db: Session, group_id: str) -> int:
     return group_id_int
 
 
+def _get_all_active_groups(session: Session) -> List[int]:
+    """
+    Returns a list of IDs of all active groups.
+    """
+    query = text("""
+        select id from groups where is_active = true
+    """)
+
+    result = session.execute(query)
+    return [row[0] for row in result.fetchall()]
+
+
 @router.get("/validate-plan-group/{group_id}", status_code=status.HTTP_200_OK)
 async def validate_group_plan(
     group_id: str,
