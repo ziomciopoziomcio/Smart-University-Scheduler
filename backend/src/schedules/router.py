@@ -1854,8 +1854,6 @@ async def get_user_plan_semester(
 
     lessons = ScheduleAdapter.build_lessons(mapped_entries)
 
-    owner_id = getattr(_current_user, "id", None) or "unknown"
-
     return _generate_and_upload_semester_pdf(
         lessons=lessons,
         academic_year=academic_year,
