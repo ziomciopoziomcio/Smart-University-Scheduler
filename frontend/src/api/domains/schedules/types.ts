@@ -172,3 +172,24 @@ export interface ScheduleSessionEditOptionsResponse {
         campus: string;
     }>;
 }
+
+export interface ScheduleSessionEditOptionsResponse {
+    current: {
+        dayOfWeek: DayOfWeek;
+        startTime: string;
+        endTime: string;
+        instructorId: number;
+        roomId: number;
+    };
+    instructors: ScheduleEditInstructorOption[];
+    rooms: ScheduleEditRoomOption[];
+}
+
+export interface UpdateScheduleSessionRequest {
+    dayOfWeek: DayOfWeek;
+    startTime: string;
+    endTime: string;
+    instructorId: number;
+    roomId: number;
+    applyOnce: boolean;
+}

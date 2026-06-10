@@ -1,4 +1,4 @@
-import {useMemo, useState, useEffect} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {
     Box,
     Button,
@@ -54,19 +54,7 @@ interface FormValues {
     roomId: number;
 }
 
-const defaultInstructors: ScheduleEditInstructorOption[] = [
-    {id: 42, name: 'dr Anna Kowalska'},
-    {id: 43, name: 'prof. Jan Nowak'},
-    {id: 44, name: 'mgr Piotr Zieliński'},
-];
-
-const defaultRooms: ScheduleEditRoomOption[] = [
-    {id: 18, name: 'B-214', building: 'B', campus: 'Główny'},
-    {id: 19, name: 'A-101', building: 'A', campus: 'Główny'},
-    {id: 20, name: 'C-12', building: 'C', campus: 'Technologiczny'},
-];
-
-const dayOptions: { value: DayOfWeek; label: string }[] = [
+const dayOptions: {value: DayOfWeek; label: string}[] = [
     {value: 'MONDAY', label: 'Monday'},
     {value: 'TUESDAY', label: 'Tuesday'},
     {value: 'WEDNESDAY', label: 'Wednesday'},
@@ -77,24 +65,27 @@ const dayOptions: { value: DayOfWeek; label: string }[] = [
 ];
 
 export function EditScheduleSessionPopup({
-                                             open,
-                                             entry,
-                                             initialValues,
-                                             instructors = defaultInstructors,
-                                             rooms = defaultRooms,
-                                             isSaving = false,
-                                             onClose,
-                                             onSave,
-                                         }: EditScheduleSessionPopupProps) {
+    open,
+    entry,
+    initialValues,
+    instructors = [],
+    rooms = [],
+    isSaving = false,
+    onClose,
+    onSave,
+}: EditScheduleSessionPopupProps) {
     const {formatMessage} = useIntl();
 
-    const fallbackValues = useMemo<FormValues>(() => ({
-        dayOfWeek: 'MONDAY',
-        startTime: '08:00',
-        endTime: '09:30',
-        instructorId: instructors[0]?.id ?? 0,
-        roomId: rooms[0]?.id ?? 0,
-    }), [instructors, rooms]);
+    const fallbackValues = useMemo<FormValues>(
+        () => ({
+            dayOfWeek: 'MONDAY',
+            startTime: '',
+            endTime: '',
+            instructorId: instructors[0]?.id ?? 0,
+            roomId: rooms[0]?.id ?? 0,
+        }),
+        [instructors, rooms],
+    );
 
     const valuesFromProps = useMemo<FormValues>(() => {
         if (!initialValues) {
@@ -151,7 +142,14 @@ export function EditScheduleSessionPopup({
             }}
         >
             <DialogContent sx={{p: {xs: 3, md: 4}, bgcolor: '#FFFFFF'}}>
-                <Box sx={{display: 'flex', alignItems: 'center', gap: 2.5, mb: 3}}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2.5,
+                        mb: 3,
+                    }}
+                >
                     <CalendarTodayIcon
                         sx={{
                             fontSize: 54,
@@ -175,7 +173,14 @@ export function EditScheduleSessionPopup({
                             })}
                         </Typography>
 
-                        <Typography sx={{mt: 0.8, fontSize: 14.5, color: '#7A7A7A', lineHeight: 1.5}}>
+                        <Typography
+                            sx={{
+                                mt: 0.8,
+                                fontSize: 14.5,
+                                color: '#7A7A7A',
+                                lineHeight: 1.5,
+                            }}
+                        >
                             {entry?.title ?? '—'}
                         </Typography>
                     </Box>
@@ -184,18 +189,28 @@ export function EditScheduleSessionPopup({
                 <Stack spacing={2.2}>
                     <FormControl fullWidth>
                         <InputLabel>
-                            {formatMessage({id: 'schedule.edit.dayOfWeek', defaultMessage: 'Day of week'})}
+                            {formatMessage({
+                                id: 'schedule.edit.dayOfWeek',
+                                defaultMessage: 'Day of week',
+                            })}
                         </InputLabel>
+
                         <Select
                             value={formValues.dayOfWeek}
-                            label={formatMessage({id: 'schedule.edit.dayOfWeek', defaultMessage: 'Day of week'})}
+                            label={formatMessage({
+                                id: 'schedule.edit.dayOfWeek',
+                                defaultMessage: 'Day of week',
+                            })}
                             onChange={(event: SelectChangeEvent) => {
                                 setFormValues((current) => ({
                                     ...current,
                                     dayOfWeek: event.target.value as DayOfWeek,
                                 }));
                             }}
-                            sx={{borderRadius: '16px', bgcolor: '#FBFCFF'}}
+                            sx={{
+                                borderRadius: '16px',
+                                bgcolor: '#FBFCFF',
+                            }}
                         >
                             {dayOptions.map((day) => (
                                 <MenuItem key={day.value} value={day.value}>
@@ -205,11 +220,23 @@ export function EditScheduleSessionPopup({
                         </Select>
                     </FormControl>
 
-                    <Box sx={{display: 'grid', gridTemplateColumns: {xs: '1fr', sm: '1fr 1fr'}, gap: 2}}>
+                    <Box
+                        sx={{
+                            display: 'grid',
+                            gridTemplateColumns: {
+                                xs: '1fr',
+                                sm: '1fr 1fr',
+                            },
+                            gap: 2,
+                        }}
+                    >
                         <TextField
                             fullWidth
                             type="time"
-                            label={formatMessage({id: 'schedule.edit.startTime', defaultMessage: 'Start time'})}
+                            label={formatMessage({
+                                id: 'schedule.edit.startTime',
+                                defaultMessage: 'Start time',
+                            })}
                             value={formValues.startTime}
                             onChange={(event) => {
                                 setFormValues((current) => ({
@@ -229,7 +256,10 @@ export function EditScheduleSessionPopup({
                         <TextField
                             fullWidth
                             type="time"
-                            label={formatMessage({id: 'schedule.edit.endTime', defaultMessage: 'End time'})}
+                            label={formatMessage({
+                                id: 'schedule.edit.endTime',
+                                defaultMessage: 'End time',
+                            })}
                             value={formValues.endTime}
                             onChange={(event) => {
                                 setFormValues((current) => ({
@@ -249,21 +279,34 @@ export function EditScheduleSessionPopup({
 
                     <FormControl fullWidth>
                         <InputLabel>
-                            {formatMessage({id: 'schedule.edit.instructor', defaultMessage: 'Instructor'})}
+                            {formatMessage({
+                                id: 'schedule.edit.instructor',
+                                defaultMessage: 'Instructor',
+                            })}
                         </InputLabel>
+
                         <Select
                             value={String(formValues.instructorId)}
-                            label={formatMessage({id: 'schedule.edit.instructor', defaultMessage: 'Instructor'})}
+                            label={formatMessage({
+                                id: 'schedule.edit.instructor',
+                                defaultMessage: 'Instructor',
+                            })}
                             onChange={(event: SelectChangeEvent) => {
                                 setFormValues((current) => ({
                                     ...current,
                                     instructorId: Number(event.target.value),
                                 }));
                             }}
-                            sx={{borderRadius: '16px', bgcolor: '#FBFCFF'}}
+                            sx={{
+                                borderRadius: '16px',
+                                bgcolor: '#FBFCFF',
+                            }}
                         >
                             {instructors.map((instructor) => (
-                                <MenuItem key={instructor.id} value={String(instructor.id)}>
+                                <MenuItem
+                                    key={instructor.id}
+                                    value={String(instructor.id)}
+                                >
                                     {instructor.name}
                                 </MenuItem>
                             ))}
@@ -272,33 +315,47 @@ export function EditScheduleSessionPopup({
 
                     <FormControl fullWidth>
                         <InputLabel>
-                            {formatMessage({id: 'schedule.edit.room', defaultMessage: 'Room'})}
+                            {formatMessage({
+                                id: 'schedule.edit.room',
+                                defaultMessage: 'Room',
+                            })}
                         </InputLabel>
+
                         <Select
                             value={String(formValues.roomId)}
-                            label={formatMessage({id: 'schedule.edit.room', defaultMessage: 'Room'})}
+                            label={formatMessage({
+                                id: 'schedule.edit.room',
+                                defaultMessage: 'Room',
+                            })}
                             onChange={(event: SelectChangeEvent) => {
                                 setFormValues((current) => ({
                                     ...current,
                                     roomId: Number(event.target.value),
                                 }));
                             }}
-                            sx={{borderRadius: '16px', bgcolor: '#FBFCFF'}}
+                            sx={{
+                                borderRadius: '16px',
+                                bgcolor: '#FBFCFF',
+                            }}
                         >
                             {rooms.map((room) => (
                                 <MenuItem key={room.id} value={String(room.id)}>
                                     {[
                                         room.name,
-                                        room.building ? `Building ${room.building}` : undefined,
+                                        room.building
+                                            ? `Building ${room.building}`
+                                            : undefined,
                                         room.campus,
-                                    ].filter(Boolean).join(' · ')}
+                                    ]
+                                        .filter(Boolean)
+                                        .join(' · ')}
                                 </MenuItem>
                             ))}
                         </Select>
                     </FormControl>
 
                     <FormControlLabel
-                        control={<Checkbox checked={false} disabled/>}
+                        control={<Checkbox checked={false} disabled />}
                         label={formatMessage({
                             id: 'schedule.edit.applyOnce',
                             defaultMessage: 'Apply only once',
@@ -311,7 +368,14 @@ export function EditScheduleSessionPopup({
                         }}
                     />
 
-                    <Box sx={{display: 'flex', justifyContent: 'flex-end', gap: 1.5, pt: 1}}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            gap: 1.5,
+                            pt: 1,
+                        }}
+                    >
                         <Button
                             onClick={onClose}
                             disabled={isSaving}
@@ -324,7 +388,10 @@ export function EditScheduleSessionPopup({
                                 fontWeight: 700,
                             }}
                         >
-                            {formatMessage({id: 'common.cancel', defaultMessage: 'Cancel'})}
+                            {formatMessage({
+                                id: 'common.cancel',
+                                defaultMessage: 'Cancel',
+                            })}
                         </Button>
 
                         <Button
@@ -339,16 +406,24 @@ export function EditScheduleSessionPopup({
                                 bgcolor: '#4F5E82',
                                 color: '#FFFFFF',
                                 fontWeight: 800,
-                                boxShadow: '0 12px 24px rgba(79, 94, 130, 0.24)',
+                                boxShadow:
+                                    '0 12px 24px rgba(79, 94, 130, 0.24)',
                                 '&:hover': {
                                     bgcolor: '#465577',
-                                    boxShadow: '0 14px 28px rgba(79, 94, 130, 0.30)',
+                                    boxShadow:
+                                        '0 14px 28px rgba(79, 94, 130, 0.30)',
                                 },
                             }}
                         >
                             {isSaving
-                                ? formatMessage({id: 'common.saving', defaultMessage: 'Saving...'})
-                                : formatMessage({id: 'common.save', defaultMessage: 'Save'})}
+                                ? formatMessage({
+                                      id: 'common.saving',
+                                      defaultMessage: 'Saving...',
+                                  })
+                                : formatMessage({
+                                      id: 'common.save',
+                                      defaultMessage: 'Save',
+                                  })}
                         </Button>
                     </Box>
                 </Stack>
