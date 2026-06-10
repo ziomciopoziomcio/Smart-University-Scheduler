@@ -1729,7 +1729,7 @@ STUDY_FIELD_PLAN_WITH_ROOMS_AND_TEACHERS_ACADEMIC_QUERY = """
     "/user-plan-semester",
     response_model=dict,
 )
-async def get_user_plan(
+async def get_user_plan_semester(
     user_id: int = Query(..., description="ID of the user"),
     academic_year: str = Query(...),
     semester_type: ac_mod.SemesterType = Query(...),
