@@ -1860,7 +1860,7 @@ async def get_user_plan_semester(
         lessons=lessons,
         academic_year=academic_year,
         semester_type=semester_type,
-        owner_id=owner_id,
+        owner_id = user_id,
     )
 
 
