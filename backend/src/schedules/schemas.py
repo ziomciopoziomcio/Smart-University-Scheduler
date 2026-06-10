@@ -199,3 +199,5 @@ class ScheduleEntryWithWeekNumber(BaseModel):
     variant: str  # ClassType
     week_number: int
     academic_day_of_week: int
+    room_name: str | None = None
+    instructor_name: str | None = None
