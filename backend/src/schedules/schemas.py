@@ -190,6 +190,7 @@ class CustomEventUpdate(BaseModel):
                 raise ValueError("start_dt must be before or equal to end_dt")
         return self
 
+
 class ScheduleEntryWithWeekNumber(BaseModel):
     id: str
     title: str
