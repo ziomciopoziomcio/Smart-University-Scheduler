@@ -1,8 +1,11 @@
 from collections import defaultdict
 from datetime import time
+import logging
 
 from src.schedules.pdf_generator.models import Lesson, Day
 from src.schedules.schemas import *
+
+logger = logging.getLogger(__name__)
 
 
 def group_schedule_by_weeks(
@@ -59,9 +62,37 @@ class ScheduleAdapter:
             teacher,
             room,
         ), weeks in grouped.items():
+
+            try:
+                day_index = int(day) - 1 
+            except Exception:
+                logger.warning(
+                    "Invalid academic day value for session %s: %s", id_, day
+                )
+                continue
+
+            if day_index < 0 or day_index > 4:
+                logger.info(
+                    "Skipping session %s (%s) on weekend or out-of-range day: %s",
+                    id_,
+                    title,
+                    day,
+                )
+                continue
+
+            try:
+                day_enum = Day(day_index)
+            except Exception:
+                logger.warning(
+                    "Could not map day index to Day enum for session %s: %s",
+                    id_,
+                    day_index,
+                )
+                continue
+
             lessons.append(
                 Lesson(
-                    day=Day(day),
+                    day=day_enum,
                     start_time=ScheduleAdapter.parse_time(start),
                     end_time=ScheduleAdapter.parse_time(end),
                     subject=title,
