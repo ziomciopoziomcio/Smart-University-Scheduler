@@ -251,6 +251,7 @@ export function WeekScheduleGrid({
     const [editInstructors, setEditInstructors] = useState<EditInstructorOption[]>([]);
     const [editRooms, setEditRooms] = useState<EditRoomOption[]>([]);
     const [isSavingEdit, setIsSavingEdit] = useState(false);
+    const [editError, setEditError] = useState<string | null>(null);
 
     const [dragPreview, setDragPreview] = useState<DragPreviewState | null>(null);
     const [dropPreview, setDropPreview] = useState<DropPreviewState | null>(null);
@@ -399,6 +400,7 @@ export function WeekScheduleGrid({
         setEditInitialValues(null);
         setEditInstructors([]);
         setEditRooms([]);
+        setEditError(null);
     };
 
     const openEditPopup = async (
@@ -408,6 +410,8 @@ export function WeekScheduleGrid({
         if (!canUpdateClassSession) {
             return;
         }
+
+        setEditError(null);
 
         try {
             const options = await loadEditOptions(entry, values);
@@ -419,7 +423,7 @@ export function WeekScheduleGrid({
 
             handleClosePopup();
         } catch (error) {
-            console.error('Failed to getch data', error);
+            console.error('Failed to fetch edit options', error);
         }
     };
 
@@ -454,12 +458,15 @@ export function WeekScheduleGrid({
         }
     };
 
-    const handleEditSave = async (payload: UpdateScheduleSessionRequest) => {
+    const handleEditSave = async (
+        payload: UpdateScheduleSessionRequest,
+    ) => {
         if (!editEntry || !canUpdateClassSession) {
             return;
         }
 
         setIsSavingEdit(true);
+        setEditError(null);
 
         try {
             await updateScheduleSession(editEntry.id, payload);
@@ -468,6 +475,12 @@ export function WeekScheduleGrid({
             await onSessionUpdated?.();
         } catch (error) {
             console.error('Nie udało się zaktualizować zajęć:', error);
+
+            setEditError(
+                error instanceof Error
+                    ? error.message
+                    : 'Nie udało się zaktualizować zajęć.',
+            );
         } finally {
             setIsSavingEdit(false);
         }
@@ -817,6 +830,7 @@ export function WeekScheduleGrid({
                 instructors={editInstructors}
                 rooms={editRooms}
                 isSaving={isSavingEdit}
+                errorMessage={editError}
                 onClose={handleCloseEditPopup}
                 onSave={handleEditSave}
             />

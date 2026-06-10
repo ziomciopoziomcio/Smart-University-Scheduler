@@ -13,6 +13,7 @@ import {
     Stack,
     TextField,
     Typography,
+    Alert,
     type SelectChangeEvent,
 } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -42,6 +43,7 @@ interface EditScheduleSessionPopupProps {
     instructors?: ScheduleEditInstructorOption[];
     rooms?: ScheduleEditRoomOption[];
     isSaving?: boolean;
+    errorMessage?: string | null;
     onClose: () => void;
     onSave: (payload: UpdateScheduleSessionRequest) => Promise<void>;
 }
@@ -54,7 +56,7 @@ interface FormValues {
     roomId: number;
 }
 
-const dayOptions: {value: DayOfWeek; label: string}[] = [
+const dayOptions: { value: DayOfWeek; label: string }[] = [
     {value: 'MONDAY', label: 'Monday'},
     {value: 'TUESDAY', label: 'Tuesday'},
     {value: 'WEDNESDAY', label: 'Wednesday'},
@@ -65,15 +67,16 @@ const dayOptions: {value: DayOfWeek; label: string}[] = [
 ];
 
 export function EditScheduleSessionPopup({
-    open,
-    entry,
-    initialValues,
-    instructors = [],
-    rooms = [],
-    isSaving = false,
-    onClose,
-    onSave,
-}: EditScheduleSessionPopupProps) {
+                                             open,
+                                             entry,
+                                             initialValues,
+                                             instructors = [],
+                                             rooms = [],
+                                             isSaving = false,
+                                             onClose,
+                                             onSave,
+                                             errorMessage = null,
+                                         }: EditScheduleSessionPopupProps) {
     const {formatMessage} = useIntl();
 
     const fallbackValues = useMemo<FormValues>(
@@ -187,6 +190,20 @@ export function EditScheduleSessionPopup({
                 </Box>
 
                 <Stack spacing={2.2}>
+                    {errorMessage && (
+                        <Alert
+                            severity="error"
+                            sx={{
+                                borderRadius: '14px',
+                                alignItems: 'center',
+                                '& .MuiAlert-message': {
+                                    overflowWrap: 'anywhere',
+                                },
+                            }}
+                        >
+                            {errorMessage}
+                        </Alert>
+                    )}
                     <FormControl fullWidth>
                         <InputLabel>
                             {formatMessage({
@@ -366,7 +383,7 @@ export function EditScheduleSessionPopup({
                     </FormControl>
 
                     <FormControlLabel
-                        control={<Checkbox checked={false} disabled />}
+                        control={<Checkbox checked={false} disabled/>}
                         label={formatMessage({
                             id: 'schedule.edit.applyOnce',
                             defaultMessage: 'Apply only once',
@@ -428,13 +445,13 @@ export function EditScheduleSessionPopup({
                         >
                             {isSaving
                                 ? formatMessage({
-                                      id: 'common.saving',
-                                      defaultMessage: 'Saving...',
-                                  })
+                                    id: 'common.saving',
+                                    defaultMessage: 'Saving...',
+                                })
                                 : formatMessage({
-                                      id: 'common.save',
-                                      defaultMessage: 'Save',
-                                  })}
+                                    id: 'common.save',
+                                    defaultMessage: 'Save',
+                                })}
                         </Button>
                     </Box>
                 </Stack>

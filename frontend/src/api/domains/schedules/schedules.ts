@@ -71,11 +71,45 @@ export const updateScheduleSession = async (
         return;
     }
 
-    if (response.status === 409) {
-        throw new Error('Schedule update conflict');
+    throw new Error(
+        await getApiErrorMessage(
+            response,
+            'Failed to update schedule session',
+        ),
+    );
+};
+
+const getApiErrorMessage = async (
+    response: Response,
+    fallbackMessage: string,
+): Promise<string> => {
+    try {
+        const data: unknown = await response.json();
+
+        if (
+            typeof data === 'object' &&
+            data !== null &&
+            'detail' in data
+        ) {
+            const detail = (data as {detail: unknown}).detail;
+
+            if (typeof detail === 'string') {
+                return detail;
+            }
+
+            if (
+                typeof detail === 'object' &&
+                detail !== null &&
+                'message' in detail &&
+                typeof (detail as {message: unknown}).message === 'string'
+            ) {
+                return (detail as {message: string}).message;
+            }
+
+            return JSON.stringify(detail);
+        }
+    } catch {
     }
 
-    if (!response.ok) {
-        throw new Error('Failed to update schedule session');
-    }
+    return fallbackMessage;
 };
