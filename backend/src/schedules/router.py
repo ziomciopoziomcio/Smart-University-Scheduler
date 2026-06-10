@@ -1591,6 +1591,7 @@ def _get_group_course_type_details(session: Session, group_id: int):
 
 
 def _detect_extra_neo4j_entries(
+    group_id: int,
     neo4j_map: Dict[tuple, Dict[str, Any]],
     postgres_map: Dict[tuple, Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
@@ -1603,6 +1604,7 @@ def _detect_extra_neo4j_entries(
         if key not in postgres_map:
             extras.append(
                 {
+                    "group_id": group_id,
                     "course_code": neo["course_code"],
                     "course_name": neo["course_name"],
                     "class_type": neo["class_type"],
@@ -1618,9 +1620,11 @@ def _detect_extra_neo4j_entries(
 
 
 def compare_neo4j_with_postgres(
+    result: List,
+    group_id: int,
     neo4j_data: List[Dict[str, Any]],
     postgres_data: List[Dict[str, Any]],
-) -> List[Dict[str, Any]]:
+) -> None:
     """
     - detects missing courses in Neo4j
     - detects mismatches
@@ -1634,8 +1638,6 @@ def compare_neo4j_with_postgres(
         (p["course"], str(p["class_type"]).lower()): p for p in postgres_data
     }
 
-    result = []
-
     for key, pg in postgres_map.items():
         neo = neo4j_map.get(key)
 
@@ -1643,6 +1645,7 @@ def compare_neo4j_with_postgres(
             # course exists in postgres but is missing in neo4j
             result.append(
                 {
+                    "group_id": group_id,
                     "course_code": pg["course"],
                     "course_name": pg["course_name"],
                     "class_type": pg["class_type"],
@@ -1660,6 +1663,7 @@ def compare_neo4j_with_postgres(
         if not match:
             result.append(
                 {
+                    "group_id": group_id,
                     "course_code": pg["course"],
                     "course_name": pg["course_name"],
                     "class_type": pg["class_type"],
@@ -1672,9 +1676,7 @@ def compare_neo4j_with_postgres(
             )
 
     # detect extra Neo4j entries
-    result.extend(_detect_extra_neo4j_entries(neo4j_map, postgres_map))
-
-    return result
+    result.extend(_detect_extra_neo4j_entries(group_id, neo4j_map, postgres_map))
 
 
 def _group_exists(db: Session, group_id: str) -> int:
@@ -1724,32 +1726,35 @@ def _get_all_active_groups(session: Session) -> List[int]:
     return [row[0] for row in result.fetchall()]
 
 
-@router.get("/validate-plan-group/{group_id}", status_code=status.HTTP_200_OK)
+@router.get("/validate-plan", status_code=status.HTTP_200_OK)
 async def validate_group_plan(
-    group_id: str,
     neo4j_session=Depends(get_neo4j_session),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("schedule:view")),
 ):
     """
-    Validates a group's timetable by comparing teaching hours
-    stored in Neo4j with the curriculum definition in PostgreSQL.
+    Validates timetables for all active groups by comparing teaching hours
+    stored in Neo4j against curriculum requirements defined in PostgreSQL.
     """
-    group_id_int = _group_exists(db, group_id)
+    active_groups = _get_all_active_groups(db)
+    validation_result = []
+    for ag_id in active_groups:
+        # get group data from neo
+        result = await neo4j_session.run(
+            GROUP_COURSE_HOURS_SUMMARY_QUERY, group_id=ag_id
+        )
+        group_hours_summary_neo = await result.data()
 
-    # get group data from neo
-    result = await neo4j_session.run(
-        GROUP_COURSE_HOURS_SUMMARY_QUERY, group_id=group_id_int
-    )
-    group_hours_summary_neo = await result.data()
+        # get group data from postgres
+        group_hours_summary_postgres = _get_group_course_type_details(db, ag_id)
 
-    # get group data from postgres
-    group_hours_summary_postgres = _get_group_course_type_details(db, group_id_int)
-
-    # compare data
-    validation_result = compare_neo4j_with_postgres(
-        group_hours_summary_neo, group_hours_summary_postgres
-    )
+        # compare data
+        compare_neo4j_with_postgres(
+            validation_result,
+            ag_id,
+            group_hours_summary_neo,
+            group_hours_summary_postgres,
+        )
 
     if not validation_result:
         return {"valid": True, "message": "Plan is valid", "issues": []}
