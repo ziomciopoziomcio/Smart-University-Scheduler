@@ -141,7 +141,7 @@ class SchedulePdfGenerator:
     def compute_day_lane_counts(self, schedule: Schedule):
         counts = {}
         for day in self.days:
-            day_lessons = [l for l in schedule.lessons if l.day == day]
+            day_lessons = [lesson for lesson in schedule.lessons if lesson.day == day]
             if not day_lessons:
                 counts[day] = 1
                 continue
@@ -213,19 +213,19 @@ class SchedulePdfGenerator:
         x_day_start = self.left_margin
         for day in self.days:
             day_w = self.day_widths.get(day, 100)
-            day_lessons = [l for l in schedule.lessons if l.day == day]
+            day_lessons = [lesson for lesson in schedule.lessons if lesson.day == day]
 
             clusters = []
-            for l in sorted(day_lessons, key=lambda x: self.get_grid_range(x)[0]):
+            for lesson in sorted(day_lessons, key=lambda x: self.get_grid_range(x)[0]):
                 if not clusters:
-                    clusters.append([l])
+                    clusters.append([lesson])
                 else:
                     cluster = clusters[-1]
                     cluster_end = max(self.get_grid_range(x)[1] for x in cluster)
-                    if self.get_grid_range(l)[0] < cluster_end:
-                        cluster.append(l)
+                    if self.get_grid_range(lesson)[0] < cluster_end:
+                        cluster.append(lesson)
                     else:
-                        clusters.append([l])
+                        clusters.append([lesson])
 
             for cluster in clusters:
                 lanes = self.group_into_lanes(cluster)
@@ -323,15 +323,15 @@ class SchedulePdfGenerator:
         counts = self.compute_day_lane_counts(schedule)
 
         for day in self.days:
-            lessons = [l for l in schedule.lessons if l.day == day]
+            lessons = [lesson for lesson in schedule.lessons if lesson.day == day]
             num_lanes = max(1, counts.get(day, 1))
 
             max_lane_w = 110.0
-            for l in lessons:
+            for lesson in lessons:
                 words = (
-                    l.subject.split()
-                    + [l.room, l.teacher]
-                    + f"{l.type_label} , {l.weeks}".split()
+                    lesson.subject.split()
+                    + [lesson.room, lesson.teacher]
+                    + f"{lesson.type_label} , {lesson.weeks}".split()
                 )
                 for w in words:
                     if w:
@@ -349,7 +349,7 @@ class SchedulePdfGenerator:
 
         max_row_height = 45.0
         for day in self.days:
-            lessons = [l for l in schedule.lessons if l.day == day]
+            lessons = [lesson for lesson in schedule.lessons if lesson.day == day]
             day_w = self.day_widths[day]
             num_lanes = max(1, counts.get(day, 1))
             lane_w = day_w / num_lanes
