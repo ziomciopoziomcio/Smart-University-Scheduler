@@ -4,7 +4,8 @@ from datetime import timezone, datetime, date, timedelta, time
 
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import cast, String
+from sqlalchemy import cast, String, text
+from typing import List, Dict, Any
 
 from .schemas import CustomEventRead, CustomEventCreate, CustomEventUpdate
 from ..academics.models import Students, Employees
@@ -1537,3 +1538,198 @@ async def delete_custom_event(
 
     await neo4j_session.run(DELETE_CUSTOM_EVENT_QUERY, event_id=custom_event_id)
     return None
+
+
+GROUP_COURSE_HOURS_SUMMARY_QUERY = """
+        MATCH (g:Group {groupId: $group_id})
+              <-[:FOR_GROUP]-(s:ClassSession)
+              -[:OF_COURSE]->(c:Course)
+
+        OPTIONAL MATCH (s)-[:AT_TIME]->(t:TimeSlot)
+
+        WITH
+            c.courseCode AS course_code,
+            c.courseName AS course_name,
+            c.classType AS class_type,
+            s,
+            count(t) AS slot_count
+
+        RETURN
+            course_code,
+            course_name,
+            class_type,
+            sum(slot_count * size(s.weeks)) AS total_slots
+        ORDER BY course_name, class_type
+    """
+
+
+def _get_group_course_type_details(session: Session, group_id: int):
+    """
+    Return course type details for all courses assigned to the specified group.
+    """
+    query = text("""
+        SELECT
+            ctd.course,
+            c.course_name,
+            ctd.class_type,
+            ctd.class_hours
+        FROM groups g
+        JOIN curriculum_courses cc
+            ON cc.study_program = g.study_program
+        JOIN courses c
+            ON c.course_code = cc.course
+        JOIN course_type_detail ctd
+            ON ctd.course = cc.course
+        WHERE g.id = :group_id
+          AND cc.semester = g.semester
+          AND cc.elective_block IS NOT DISTINCT FROM g.elective_block
+          AND cc.major IS NOT DISTINCT FROM g.major
+        ORDER BY c.course_name
+    """)
+
+    return session.execute(query, {"group_id": group_id}).mappings().all()
+
+
+def compare_neo4j_with_postgres(
+    neo4j_data: List[Dict[str, Any]],
+    postgres_data: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """
+    - detects missing courses in Neo4j
+    - detects mismatches
+    """
+
+    neo4j_map = {
+        (n["course_code"], str(n["class_type"]).lower()): n for n in neo4j_data
+    }
+
+    postgres_map = {
+        (p["course"], str(p["class_type"]).lower()): p for p in postgres_data
+    }
+
+    result = []
+
+    for key, pg in postgres_map.items():
+        neo = neo4j_map.get(key)
+
+        if neo is None:
+            # course exists in postgres but is missing in neo4j
+            result.append(
+                {
+                    "course_code": pg["course"],
+                    "course_name": pg["course_name"],
+                    "class_type": pg["class_type"],
+                    "neo4j_slots": 0,
+                    "postgres_hours": pg["class_hours"],
+                    "match": False,
+                    "missing_in_neo4j": True,
+                    "difference": -pg["class_hours"],
+                }
+            )
+            continue
+
+        match = neo["total_slots"] == pg["class_hours"]
+        # hours mismatch
+        if not match:
+            result.append(
+                {
+                    "course_code": pg["course"],
+                    "course_name": pg["course_name"],
+                    "class_type": pg["class_type"],
+                    "neo4j_slots": neo["total_slots"],
+                    "postgres_hours": pg["class_hours"],
+                    "match": match,
+                    "missing_in_neo4j": False,
+                    "difference": neo["total_slots"] - pg["class_hours"],
+                }
+            )
+
+    # detect extra Neo4j entries
+    for key, neo in neo4j_map.items():
+        if key not in postgres_map:
+            result.append(
+                {
+                    "course_code": neo["course_code"],
+                    "course_name": neo["course_name"],
+                    "class_type": neo["class_type"],
+                    "neo4j_slots": neo["total_slots"],
+                    "postgres_hours": None,
+                    "match": False,
+                    "extra_in_neo4j": True,
+                    "difference": None,
+                }
+            )
+
+    return result
+
+
+def _group_exists(db: Session, group_id: str) -> int:
+    """
+    Checks if given group exists in postgres
+    """
+    group_exists_query = text("""
+            SELECT 1
+            FROM groups
+            WHERE id = :group_id
+            LIMIT 1
+        """)
+
+    try:
+        group_id_int = int(group_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Incorrect group_id param",
+        )
+
+    group_exists = db.execute(group_exists_query, {"group_id": group_id_int}).scalar()
+
+    if group_exists is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Group {group_id} not found",
+        )
+    if not group_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Group {group_id} not found",
+        )
+
+    return group_id_int
+
+
+@router.get("/validate-plan-group/{group_id}", status_code=status.HTTP_200_OK)
+async def validate_group_plan(
+    group_id: str,
+    neo4j_session=Depends(get_neo4j_session),
+    db: Session = Depends(get_db),
+    # todo perm
+):
+    """
+    Validates a group's timetable by comparing teaching hours
+    stored in Neo4j with the curriculum definition in PostgreSQL.
+    """
+    group_id_int = _group_exists(db, group_id)
+
+    # get group data from neo
+    result = await neo4j_session.run(
+        GROUP_COURSE_HOURS_SUMMARY_QUERY, group_id=group_id_int
+    )
+    group_hours_summary_neo = await result.data()
+
+    # get group data from postgres
+    group_hours_summary_postgres = _get_group_course_type_details(db, group_id_int)
+
+    # compare data
+    validation_result = compare_neo4j_with_postgres(
+        group_hours_summary_neo, group_hours_summary_postgres
+    )
+
+    if not validation_result:
+        return {"valid": True, "message": "Plan is valid", "issues": []}
+
+    return {
+        "valid": False,
+        "message": f"Found {len(validation_result)} issues",
+        "issues": validation_result,
+    }
