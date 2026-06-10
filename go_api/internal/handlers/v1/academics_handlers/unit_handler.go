@@ -1,0 +1,69 @@
+package academics_handlers
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"go_api/internal/app"
+	"go_api/internal/models/academics_models"
+	"go_api/internal/models/facilities_models"
+)
+
+// GetUnits godoc
+// @Summary Get units
+// @Description Returns list of units with lecturers and courses counts
+// @Tags units
+// @Produce json
+// @Success 200 {object} academics_models.UnitsListResponse
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/units [get]
+func GetUnits(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		items, err := app.Academics.GetUnits()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, academics_models.UnitsListResponse{
+			Items: items,
+		})
+	}
+}
+
+// CreateUnit godoc
+// @Summary Create unit
+// @Description Creates a new unit.
+// @Tags units
+// @Accept json
+// @Produce json
+// @Param request body academics_models.Unit true "Unit data"
+// @Success 201 {object} academics_models.Unit
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/v1/units [post]
+func CreateUnit(app *app.App) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var unit academics_models.Unit
+
+		if err := c.ShouldBindJSON(&unit); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		var faculty facilities_models.Faculty
+		if err := app.DB.First(&faculty, unit.FacultyID).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "faculty not found"})
+			return
+		}
+
+		if err := app.Academics.CreateUnit(&unit); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusCreated, unit)
+	}
+}
