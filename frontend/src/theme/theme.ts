@@ -24,6 +24,14 @@ declare module '@mui/material/styles' {
     interface PaletteOptions {
         gradients?: { brand: string };
     }
+    interface TypeBackground {
+        highlight: string;
+        selected: string;
+    }
+    interface TypeBackgroundOptions {
+        highlight?: string;
+        selected?: string;
+    }
     interface Theme {
         iconSizes: { textFieldDecorator: string };
         fontSizes: {
@@ -45,8 +53,16 @@ export const createAppTheme = (config: ThemeConfig) => {
     const colors = themePresets[preset];
     const isDark = mode === 'dark';
 
-    const backgroundDefault = isDark ? '#0f172a' : '#f8fafc';
-    const backgroundPaper = isDark ? '#1e293b' : '#ffffff';
+    const backgroundDefault = isDark ? '#0f0f0f' : '#f8fafc';
+    const backgroundPaper = isDark ? '#272727' : '#ffffff';
+
+    const hoverHighlight = isDark  
+        ? 'rgba(255, 255, 255, 0.08)' 
+        : `${colors.main}1a`;
+        
+    const selectedHighlight = isDark 
+        ? 'rgba(255, 255, 255, 0.15)' 
+        : `${colors.main}33`;
 
     return createTheme({
         palette: {
@@ -57,6 +73,8 @@ export const createAppTheme = (config: ThemeConfig) => {
             background: {
                 default: backgroundDefault,
                 paper: backgroundPaper,
+                highlight: hoverHighlight,
+                selected: selectedHighlight
             },
             gradients: {
                 brand: `linear-gradient(135deg, ${colors.main} 0%, ${colors.dark} 100%)`,
@@ -111,6 +129,6 @@ export const createAppTheme = (config: ThemeConfig) => {
 
 export const theme = createAppTheme({
     preset: 'amber',
-    mode: 'dark',
+    mode: 'light',
     baseFontSize: 16
 });

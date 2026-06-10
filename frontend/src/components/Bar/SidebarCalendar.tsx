@@ -1,13 +1,13 @@
 import {useState} from 'react';
-import {Box, Typography, IconButton, MenuItem, Menu} from '@mui/material';
+import {Box, Typography, IconButton, MenuItem, Menu, useTheme} from '@mui/material';
 import {CalendarToday, ChevronLeft, ChevronRight, ArrowDropDown} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
-import {theme} from "../../theme/theme.ts";
 
 // TODO: ACCESSIBLE CALENDAR (ARIA ATTRIBUTES, KEYBOARD NAVIGATION)
 //TODO: USER CAN CHOOSE WEEK TO SEE PLAN
 export default function SidebarCalendar({open}: { open: boolean }) {
     const intl = useIntl();
+    const theme = useTheme();
     const [viewDate, setViewDate] = useState(new Date());
     const today = new Date();
 
@@ -17,7 +17,7 @@ export default function SidebarCalendar({open}: { open: boolean }) {
     if (!open) {
         return (
             <Box sx={{display: 'flex', justifyContent: 'center', width: '100%'}}>
-                <CalendarToday sx={{fontSize: 22, color: '#333'}}/>
+                <CalendarToday sx={{fontSize: 22, color: theme.palette.text.secondary}}/>
             </Box>
         );
     }
@@ -55,25 +55,28 @@ export default function SidebarCalendar({open}: { open: boolean }) {
 
     return (
         <Box sx={{
-            background: 'white',
+            background: theme.palette.background.paper,
             p: 2,
             borderRadius: '24px',
             width: '100%',
-            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
+            boxShadow: theme.palette.mode === 'dark' 
+                ? '0 4px 20px rgba(0, 0, 0, 0.4)' 
+                : '0 2px 12px rgba(0, 0, 0, 0.06)'
         }}>
             <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5}}>
 
                 <Box onClick={handleOpenMenu} sx={{display: 'flex', alignItems: 'center', cursor: 'pointer', gap: 0.5}}>
 
                     <Typography sx={{
-                        fontWeight: 500,
+                        fontWeight: 600,
                         fontSize: theme.fontSizes.small,
-                        textTransform: 'capitalize'
+                        textTransform: 'capitalize',
+                        color: theme.palette.text.primary
                     }}>
                         {intl.formatDate(viewDate, {month: 'long', year: 'numeric'})}
                     </Typography>
 
-                    <ArrowDropDown fontSize="small"/>
+                    <ArrowDropDown fontSize="small" sx={{color: theme.palette.text.secondary}}/>
                 </Box>
 
                 <Menu
@@ -85,7 +88,9 @@ export default function SidebarCalendar({open}: { open: boolean }) {
                             sx: {
                                 maxHeight: 250,
                                 mt: 1,
-                                boxShadow: '0px 4px 20px rgba(0,0,0,0.1)',
+                                boxShadow: theme.palette.mode === 'dark' 
+                                    ? '0 8px 32px rgba(0, 0, 0, 0.5)' 
+                                    : '0px 4px 20px rgba(0,0,0,0.1)',
                                 overflowY: 'auto',
                                 msOverflowStyle: 'none',
                                 scrollbarWidth: 'none',
@@ -129,7 +134,7 @@ export default function SidebarCalendar({open}: { open: boolean }) {
                                             transform: 'translateX(-50%)',
                                             width: '4px',
                                             height: '4px',
-                                            background: '#005a8d',
+                                            background: theme.palette.primary.main,
                                             borderRadius: '50%'
                                         }
                                     })
@@ -149,6 +154,7 @@ export default function SidebarCalendar({open}: { open: boolean }) {
                                 disabled={month === 9}
                                 sx={{
                                     p: 0.5,
+                                    color: theme.palette.primary.main,
                                     "&.Mui-disabled": {
                                         opacity: 0.3
                                     }
@@ -163,6 +169,7 @@ export default function SidebarCalendar({open}: { open: boolean }) {
                         disabled={month === 8}
                         sx={{
                             p: 0.5,
+                            color: theme.palette.primary.main,
                             "&.Mui-disabled": {opacity: 0.3}
                         }}
                     >
@@ -174,7 +181,7 @@ export default function SidebarCalendar({open}: { open: boolean }) {
             <Box sx={{display: 'flex', flexWrap: 'wrap'}}>
                 {daysHeaderKeys.map((key) => (
                     <Box key={key} sx={{flex: '0 0 14.28%', textAlign: 'center', mb: 1}}>
-                        <Typography sx={{fontSize: '11px', color: '#888', fontWeight: 700}}>
+                        <Typography sx={{fontSize: '11px', color: theme.palette.text.disabled, fontWeight: 700}}>
                             {intl.formatMessage({id: key, defaultMessage: 'Day'})}
                         </Typography>
                     </Box>
@@ -182,7 +189,7 @@ export default function SidebarCalendar({open}: { open: boolean }) {
 
                 {Array.from({length: offset}).map((_, i) => (
                     <Box key={`prev-${i}`} sx={{flex: '0 0 14.28%', textAlign: 'center'}}>
-                        <Typography sx={{fontSize: '12px', color: '#ccc', p: '6px 0'}}>
+                        <Typography sx={{fontSize: '12px', color: theme.palette.text.disabled, opacity: 0.5, p: '6px 0'}}>
                             {daysInPrevMonth - offset + i + 1}
                         </Typography>
                     </Box>
@@ -205,13 +212,13 @@ export default function SidebarCalendar({open}: { open: boolean }) {
                                 height: '28px',
                                 lineHeight: '28px',
                                 fontWeight: isCurrentDay ? 800 : 500,
-                                color: isCurrentDay ? '#005a8d' : '#333',
+                                color: isCurrentDay ? theme.palette.primary.main : theme.palette.text.primary,
                                 cursor: 'pointer',
                                 borderRadius: '50%',
-                                '&:hover': {background: '#f0f4f8'},
+                                '&:hover': {background: theme.palette.background.highlight},
                                 position: 'relative',
                                 ...(isCurrentDay && {
-                                    background: 'rgba(0, 90, 141, 0.1)',
+                                    background: theme.palette.background.selected,
                                     '&::after': {
                                         content: '""',
                                         position: 'absolute',
@@ -220,7 +227,7 @@ export default function SidebarCalendar({open}: { open: boolean }) {
                                         transform: 'translateX(-50%)',
                                         width: '4px',
                                         height: '4px',
-                                        background: '#005a8d',
+                                        background: theme.palette.primary.main,
                                         borderRadius: '50%'
                                     }
                                 })
