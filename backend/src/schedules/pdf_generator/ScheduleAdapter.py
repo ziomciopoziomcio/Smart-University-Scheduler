@@ -98,8 +98,8 @@ class ScheduleAdapter:
             end,
             variant,
             day,
-            teacher,
             room,
+            teacher,
         ), weeks in grouped.items():
 
             try:
