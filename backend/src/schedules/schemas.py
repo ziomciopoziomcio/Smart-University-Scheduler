@@ -189,3 +189,29 @@ class CustomEventUpdate(BaseModel):
             if self.start_dt > self.end_dt:
                 raise ValueError("start_dt must be before or equal to end_dt")
         return self
+
+
+class ScheduleEditInstructorOption(BaseModel):
+    id: int
+    name: str
+
+
+class ScheduleEditRoomOption(BaseModel):
+    id: int
+    name: str
+    building: str | None = None
+    campus: str | None = None
+
+
+class ScheduleEditCurrent(BaseModel):
+    dayOfWeek: str | None
+    startTime: str | None = None
+    endTime: str | None = None
+    instructorId: int | None = None
+    roomId: int | None = None
+
+
+class ScheduleSessionEditOptions(BaseModel):
+    current: ScheduleEditCurrent
+    instructors: list[ScheduleEditInstructorOption]
+    rooms: list[ScheduleEditRoomOption]
