@@ -48,7 +48,9 @@ class SchedulePdfGenerator:
         self.day_widths = None
 
         self.num_rows = 12
-        self.row_height = (self.height - self.top_margin - self.bottom_margin) / self.num_rows
+        self.row_height = (
+            self.height - self.top_margin - self.bottom_margin
+        ) / self.num_rows
 
         self.font_scale = 1.0
 
@@ -79,15 +81,14 @@ class SchedulePdfGenerator:
     def get_color_for_type(self, type_label):
         t = type_label.lower()
         if "w" in t:
-            return colors.HexColor("#F5A623")  # Wykłady
+            return colors.HexColor("#F5A623")
         elif "l" in t or "p" in t:
-            return colors.HexColor("#00B5AD")  # Laby/Projekty
+            return colors.HexColor("#00B5AD")
         elif "c" in t:
-            return colors.HexColor("#B5B2FF")  # Ćwiczenia
-        return colors.HexColor("#A0AEC0")  # Inne
+            return colors.HexColor("#B5B2FF")
+        return colors.HexColor("#A0AEC0")
 
     def get_text_height(self, text, max_width, font, size):
-        """Zwraca całkowitą wysokość, jaką zajmie tekst."""
         if not text:
             return 0
         self.c.setFont(font, size)
@@ -140,9 +141,6 @@ class SchedulePdfGenerator:
         return lanes
 
     def compute_day_lane_counts(self, schedule: Schedule):
-        """
-        Zwraca dict {day: lanes_count} bazując na group_into_lanes dla każdego dnia.
-        """
         counts = {}
         for day in self.days:
             day_lessons = [l for l in schedule.lessons if l.day == day]
@@ -154,7 +152,7 @@ class SchedulePdfGenerator:
         return counts
 
     # =================================================
-    # RYSOWANIE
+    # DRAWING
     # =================================================
 
     def draw_grid(self):
@@ -199,7 +197,10 @@ class SchedulePdfGenerator:
         c.setStrokeColor(colors.black)
         x = self.left_margin
         for day in self.days:
-            day_w = self.day_widths.get(day, (self.width - self.left_margin - self.right_margin) / len(self.days))
+            day_w = self.day_widths.get(
+                day,
+                (self.width - self.left_margin - self.right_margin) / len(self.days),
+            )
             c.setLineWidth(1)
             c.line(x, self.bottom_margin, x, self.height - self.top_margin)
 
@@ -217,7 +218,10 @@ class SchedulePdfGenerator:
 
         x_day_start = self.left_margin
         for i, day in enumerate(self.days):
-            day_w = self.day_widths.get(day, (self.width - self.left_margin - self.right_margin) / len(self.days))
+            day_w = self.day_widths.get(
+                day,
+                (self.width - self.left_margin - self.right_margin) / len(self.days),
+            )
             day_lessons = [l for l in schedule.lessons if l.day == day]
 
             clusters = []

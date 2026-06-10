@@ -1725,10 +1725,9 @@ STUDY_FIELD_PLAN_WITH_ROOMS_AND_TEACHERS_ACADEMIC_QUERY = """
 """
 
 
-# todo moze inna sciezka, niz user-plan-semester
 @router.get(
     "/user-plan-semester",
-    response_model=dict,  # Zmienione na dict, bo teraz zwracamy meta-dane i link URL
+    response_model=dict,
 )
 async def get_user_plan(
     user_id: int = Query(..., description="ID of the user"),
@@ -1741,9 +1740,6 @@ async def get_user_plan(
     """
     Get the schedule plan for a specific user for all semester.
     """
-
-    # academic_year = "2025/26"
-    # semester_type = "SUMMER"
 
     if _current_user.id != user_id and not user_has_permission(
         _current_user, "schedule:view_others"
@@ -1762,8 +1758,6 @@ async def get_user_plan(
             detail="User is neither a student nor an employee",
         )
 
-    # to jest przekazywane do neo4j - tak, ajk w tych innych endpointach, czyli oke
-    # wszystkie dni danego semestru
     day_configs = get_academic_semester_configs(db, academic_year, semester_type)
     if not day_configs:
         raise HTTPException(
@@ -1771,7 +1765,6 @@ async def get_user_plan(
             detail="No academic calendar entries found for the given semester",
         )
 
-    # tu mapowanie fizycznej daty na numer tydognia i dzien akademicki
     date_to_config = {
         cfg["physical_date"]: {
             "week_number": cfg["week_number"],
@@ -1781,7 +1774,6 @@ async def get_user_plan(
     }
 
     if student:
-        # to samo, co w endpoincie user-plan
         group_ids = _get_student_group_ids(db, student.id)
 
         if not group_ids:
@@ -1798,16 +1790,13 @@ async def get_user_plan(
 
         records = await result.data()
 
-        # mapowanie na ScheduleEntryWithWeekNumber
+        # mapping to ScheduleEntryWithWeekNumber
         mapped_entries = _map_schedule_entries_with_week(
             records,
             date_to_config,
         )
 
     else:
-        # to samo, co w endpoincie user-plan
-
-        # employee
         result = await neo4j_session.run(
             EMPLOYEE_SCHEDULE_QUERY,
             instructor_id=employee.id,
@@ -1816,13 +1805,11 @@ async def get_user_plan(
 
         records = await result.data()
 
-        # mapowanie na ScheduleEntryWithWeekNumber
+        # mapping to ScheduleEntryWithWeekNumber
         mapped_entries = _map_schedule_entries_with_week(
             records,
             date_to_config,
         )
-
-    # =======================
 
     lessons = ScheduleAdapter.build_lessons(mapped_entries)
 
@@ -1848,145 +1835,3 @@ async def get_user_plan(
         "file_name": object_name.split("/")[-1],
         "download_url": download_url,
     }
-
-
-PLAN_MOCK = [
-    # ================= MATEMATYKA (ten sam slot, różne tygodnie)
-    schemas.ScheduleEntryWithWeekNumber(
-        id="1",
-        title="Matematyka",
-        date=date(2025, 10, 6),
-        start_time="08:00",
-        end_time="09:30",
-        variant=ClassType.LECTURE.value,
-        week_number=1,
-        academic_day_of_week=1,
-        room_name="pokoj1",
-        instructor_name="Adam kowalski",
-    ),
-    schemas.ScheduleEntryWithWeekNumber(
-        id="1",
-        title="Matematyka",
-        date=date(2025, 10, 13),
-        start_time="08:00",
-        end_time="09:30",
-        variant=ClassType.LECTURE.value,
-        week_number=2,
-        academic_day_of_week=1,
-    ),
-    schemas.ScheduleEntryWithWeekNumber(
-        id="1",
-        title="Matematyka",
-        date=date(2025, 10, 20),
-        start_time="08:00",
-        end_time="09:30",
-        variant=ClassType.LECTURE.value,
-        week_number=3,
-        academic_day_of_week=1,
-    ),
-    # ================= INFORMATYKA (LAB)
-    schemas.ScheduleEntryWithWeekNumber(
-        id="2",
-        title="Informatyka",
-        date=date(2025, 10, 7),
-        start_time="10:00",
-        end_time="11:30",
-        variant=ClassType.LABORATORY,
-        week_number=1,
-        academic_day_of_week=2,
-    ),
-    schemas.ScheduleEntryWithWeekNumber(
-        id="2",
-        title="Informatyka",
-        date=date(2025, 10, 14),
-        start_time="10:00",
-        end_time="11:30",
-        variant=ClassType.LABORATORY,
-        week_number=2,
-        academic_day_of_week=2,
-    ),
-    schemas.ScheduleEntryWithWeekNumber(
-        id="2",
-        title="Informatyka",
-        date=date(2025, 10, 21),
-        start_time="10:00",
-        end_time="11:30",
-        variant=ClassType.LABORATORY,
-        week_number=3,
-        academic_day_of_week=2,
-    ),
-    # ================= FIZYKA (inne godziny – powinno się NIE grupować z resztą)
-    schemas.ScheduleEntryWithWeekNumber(
-        id="3",
-        title="Fizyka",
-        date=date(2025, 10, 6),
-        start_time="12:00",
-        end_time="13:30",
-        variant=ClassType.TUTORIALS,
-        week_number=1,
-        academic_day_of_week=1,
-    ),
-    schemas.ScheduleEntryWithWeekNumber(
-        id="3",
-        title="Fizyka",
-        date=date(2025, 10, 13),
-        start_time="12:00",
-        end_time="13:30",
-        variant=ClassType.TUTORIALS,
-        week_number=2,
-        academic_day_of_week=1,
-    ),
-    # ================= PROGRAMOWANIE (seminarium, różne dni)
-    schemas.ScheduleEntryWithWeekNumber(
-        id="4",
-        title="Programowanie",
-        date=date(2025, 10, 8),
-        start_time="14:00",
-        end_time="15:30",
-        variant=ClassType.SEMINAR,
-        week_number=1,
-        academic_day_of_week=3,
-    ),
-    schemas.ScheduleEntryWithWeekNumber(
-        id="4",
-        title="Programowanie",
-        date=date(2025, 10, 15),
-        start_time="14:00",
-        end_time="15:30",
-        variant=ClassType.SEMINAR,
-        week_number=2,
-        academic_day_of_week=3,
-    ),
-    # ================= E-LEARNING (różne godziny → NIE powinno się łączyć)
-    schemas.ScheduleEntryWithWeekNumber(
-        id="5",
-        title="AI Basics",
-        date=date(2025, 10, 9),
-        start_time="18:00",
-        end_time="19:00",
-        variant=ClassType.ELEARNING,
-        week_number=1,
-        academic_day_of_week=4,
-    ),
-    schemas.ScheduleEntryWithWeekNumber(
-        id="5",
-        title="AI Basics",
-        date=date(2025, 10, 16),
-        start_time="19:00",
-        end_time="20:00",
-        variant=ClassType.ELEARNING,
-        week_number=2,
-        academic_day_of_week=4,
-    ),
-    # ================= EDGE CASE (ten sam przedmiot, ale różne sloty)
-    schemas.ScheduleEntryWithWeekNumber(
-        id="1",
-        title="Matematyka",
-        date=date(2025, 10, 6),
-        start_time="09:00",
-        end_time="10:30",
-        variant=ClassType.LECTURE,
-        week_number=1,
-        academic_day_of_week=1,
-    ),
-]
