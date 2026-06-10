@@ -1861,4 +1861,86 @@ async def get_user_plan_semester(
         academic_year=academic_year,
         semester_type=semester_type,
         owner_id=owner_id,
+_SESSION_EDIT_CURRENT_QUERY = """
+MATCH (s:ClassSession {sessionId: $session_id})
+OPTIONAL MATCH (s)-[:AT_TIME]->(t:TimeSlot)
+OPTIONAL MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
+OPTIONAL MATCH (s)-[:HELD_IN]->(r:Room)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(cp:Campus)
+RETURN t.dayOfWeek AS timeslot_day, t.startTime AS start_time, t.endTime AS end_time,
+       i.instructorId AS instructor_id, r.roomId AS room_id
+LIMIT 1
+"""
+
+_INSTRUCTORS_LIST_QUERY = """
+MATCH (i:Instructor)
+RETURN i.instructorId AS id,
+       COALESCE((CASE WHEN i.degree IS NOT NULL THEN i.degree + ' ' ELSE '' END) + i.firstName + ' ' + i.lastName, "") AS name
+ORDER BY name
+"""
+
+_ROOMS_LIST_QUERY = """
+MATCH (r:Room)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(cp:Campus)
+RETURN r.roomId AS id, r.roomName AS name, b.buildingNumber AS building, cp.campusShort AS campus
+ORDER BY cp.campusShort, b.buildingNumber, r.roomName
+"""
+
+
+@router.get(
+    "/session/{session_id}/edit-options",
+    response_model=schemas.ScheduleSessionEditOptions,
+)
+async def get_schedule_session_edit_options(
+    session_id: str,
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(require_permission("schedule:update")),
+):
+    """
+    Return options needed to edit a class session:
+    - current: current session day/time/instructor/room
+    - instructors: list of available instructors {id, name}
+    - rooms: list of available rooms {id, name, building, campus}
+    """
+    result = await neo4j_session.run(_SESSION_EDIT_CURRENT_QUERY, session_id=session_id)
+    record = await result.single()
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Session not found"
+        )
+
+    timeslot_day = record.get("timeslot_day")
+    if timeslot_day:
+        dow = timeslot_day[:-1] if timeslot_day.endswith("s") else timeslot_day
+        day_of_week_upper = dow.upper()
+    else:
+        day_of_week_upper = None
+
+    current = schemas.ScheduleEditCurrent(
+        day_of_week=day_of_week_upper,
+        start_time=record.get("start_time"),
+        end_time=record.get("end_time"),
+        instructor_id=record.get("instructor_id"),
+        room_id=record.get("room_id"),
+    )
+
+    inst_result = await neo4j_session.run(_INSTRUCTORS_LIST_QUERY)
+    inst_rows = await inst_result.data()
+    instructors = [
+        schemas.ScheduleEditInstructorOption(id=row["id"], name=row["name"])
+        for row in inst_rows
+    ]
+
+    rooms_result = await neo4j_session.run(_ROOMS_LIST_QUERY)
+    rooms_rows = await rooms_result.data()
+    rooms = [
+        schemas.ScheduleEditRoomOption(
+            id=row["id"],
+            name=row.get("name"),
+            building=row.get("building"),
+            campus=row.get("campus"),
+        )
+        for row in rooms_rows
+    ]
+
+    return schemas.ScheduleSessionEditOptions(
+        current=current, instructors=instructors, rooms=rooms
     )

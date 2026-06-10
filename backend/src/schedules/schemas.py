@@ -202,3 +202,27 @@ class ScheduleEntryWithWeekNumber(BaseModel):
     academic_day_of_week: int
     room_name: str | None = None
     instructor_name: str | None = None
+class ScheduleEditInstructorOption(BaseModel):
+    id: int
+    name: str
+
+
+class ScheduleEditRoomOption(BaseModel):
+    id: int
+    name: str
+    building: str | None = None
+    campus: str | None = None
+
+
+class ScheduleEditCurrent(BaseModel):
+    day_of_week: str | None
+    start_time: str | None = None
+    end_time: str | None = None
+    instructor_id: int | None = None
+    room_id: int | None = None
+
+
+class ScheduleSessionEditOptions(BaseModel):
+    current: ScheduleEditCurrent
+    instructors: list[ScheduleEditInstructorOption]
+    rooms: list[ScheduleEditRoomOption]
