@@ -15,7 +15,7 @@ class MinioStorage:
         self.secure = os.getenv("MINIO_SECURE", "false").lower() == "true"
 
         if not self.access_key or not self.secret_key:
-            raise ValueError("BŁĄD: Brak kluczy MINIO w zmiennych środowiskowych!")
+            raise ValueError("ERROR: No MINIO key in environment variables!")
 
         self.client = Minio(
             endpoint="127.0.0.1:9000",
@@ -73,8 +73,15 @@ class MinioStorage:
         dry_run: bool = False,
     ) -> list[str]:
         """
-        Delete objects in the configured bucket under `prefix` that are older than `older_than_days`.
-        Returns list of object names deleted (or would be deleted in dry_run).
+        Clean up old storage objects from the configured bucket.
+
+        Args:
+            prefix (str): The object name prefix to filter by. Defaults to "schedules/".
+            older_than_days (int): Retention period in days. Objects older than this will be targeted. Defaults to 7.
+            dry_run (bool): If True, only simulates the deletion without removing files. Defaults to False.
+
+        Returns:
+            list[str]: A list of object names that were deleted (or would be deleted if dry_run is True).
         """
         cutoff = datetime.now(timezone.utc) - timedelta(days=older_than_days)
         deleted = []
