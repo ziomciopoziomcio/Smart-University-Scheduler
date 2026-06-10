@@ -1,6 +1,6 @@
 import enum
 from dataclasses import dataclass
-from datetime import date, time
+from datetime import time
 
 
 class Day(enum.Enum):
