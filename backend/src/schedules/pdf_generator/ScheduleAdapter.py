@@ -3,7 +3,7 @@ from datetime import time
 import logging
 
 from src.schedules.pdf_generator.models import Lesson, Day
-from src.schedules.schemas import *
+from src.schedules.schemas import ScheduleEntryWithWeekNumber
 
 logger = logging.getLogger(__name__)
 
