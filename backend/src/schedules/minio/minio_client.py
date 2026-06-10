@@ -99,4 +99,11 @@ class MinioStorage:
         return deleted
 
 
-storage_client = MinioStorage()
+storage_client = None
+
+
+def get_storage_client():
+    global storage_client
+    if storage_client is None:
+        storage_client = MinioStorage()
+    return storage_client

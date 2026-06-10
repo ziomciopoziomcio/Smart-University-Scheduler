@@ -11,7 +11,7 @@ from ..academics.models import Students, Employees
 
 from . import models
 from . import schemas
-from src.schedules.minio.minio_client import storage_client
+from src.schedules.minio.minio_client import get_storage_client
 from .pdf_generator.ScheduleAdapter import ScheduleAdapter
 from .pdf_generator.SchedulePdfGenerator import SchedulePdfGenerator
 from .pdf_generator.models import Schedule
@@ -1818,7 +1818,7 @@ def _generate_and_upload_semester_pdf(
     unique_suffix = uuid.uuid4().hex
     object_name = f"schedules/user_{owner_id}/{sanitized_year}_{semester_type.lower()}_{unique_suffix}.pdf"
 
-    download_url = storage_client.upload_pdf(object_name, pdf_stream)
+    download_url = get_storage_client().upload_pdf(object_name, pdf_stream)
 
     return {
         "status": "success",
