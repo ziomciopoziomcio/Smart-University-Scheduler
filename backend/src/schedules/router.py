@@ -1663,3 +1663,137 @@ async def get_schedule_session_edit_options(
     return schemas.ScheduleSessionEditOptions(
         current=current, instructors=instructors, rooms=rooms
     )
+
+
+_CREATE_SCHEDULE_SESSION_QUERY = """
+    MATCH (c:Course {courseCode: $course_id})
+    
+    MATCH (i:Instructor {instructorId: $instructor_id})
+    MATCH (r:Room {roomId: $room_id})
+    
+    MATCH (t:TimeSlot)
+    WHERE t.dayOfWeek = $day_of_week
+      AND t.startTime = $start_time
+      AND t.endTime = $end_time
+    
+    MATCH (g:Group)
+    WHERE g.groupId IN $group_ids
+    
+    WITH c, i, r, t, collect(g) AS groups
+    WHERE size(groups) = size($group_ids)
+    
+    CREATE (s:ClassSession {
+        sessionId: $session_id,
+        weeks: $weeks,
+        createdAt: datetime()
+    })
+    
+    MERGE (s)-[:OF_COURSE]->(c)
+    MERGE (s)-[:TAUGHT_BY]->(i)
+    MERGE (s)-[:HELD_IN]->(r)
+    MERGE (s)-[:AT_TIME]->(t)
+    
+    FOREACH (g IN groups |
+        MERGE (s)-[:FOR_GROUP]->(g)
+    )
+    
+    RETURN s.sessionId AS session_id
+"""
+
+_CREATE_SESSION_CONFLICT_QUERY = """
+    MATCH (t:TimeSlot)
+    WHERE t.dayOfWeek = $day_of_week
+      AND t.startTime = $start_time
+      AND t.endTime = $end_time
+    
+    MATCH (other:ClassSession)-[:AT_TIME]->(t)
+    
+    OPTIONAL MATCH (other)-[:TAUGHT_BY]->(i:Instructor)
+    OPTIONAL MATCH (other)-[:HELD_IN]->(r:Room)
+    OPTIONAL MATCH (other)-[:FOR_GROUP]->(g:Group)
+    
+    WHERE
+        i.instructorId = $instructor_id
+        OR r.roomId = $room_id
+        OR g.groupId IN $group_ids
+    
+    RETURN count(DISTINCT other) AS conflicts
+"""
+
+
+def _upper_to_plural_day(day: str) -> str | None:
+    mapping = {
+        "MONDAY": "Mondays",
+        "TUESDAY": "Tuesdays",
+        "WEDNESDAY": "Wednesdays",
+        "THURSDAY": "Thursdays",
+        "FRIDAY": "Fridays",
+        "SATURDAY": "Saturdays",
+        "SUNDAY": "Sundays",
+    }
+    return mapping.get(day, None)
+
+
+@router.post(
+    "/session",
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_schedule_session(
+    payload: schemas.CreateScheduleSessionRequest,
+    neo4j_session=Depends(get_neo4j_session),
+    # _current_user: user_models.Users = Depends(
+    #     require_permission("schedule:create")
+    # ),
+):
+    """
+    Create a schedule session in Neo4j.
+    """
+    mapped_day = _upper_to_plural_day(payload.day_of_week)
+    if mapped_day is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="dayOfWeek must be in the singular and in capital letters, e.g. 'MONDAY'",
+        )
+
+    conflict_result = await neo4j_session.run(
+        _CREATE_SESSION_CONFLICT_QUERY,
+        day_of_week=mapped_day,
+        start_time=payload.start_time,
+        end_time=payload.end_time,
+        instructor_id=payload.instructor_id,
+        room_id=payload.room_id,
+        group_ids=payload.group_ids,
+    )
+
+    conflict_record = await conflict_result.single()
+
+    if conflict_record and conflict_record["conflicts"] > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Schedule conflict detected",
+        )
+
+    session_id = str(uuid.uuid4())
+
+    result = await neo4j_session.run(
+        _CREATE_SCHEDULE_SESSION_QUERY,
+        session_id=session_id,
+        course_id=payload.course_id,
+        group_ids=payload.group_ids,
+        instructor_id=payload.instructor_id,
+        room_id=payload.room_id,
+        day_of_week=mapped_day,
+        start_time=payload.start_time,
+        end_time=payload.end_time,
+        weeks=list(range(1, 16)),
+    )
+
+    record = await result.single()
+
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Failed to create session",
+        )
+
+    return {"session_id": record["session_id"]}
