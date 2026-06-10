@@ -1666,7 +1666,7 @@ def _map_schedule_entries_with_week(
                 date=date.fromisoformat(rec["physical_date"]),
                 start_time=rec["start_time"],
                 end_time=rec["end_time"],
-                variant=str(_parse_variant(rec["class_type"])),  # todo do zmiany!!!
+                variant=_parse_variant(rec["class_type"]),
                 week_number=week_number,
                 academic_day_of_week=academic_day_of_week,
                 room_name=room_name,

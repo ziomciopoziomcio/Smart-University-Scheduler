@@ -39,15 +39,21 @@ class ScheduleAdapter:
         return time(h, m)
 
     @staticmethod
-    def variant_to_label(v: ClassType) -> str:
-        if v == ClassType.LECTURE:
+    def variant_to_label(v) -> str:
+        if not v:
+            return ""
+
+        val_str = v.name if hasattr(v, "name") else str(v)
+        val_str = val_str.upper()
+
+        if "LECTURE" in val_str or "WYKŁAD" in val_str:
             return "w"
-        if v == ClassType.LABORATORY:
+        if "LABORATORY" in val_str or "LAB" in val_str:
             return "l"
-        if v == ClassType.TUTORIALS:
+        if "TUTORIALS" in val_str or "ĆWICZENIA" in val_str:
             return "ć"
 
-        return v.name
+        return val_str.split(".")[-1]
 
     @staticmethod
     def weeks_to_string(weeks: list[int]) -> str:
