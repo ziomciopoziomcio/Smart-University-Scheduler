@@ -1741,9 +1741,7 @@ def _upper_to_plural_day(day: str) -> str | None:
 async def create_schedule_session(
     payload: schemas.CreateScheduleSessionRequest,
     neo4j_session=Depends(get_neo4j_session),
-    # _current_user: user_models.Users = Depends(
-    #     require_permission("schedule:create")
-    # ),
+    _current_user: user_models.Users = Depends(require_permission("class-session:create")),
 ):
     """
     Create a schedule session in Neo4j.
