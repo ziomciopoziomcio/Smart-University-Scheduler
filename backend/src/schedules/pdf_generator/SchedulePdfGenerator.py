@@ -27,7 +27,7 @@ try:
     print("SUCCESS: Loaded DejaVuSans!")
 
 except Exception as e:
-    print(f"FONT ERROR: {e}.")
+    logger.warning("PDF font load failed (%s). Falling back to Helvetica.", e)
     FONT_REG = "Helvetica"
     FONT_BOLD = "Helvetica-Bold"
 
