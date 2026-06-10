@@ -8,6 +8,7 @@ from sqlalchemy import cast, String
 
 from . import models
 from . import schemas
+from src.schedules.minio.minio_client import storage_client
 from .pdf_generator.ScheduleAdapter import ScheduleAdapter
 from .pdf_generator.SchedulePdfGenerator import SchedulePdfGenerator
 from .pdf_generator.models import Schedule
@@ -1185,7 +1186,8 @@ STUDY_FIELD_PLAN_WITH_ROOMS_AND_TEACHERS_ACADEMIC_QUERY = """
 
 # todo moze inna sciezka, niz user-plan-semester
 @router.get(
-    "/user-plan-semester", response_model=list[schemas.ScheduleEntryWithWeekNumber]
+    "/user-plan-semester",
+    response_model=dict,  # Zmienione na dict, bo teraz zwracamy meta-dane i link URL
 )
 async def get_user_plan(
     # user_id: int = Query(..., description="ID of the user"),
@@ -1429,11 +1431,24 @@ async def get_user_plan(
     lessons = ScheduleAdapter.build_lessons(inp)
 
     schedule = Schedule(
-        title="Plan zajęć - semestr zimowy",
+        title=f"Plan zajęć - semestr {semester_type} {academic_year}",
         lessons=lessons,
     )
 
-    pdf = SchedulePdfGenerator("plan.pdf")
-    pdf.build(schedule)
+    pdf_generator = SchedulePdfGenerator()
+    pdf_stream = pdf_generator.build(schedule)
 
-    return inp  # todo change
+    # todo: get id from token (eg. user_id = f"user_{_current_user.id}")
+    user_folder_id = "user_test_user"
+    sanitized_year = academic_year.replace("/", "-")
+    object_name = (
+        f"schedules/{user_folder_id}/{sanitized_year}_{semester_type.lower()}_plan.pdf"
+    )
+
+    download_url = storage_client.upload_pdf(object_name, pdf_stream)
+
+    return {
+        "status": "success",
+        "file_name": object_name.split("/")[-1],
+        "download_url": download_url,
+    }
