@@ -1662,9 +1662,10 @@ def _map_schedule_entries_with_week(
         instructor_name = None
         first = rec.get("instructor_first_name", None)
         last = rec.get("instructor_last_name", None)
+        degree = rec.get("instructor_degree", None)
 
         if first or last:
-            instructor_name = " ".join(filter(None, [first, last]))
+            instructor_name = " ".join(filter(None, [degree, first, last]))
 
         room_name = rec.get("room_name", None)
 
@@ -1717,6 +1718,7 @@ STUDY_FIELD_PLAN_WITH_ROOMS_AND_TEACHERS_ACADEMIC_QUERY = """
 
         i.instructorId AS instructor_id,
         i.firstName AS instructor_first_name,
+        i.degree AS instructor_degree,
         i.lastName AS instructor_last_name
 
     ORDER BY config.physical_date, t.startTime
