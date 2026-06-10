@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState, useEffect} from 'react';
 import {
     Box,
     Button,
@@ -81,10 +81,10 @@ export function EditScheduleSessionPopup({
             dayOfWeek: 'MONDAY',
             startTime: '',
             endTime: '',
-            instructorId: instructors[0]?.id ?? 0,
-            roomId: rooms[0]?.id ?? 0,
+            instructorId: 0,
+            roomId: 0,
         }),
-        [instructors, rooms],
+        [],
     );
 
     const valuesFromProps = useMemo<FormValues>(() => {
@@ -286,7 +286,11 @@ export function EditScheduleSessionPopup({
                         </InputLabel>
 
                         <Select
-                            value={String(formValues.instructorId)}
+                            value={
+                                formValues.instructorId
+                                    ? String(formValues.instructorId)
+                                    : ''
+                            }
                             label={formatMessage({
                                 id: 'schedule.edit.instructor',
                                 defaultMessage: 'Instructor',
@@ -322,7 +326,11 @@ export function EditScheduleSessionPopup({
                         </InputLabel>
 
                         <Select
-                            value={String(formValues.roomId)}
+                            value={
+                                formValues.roomId
+                                    ? String(formValues.roomId)
+                                    : ''
+                            }
                             label={formatMessage({
                                 id: 'schedule.edit.room',
                                 defaultMessage: 'Room',
@@ -339,7 +347,10 @@ export function EditScheduleSessionPopup({
                             }}
                         >
                             {rooms.map((room) => (
-                                <MenuItem key={room.id} value={String(room.id)}>
+                                <MenuItem
+                                    key={room.id}
+                                    value={String(room.id)}
+                                >
                                     {[
                                         room.name,
                                         room.building
