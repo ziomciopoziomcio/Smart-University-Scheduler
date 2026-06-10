@@ -57,7 +57,48 @@ class ScheduleAdapter:
 
     @staticmethod
     def weeks_to_string(weeks: list[int]) -> str:
-        return "Tygodnie: " + ", ".join(map(str, weeks))
+        """
+        Convert a sorted list of week numbers into a compact string:
+        e.g. [1,2,3,4,5,6,7,8] -> "Tygodnie: 1-8"
+              [1,2,3,5,6,7,9] -> "Tygodnie: 1-3, 5-7, 9"
+
+        Special cases:
+        - if weeks == [1,3,5,...,15] -> "Tygodnie: np." (all odd weeks 1..15)
+        - if weeks == [2,4,6,...,14] -> "Tygodnie: p." (all even weeks 1..15)
+        """
+        if not weeks:
+            return "Tygodnie: "
+
+        w = sorted(set(int(x) for x in weeks))
+
+        full_odds_1_15 = list(range(1, 16, 2))  # [1,3,5,...,15]
+        full_evens_1_15 = list(range(2, 16, 2))  # [2,4,6,...,14]
+
+        if w == full_odds_1_15:
+            return "Tygodnie: np."
+        if w == full_evens_1_15:
+            return "Tygodnie: p."
+
+        ranges = []
+        start = prev = w[0]
+
+        for n in w[1:]:
+            if n == prev + 1:
+                prev = n
+                continue
+            else:
+                if start == prev:
+                    ranges.append(f"{start}")
+                else:
+                    ranges.append(f"{start}-{prev}")
+                start = prev = n
+
+        if start == prev:
+            ranges.append(f"{start}")
+        else:
+            ranges.append(f"{start}-{prev}")
+
+        return "Tygodnie: " + ", ".join(ranges)
 
     @staticmethod
     def build_lessons(entries: list[ScheduleEntryWithWeekNumber]) -> list[Lesson]:
