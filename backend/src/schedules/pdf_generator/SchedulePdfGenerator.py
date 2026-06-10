@@ -48,9 +48,7 @@ class SchedulePdfGenerator:
         self.day_widths = None
 
         self.num_rows = 12
-        self.row_height = (
-            self.height - self.top_margin - self.bottom_margin
-        ) / self.num_rows
+        self.row_height = (self.height - self.top_margin - self.bottom_margin) / self.num_rows
 
         self.font_scale = 1.0
 
@@ -201,10 +199,7 @@ class SchedulePdfGenerator:
         c.setStrokeColor(colors.black)
         x = self.left_margin
         for day in self.days:
-            day_w = self.day_widths.get(
-                day,
-                (self.width - self.left_margin - self.right_margin) / len(self.days),
-            )
+            day_w = self.day_widths.get(day, (self.width - self.left_margin - self.right_margin) / len(self.days))
             c.setLineWidth(1)
             c.line(x, self.bottom_margin, x, self.height - self.top_margin)
 
@@ -222,10 +217,7 @@ class SchedulePdfGenerator:
 
         x_day_start = self.left_margin
         for i, day in enumerate(self.days):
-            day_w = self.day_widths.get(
-                day,
-                (self.width - self.left_margin - self.right_margin) / len(self.days),
-            )
+            day_w = self.day_widths.get(day, (self.width - self.left_margin - self.right_margin) / len(self.days))
             day_lessons = [l for l in schedule.lessons if l.day == day]
 
             clusters = []
