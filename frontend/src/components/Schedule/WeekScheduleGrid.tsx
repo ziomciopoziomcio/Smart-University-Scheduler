@@ -10,6 +10,9 @@ import {EditScheduleSessionPopup} from './EditScheduleSessionPopup';
 import {formatMinutesToTimeLabel, getGridHeight, parseTimeToMinutes} from './utils/utils';
 import {getDayIndexFromDate, parseIsoDate} from './utils/dateUtils';
 
+import {usePermissionStore} from '@store/usePermissionStore';
+import {PERMISSIONS} from '@constants/permissions';
+
 import type {
     CourseSessionDetailsResponse,
     DayOfWeek,
@@ -235,10 +238,10 @@ const mapCourseSessionDetails = (
 };
 
 export function WeekScheduleGrid({
-    entries,
-    onSessionUpdated,
-    onTileHoverChange,
-}: WeekScheduleGridProps) {
+                                     entries,
+                                     onSessionUpdated,
+                                     onTileHoverChange,
+                                 }: WeekScheduleGridProps) {
     const [selectedEntry, setSelectedEntry] = useState<ScheduleEntry | null>(null);
     const [selectedDetails, setSelectedDetails] = useState<ScheduleEntryDetails | null>(null);
 
@@ -257,6 +260,12 @@ export function WeekScheduleGrid({
 
     const {formatMessage} = useIntl();
     const gridHeight = getGridHeight();
+
+    const hasAnyPermission = usePermissionStore((state) => state.hasAnyPermission);
+
+    const canUpdateClassSession = hasAnyPermission([
+        PERMISSIONS.CLASS_SESSION_UPDATE,
+    ]);
 
     const orderedEntries = useMemo(() => {
         return [...entries].sort((a, b) => {
@@ -440,6 +449,10 @@ export function WeekScheduleGrid({
         entry: ScheduleEntry,
         values?: Partial<EditInitialValues>,
     ) => {
+        if (!canUpdateClassSession) {
+            return;
+        }
+
         const options = await loadEditOptions(entry, values);
 
         setEditEntry(entry);
@@ -482,7 +495,7 @@ export function WeekScheduleGrid({
     };
 
     const handleEditSave = async (payload: UpdateScheduleSessionRequest) => {
-        if (!editEntry) {
+        if (!editEntry || !canUpdateClassSession) {
             return;
         }
 
@@ -504,7 +517,7 @@ export function WeekScheduleGrid({
         entry: ScheduleEntry,
         event: ReactPointerEvent<HTMLDivElement>,
     ) => {
-        if (event.button !== 0) {
+        if (event.button !== 0 || !canUpdateClassSession) {
             return;
         }
 
@@ -792,6 +805,7 @@ export function WeekScheduleGrid({
                                     onTileHoverChange?.(null);
                                 }}
                                 draggingEntryId={dragPreview?.hasMoved ? dragPreview.entry.id : null}
+                                isDraggable={canUpdateClassSession}
                             />
                         );
                     })}
@@ -810,9 +824,13 @@ export function WeekScheduleGrid({
                                     entry={selectedEntry}
                                     details={selectedDetails}
                                     onClose={handleClosePopup}
-                                    onEdit={() => {
-                                        void openEditPopup(selectedEntry);
-                                    }}
+                                    onEdit={
+                                        canUpdateClassSession
+                                            ? () => {
+                                                void openEditPopup(selectedEntry);
+                                            }
+                                            : undefined
+                                    }
                                 />
                             </Box>
                         </Box>

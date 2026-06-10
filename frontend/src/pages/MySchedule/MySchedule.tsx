@@ -6,8 +6,6 @@ import {fetchStudentPlan} from '@api/domains/schedules';
 import {useAuthStore} from '@store/useAuthStore';
 import {addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
 
-//TODO: https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/275
-
 export async function getScheduleForWeek(
     weekStart: Date,
     userId: number,

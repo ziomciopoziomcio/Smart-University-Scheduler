@@ -24,18 +24,20 @@ interface ScheduleTileFactoryProps {
     onMouseEnter?: () => void;
     onMouseLeave?: () => void;
     draggingEntryId?: string | null;
+    isDraggable?: boolean;
 }
 
 export function ScheduleTileFactory({
-    entry,
-    columnIndex = 0,
-    columnCount = 1,
-    onClick,
-    onPointerDown,
-    onMouseEnter,
-    onMouseLeave,
-    draggingEntryId,
-}: ScheduleTileFactoryProps) {
+                                        entry,
+                                        columnIndex = 0,
+                                        columnCount = 1,
+                                        onClick,
+                                        onPointerDown,
+                                        onMouseEnter,
+                                        onMouseLeave,
+                                        draggingEntryId,
+                                        isDraggable = false,
+                                    }: ScheduleTileFactoryProps) {
     const entryDate = parseIsoDate(entry.date);
     const dayIndex = getDayIndexFromDate(entryDate);
 
@@ -54,6 +56,7 @@ export function ScheduleTileFactory({
         onMouseEnter,
         onMouseLeave,
         isDragging: draggingEntryId === entry.id,
+        isDraggable,
     };
 
     switch (entry.variant) {
