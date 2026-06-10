@@ -1,4 +1,5 @@
 import os
+import logging
 from datetime import time
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import landscape, A4
