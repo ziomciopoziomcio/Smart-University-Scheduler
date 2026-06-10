@@ -3,6 +3,7 @@ import {BASE_URL, getHeaders, SCHEDULES_URL} from '@api/core';
 import type {
     CourseSessionDetailsResponse,
     GenerateScheduleRequest,
+    ScheduleSessionEditOptionsResponse,
     ScheduleVersion,
     UpdateScheduleSessionRequest,
 } from './types';
@@ -16,6 +17,23 @@ export const fetchCourseSessionDetails = async (
 
     if (!response.ok) {
         throw new Error('Failed to fetch course session details');
+    }
+
+    return response.json();
+};
+
+export const fetchScheduleSessionEditOptions = async (
+    sessionId: string,
+): Promise<ScheduleSessionEditOptionsResponse> => {
+    const response = await fetch(
+        `${SCHEDULES_URL}/session/${sessionId}/edit-options`,
+        {
+            headers: getHeaders(),
+        },
+    );
+
+    if (!response.ok) {
+        throw new Error('Failed to fetch schedule session edit options');
     }
 
     return response.json();
@@ -39,14 +57,12 @@ export const generateSchedule = async (
     return response.json();
 };
 
-// TODO: IT DOES NOT WORK
-// https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/223
 export const updateScheduleSession = async (
     sessionId: string,
     payload: UpdateScheduleSessionRequest,
 ): Promise<void> => {
-    const response = await fetch(`${SCHEDULES_URL}/sessions/${sessionId}`, {
-        method: 'PATCH',
+    const response = await fetch(`${SCHEDULES_URL}/session/${sessionId}`, {
+        method: 'PUT',
         headers: getHeaders(),
         body: JSON.stringify(payload),
     });

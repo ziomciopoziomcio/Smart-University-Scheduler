@@ -22,6 +22,7 @@ import type {
 } from '@api';
 import {
     fetchCourseSessionDetails,
+    fetchScheduleSessionEditOptions,
     updateScheduleSession,
 } from '@api';
 
@@ -365,70 +366,25 @@ export function WeekScheduleGrid({
         };
     };
 
-    const getDefaultEditValues = (entry: ScheduleEntry): EditInitialValues => {
-        const dayIndex = getDayIndexFromDate(parseIsoDate(entry.date));
-
-        return {
-            dayOfWeek: dayOfWeekByIndex[dayIndex] ?? 'MONDAY',
-            startTime: entry.startTime,
-            endTime: entry.endTime,
-            instructorId: 1,
-            roomId: 1,
-            applyOnce: false,
-        };
-    };
-
     const loadEditOptions = async (
         entry: ScheduleEntry,
         values?: Partial<EditInitialValues>,
     ): Promise<ScheduleSessionEditOptions> => {
-        /*
-            TODO BACKEND:
-            const response = await fetchScheduleSessionEditOptions(entry.id);
-
-            return {
-                current: {
-                    dayOfWeek: response.current.dayOfWeek,
-                    startTime: response.current.startTime,
-                    endTime: response.current.endTime,
-                    instructorId: response.current.instructorId,
-                    roomId: response.current.roomId,
-                    applyOnce: false,
-                    ...values,
-                },
-                instructors: response.instructors,
-                rooms: response.rooms,
-            };
-        */
-
-        const current = {
-            ...getDefaultEditValues(entry),
-            ...values,
-            applyOnce: false,
-        };
+        const response = await fetchScheduleSessionEditOptions(entry.id);
 
         return {
-            current,
-            instructors: [
-                {
-                    id: 0,
-                    name: formatMessage({
-                        id: 'schedule.edit.instructorMissing',
-                        defaultMessage: 'Instructor will be loaded from backend',
-                    }),
-                },
-            ],
-            rooms: [
-                {
-                    id: 0,
-                    name: formatMessage({
-                        id: 'schedule.edit.roomMissing',
-                        defaultMessage: 'Room will be loaded from backend',
-                    }),
-                    building: '',
-                    campus: '',
-                },
-            ],
+            current: {
+                dayOfWeek: response.current.dayOfWeek,
+                startTime: response.current.startTime,
+                endTime: response.current.endTime,
+                instructorId: response.current.instructorId,
+                roomId: response.current.roomId,
+                applyOnce: false,
+
+                ...values,
+            },
+            instructors: response.instructors,
+            rooms: response.rooms,
         };
     };
 
@@ -453,14 +409,18 @@ export function WeekScheduleGrid({
             return;
         }
 
-        const options = await loadEditOptions(entry, values);
+        try {
+            const options = await loadEditOptions(entry, values);
 
-        setEditEntry(entry);
-        setEditInitialValues(options.current);
-        setEditInstructors(options.instructors);
-        setEditRooms(options.rooms);
+            setEditEntry(entry);
+            setEditInitialValues(options.current);
+            setEditInstructors(options.instructors);
+            setEditRooms(options.rooms);
 
-        handleClosePopup();
+            handleClosePopup();
+        } catch (error) {
+            console.error('Failed to getch data', error);
+        }
     };
 
     const handleTileClick = async (entry: ScheduleEntry) => {

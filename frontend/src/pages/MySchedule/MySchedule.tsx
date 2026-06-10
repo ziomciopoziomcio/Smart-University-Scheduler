@@ -24,6 +24,7 @@ export default function MySchedule() {
     );
     const [entries, setEntries] = useState<ScheduleEntry[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [refreshRevision, setRefreshRevision] = useState(0);
 
     useEffect(() => {
         let isCancelled = false;
@@ -57,7 +58,7 @@ export default function MySchedule() {
         return () => {
             isCancelled = true;
         };
-    }, [currentWeekStart, user?.id]);
+    }, [currentWeekStart, user?.id, refreshRevision]);
 
     const handlePrevWeek = () => {
         setCurrentWeekStart((prev) => addWeeks(prev, -1));
@@ -75,6 +76,9 @@ export default function MySchedule() {
                 isLoading={isLoading}
                 onPrevWeek={handlePrevWeek}
                 onNextWeek={handleNextWeek}
+                onSessionUpdated={() => {
+                    setRefreshRevision((revision) => revision + 1);
+                }}
             />
         </Box>
     );
