@@ -3,7 +3,7 @@ import { createTheme, type ThemeOptions } from '@mui/material/styles';
 export const themePresets = {
     oceanic: { main: '#045f8d', dark: '#004566', name: 'Oceanic' },
     emerald: { main: '#065f46', dark: '#044431', name: 'Emerald' },
-    amethyst: { main: '#6366f1', dark: '#4338ca', name: 'Amethyst' },
+    amethyst: { main: '#a23abf', dark: '#612272', name: 'Amethyst' },
     slate: { main: '#334155', dark: '#1e293b', name: 'Slate' },
     rose: { main: '#be123c', dark: '#881337', name: 'Rose' },
     amber: { main: '#b45309', dark: '#78350f', name: 'Amber' },
@@ -128,7 +128,7 @@ export const createAppTheme = (config: ThemeConfig) => {
 
 
 export const theme = createAppTheme({
-    preset: 'amber',
+    preset: 'amethyst',
     mode: 'light',
     baseFontSize: 16
 });

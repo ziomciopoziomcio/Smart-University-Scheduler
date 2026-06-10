@@ -1,6 +1,7 @@
 import {Paper, InputBase} from '@mui/material';
 import {Search} from '@mui/icons-material';
-import {theme} from '../../theme/theme.ts';
+import {useTheme} from '@mui/material/styles';
+
 
 interface SearchBarProps {
     value: string;
@@ -9,6 +10,9 @@ interface SearchBarProps {
 }
 
 export default function SearchBar({value, onChange, placeholder = 'Szukaj...'}: SearchBarProps) {
+
+    const theme = useTheme();
+
     return (
         <Paper
             elevation={0}
@@ -19,7 +23,7 @@ export default function SearchBar({value, onChange, placeholder = 'Szukaj...'}: 
                 width: '100%',
                 height: 53,
                 borderRadius: '16px',
-                background: 'white'
+                background: theme.palette.background.paper
             }}
         >
             <Search sx={{color: 'text.secondary', mr: 1}}/>

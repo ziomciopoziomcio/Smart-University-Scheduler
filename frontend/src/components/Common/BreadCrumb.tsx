@@ -1,6 +1,7 @@
 import {Breadcrumbs, Typography, Box, type Theme, type SxProps} from '@mui/material';
 import {NavigateNext} from '@mui/icons-material';
 import {Link} from 'react-router-dom';
+import {useTheme} from '@mui/material/styles';
 
 export interface BreadcrumbItem {
     label: string;
@@ -13,12 +14,15 @@ interface PageBreadcrumbsProps {
 }
 
 export function PageBreadcrumbs({items, sx}: PageBreadcrumbsProps) {
+
+    const theme = useTheme();
+
     return (
         <Box sx={{
             p: 2,
             borderRadius: '16px',
             border: '1px solid rgba(0,0,0,0.05)',
-            background: 'white',
+            background: theme.palette.background.paper,
             display: 'flex',
             alignItems: 'center',
             boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
