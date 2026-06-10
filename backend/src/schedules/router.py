@@ -1725,6 +1725,108 @@ STUDY_FIELD_PLAN_WITH_ROOMS_AND_TEACHERS_ACADEMIC_QUERY = """
 """
 
 
+def _verify_user_schedule_permissions(
+    current_user: user_models.Users, target_user_id: int
+):
+    """Validates if the current user has permission to view the target user's schedule."""
+    if current_user.id != target_user_id and not user_has_permission(
+        current_user, "schedule:view_others"
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to view other users' schedules",
+        )
+
+
+def _prepare_semester_configs_or_400(
+    db: Session, academic_year: str, semester_type: ac_mod.SemesterType
+) -> tuple[list[dict], dict]:
+    """Fetches semester days and builds a date-to-config mapping."""
+    day_configs = get_academic_semester_configs(db, academic_year, semester_type)
+    if not day_configs:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No academic calendar entries found for the given semester",
+        )
+
+    date_to_config = {
+        cfg["physical_date"]: {
+            "week_number": cfg["week_number"],
+            "academic_day_of_week": cfg["academic_day_of_week"],
+        }
+        for cfg in day_configs
+    }
+    return day_configs, date_to_config
+
+
+async def _fetch_user_semester_entries(
+    db: Session,
+    neo4j_session,
+    user_id: int,
+    day_configs: list[dict],
+    date_to_config: dict,
+) -> list[schemas.ScheduleEntryWithWeekNumber]:
+    """Fetches and maps schedule entries for either a student or an employee."""
+    student = _get_student_with_user_id(db, user_id)
+    employee = _get_employee_with_user_id(db, user_id)
+
+    if not student and not employee:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User is neither a student nor an employee",
+        )
+
+    if student:
+        group_ids = _get_student_group_ids(db, student.id)
+        if not group_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User is not assigned to any study group",
+            )
+        result = await neo4j_session.run(
+            STUDY_FIELD_PLAN_WITH_ROOMS_AND_TEACHERS_ACADEMIC_QUERY,
+            group_ids=group_ids,
+            day_configs=day_configs,
+        )
+    else:
+        result = await neo4j_session.run(
+            EMPLOYEE_SCHEDULE_QUERY,
+            instructor_id=employee.id,
+            day_configs=day_configs,
+        )
+
+    records = await result.data()
+    return _map_schedule_entries_with_week(records, date_to_config)
+
+
+def _generate_and_upload_semester_pdf(
+    lessons: list,
+    academic_year: str,
+    semester_type: ac_mod.SemesterType,
+    owner_id: str | int,
+) -> dict:
+    """Builds the PDF from lessons and uploads it to MinIO."""
+    semester_label = _semester_label_pl(semester_type)
+    schedule = Schedule(
+        title=f"Plan zajęć - {semester_label} {academic_year}",
+        lessons=lessons,
+    )
+
+    pdf_stream = SchedulePdfGenerator().build(schedule)
+
+    sanitized_year = academic_year.replace("/", "-")
+    unique_suffix = uuid.uuid4().hex
+    object_name = f"schedules/user_{owner_id}/{sanitized_year}_{semester_type.lower()}_{unique_suffix}.pdf"
+
+    download_url = storage_client.upload_pdf(object_name, pdf_stream)
+
+    return {
+        "status": "success",
+        "file_name": object_name.split("/")[-1],
+        "download_url": download_url,
+    }
+
+
 @router.get(
     "/user-plan-semester",
     response_model=dict,
@@ -1740,98 +1842,23 @@ async def get_user_plan_semester(
     """
     Get the schedule plan for a specific user for all semester.
     """
+    _verify_user_schedule_permissions(_current_user, user_id)
 
-    if _current_user.id != user_id and not user_has_permission(
-        _current_user, "schedule:view_others"
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Insufficient permissions to view other users' schedules",
-        )
+    day_configs, date_to_config = _prepare_semester_configs_or_400(
+        db, academic_year, semester_type
+    )
 
-    student = _get_student_with_user_id(db, user_id)
-    employee = _get_employee_with_user_id(db, user_id)
-
-    if not student and not employee:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User is neither a student nor an employee",
-        )
-
-    day_configs = get_academic_semester_configs(db, academic_year, semester_type)
-    if not day_configs:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No academic calendar entries found for the given semester",
-        )
-
-    date_to_config = {
-        cfg["physical_date"]: {
-            "week_number": cfg["week_number"],
-            "academic_day_of_week": cfg["academic_day_of_week"],
-        }
-        for cfg in day_configs
-    }
-
-    if student:
-        group_ids = _get_student_group_ids(db, student.id)
-
-        if not group_ids:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User is not assigned to any study group",
-            )
-
-        result = await neo4j_session.run(
-            STUDY_FIELD_PLAN_WITH_ROOMS_AND_TEACHERS_ACADEMIC_QUERY,
-            group_ids=group_ids,
-            day_configs=day_configs,
-        )
-
-        records = await result.data()
-
-        # mapping to ScheduleEntryWithWeekNumber
-        mapped_entries = _map_schedule_entries_with_week(
-            records,
-            date_to_config,
-        )
-
-    else:
-        result = await neo4j_session.run(
-            EMPLOYEE_SCHEDULE_QUERY,
-            instructor_id=employee.id,
-            day_configs=day_configs,
-        )
-
-        records = await result.data()
-
-        # mapping to ScheduleEntryWithWeekNumber
-        mapped_entries = _map_schedule_entries_with_week(
-            records,
-            date_to_config,
-        )
+    mapped_entries = await _fetch_user_semester_entries(
+        db, neo4j_session, user_id, day_configs, date_to_config
+    )
 
     lessons = ScheduleAdapter.build_lessons(mapped_entries)
 
-    semester_label = _semester_label_pl(semester_type)
-    schedule = Schedule(
-        title=f"Plan zajęć - {semester_label} {academic_year}",
+    owner_id = getattr(_current_user, "id", None) or "unknown"
+
+    return _generate_and_upload_semester_pdf(
         lessons=lessons,
+        academic_year=academic_year,
+        semester_type=semester_type,
+        owner_id=owner_id,
     )
-
-    pdf_generator = SchedulePdfGenerator()
-    pdf_stream = pdf_generator.build(schedule)
-
-    owner_user_id = getattr(_current_user, "id", None) or "unknown"
-    user_folder_id = f"user_{owner_user_id}"
-    sanitized_year = academic_year.replace("/", "-")
-    unique_suffix = uuid.uuid4().hex
-    object_name = f"schedules/{user_folder_id}/{sanitized_year}_{semester_type.lower()}_{unique_suffix}.pdf"
-
-    download_url = storage_client.upload_pdf(object_name, pdf_stream)
-
-    return {
-        "status": "success",
-        "file_name": object_name.split("/")[-1],
-        "download_url": download_url,
-    }
