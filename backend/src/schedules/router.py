@@ -1819,7 +1819,7 @@ async def get_user_plan(
 
     # =======================
 
-    lessons = ScheduleAdapter.build_lessons(mapped_entries)  #  PLAN_MOCK
+    lessons = ScheduleAdapter.build_lessons(mapped_entries or PLAN_MOCK)
 
     schedule = Schedule(
         title=f"Plan zajęć - semestr {semester_type} {academic_year}",
