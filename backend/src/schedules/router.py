@@ -1274,18 +1274,6 @@ async def get_user_plan(
             records,
             date_to_config,
         )
-        #             id="1",
-        #             title="Matematyka",
-        #             date=date(2025, 10, 13),
-        #             startTime="09:00",
-        #             endTime="10:30",
-        #             variant=ClassType.LECTURE,
-        #             weekNumber=2,
-        #             academicDayOfWeek=1,
-
-    # grouped = group_schedule_by_weeks(mapped_entries) # to wywolywane w adapterze
-    # print(grouped)  # na tej podstawie mozna generowac plan
-    # poki co bez rooms i informacji o prowadzacym
 
     # =======================
 
