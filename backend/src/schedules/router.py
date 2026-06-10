@@ -1755,7 +1755,10 @@ async def get_user_plan(
     # wszystkie dni danego semestru
     day_configs = get_academic_semester_configs(db, academic_year, semester_type)
     if not day_configs:
-        return []
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No academic calendar entries found for the given semester",
+        )
 
     # tu mapowanie fizycznej daty na numer tydognia i dzien akademicki
     date_to_config = {
@@ -1771,7 +1774,10 @@ async def get_user_plan(
         group_ids = _get_student_group_ids(db, student.id)
 
         if not group_ids:
-            return []
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User is not assigned to any study group",
+            )
 
         result = await neo4j_session.run(
             STUDY_FIELD_PLAN_WITH_ROOMS_AND_TEACHERS_ACADEMIC_QUERY,
