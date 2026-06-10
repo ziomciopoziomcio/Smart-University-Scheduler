@@ -1300,6 +1300,8 @@ async def get_user_plan(
             variant=ClassType.LECTURE.value,
             week_number=1,
             academic_day_of_week=1,
+            room_name="303",
+            instructor_name="Adam Kowalski",
         ),
         schemas.ScheduleEntryWithWeekNumber(
             id="1",
@@ -1310,6 +1312,8 @@ async def get_user_plan(
             variant=ClassType.LECTURE.value,
             week_number=2,
             academic_day_of_week=1,
+            room_name="303",
+            instructor_name="Adam Kowalski",
         ),
         schemas.ScheduleEntryWithWeekNumber(
             id="1",
@@ -1320,6 +1324,8 @@ async def get_user_plan(
             variant=ClassType.LECTURE.value,
             week_number=3,
             academic_day_of_week=1,
+            room_name="303",
+            instructor_name="Adam Kowalski",
         ),
         # ================= INFORMATYKA (LAB)
         schemas.ScheduleEntryWithWeekNumber(
@@ -1331,6 +1337,8 @@ async def get_user_plan(
             variant=ClassType.LABORATORY,
             week_number=1,
             academic_day_of_week=2,
+            room_name="303",
+            instructor_name="Adam Kowalski",
         ),
         schemas.ScheduleEntryWithWeekNumber(
             id="2",
@@ -1341,6 +1349,8 @@ async def get_user_plan(
             variant=ClassType.LABORATORY,
             week_number=2,
             academic_day_of_week=2,
+            room_name="303",
+            instructor_name="Adam Kowalski",
         ),
         schemas.ScheduleEntryWithWeekNumber(
             id="2",
@@ -1351,6 +1361,8 @@ async def get_user_plan(
             variant=ClassType.LABORATORY,
             week_number=3,
             academic_day_of_week=2,
+            room_name="303",
+            instructor_name="Adam Kowalski",
         ),
         # ================= FIZYKA (inne godziny – powinno się NIE grupować z resztą)
         schemas.ScheduleEntryWithWeekNumber(
@@ -1362,6 +1374,8 @@ async def get_user_plan(
             variant=ClassType.TUTORIALS,
             week_number=1,
             academic_day_of_week=1,
+            room_name="303",
+            instructor_name="Adam Kowalski",
         ),
         schemas.ScheduleEntryWithWeekNumber(
             id="3",
@@ -1372,6 +1386,8 @@ async def get_user_plan(
             variant=ClassType.TUTORIALS,
             week_number=2,
             academic_day_of_week=1,
+            room_name="303",
+            instructor_name="Adam Kowalski",
         ),
         # ================= PROGRAMOWANIE (seminarium, różne dni)
         schemas.ScheduleEntryWithWeekNumber(
@@ -1383,6 +1399,8 @@ async def get_user_plan(
             variant=ClassType.SEMINAR,
             week_number=1,
             academic_day_of_week=3,
+            room_name="303",
+            instructor_name="Adam Kowalski",
         ),
         schemas.ScheduleEntryWithWeekNumber(
             id="4",
@@ -1393,6 +1411,8 @@ async def get_user_plan(
             variant=ClassType.SEMINAR,
             week_number=2,
             academic_day_of_week=3,
+            room_name="303",
+            instructor_name="Adam Kowalski",
         ),
         # ================= E-LEARNING (różne godziny → NIE powinno się łączyć)
         schemas.ScheduleEntryWithWeekNumber(
@@ -1404,6 +1424,8 @@ async def get_user_plan(
             variant=ClassType.ELEARNING,
             week_number=1,
             academic_day_of_week=4,
+            room_name="303",
+            instructor_name="Adam Kowalski",
         ),
         schemas.ScheduleEntryWithWeekNumber(
             id="5",
@@ -1414,6 +1436,8 @@ async def get_user_plan(
             variant=ClassType.ELEARNING,
             week_number=2,
             academic_day_of_week=4,
+            room_name="303",
+            instructor_name="Adam Kowalski",
         ),
         # ================= EDGE CASE (ten sam przedmiot, ale różne sloty)
         schemas.ScheduleEntryWithWeekNumber(
@@ -1425,6 +1449,8 @@ async def get_user_plan(
             variant=ClassType.LECTURE,
             week_number=1,
             academic_day_of_week=1,
+            room_name="303",
+            instructor_name="Adam Kowalski",
         ),
     ]
 

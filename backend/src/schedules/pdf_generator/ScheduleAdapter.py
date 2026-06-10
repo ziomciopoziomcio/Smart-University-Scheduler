@@ -18,6 +18,8 @@ def group_schedule_by_weeks(
             entry.end_time,
             entry.variant,
             entry.academic_day_of_week,
+            entry.room_name,
+            entry.instructor_name,
         )
 
         grouped[key].append(entry.week_number)
@@ -47,15 +49,24 @@ class ScheduleAdapter:
 
         lessons: list[Lesson] = []
 
-        for (id_, title, start, end, variant, day), weeks in grouped.items():
+        for (
+            id_,
+            title,
+            start,
+            end,
+            variant,
+            day,
+            teacher,
+            room,
+        ), weeks in grouped.items():
             lessons.append(
                 Lesson(
                     day=Day(day),
                     start_time=ScheduleAdapter.parse_time(start),
                     end_time=ScheduleAdapter.parse_time(end),
                     subject=title,
-                    teacher="",
-                    room="",
+                    teacher=teacher,
+                    room=room,
                     type_label=ScheduleAdapter.variant_to_label(variant),
                     weeks=ScheduleAdapter.weeks_to_string(weeks),
                 )
