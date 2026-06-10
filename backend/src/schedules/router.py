@@ -1287,12 +1287,11 @@ async def get_user_plan(
     pdf_generator = SchedulePdfGenerator()
     pdf_stream = pdf_generator.build(schedule)
 
-    # todo: get id from token (eg. user_id = f"user_{_current_user.id}")
-    user_folder_id = "user_test_user"
+    owner_user_id = getattr(_current_user, "id", None) or "unknown"
+    user_folder_id = f"user_{owner_user_id}"
     sanitized_year = academic_year.replace("/", "-")
-    object_name = (
-        f"schedules/{user_folder_id}/{sanitized_year}_{semester_type.lower()}_plan.pdf"
-    )
+    unique_suffix = uuid.uuid4().hex
+    object_name = f"schedules/{user_folder_id}/{sanitized_year}_{semester_type.lower()}_{unique_suffix}.pdf"
 
     download_url = storage_client.upload_pdf(object_name, pdf_stream)
 
