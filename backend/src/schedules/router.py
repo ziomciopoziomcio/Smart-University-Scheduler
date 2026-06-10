@@ -1703,7 +1703,7 @@ async def validate_group_plan(
     group_id: str,
     neo4j_session=Depends(get_neo4j_session),
     db: Session = Depends(get_db),
-    # todo perm
+    _current_user: user_models.Users = Depends(require_permission("schedule:view")),
 ):
     """
     Validates a group's timetable by comparing teaching hours
