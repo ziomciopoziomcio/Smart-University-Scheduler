@@ -1,7 +1,10 @@
 import os
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 from io import BytesIO
 from minio import Minio
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class MinioStorage:
@@ -34,7 +37,16 @@ class MinioStorage:
 
         pool_manager.urlopen = redirected_urlopen
 
-    def upload_pdf(self, object_name: str, file_data: BytesIO) -> str:
+    def upload_pdf(
+        self,
+        object_name: str,
+        file_data: BytesIO,
+        expires: timedelta = timedelta(days=7),
+    ) -> str:
+        """
+        Upload PDF to Minio and return a presigned GET URL.
+        expires: timedelta specifying how long the presigned URL is valid.
+        """
         file_data.seek(0)
         length = file_data.getbuffer().nbytes
 
@@ -49,10 +61,42 @@ class MinioStorage:
         url = self.client.presigned_get_object(
             bucket_name=self.bucket_name,
             object_name=object_name,
-            expires=timedelta(days=7),
+            expires=expires,
         )
 
         return url
+
+    def cleanup_old_objects(
+        self,
+        prefix: str = "schedules/",
+        older_than_days: int = 7,
+        dry_run: bool = False,
+    ) -> list[str]:
+        """
+        Delete objects in the configured bucket under `prefix` that are older than `older_than_days`.
+        Returns list of object names deleted (or would be deleted in dry_run).
+        """
+        cutoff = datetime.now(timezone.utc) - timedelta(days=older_than_days)
+        deleted = []
+
+        for obj in self.client.list_objects(
+            self.bucket_name, prefix=prefix, recursive=True
+        ):
+            try:
+                last_modified = obj.last_modified
+            except AttributeError:
+                continue
+
+            if last_modified < cutoff:
+                if dry_run:
+                    deleted.append(obj.object_name)
+                else:
+                    try:
+                        self.client.remove_object(self.bucket_name, obj.object_name)
+                        deleted.append(obj.object_name)
+                    except Exception as e:
+                        logger.error(f"Failed to delete {obj.object_name}: {e}")
+        return deleted
 
 
 storage_client = MinioStorage()
