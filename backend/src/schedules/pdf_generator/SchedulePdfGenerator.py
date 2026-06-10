@@ -24,7 +24,7 @@ try:
 
     FONT_REG = "DejaVu"
     FONT_BOLD = "DejaVu-Bold"
-    print("SUCCESS: Loaded DejaVuSans!")
+    logger.info("Loaded DejaVuSans font for PDF generation")
 
 except Exception as e:
     logger.warning("PDF font load failed (%s). Falling back to Helvetica.", e)
