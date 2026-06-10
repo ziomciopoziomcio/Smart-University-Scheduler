@@ -10,6 +10,7 @@ from io import BytesIO
 from src.schedules.pdf_generator.models import Lesson, Day, Schedule
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+logger = logging.getLogger(__name__)
 
 FONT_REG_PATH = os.path.join(CURRENT_DIR, "DejaVuSans.ttf")
 
