@@ -52,6 +52,8 @@ class ScheduleAdapter:
             return "l"
         if "TUTORIALS" in val_str or "ĆWICZENIA" in val_str:
             return "ć"
+        if "E-LEARNING" in val_str or "ONLINE" in val_str:
+            return "e"
 
         return val_str.split(".")[-1]
 
