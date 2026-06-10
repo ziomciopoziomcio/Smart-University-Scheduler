@@ -48,6 +48,7 @@ class SchedulePdfGenerator:
 
         self.num_rows = 12
         self.row_height = 0 
+        self.font_base = 8.0
         self.font_title = 9.0
         self.font_header = 8.0
 
