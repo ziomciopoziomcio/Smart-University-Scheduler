@@ -1590,6 +1590,33 @@ def _get_group_course_type_details(session: Session, group_id: int):
     return session.execute(query, {"group_id": group_id}).mappings().all()
 
 
+def _detect_extra_neo4j_entries(
+    neo4j_map: Dict[tuple, Dict[str, Any]],
+    postgres_map: Dict[tuple, Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """
+    Detect entries that exist in Neo4j but are missing in Postgres.
+    """
+    extras = []
+
+    for key, neo in neo4j_map.items():
+        if key not in postgres_map:
+            extras.append(
+                {
+                    "course_code": neo["course_code"],
+                    "course_name": neo["course_name"],
+                    "class_type": neo["class_type"],
+                    "neo4j_slots": neo["total_slots"],
+                    "postgres_hours": None,
+                    "match": False,
+                    "extra_in_neo4j": True,
+                    "difference": None,
+                }
+            )
+
+    return extras
+
+
 def compare_neo4j_with_postgres(
     neo4j_data: List[Dict[str, Any]],
     postgres_data: List[Dict[str, Any]],
@@ -1645,20 +1672,7 @@ def compare_neo4j_with_postgres(
             )
 
     # detect extra Neo4j entries
-    for key, neo in neo4j_map.items():
-        if key not in postgres_map:
-            result.append(
-                {
-                    "course_code": neo["course_code"],
-                    "course_name": neo["course_name"],
-                    "class_type": neo["class_type"],
-                    "neo4j_slots": neo["total_slots"],
-                    "postgres_hours": None,
-                    "match": False,
-                    "extra_in_neo4j": True,
-                    "difference": None,
-                }
-            )
+    result.extend(_detect_extra_neo4j_entries(neo4j_map, postgres_map))
 
     return result
 
@@ -1679,7 +1693,7 @@ def _group_exists(db: Session, group_id: str) -> int:
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Incorrect group_id param",
+            detail="Incorrect group_id param",
         )
 
     group_exists = db.execute(group_exists_query, {"group_id": group_id_int}).scalar()
