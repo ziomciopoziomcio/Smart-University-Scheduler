@@ -1634,11 +1634,11 @@ async def get_schedule_session_edit_options(
         day_of_week_upper = None
 
     current = schemas.ScheduleEditCurrent(
-        dayOfWeek=day_of_week_upper,
-        startTime=record.get("start_time"),
-        endTime=record.get("end_time"),
-        instructorId=record.get("instructor_id"),
-        roomId=record.get("room_id"),
+        day_of_week=day_of_week_upper,
+        start_time=record.get("start_time"),
+        end_time=record.get("end_time"),
+        instructor_id=record.get("instructor_id"),
+        room_id=record.get("room_id"),
     )
 
     inst_result = await neo4j_session.run(_INSTRUCTORS_LIST_QUERY)

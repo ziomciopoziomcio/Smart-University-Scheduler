@@ -204,11 +204,11 @@ class ScheduleEditRoomOption(BaseModel):
 
 
 class ScheduleEditCurrent(BaseModel):
-    dayOfWeek: str | None
-    startTime: str | None = None
-    endTime: str | None = None
-    instructorId: int | None = None
-    roomId: int | None = None
+    day_of_week: str | None
+    start_time: str | None = None
+    end_time: str | None = None
+    instructor_id: int | None = None
+    room_id: int | None = None
 
 
 class ScheduleSessionEditOptions(BaseModel):
