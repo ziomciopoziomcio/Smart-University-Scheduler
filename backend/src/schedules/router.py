@@ -1119,6 +1119,15 @@ def _map_schedule_entries_with_week(
         week_number: int = config.get("week_number", 1)
         academic_day_of_week: int = config.get("academic_day_of_week", 1)
 
+        instructor_name = None
+        first = rec.get("instructor_first_name", None)
+        last = rec.get("instructor_last_name", None)
+
+        if first or last:
+            instructor_name = " ".join(filter(None, [first, last]))
+
+        room_name = rec.get("room_name", None)
+
         result.append(
             schemas.ScheduleEntryWithWeekNumber(
                 id=rec["session_id"],
@@ -1129,10 +1138,49 @@ def _map_schedule_entries_with_week(
                 variant=str(_parse_variant(rec["class_type"])),  # todo do zmiany!!!
                 week_number=week_number,
                 academic_day_of_week=academic_day_of_week,
+                room_name=room_name,
+                instructor_name=instructor_name,
             )
         )
 
     return result
+
+
+STUDY_FIELD_PLAN_WITH_ROOMS_AND_TEACHERS_ACADEMIC_QUERY = """
+    MATCH (g:Group) WHERE g.groupId IN $group_ids
+    WITH collect(g) AS groups
+
+    UNWIND $day_configs AS config
+    UNWIND groups AS g
+
+    MATCH (s:ClassSession)-[:FOR_GROUP]->(g)
+    MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
+    MATCH (s)-[:OF_COURSE]->(c:Course)
+
+    OPTIONAL MATCH (s)-[:HELD_IN]->(r:Room)
+    OPTIONAL MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
+
+    WHERE config.week_number IN s.weeks
+
+    WITH DISTINCT s, c, r, i, config, t
+
+    RETURN
+        s.sessionId AS session_id,
+        c.courseName AS title,
+        c.classType AS class_type,
+        config.physical_date AS physical_date,
+        t.startTime AS start_time,
+        t.endTime AS end_time,
+
+        r.roomId AS room_id,
+        r.roomName AS room_name,
+
+        i.instructorId AS instructor_id,
+        i.firstName AS instructor_first_name,
+        i.lastName AS instructor_last_name
+
+    ORDER BY config.physical_date, t.startTime
+"""
 
 
 # todo moze inna sciezka, niz user-plan-semester
