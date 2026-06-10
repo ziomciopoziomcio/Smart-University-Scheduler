@@ -541,6 +541,15 @@ def _get_academic_day_configs(db: Session, start_date: date) -> list[dict]:
     ]
 
 
+def _semester_label_pl(semester_type: ac_mod.SemesterType) -> str:
+    """Map SemesterType to Polish."""
+    mapping = {
+        ac_mod.SemesterType.SUMMER: "Lato",
+        ac_mod.SemesterType.WINTER: "Zima",
+    }
+    return mapping.get(semester_type, str(semester_type).lower())
+
+
 def _parse_variant(class_type_str: str | None) -> ClassType:
     if not class_type_str:
         return ClassType.OTHER
@@ -1815,8 +1824,9 @@ async def get_user_plan(
 
     lessons = ScheduleAdapter.build_lessons(mapped_entries)
 
+    semester_label = _semester_label_pl(semester_type)
     schedule = Schedule(
-        title=f"Plan zajęć - semestr {semester_type} {academic_year}",
+        title=f"Plan zajęć - {semester_label} {academic_year}",
         lessons=lessons,
     )
 
