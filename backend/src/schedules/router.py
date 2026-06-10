@@ -674,7 +674,7 @@ def _map_schedule_entries(records: list[dict]) -> list[schemas.ScheduleEntry]:
                     title=rec_title,
                     date=rec_date,
                     startTime=rec_start,
-                    endTime=rec_end,
+                    end_time=rec_end,
                     variant=rec_variant,
                 )
             )
@@ -686,9 +686,9 @@ def _map_schedule_entries(records: list[dict]) -> list[schemas.ScheduleEntry]:
             last_entry.id == rec_id
             and last_entry.date == rec_date
             and last_entry.variant == rec_variant
-            and rec_start >= last_entry.endTime
+            and rec_start >= last_entry.end_time
         ):
-            last_entry.endTime = rec_end
+            last_entry.end_time = rec_end
         else:
             grouped_entries.append(
                 schemas.ScheduleEntry(
@@ -696,7 +696,7 @@ def _map_schedule_entries(records: list[dict]) -> list[schemas.ScheduleEntry]:
                     title=rec_title,
                     date=rec_date,
                     startTime=rec_start,
-                    endTime=rec_end,
+                    end_time=rec_end,
                     variant=rec_variant,
                 )
             )
@@ -1006,7 +1006,7 @@ async def _get_timeslot_or_400(
         _FIND_TIMESLOT_QUERY,
         dayOfWeek=day_of_week,
         startTime=start_time,
-        endTime=end_time,
+        end_time=end_time,
     )
 
     record = await result.single()
