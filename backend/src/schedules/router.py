@@ -1861,6 +1861,9 @@ async def get_user_plan_semester(
         academic_year=academic_year,
         semester_type=semester_type,
         owner_id=owner_id,
+    )
+
+
 _SESSION_EDIT_CURRENT_QUERY = """
 MATCH (s:ClassSession {sessionId: $session_id})
 OPTIONAL MATCH (s)-[:AT_TIME]->(t:TimeSlot)

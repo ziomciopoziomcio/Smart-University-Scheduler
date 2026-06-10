@@ -202,6 +202,8 @@ class ScheduleEntryWithWeekNumber(BaseModel):
     academic_day_of_week: int
     room_name: str | None = None
     instructor_name: str | None = None
+
+
 class ScheduleEditInstructorOption(BaseModel):
     id: int
     name: str
