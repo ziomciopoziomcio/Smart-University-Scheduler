@@ -77,7 +77,7 @@ class ScheduleAdapter:
         ), weeks in grouped.items():
 
             try:
-                day_index = int(day) - 1 
+                day_index = int(day) - 1
             except Exception:
                 logger.warning(
                     "Invalid academic day value for session %s: %s", id_, day
