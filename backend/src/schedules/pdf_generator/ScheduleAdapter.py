@@ -28,8 +28,6 @@ def group_schedule_by_weeks(
         grouped[key].append(entry.week_number)
 
     return {key: sorted(set(weeks)) for key, weeks in grouped.items()}
-    # np: (('1', 'Matematyka', '08:00', '09:30', <ClassType.LECTURE: 'Lecture'>, 1), [1,3,5,7])
-    # np: (('id', 'title', 'start', 'end', variant, ACADEMICDayOfWeek), [weeks])
 
 
 class ScheduleAdapter:
@@ -43,69 +41,54 @@ class ScheduleAdapter:
         if not v:
             return ""
 
-        val_str = v.name if hasattr(v, "name") else str(v)
-        val_str = val_str.upper()
+        val_str = (v.name if hasattr(v, "name") else str(v)).upper()
 
-        if "LECTURE" in val_str or "WYKŁAD" in val_str:
-            return "w"
-        if "LABORATORY" in val_str or "LAB" in val_str:
-            return "l"
-        if "TUTORIALS" in val_str or "ĆWICZENIA" in val_str:
-            return "ć"
-        if "E-LEARNING" in val_str or "ONLINE" in val_str:
-            return "e"
+        mappings = {
+            "w": ["LECTURE", "WYKŁAD"],
+            "l": ["LABORATORY", "LAB"],
+            "ć": ["TUTORIALS", "ĆWICZENIA"],
+            "e": ["E-LEARNING", "ONLINE"],
+        }
+
+        for label, keywords in mappings.items():
+            if any(kw in val_str for kw in keywords):
+                return label
 
         return val_str.split(".")[-1]
 
     @staticmethod
-    def weeks_to_string(weeks: list[int]) -> str:
-        """
-        Convert a sorted list of week numbers into a compact string:
-        e.g. [1,2,3,4,5,6,7,8] -> "Tygodnie: 1-8"
-              [1,2,3,5,6,7,9] -> "Tygodnie: 1-3, 5-7, 9"
+    def _format_week_ranges(weeks: list[int]) -> str:
+        """Helper to convert a sorted list of weeks into a comma-separated range string."""
+        ranges = []
+        start = prev = weeks[0]
 
-        Special cases:
-        - if weeks == [1,3,5,...,15] -> "Tygodnie: np." (all odd weeks 1..15)
-        - if weeks == [2,4,6,...,14] -> "Tygodnie: p." (all even weeks 1..15)
-        """
+        for n in weeks[1:]:
+            if n == prev + 1:
+                prev = n
+            else:
+                ranges.append(f"{start}" if start == prev else f"{start}-{prev}")
+                start = prev = n
+
+        ranges.append(f"{start}" if start == prev else f"{start}-{prev}")
+        return ", ".join(ranges)
+
+    @staticmethod
+    def weeks_to_string(weeks: list[int]) -> str:
         if not weeks:
             return "Tygodnie: "
 
         w = sorted(set(int(x) for x in weeks))
 
-        full_odds_1_15 = list(range(1, 16, 2))  # [1,3,5,...,15]
-        full_evens_1_15 = list(range(2, 16, 2))  # [2,4,6,...,14]
-
-        if w == full_odds_1_15:
+        if w == list(range(1, 16, 2)):
             return "Tygodnie: np."
-        if w == full_evens_1_15:
+        if w == list(range(2, 16, 2)):
             return "Tygodnie: p."
 
-        ranges = []
-        start = prev = w[0]
-
-        for n in w[1:]:
-            if n == prev + 1:
-                prev = n
-                continue
-            else:
-                if start == prev:
-                    ranges.append(f"{start}")
-                else:
-                    ranges.append(f"{start}-{prev}")
-                start = prev = n
-
-        if start == prev:
-            ranges.append(f"{start}")
-        else:
-            ranges.append(f"{start}-{prev}")
-
-        return "Tygodnie: " + ", ".join(ranges)
+        return f"Tygodnie: {ScheduleAdapter._format_week_ranges(w)}"
 
     @staticmethod
     def build_lessons(entries: list[ScheduleEntryWithWeekNumber]) -> list[Lesson]:
         grouped = group_schedule_by_weeks(entries)
-
         lessons: list[Lesson] = []
 
         for (
