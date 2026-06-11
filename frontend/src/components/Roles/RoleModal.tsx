@@ -1,7 +1,8 @@
 import {useState, useEffect} from 'react';
-import {Dialog, DialogContent, Typography, Box, Button, CircularProgress, TextField} from '@mui/material';
+import {Dialog, DialogContent, Typography, Box, TextField} from '@mui/material';
 import {useIntl} from 'react-intl';
 import {createRole, updateRole, type Role} from '@api';
+import { AppButton } from '@components/Common';
 
 interface RoleModalProps {
     open: boolean;
@@ -60,26 +61,14 @@ export function RoleModal({open, role, onClose, onSuccess}: RoleModalProps) {
                 />
 
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
-                    <Button
-                        variant="contained" fullWidth onClick={() => {
+                    <AppButton variant="contained" onClick={() => {
                         void handleSubmit();
-                    }}
-                        disabled={isSubmitting || !roleName.trim()}
-                        sx={{
-                            py: 1.5,
-                            borderRadius: '12px',
-                            bgcolor: '#2b5073',
-                            textTransform: 'none',
-                            fontSize: '1rem'
-                        }}
-                    >
-                        {isSubmitting ? <CircularProgress size={24}
-                                                          color="inherit"/> : intl.formatMessage({id: 'users.common.save'})}
-                    </Button>
-                    <Button variant="text" fullWidth onClick={onClose} disabled={isSubmitting}
-                            sx={{color: '#2b5073', textTransform: 'none', fontWeight: 600}}>
+                    }} loading={isSubmitting} disabled={isSubmitting || !roleName.trim()}>
+                        {intl.formatMessage({id: 'users.common.save'})}
+                    </AppButton>
+                    <AppButton variant="text" onClick={onClose} disabled={isSubmitting}>
                         {intl.formatMessage({id: 'users.common.cancel'})}
-                    </Button>
+                    </AppButton>
                 </Box>
             </DialogContent>
         </Dialog>

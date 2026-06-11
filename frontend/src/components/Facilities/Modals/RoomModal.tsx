@@ -1,11 +1,11 @@
 import {useState, useEffect} from 'react';
 import {
-    Dialog, DialogContent, Typography, TextField, Box, Button,
-    CircularProgress, FormControl, InputLabel, Select, MenuItem,
+    Dialog, DialogContent, Typography, TextField, Box, FormControl, InputLabel, Select, MenuItem,
     FormControlLabel, Checkbox
 } from '@mui/material';
 import {useIntl} from 'react-intl';
 import {createRoom, updateRoom, fetchFaculties, fetchUnits, type Room} from '@api';
+import { AppButton } from '@components/Common';
 
 interface RoomModalProps {
     open: boolean;
@@ -225,33 +225,15 @@ export function RoomModal({open, buildingId, room, onClose, onSuccess}: RoomModa
                 />
 
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        onClick={() => void handleSubmit()}
-                        disabled={isSubmitting || !selectedFacultyId || !name}
-                        sx={{
-                            py: 1.5,
-                            borderRadius: '12px',
-                            bgcolor: '#2b5073',
-                            textTransform: 'none',
-                            fontSize: '1rem'
-                        }}
-                    >
-                        {isSubmitting ? <CircularProgress size={24} color="inherit"/> : intl.formatMessage({
+                    <AppButton variant="contained" onClick={() => void handleSubmit()} loading={isSubmitting} disabled={isSubmitting || !selectedFacultyId || !name}>
+                        {intl.formatMessage({
                             id: 'facilities.common.save',
                             defaultMessage: 'Zapisz'
                         })}
-                    </Button>
-                    <Button
-                        variant="text"
-                        fullWidth
-                        onClick={onClose}
-                        disabled={isSubmitting}
-                        sx={{color: '#2b5073', textTransform: 'none', fontWeight: 600}}
-                    >
+                    </AppButton>
+                    <AppButton variant="text" onClick={onClose} disabled={isSubmitting}>
                         {intl.formatMessage({id: 'facilities.common.cancel', defaultMessage: 'Anuluj'})}
-                    </Button>
+                    </AppButton>
                 </Box>
             </DialogContent>
         </Dialog>

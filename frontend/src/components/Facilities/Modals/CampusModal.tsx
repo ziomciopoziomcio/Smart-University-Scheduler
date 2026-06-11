@@ -1,7 +1,8 @@
 import {useState, useEffect} from 'react';
-import {Dialog, DialogContent, Typography, TextField, Box, Button, CircularProgress} from '@mui/material';
+import {Dialog, DialogContent, Typography, TextField, Box} from '@mui/material';
 import {useIntl} from 'react-intl';
 import {createCampus, updateCampus, type Campus} from '@api';
+import { AppButton } from '@components/Common';
 
 interface CampusModalProps {
     open: boolean;
@@ -71,30 +72,14 @@ export function CampusModal({open, campus, onClose, onSuccess}: CampusModalProps
                 />
 
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
-                    <Button
-                        variant="contained"
-                        onClick={() => {
+                    <AppButton variant="contained" onClick={() => {
                             void handleSubmit();
-                        }} disabled={loading || !short}
-                        sx={{
-                            bgcolor: '#2b5073',
-                            borderRadius: '12px',
-                            py: 1.5,
-                            textTransform: 'none',
-                            fontSize: '1rem'
-                        }}
-                    >
-                        {loading ? <CircularProgress size={24}
-                                                     color="inherit"/> : intl.formatMessage({id: 'facilities.common.save'})}
-                    </Button>
-                    <Button
-                        variant="text"
-                        onClick={onClose}
-                        disabled={loading}
-                        sx={{color: '#2b5073', textTransform: 'none', fontWeight: 600}}
-                    >
+                        }} loading={loading} disabled={loading || !short}>
+                        {intl.formatMessage({id: 'facilities.common.save'})}
+                    </AppButton>
+                    <AppButton variant="text" onClick={onClose} disabled={loading}>
                         {intl.formatMessage({id: 'facilities.common.cancel'})}
-                    </Button>
+                    </AppButton>
                 </Box>
             </DialogContent>
         </Dialog>

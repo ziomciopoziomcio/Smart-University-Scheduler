@@ -1,13 +1,27 @@
 import {useState, useEffect} from 'react';
 import {
-    Dialog, DialogContent, Typography, Box, Button, CircularProgress,
-    TextField, Tooltip, FormControlLabel, Checkbox, IconButton, Snackbar, Alert,
-    FormControl, InputLabel, Select, MenuItem
+    Dialog,
+    DialogContent,
+    Typography,
+    Box,
+    Button,
+    TextField,
+    Tooltip,
+    FormControlLabel,
+    Checkbox,
+    IconButton,
+    Snackbar,
+    Alert,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from '@mui/material';
-import {LockReset, Autorenew, ContentCopy} from '@mui/icons-material';
+import {Autorenew, ContentCopy} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 import {type User, createUser, updateUser} from '@api';
 import AuthPasswordField from '@components/Login/AuthPasswordField';
+import {AppButton} from '@components/Common';
 
 interface UserModalProps {
     open: boolean;
@@ -119,7 +133,7 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
             <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth
                     PaperProps={{sx: {borderRadius: '20px', p: 1}}}>
                 <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 2.5, pt: 4}}>
-                    <Typography variant="h5" fontWeight={700} color="#2b5073" sx={{mb: 1}}>
+                    <Typography variant="h5" fontWeight={700} sx={{mb: 1, textAlign: 'center'}}>
                         {isEditMode ? intl.formatMessage({id: 'users.view.edit'}) : intl.formatMessage({id: 'users.view.add'})}
                     </Typography>
 
@@ -244,49 +258,21 @@ export default function UserModal({open, user, onClose, onSuccess}: UserModalPro
                             </Box>
                         </Box>
                     ) : (
-                        <Box sx={{
-                            p: 2.5,
-                            background: '#f8fafd',
-                            borderRadius: '12px',
-                            border: '1px solid #e0e7ff',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 1.5
-                        }}>
-                            <Typography variant="subtitle2" color="#2b5073" fontWeight={600} display="flex"
-                                        alignItems="center" gap={1}>
-                                <LockReset fontSize="small"/>
-                                {intl.formatMessage({id: 'users.modal.resetPasswordTitle'})}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {intl.formatMessage({id: 'users.modal.resetPasswordDesc'})}
-                            </Typography>
-                            <Button variant="outlined" size="small"
-                                    sx={{mt: 1, alignSelf: 'flex-start', textTransform: 'none', borderRadius: '8px'}}>
-                                {intl.formatMessage({id: 'users.modal.sendResetLink'})}
-                            </Button>
-                        </Box>
+                        // TODO: FIX RESET PASSWORD LINK
+                        <AppButton variant="outlined"
+                                   sx={{mt: 1, alignSelf: 'flex-start', textTransform: 'none', width: '100%'}}>
+                            {intl.formatMessage({id: 'users.modal.sendResetLink'})}
+                        </AppButton>
                     )}
 
                     <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
-                        <Button
-                            variant="contained" fullWidth onClick={handleSubmit}
-                            disabled={isSubmitting || !isFormValid}
-                            sx={{
-                                py: 1.5,
-                                borderRadius: '12px',
-                                bgcolor: '#2b5073',
-                                textTransform: 'none',
-                                fontSize: '1rem'
-                            }}
-                        >
-                            {isSubmitting ? <CircularProgress size={24}
-                                                              color="inherit"/> : intl.formatMessage({id: 'users.common.save'})}
-                        </Button>
-                        <Button variant="text" fullWidth onClick={onClose} disabled={isSubmitting}
-                                sx={{color: '#2b5073', textTransform: 'none', fontWeight: 600}}>
+                        <AppButton variant="contained" onClick={handleSubmit} loading={isSubmitting}
+                                   disabled={isSubmitting || !isFormValid}>
+                            {intl.formatMessage({id: 'users.common.save'})}
+                        </AppButton>
+                        <AppButton variant="text" onClick={onClose} disabled={isSubmitting}>
                             {intl.formatMessage({id: 'users.common.cancel'})}
-                        </Button>
+                        </AppButton>
                     </Box>
                 </DialogContent>
             </Dialog>

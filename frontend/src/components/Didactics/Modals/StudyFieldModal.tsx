@@ -1,12 +1,13 @@
 import {useState, useEffect} from 'react';
 import {
-    Dialog, DialogContent, Typography, Button, Box,
-    TextField, Alert, CircularProgress, MenuItem
+    Dialog, DialogContent, Typography, Box,
+    TextField, Alert, MenuItem
 } from '@mui/material';
 import {useIntl} from 'react-intl';
 import {type StudyField, createStudyField, updateStudyField} from '@api';
 import type {StudyDegree, StudyMode, StudyFieldCreate} from '@api/domains/courses/types';
 import type {CourseLanguage} from '@api/core';
+import { AppButton } from '@components/Common';
 
 interface StudyFieldModalProps {
     open: boolean;
@@ -141,35 +142,12 @@ export function StudyFieldModal({open, studyField, facultyId, onClose, onSuccess
                 </TextField>
 
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        onClick={() => { void handleSubmit(); }}
-                        disabled={loading || !name.trim()}
-                        sx={{
-                            py: 1.5,
-                            borderRadius: '12px',
-                            bgcolor: 'primary.main',
-                            color: 'primary.contrastText',
-                            textTransform: 'none',
-                            fontSize: '1rem',
-                            '&:hover': {bgcolor: 'primary.dark'}
-                        }}
-                    >
-                        {loading ?
-                            <CircularProgress size={24} color="inherit"/> :
-                            intl.formatMessage({id: isEdit ? 'didactics.common.saveChanges' : 'didactics.fields.add'})
-                        }
-                    </Button>
-                    <Button
-                        variant="text"
-                        fullWidth
-                        onClick={onClose}
-                        disabled={loading}
-                        sx={{color: 'primary.main', textTransform: 'none', fontWeight: 600}}
-                    >
+                    <AppButton variant="contained" onClick={() => { void handleSubmit(); }} loading={loading} disabled={loading || !name.trim()}>
+                        {intl.formatMessage({id: isEdit ? 'didactics.common.saveChanges' : 'didactics.fields.add'})}
+                    </AppButton>
+                    <AppButton variant="text" onClick={onClose} disabled={loading}>
                         {intl.formatMessage({id: 'didactics.common.cancel'})}
-                    </Button>
+                    </AppButton>
                 </Box>
             </DialogContent>
         </Dialog>

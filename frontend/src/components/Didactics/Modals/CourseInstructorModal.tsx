@@ -1,6 +1,7 @@
 import {useState, useEffect} from 'react';
-import {Dialog, DialogContent, Typography, Box, Button, TextField, MenuItem, CircularProgress, Alert} from '@mui/material';
+import {Dialog, DialogContent, Typography, Box, TextField, MenuItem, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
+import { AppButton } from '@components/Common';
 import {
     type Course,
     type ClassType,
@@ -151,22 +152,9 @@ export function CourseInstructorModal({open, course, instructor, facultyId, onCl
                     />
                 </Box>
 
-                <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={handleSubmit}
-                    disabled={loading || !form.employee || !form.hours || !form.class_type || (!isEdit && availableTypes.length === 0)}
-                    sx={{
-                        borderRadius: '12px', 
-                        bgcolor: 'primary.main', 
-                        color: 'primary.contrastText',
-                        py: 1.5,
-                        '&:hover': { bgcolor: 'primary.dark' }
-                    }}
-                >
-                    {loading ? <CircularProgress size={24}
-                                                 color="inherit"/> : intl.formatMessage({id: 'didactics.common.save'})}
-                </Button>
+                <AppButton variant="contained" onClick={handleSubmit} loading={loading} disabled={loading || !form.employee || !form.hours || !form.class_type || (!isEdit && availableTypes.length === 0)}>
+                        {intl.formatMessage({id: 'didactics.common.save'})}
+                    </AppButton>
             </DialogContent>
         </Dialog>
     );
