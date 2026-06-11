@@ -987,6 +987,7 @@ async def update_schedule_atomic(
     timeslot_id: int,
     room_id: int,
     instructor_id: int,
+    weeks: list[int],
     neo4j_session,
 ) -> bool:
     result = await neo4j_session.run(
@@ -995,6 +996,7 @@ async def update_schedule_atomic(
         timeslot_id=timeslot_id,
         room_id=room_id,
         instructor_id=instructor_id,
+        weeks=weeks,
     )
 
     record = await result.single()
