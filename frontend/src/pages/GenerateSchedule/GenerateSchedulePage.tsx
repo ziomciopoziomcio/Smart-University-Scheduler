@@ -595,7 +595,6 @@ export default function GenerateSchedulePage() {
                             display: 'flex',
                             flexDirection: {xs: 'column', sm: 'row'},
                             alignItems: {xs: 'stretch', sm: 'center'},
-                            justifyContent: 'flex-end',
                             gap: 2,
                         }}
                     >
