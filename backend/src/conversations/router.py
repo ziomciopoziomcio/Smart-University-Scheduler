@@ -333,12 +333,25 @@ async def create_message(
             payload.content,
         )
 
+    chat_history = (
+        db.query(models.Messages)
+        .filter(models.Messages.chat_id == chat_id)
+        .order_by(models.Messages.created_at.asc())
+        .limit(20)
+        .all()
+    )
+
     user_context = await get_user_schedule_context(current_user.id, neo4j_session, db)
 
-    messages = [
-        {"role": "system", "content": get_system_prompt(user_context)},
-        {"role": "user", "content": payload.content},
-    ]
+    messages = [{"role": "system", "content": get_system_prompt(user_context)}]
+
+    for msg in chat_history:
+        role_str = msg.role.value if hasattr(msg.role, "value") else str(msg.role)
+        if msg.id != user_msg_schema.id:
+            messages.append({"role": role_str, "content": msg.content})
+
+    messages.append({"role": "user", "content": payload.content})
+
     print(messages)
 
     final_content, suggestion_data = await _process_llm_tool_chain(

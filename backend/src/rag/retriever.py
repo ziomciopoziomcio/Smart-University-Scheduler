@@ -87,7 +87,7 @@ async def get_user_schedule_context(user_id: int, neo4j_session, db: Session) ->
         for idx, record in enumerate(records, 1):
             session_id = record.get("session_id", "UNKNOWN_ID")
             line = (
-                f"{idx}. Course: {record['course_name']} ({record['class_type']})\n"
+                f"- Course: {record['course_name']} ({record['class_type']})\n"
                 f"   Time: {record['day']}, {record['start_time']} - {record['end_time']}\n"
                 f"   Room: {record['room_name']}\n"
                 f"   Class Session ID: {session_id}\n"
@@ -130,7 +130,7 @@ async def search_available_times_in_neo4j(session_id: str, neo4j_session) -> str
         start_ts.startTime AS start_time,
         end_ts.endTime AS end_time,
         timeslot_ids,
-        collect(r.roomId)[0..3] AS available_room_ids
+        collect({id: r.roomId, name: r.roomName})[0..3] AS available_rooms
     ORDER BY day, start_time
     LIMIT 5
     """
@@ -141,13 +141,18 @@ async def search_available_times_in_neo4j(session_id: str, neo4j_session) -> str
         if not records:
             return "No available time slots and rooms found for this class session."
 
-        options = ["FOUND AVAILABLE OPTIONS:"]
+        options = [
+            "FOUND AVAILABLE OPTIONS (KEEP IDs SECRET, SHOW ONLY NAMES TO USER):"
+        ]
         for idx, rec in enumerate(records, 1):
+            rooms_str = ", ".join(
+                [f"{r['name']} (ID: {r['id']})" for r in rec["available_rooms"]]
+            )
             options.append(
                 f"Option {idx}:\n"
                 f" - Day and time: {rec['day']}, {rec['start_time']} - {rec['end_time']}\n"
-                f" - Required timeslot_ids: {rec['timeslot_ids']}\n"
-                f" - Available room IDs (choose one): {rec['available_room_ids']}"
+                f" - Internal timeslot_ids: {rec['timeslot_ids']}\n"
+                f" - Available rooms: {rooms_str}"
             )
         return "\n".join(options)
     except Exception as e:
