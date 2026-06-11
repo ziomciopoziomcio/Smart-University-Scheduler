@@ -1791,6 +1791,7 @@ async def create_schedule_session(
         instructor_id=payload.instructor_id,
         room_id=payload.room_id,
         group_ids=payload.group_ids,
+        weeks=payload.weeks,
     )
 
     conflict_record = await conflict_result.single()
@@ -1813,7 +1814,7 @@ async def create_schedule_session(
         day_of_week=mapped_day,
         start_time=payload.start_time,
         end_time=payload.end_time,
-        weeks=list(range(1, 16)),
+        weeks=payload.weeks,
     )
 
     record = await result.single()
