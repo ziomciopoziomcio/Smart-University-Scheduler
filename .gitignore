@@ -6,3 +6,5 @@ backend/.env
 /.venv
 /.postman
 /postman
+go_api/tmp/
+*.log

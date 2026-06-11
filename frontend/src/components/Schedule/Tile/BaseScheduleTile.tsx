@@ -17,25 +17,27 @@ interface BaseScheduleTileProps {
     onMouseEnter?: () => void;
     onMouseLeave?: () => void;
     isDragging?: boolean;
+    isDraggable?: boolean;
 }
 
 export function BaseScheduleTile({
-    title,
-    top,
-    leftPercent,
-    widthPercent,
-    height,
-    background,
-    border,
-    watermarkColor,
-    watermarkText = 'W',
-    horizontalGap = 4,
-    onClick,
-    onPointerDown,
-    onMouseEnter,
-    onMouseLeave,
-    isDragging = false,
-}: BaseScheduleTileProps) {
+                                     title,
+                                     top,
+                                     leftPercent,
+                                     widthPercent,
+                                     height,
+                                     background,
+                                     border,
+                                     watermarkColor,
+                                     watermarkText = 'W',
+                                     horizontalGap = 4,
+                                     onClick,
+                                     onPointerDown,
+                                     onMouseEnter,
+                                     onMouseLeave,
+                                     isDragging = false,
+                                     isDraggable = false,
+                                 }: BaseScheduleTileProps) {
     return (
         <Box
             onClick={onClick}
@@ -59,15 +61,15 @@ export function BaseScheduleTile({
                 textAlign: 'center',
                 px: 0.75,
                 boxShadow: '0 1px 0 rgba(0,0,0,0.03)',
-                cursor: 'grab',
+                cursor: isDraggable ? 'grab' : 'pointer',
                 opacity: isDragging ? 0.35 : 1,
                 userSelect: 'none',
-                touchAction: 'none',
+                touchAction: isDraggable ? 'none' : 'auto',
                 transition: isDragging
                     ? 'opacity 0.12s ease'
                     : 'transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease',
                 '&:active': {
-                    cursor: 'grabbing',
+                    cursor: isDraggable ? 'grabbing' : 'pointer',
                 },
                 '&:hover': {
                     transform: isDragging ? 'none' : 'scale(1.01)',

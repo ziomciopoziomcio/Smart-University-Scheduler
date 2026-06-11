@@ -13,6 +13,8 @@ import {
     Stack,
     TextField,
     Typography,
+    Alert,
+    CircularProgress,
     type SelectChangeEvent,
 } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -42,8 +44,10 @@ interface EditScheduleSessionPopupProps {
     instructors?: ScheduleEditInstructorOption[];
     rooms?: ScheduleEditRoomOption[];
     isSaving?: boolean;
+    errorMessage?: string | null;
     onClose: () => void;
     onSave: (payload: UpdateScheduleSessionRequest) => Promise<void>;
+    isLoading?: boolean;
 }
 
 interface FormValues {
@@ -53,18 +57,6 @@ interface FormValues {
     instructorId: number;
     roomId: number;
 }
-
-const defaultInstructors: ScheduleEditInstructorOption[] = [
-    {id: 42, name: 'dr Anna Kowalska'},
-    {id: 43, name: 'prof. Jan Nowak'},
-    {id: 44, name: 'mgr Piotr Zieliński'},
-];
-
-const defaultRooms: ScheduleEditRoomOption[] = [
-    {id: 18, name: 'B-214', building: 'B', campus: 'Główny'},
-    {id: 19, name: 'A-101', building: 'A', campus: 'Główny'},
-    {id: 20, name: 'C-12', building: 'C', campus: 'Technologiczny'},
-];
 
 const dayOptions: { value: DayOfWeek; label: string }[] = [
     {value: 'MONDAY', label: 'Monday'},
@@ -80,21 +72,26 @@ export function EditScheduleSessionPopup({
                                              open,
                                              entry,
                                              initialValues,
-                                             instructors = defaultInstructors,
-                                             rooms = defaultRooms,
+                                             instructors = [],
+                                             rooms = [],
                                              isSaving = false,
                                              onClose,
                                              onSave,
+                                             errorMessage = null,
+                                             isLoading = false,
                                          }: EditScheduleSessionPopupProps) {
     const {formatMessage} = useIntl();
 
-    const fallbackValues = useMemo<FormValues>(() => ({
-        dayOfWeek: 'MONDAY',
-        startTime: '08:00',
-        endTime: '09:30',
-        instructorId: instructors[0]?.id ?? 0,
-        roomId: rooms[0]?.id ?? 0,
-    }), [instructors, rooms]);
+    const fallbackValues = useMemo<FormValues>(
+        () => ({
+            dayOfWeek: 'MONDAY',
+            startTime: '',
+            endTime: '',
+            instructorId: 0,
+            roomId: 0,
+        }),
+        [],
+    );
 
     const valuesFromProps = useMemo<FormValues>(() => {
         if (!initialValues) {
@@ -151,7 +148,14 @@ export function EditScheduleSessionPopup({
             }}
         >
             <DialogContent sx={{p: {xs: 3, md: 4}, bgcolor: '#FFFFFF'}}>
-                <Box sx={{display: 'flex', alignItems: 'center', gap: 2.5, mb: 3}}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2.5,
+                        mb: 3,
+                    }}
+                >
                     <CalendarTodayIcon
                         sx={{
                             fontSize: 54,
@@ -175,183 +179,311 @@ export function EditScheduleSessionPopup({
                             })}
                         </Typography>
 
-                        <Typography sx={{mt: 0.8, fontSize: 14.5, color: '#7A7A7A', lineHeight: 1.5}}>
+                        <Typography
+                            sx={{
+                                mt: 0.8,
+                                fontSize: 14.5,
+                                color: '#7A7A7A',
+                                lineHeight: 1.5,
+                            }}
+                        >
                             {entry?.title ?? '—'}
                         </Typography>
                     </Box>
                 </Box>
-
-                <Stack spacing={2.2}>
-                    <FormControl fullWidth>
-                        <InputLabel>
-                            {formatMessage({id: 'schedule.edit.dayOfWeek', defaultMessage: 'Day of week'})}
-                        </InputLabel>
-                        <Select
-                            value={formValues.dayOfWeek}
-                            label={formatMessage({id: 'schedule.edit.dayOfWeek', defaultMessage: 'Day of week'})}
-                            onChange={(event: SelectChangeEvent) => {
-                                setFormValues((current) => ({
-                                    ...current,
-                                    dayOfWeek: event.target.value as DayOfWeek,
-                                }));
-                            }}
-                            sx={{borderRadius: '16px', bgcolor: '#FBFCFF'}}
-                        >
-                            {dayOptions.map((day) => (
-                                <MenuItem key={day.value} value={day.value}>
-                                    {day.label}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-
-                    <Box sx={{display: 'grid', gridTemplateColumns: {xs: '1fr', sm: '1fr 1fr'}, gap: 2}}>
-                        <TextField
-                            fullWidth
-                            type="time"
-                            label={formatMessage({id: 'schedule.edit.startTime', defaultMessage: 'Start time'})}
-                            value={formValues.startTime}
-                            onChange={(event) => {
-                                setFormValues((current) => ({
-                                    ...current,
-                                    startTime: event.target.value,
-                                }));
-                            }}
-                            InputLabelProps={{shrink: true}}
-                            sx={{
-                                '& .MuiOutlinedInput-root': {
-                                    borderRadius: '16px',
-                                    bgcolor: '#FBFCFF',
-                                },
-                            }}
-                        />
-
-                        <TextField
-                            fullWidth
-                            type="time"
-                            label={formatMessage({id: 'schedule.edit.endTime', defaultMessage: 'End time'})}
-                            value={formValues.endTime}
-                            onChange={(event) => {
-                                setFormValues((current) => ({
-                                    ...current,
-                                    endTime: event.target.value,
-                                }));
-                            }}
-                            InputLabelProps={{shrink: true}}
-                            sx={{
-                                '& .MuiOutlinedInput-root': {
-                                    borderRadius: '16px',
-                                    bgcolor: '#FBFCFF',
-                                },
-                            }}
-                        />
-                    </Box>
-
-                    <FormControl fullWidth>
-                        <InputLabel>
-                            {formatMessage({id: 'schedule.edit.instructor', defaultMessage: 'Instructor'})}
-                        </InputLabel>
-                        <Select
-                            value={String(formValues.instructorId)}
-                            label={formatMessage({id: 'schedule.edit.instructor', defaultMessage: 'Instructor'})}
-                            onChange={(event: SelectChangeEvent) => {
-                                setFormValues((current) => ({
-                                    ...current,
-                                    instructorId: Number(event.target.value),
-                                }));
-                            }}
-                            sx={{borderRadius: '16px', bgcolor: '#FBFCFF'}}
-                        >
-                            {instructors.map((instructor) => (
-                                <MenuItem key={instructor.id} value={String(instructor.id)}>
-                                    {instructor.name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-
-                    <FormControl fullWidth>
-                        <InputLabel>
-                            {formatMessage({id: 'schedule.edit.room', defaultMessage: 'Room'})}
-                        </InputLabel>
-                        <Select
-                            value={String(formValues.roomId)}
-                            label={formatMessage({id: 'schedule.edit.room', defaultMessage: 'Room'})}
-                            onChange={(event: SelectChangeEvent) => {
-                                setFormValues((current) => ({
-                                    ...current,
-                                    roomId: Number(event.target.value),
-                                }));
-                            }}
-                            sx={{borderRadius: '16px', bgcolor: '#FBFCFF'}}
-                        >
-                            {rooms.map((room) => (
-                                <MenuItem key={room.id} value={String(room.id)}>
-                                    {[
-                                        room.name,
-                                        room.building ? `Building ${room.building}` : undefined,
-                                        room.campus,
-                                    ].filter(Boolean).join(' · ')}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-
-                    <FormControlLabel
-                        control={<Checkbox checked={false} disabled/>}
-                        label={formatMessage({
-                            id: 'schedule.edit.applyOnce',
-                            defaultMessage: 'Apply only once',
-                        })}
+                {isLoading ? (
+                    <Box
                         sx={{
-                            color: '#7A7A7A',
-                            '& .MuiFormControlLabel-label': {
-                                fontSize: 14,
-                            },
+                            minHeight: 220,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 2,
                         }}
-                    />
+                    >
+                        <CircularProgress/>
 
-                    <Box sx={{display: 'flex', justifyContent: 'flex-end', gap: 1.5, pt: 1}}>
-                        <Button
-                            onClick={onClose}
-                            disabled={isSaving}
+                        <Typography
                             sx={{
-                                height: 48,
-                                px: 3,
-                                borderRadius: '15px',
-                                textTransform: 'none',
-                                color: '#5F6B7A',
-                                fontWeight: 700,
+                                fontSize: 14,
+                                color: '#7A7A7A',
                             }}
                         >
-                            {formatMessage({id: 'common.cancel', defaultMessage: 'Cancel'})}
-                        </Button>
+                            {formatMessage({
+                                id: 'schedule.edit.loading',
+                                defaultMessage: 'Loading edit data...',
+                            })}
+                        </Typography>
+                    </Box>
+                ) : (
+                    <Stack spacing={2.2}>
+                        {errorMessage && (
+                            <Alert
+                                severity="error"
+                                sx={{
+                                    borderRadius: '14px',
+                                    alignItems: 'center',
+                                    '& .MuiAlert-message': {
+                                        overflowWrap: 'anywhere',
+                                    },
+                                }}
+                            >
+                                {errorMessage}
+                            </Alert>
+                        )}
+                        <FormControl fullWidth>
+                            <InputLabel>
+                                {formatMessage({
+                                    id: 'schedule.edit.dayOfWeek',
+                                    defaultMessage: 'Day of week',
+                                })}
+                            </InputLabel>
 
-                        <Button
-                            variant="contained"
-                            onClick={() => void handleSave()}
-                            disabled={isSaveDisabled}
+                            <Select
+                                value={formValues.dayOfWeek}
+                                label={formatMessage({
+                                    id: 'schedule.edit.dayOfWeek',
+                                    defaultMessage: 'Day of week',
+                                })}
+                                onChange={(event: SelectChangeEvent) => {
+                                    setFormValues((current) => ({
+                                        ...current,
+                                        dayOfWeek: event.target.value as DayOfWeek,
+                                    }));
+                                }}
+                                sx={{
+                                    borderRadius: '16px',
+                                    bgcolor: '#FBFCFF',
+                                }}
+                            >
+                                {dayOptions.map((day) => (
+                                    <MenuItem key={day.value} value={day.value}>
+                                        {day.label}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <Box
                             sx={{
-                                height: 48,
-                                px: 3.5,
-                                borderRadius: '15px',
-                                textTransform: 'none',
-                                bgcolor: '#4F5E82',
-                                color: '#FFFFFF',
-                                fontWeight: 800,
-                                boxShadow: '0 12px 24px rgba(79, 94, 130, 0.24)',
-                                '&:hover': {
-                                    bgcolor: '#465577',
-                                    boxShadow: '0 14px 28px rgba(79, 94, 130, 0.30)',
+                                display: 'grid',
+                                gridTemplateColumns: {
+                                    xs: '1fr',
+                                    sm: '1fr 1fr',
+                                },
+                                gap: 2,
+                            }}
+                        >
+                            <TextField
+                                fullWidth
+                                type="time"
+                                label={formatMessage({
+                                    id: 'schedule.edit.startTime',
+                                    defaultMessage: 'Start time',
+                                })}
+                                value={formValues.startTime}
+                                onChange={(event) => {
+                                    setFormValues((current) => ({
+                                        ...current,
+                                        startTime: event.target.value,
+                                    }));
+                                }}
+                                InputLabelProps={{shrink: true}}
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: '16px',
+                                        bgcolor: '#FBFCFF',
+                                    },
+                                }}
+                            />
+
+                            <TextField
+                                fullWidth
+                                type="time"
+                                label={formatMessage({
+                                    id: 'schedule.edit.endTime',
+                                    defaultMessage: 'End time',
+                                })}
+                                value={formValues.endTime}
+                                onChange={(event) => {
+                                    setFormValues((current) => ({
+                                        ...current,
+                                        endTime: event.target.value,
+                                    }));
+                                }}
+                                InputLabelProps={{shrink: true}}
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: '16px',
+                                        bgcolor: '#FBFCFF',
+                                    },
+                                }}
+                            />
+                        </Box>
+
+                        <FormControl fullWidth>
+                            <InputLabel>
+                                {formatMessage({
+                                    id: 'schedule.edit.instructor',
+                                    defaultMessage: 'Instructor',
+                                })}
+                            </InputLabel>
+
+                            <Select
+                                value={
+                                    formValues.instructorId
+                                        ? String(formValues.instructorId)
+                                        : ''
+                                }
+                                label={formatMessage({
+                                    id: 'schedule.edit.instructor',
+                                    defaultMessage: 'Instructor',
+                                })}
+                                onChange={(event: SelectChangeEvent) => {
+                                    setFormValues((current) => ({
+                                        ...current,
+                                        instructorId: Number(event.target.value),
+                                    }));
+                                }}
+                                sx={{
+                                    borderRadius: '16px',
+                                    bgcolor: '#FBFCFF',
+                                }}
+                            >
+                                {instructors.map((instructor) => (
+                                    <MenuItem
+                                        key={instructor.id}
+                                        value={String(instructor.id)}
+                                    >
+                                        {instructor.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControl fullWidth>
+                            <InputLabel>
+                                {formatMessage({
+                                    id: 'schedule.edit.room',
+                                    defaultMessage: 'Room',
+                                })}
+                            </InputLabel>
+
+                            <Select
+                                value={
+                                    formValues.roomId
+                                        ? String(formValues.roomId)
+                                        : ''
+                                }
+                                label={formatMessage({
+                                    id: 'schedule.edit.room',
+                                    defaultMessage: 'Room',
+                                })}
+                                onChange={(event: SelectChangeEvent) => {
+                                    setFormValues((current) => ({
+                                        ...current,
+                                        roomId: Number(event.target.value),
+                                    }));
+                                }}
+                                sx={{
+                                    borderRadius: '16px',
+                                    bgcolor: '#FBFCFF',
+                                }}
+                            >
+                                {rooms.map((room) => (
+                                    <MenuItem
+                                        key={room.id}
+                                        value={String(room.id)}
+                                    >
+                                        {[
+                                            room.name,
+                                            room.building
+                                                ? `Building ${room.building}`
+                                                : undefined,
+                                            room.campus,
+                                        ]
+                                            .filter(Boolean)
+                                            .join(' · ')}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <FormControlLabel
+                            control={<Checkbox checked={false} disabled/>}
+                            label={formatMessage({
+                                id: 'schedule.edit.applyOnce',
+                                defaultMessage: 'Apply only once',
+                            })}
+                            sx={{
+                                color: '#7A7A7A',
+                                '& .MuiFormControlLabel-label': {
+                                    fontSize: 14,
                                 },
                             }}
+                        />
+
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                justifyContent: 'flex-end',
+                                gap: 1.5,
+                                pt: 1,
+                            }}
                         >
-                            {isSaving
-                                ? formatMessage({id: 'common.saving', defaultMessage: 'Saving...'})
-                                : formatMessage({id: 'common.save', defaultMessage: 'Save'})}
-                        </Button>
-                    </Box>
-                </Stack>
+                            <Button
+                                onClick={onClose}
+                                disabled={isSaving}
+                                sx={{
+                                    height: 48,
+                                    px: 3,
+                                    borderRadius: '15px',
+                                    textTransform: 'none',
+                                    color: '#5F6B7A',
+                                    fontWeight: 700,
+                                }}
+                            >
+                                {formatMessage({
+                                    id: 'common.cancel',
+                                    defaultMessage: 'Cancel',
+                                })}
+                            </Button>
+
+                            <Button
+                                variant="contained"
+                                onClick={() => void handleSave()}
+                                disabled={isSaveDisabled}
+                                sx={{
+                                    height: 48,
+                                    px: 3.5,
+                                    borderRadius: '15px',
+                                    textTransform: 'none',
+                                    bgcolor: '#4F5E82',
+                                    color: '#FFFFFF',
+                                    fontWeight: 800,
+                                    boxShadow:
+                                        '0 12px 24px rgba(79, 94, 130, 0.24)',
+                                    '&:hover': {
+                                        bgcolor: '#465577',
+                                        boxShadow:
+                                            '0 14px 28px rgba(79, 94, 130, 0.30)',
+                                    },
+                                }}
+                            >
+                                {isSaving
+                                    ? formatMessage({
+                                        id: 'common.saving',
+                                        defaultMessage: 'Saving...',
+                                    })
+                                    : formatMessage({
+                                        id: 'common.save',
+                                        defaultMessage: 'Save',
+                                    })}
+                            </Button>
+                        </Box>
+                    </Stack>
+                )}
             </DialogContent>
         </Dialog>
     );

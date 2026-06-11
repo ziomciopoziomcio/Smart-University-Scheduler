@@ -240,7 +240,7 @@ export const SIDEBAR_PERMISSIONS = {
     ],
 
     CHAT: [
-        PERMISSIONS.CHATS_VIEW,
+        PERMISSIONS.CHAT_VIEW,
     ],
 
     SUGGESTIONS: [
