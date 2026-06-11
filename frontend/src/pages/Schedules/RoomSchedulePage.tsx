@@ -4,11 +4,11 @@ import {useParams} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 import {type ScheduleEntry, type Building, type Room, type Campus, getBuilding, getCampus, getRoom} from '@api';
 import {WeekSchedule} from '@components/Schedule/WeekSchedule.tsx';
-import {addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils.ts';
+import {toIsoDate} from '@components/Schedule/utils/dateUtils.ts';
+import {useCalendarWeekStore} from '@store/useCalendarWeekStore';
 import {fetchRoomPlan} from '@api/domains/schedules';
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 
-//TODO: https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/276
 export async function getRoomScheduleForWeek(
     campusId: number,
     buildingId: number,
@@ -27,8 +27,16 @@ export default function RoomSchedulePage() {
     const {campusId, buildingId, roomId} = useParams();
     const intl = useIntl();
 
-    const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() =>
-        getStartOfWeek(new Date()),
+    const currentWeekStart = useCalendarWeekStore(
+        (state) => state.currentWeekStart,
+    );
+
+    const goToPreviousWeek = useCalendarWeekStore(
+        (state) => state.goToPreviousWeek,
+    );
+
+    const goToNextWeek = useCalendarWeekStore(
+        (state) => state.goToNextWeek,
     );
     const [entries, setEntries] = useState<ScheduleEntry[]>([]);
 
@@ -140,13 +148,6 @@ export default function RoomSchedulePage() {
         return items;
     }, [intl, campusId, buildingId, roomId, currentCampus, currentBuilding, currentRoom]);
 
-    const handlePrevWeek = () => {
-        setCurrentWeekStart((prev) => addWeeks(prev, -1));
-    };
-
-    const handleNextWeek = () => {
-        setCurrentWeekStart((prev) => addWeeks(prev, 1));
-    };
 
     return (
         <Box sx={{width: '100%', display: 'flex', flexDirection: 'column', gap: 2}}>
@@ -167,8 +168,8 @@ export default function RoomSchedulePage() {
                     entries={entries}
                     currentWeekStart={currentWeekStart}
                     isLoading={isScheduleLoading}
-                    onPrevWeek={handlePrevWeek}
-                    onNextWeek={handleNextWeek}
+                    onPrevWeek={goToPreviousWeek}
+                    onNextWeek={goToNextWeek}
                 />
             )}
         </Box>
