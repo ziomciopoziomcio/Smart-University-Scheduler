@@ -22,17 +22,17 @@ export function ChatArchiveActions({onNewChat}: ChatArchiveActionsProps) {
                 cursor: 'pointer',
                 transition: '0.2s',
                 '&:hover': {
-                    bgcolor: '#F3F6F9',
+                    bgcolor: 'background.highlight',
                 },
             }}
         >
-            <EditOutlinedIcon sx={{fontSize: 22, color: '#1F1F1F'}}/>
+            <EditOutlinedIcon sx={{fontSize: 22, color: 'text.primary'}}/>
 
             <Typography
                 variant="body1"
                 sx={{
                     fontWeight: 500,
-                    color: '#111827',
+                    color: 'text.primary',
                 }}
             >
                 {intl.formatMessage({

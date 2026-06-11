@@ -14,8 +14,9 @@ export function ChatConversationHeader({selectedChat}: ChatConversationHeaderPro
             sx={{
                 px: 3,
                 py: 2,
-                borderBottom: '1px solid rgba(0,0,0,0.06)',
-                bgcolor: '#FFFFFF',
+                borderBottom: 1,
+                borderColor: 'divider',
+                bgcolor: 'background.paper',
             }}
         >
             <Typography variant="h6" fontWeight={700}>

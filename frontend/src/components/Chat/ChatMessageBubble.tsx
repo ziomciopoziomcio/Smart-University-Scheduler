@@ -1,4 +1,4 @@
-import {Box, Typography} from '@mui/material';
+import {Box, Typography, useTheme} from '@mui/material';
 import type {ChatMessage} from '@api/domains/conversations';
 
 interface ChatMessageBubbleProps {
@@ -6,9 +6,11 @@ interface ChatMessageBubbleProps {
 }
 
 export function ChatMessageBubble({message}: ChatMessageBubbleProps) {
+    const theme = useTheme();
     const isUser = message.role === 'user';
 
-    const bubbleColor = isUser ? '#05668D' : '#0A9BD8';
+    const bubbleColor = isUser ? theme.palette.primary.main : theme.palette.primary.light;
+    const textColor = isUser ? theme.palette.primary.contrastText : theme.palette.primary.contrastText;
 
     return (
         <Box
@@ -25,8 +27,10 @@ export function ChatMessageBubble({message}: ChatMessageBubbleProps) {
                     px: 2.25,
                     py: 1.45,
                     bgcolor: bubbleColor,
-                    color: '#FFFFFF',
-                    boxShadow: '0 8px 18px rgba(0,0,0,0.08)',
+                    color: textColor,
+                    boxShadow: theme.palette.mode === 'dark' 
+                        ? '0 8px 24px rgba(0,0,0,0.3)' 
+                        : '0 8px 18px rgba(0,0,0,0.08)',
                     borderRadius: isUser
                         ? '14px 14px 4px 14px'
                         : '14px 14px 14px 4px',
@@ -57,6 +61,7 @@ export function ChatMessageBubble({message}: ChatMessageBubbleProps) {
                     sx={{
                         whiteSpace: 'pre-wrap',
                         lineHeight: 1.55,
+                        fontWeight: 500
                     }}
                 >
                     {message.content}

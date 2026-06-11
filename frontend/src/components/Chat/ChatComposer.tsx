@@ -21,8 +21,9 @@ export function ChatComposer({
         <Box
             sx={{
                 p: 2,
-                bgcolor: '#FFFFFF',
-                borderTop: '1px solid rgba(0,0,0,0.06)',
+                bgcolor: 'background.paper',
+                borderTop: 1,
+                borderColor: 'divider',
             }}
         >
             <Box sx={{display: 'flex', gap: 1.5}}>
@@ -44,11 +45,13 @@ export function ChatComposer({
                             onSend();
                         }
                     }}
-                    InputProps={{
-                        sx: {
-                            borderRadius: 1,
-                            bgcolor: '#F8FAFD',
-                        },
+                    slotProps={{
+                        input: {
+                            sx: {
+                                borderRadius: 1,
+                                bgcolor: 'background.default',
+                            },
+                        }
                     }}
                 />
 
@@ -59,12 +62,14 @@ export function ChatComposer({
                         alignSelf: 'flex-end',
                         width: 52,
                         height: 52,
-                        bgcolor: '#05668D',
-                        color: '#FFFFFF',
-                        '&:hover': {bgcolor: '#04577A'},
+                        bgcolor: 'primary.main',
+                        color: 'primary.contrastText',
+                        '&:hover': {
+                            bgcolor: 'primary.dark',
+                        },
                         '&.Mui-disabled': {
-                            bgcolor: '#D9E2E8',
-                            color: '#7A8A95',
+                            bgcolor: 'action.disabledBackground',
+                            color: 'action.disabled',
                         },
                     }}
                 >
