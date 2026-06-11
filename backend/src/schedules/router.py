@@ -918,16 +918,17 @@ _UPDATE_SCHEDULE_QUERY = """
     MATCH (t:TimeSlot {timeSlotId: $timeslot_id})
     MATCH (r:Room {roomId: $room_id})
     MATCH (i:Instructor {instructorId: $instructor_id})
-    
+
     /* other ClassSession in the same TimeSlot */
     OPTIONAL MATCH (other:ClassSession)-[:AT_TIME]->(t)
     WHERE other.sessionId <> $session_id
-    
+      AND ANY(w IN other.weeks WHERE w IN $weeks)
+
     OPTIONAL MATCH (other)-[:TAUGHT_BY]->(oi:Instructor)
     OPTIONAL MATCH (other)-[:HELD_IN]->(or:Room)
-    
+
     /* conflict checker */
-    WITH s, t, r, i, other,
+    WITH s, t, r, i, other, $weeks AS new_weeks,
          collect(
             CASE
                 WHEN other IS NULL THEN null
@@ -936,34 +937,38 @@ _UPDATE_SCHEDULE_QUERY = """
                 ELSE null
             END
          ) AS conflicts
-    
+
     /* remove NULL vals */
-    WITH s, t, r, i,
+    WITH s, t, r, i, new_weeks,
          [x IN conflicts WHERE x IS NOT NULL] AS conflicts_filtered
-    
-    WITH s, t, r, i, size(conflicts_filtered) AS conflictCount
+
+    WITH s, t, r, i, new_weeks, size(conflicts_filtered) AS conflictCount
     WHERE conflictCount = 0
-    
+
     /* update */
+    SET s.weeks = new_weeks
+
+    WITH s, t, r, i
+
     OPTIONAL MATCH (s)-[old_time:AT_TIME]->(:TimeSlot)
     DELETE old_time
-    
+
     WITH s, t, r, i
-    
+
     OPTIONAL MATCH (s)-[old_room:HELD_IN]->(:Room)
     DELETE old_room
-    
+
     WITH s, t, r, i
-    
+
     OPTIONAL MATCH (s)-[old_instr:TAUGHT_BY]->(:Instructor)
     DELETE old_instr
-    
+
     WITH s, t, r, i
-    
+
     MERGE (s)-[:AT_TIME]->(t)
     MERGE (s)-[:HELD_IN]->(r)
     MERGE (s)-[:TAUGHT_BY]->(i)
-    
+
     RETURN s.sessionId AS sessionId
 """
 
