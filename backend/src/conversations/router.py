@@ -17,7 +17,6 @@ from src.database.database import SessionLocal
 from src.rag.llm_agent import process_chat_message, get_system_prompt
 from src.schedules import models as schedule_models
 from . import models, schemas
-from ..academics import models as academics_models
 from ..common.require_permission import require_permission
 from ..database.database import get_db
 from ..database.neo4j import get_neo4j_session
@@ -146,7 +145,7 @@ def delete_chat(
 
 def _save_user_msg_sync(
     chat_id: int, user_id: int, payload: schemas.MessageCreate
-) -> tuple[schemas.MessageRead, int, str | None]:
+) -> tuple[schemas.MessageRead, str | None]:
     """
     Save the user's message to the database and return the saved message along with the user ID to be used for scheduling context retrieval.
     :param chat_id: Value of the chat_id path parameter from the API endpoint
@@ -166,16 +165,8 @@ def _save_user_msg_sync(
         _commit_or_rollback(local_db)
         local_db.refresh(user_msg)
 
-        employee = (
-            local_db.query(academics_models.Employees)
-            .filter(academics_models.Employees.user_id == user_id)
-            .first()
-        )
-        schedule_user_id = employee.id if employee is not None else user_id
-
         return (
             schemas.MessageRead.model_validate(user_msg),
-            schedule_user_id,
             chat.title,
         )
 
@@ -252,9 +243,12 @@ async def _process_llm_tool_chain(
         messages.append(resp["raw_message"])
 
         if tool_name == "search_available_times":
+            print(args.get("session_id", "NOTHING session_id"))
             res = await search_available_times_in_neo4j(
                 args.get("session_id"), neo4j_session
             )
+            print("response: ")
+            print(res)
             messages.append(
                 {"role": "tool", "tool_call_id": resp["tool_call_id"], "content": res}
             )
@@ -323,10 +317,11 @@ async def create_message(
     payload: schemas.MessageCreate,
     background_tasks: BackgroundTasks,
     neo4j_session=Depends(get_neo4j_session),
+    db: Session = Depends(get_db),
     current_user: Users = Depends(get_current_user),
     _current_user: user_models.Users = Depends(require_permission("message:create")),
 ):
-    user_msg_schema, schedule_user_id, chat_title = await asyncio.to_thread(
+    user_msg_schema, chat_title = await asyncio.to_thread(
         _save_user_msg_sync, chat_id, current_user.id, payload
     )
 
@@ -338,12 +333,13 @@ async def create_message(
             payload.content,
         )
 
-    user_context = await get_user_schedule_context(schedule_user_id, neo4j_session)
+    user_context = await get_user_schedule_context(current_user.id, neo4j_session, db)
 
     messages = [
         {"role": "system", "content": get_system_prompt(user_context)},
         {"role": "user", "content": payload.content},
     ]
+    print(messages)
 
     final_content, suggestion_data = await _process_llm_tool_chain(
         messages, neo4j_session
