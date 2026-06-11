@@ -1006,7 +1006,7 @@ async def _get_timeslot_or_400(
         _FIND_TIMESLOT_QUERY,
         dayOfWeek=day_of_week,
         startTime=start_time,
-        end_time=end_time,
+        endTime=end_time,
     )
 
     record = await result.single()
@@ -1024,15 +1024,22 @@ async def _get_timeslot_or_400(
 
 def _to_plural_day(dow: str) -> str:
     mapping = {
-        "Monday": "Mondays",
-        "Tuesday": "Tuesdays",
-        "Wednesday": "Wednesdays",
-        "Thursday": "Thursdays",
-        "Friday": "Fridays",
-        "Saturday": "Saturdays",
-        "Sunday": "Sundays",
+        "MONDAY": "Mondays",
+        "TUESDAY": "Tuesdays",
+        "WEDNESDAY": "Wednesdays",
+        "THURSDAY": "Thursdays",
+        "FRIDAY": "Fridays",
+        "SATURDAY": "Saturdays",
+        "SUNDAY": "Sundays",
     }
-    return mapping[dow]
+
+    try:
+        return mapping[dow.upper()]
+    except KeyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unsupported day of week: {dow}",
+        ) from exc
 
 
 @router.put(
@@ -1582,25 +1589,35 @@ async def delete_custom_event(
 
 _SESSION_EDIT_CURRENT_QUERY = """
 MATCH (s:ClassSession {sessionId: $session_id})
-OPTIONAL MATCH (s)-[:AT_TIME]->(t:TimeSlot)
-OPTIONAL MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
-OPTIONAL MATCH (s)-[:HELD_IN]->(r:Room)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(cp:Campus)
-RETURN t.dayOfWeek AS timeslot_day, t.startTime AS start_time, t.endTime AS end_time,
-       i.instructorId AS instructor_id, r.roomId AS room_id
+MATCH (s)-[:AT_TIME]->(t:TimeSlot)
+MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
+MATCH (s)-[:HELD_IN]->(r:Room)
+RETURN t.dayOfWeek AS timeslot_day,
+       t.startTime AS start_time,
+       t.endTime AS end_time,
+       i.instructorId AS instructor_id,
+       r.roomId AS room_id
 LIMIT 1
 """
 
 _INSTRUCTORS_LIST_QUERY = """
 MATCH (i:Instructor)
 RETURN i.instructorId AS id,
-       COALESCE((CASE WHEN i.degree IS NOT NULL THEN i.degree + ' ' ELSE '' END) + i.firstName + ' ' + i.lastName, "") AS name
+       trim(
+           COALESCE(i.degree + ' ', '') +
+           COALESCE(i.firstName + ' ', '') +
+           COALESCE(i.lastName, '')
+       ) AS name
 ORDER BY name
 """
 
 _ROOMS_LIST_QUERY = """
 MATCH (r:Room)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(cp:Campus)
-RETURN r.roomId AS id, r.roomName AS name, b.buildingNumber AS building, cp.campusShort AS campus
-ORDER BY cp.campusShort, b.buildingNumber, r.roomName
+RETURN r.roomId AS id,
+       COALESCE(r.roomName, 'TBA') AS name,
+       COALESCE(b.buildingNumber, 'TBA') AS building,
+       COALESCE(cp.campusShort, 'TBA') AS campus
+ORDER BY campus, building, name
 """
 
 
@@ -1619,47 +1636,55 @@ async def get_schedule_session_edit_options(
     - instructors: list of available instructors {id, name}
     - rooms: list of available rooms {id, name, building, campus}
     """
-    result = await neo4j_session.run(_SESSION_EDIT_CURRENT_QUERY, session_id=session_id)
+    result = await neo4j_session.run(
+        _SESSION_EDIT_CURRENT_QUERY,
+        session_id=session_id,
+    )
     record = await result.single()
+
     if not record:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Session not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session or its current schedule relations were not found",
         )
 
-    timeslot_day = record.get("timeslot_day")
-    if timeslot_day:
-        dow = timeslot_day[:-1] if timeslot_day.endswith("s") else timeslot_day
-        day_of_week_upper = dow.upper()
-    else:
-        day_of_week_upper = None
+    timeslot_day = record["timeslot_day"]
+    dow = timeslot_day[:-1] if timeslot_day.endswith("s") else timeslot_day
 
     current = schemas.ScheduleEditCurrent(
-        day_of_week=day_of_week_upper,
-        start_time=record.get("start_time"),
-        end_time=record.get("end_time"),
-        instructor_id=record.get("instructor_id"),
-        room_id=record.get("room_id"),
+        dayOfWeek=dow.upper(),
+        startTime=record["start_time"],
+        endTime=record["end_time"],
+        instructorId=record["instructor_id"],
+        roomId=record["room_id"],
     )
 
     inst_result = await neo4j_session.run(_INSTRUCTORS_LIST_QUERY)
     inst_rows = await inst_result.data()
+
     instructors = [
-        schemas.ScheduleEditInstructorOption(id=row["id"], name=row["name"])
+        schemas.ScheduleEditInstructorOption(
+            id=row["id"],
+            name=row["name"],
+        )
         for row in inst_rows
     ]
 
     rooms_result = await neo4j_session.run(_ROOMS_LIST_QUERY)
     rooms_rows = await rooms_result.data()
+
     rooms = [
         schemas.ScheduleEditRoomOption(
             id=row["id"],
-            name=row.get("name"),
-            building=row.get("building"),
-            campus=row.get("campus"),
+            name=row["name"],
+            building=row["building"],
+            campus=row["campus"],
         )
         for row in rooms_rows
     ]
 
     return schemas.ScheduleSessionEditOptions(
-        current=current, instructors=instructors, rooms=rooms
+        current=current,
+        instructors=instructors,
+        rooms=rooms,
     )

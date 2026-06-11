@@ -152,3 +152,16 @@ export type ScheduleEditRoomOption = {
     building?: string;
     campus?: string;
 };
+
+
+export interface ScheduleSessionEditOptionsResponse {
+    current: {
+        dayOfWeek: DayOfWeek;
+        startTime: string;
+        endTime: string;
+        instructorId: number;
+        roomId: number;
+    };
+    instructors: ScheduleEditInstructorOption[];
+    rooms: ScheduleEditRoomOption[];
+}
