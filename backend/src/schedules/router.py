@@ -123,7 +123,7 @@ ROOM_PLAN_QUERY = """
 
     RETURN
         s.sessionId AS session_id,
-        course.courseName AS title,
+        course.courseName AS course_name,
         course.classType AS class_type,
         config.physical_date AS physical_date,
         t.startTime AS start_time,
@@ -148,7 +148,7 @@ EMPLOYEE_SCHEDULE_QUERY = """
 
     RETURN
         s.sessionId AS session_id,
-        course.courseName AS title,
+        course.courseName AS course_name,
         course.classType AS class_type,
         config.physical_date AS physical_date,
         t.startTime AS start_time,
