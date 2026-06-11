@@ -507,11 +507,23 @@ def _iter_feasible_instructors(
     :param occ: Occupancy indexes.
     :return: Filtered list of instructor ids free for all weeks and slots.
     """
-    return [
-        iid
-        for iid in instr_candidates
-        if _is_instructor_ok(iid, weeks, start_slot, duration, occ.occupied_instr)
-    ]
+    day = _day(start_slot)
+    feasible = []
+
+    for iid in instr_candidates:
+        if not _is_instructor_ok(iid, weeks, start_slot, duration, occ.occupied_instr):
+            continue
+
+        limit_exceeded = False
+        for w in weeks:
+            if len(occ.taken_slots_for_instr_day(w, iid, day)) + duration > 8:
+                limit_exceeded = True
+                break
+
+        if not limit_exceeded:
+            feasible.append(iid)
+
+    return feasible
 
 
 def _update_best(
@@ -644,6 +656,19 @@ def _best_for_weeks(
             occ.occupied_group,
             ctx.conflicting_groups,
         ):
+            continue
+
+        day = _day(start_slot)
+        group_limit_exceeded = False
+        for w in weeks:
+            for g_id in gene.group_ids:
+                if len(occ.taken_slots_for_group_day(w, g_id, day)) + duration > 8:
+                    group_limit_exceeded = True
+                    break
+            if group_limit_exceeded:
+                break
+
+        if group_limit_exceeded:
             continue
 
         slot_inp = StartSlotInput(
