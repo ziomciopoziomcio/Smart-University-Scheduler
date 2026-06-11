@@ -245,6 +245,7 @@ export function WeekScheduleGrid({
         useState<ScheduleEditRoomOption[]>([]);
     const [isSavingEdit, setIsSavingEdit] = useState(false);
     const [editError, setEditError] = useState<string | null>(null);
+    const [isLoadingEditOptions, setIsLoadingEditOptions] = useState(false);
 
     const [dragPreview, setDragPreview] = useState<DragPreviewState | null>(null);
     const [dropPreview, setDropPreview] = useState<DropPreviewState | null>(null);
@@ -394,6 +395,7 @@ export function WeekScheduleGrid({
         setEditInstructors([]);
         setEditRooms([]);
         setEditError(null);
+        setIsLoadingEditOptions(false);
     };
 
     const openEditPopup = async (
@@ -404,19 +406,31 @@ export function WeekScheduleGrid({
             return;
         }
 
+        setEditEntry(entry);
+        setEditInitialValues(null);
+        setEditInstructors([]);
+        setEditRooms([]);
         setEditError(null);
+        setIsLoadingEditOptions(true);
+
+        handleClosePopup();
 
         try {
             const options = await loadEditOptions(entry, values);
 
-            setEditEntry(entry);
             setEditInitialValues(options.current);
             setEditInstructors(options.instructors);
             setEditRooms(options.rooms);
-
-            handleClosePopup();
         } catch (error) {
             console.error('Failed to fetch edit options', error);
+
+            setEditError(
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to fetch edit options',
+            );
+        } finally {
+            setIsLoadingEditOptions(false);
         }
     };
 
@@ -822,12 +836,12 @@ export function WeekScheduleGrid({
                 initialValues={editInitialValues}
                 instructors={editInstructors}
                 rooms={editRooms}
+                isLoading={isLoadingEditOptions}
                 isSaving={isSavingEdit}
                 errorMessage={editError}
                 onClose={handleCloseEditPopup}
                 onSave={handleEditSave}
             />
-
             {dragPreview?.hasMoved && (
                 <Box
                     sx={{
