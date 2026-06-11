@@ -1231,8 +1231,8 @@ MATCH (u:User {userId: $user_id})-[:CREATED]->(e:CustomEvent)
 OPTIONAL MATCH (e)-[:HELD_IN]->(r:Room)
 OPTIONAL MATCH (e)-[:RELATED_TO_GROUP]->(g:Group)
 OPTIONAL MATCH (e)-[:RELATED_TO_SESSION]->(s:ClassSession)
-RETURN e.eventId AS event_id, e.title AS title, e.description AS description, 
-       e.eventType AS event_type, toString(e.startDt) AS start_dt, toString(e.endDt) AS end_dt, 
+RETURN e.eventId AS event_id, e.title AS title, e.description AS description,
+       e.eventType AS event_type, toString(e.startDt) AS start_dt, toString(e.endDt) AS end_dt,
        toString(e.createdAt) AS created_at, toString(e.updatedAt) AS updated_at,
        $user_id AS user_id, u.userId AS created_by,
        r.roomId AS related_room_id, g.groupId AS related_group_id, s.sessionId AS related_session_id
@@ -1250,8 +1250,8 @@ MATCH (e:CustomEvent {eventId: $event_id})<-[:CREATED]-(u:User)
 OPTIONAL MATCH (e)-[:HELD_IN]->(r:Room)
 OPTIONAL MATCH (e)-[:RELATED_TO_GROUP]->(g:Group)
 OPTIONAL MATCH (e)-[:RELATED_TO_SESSION]->(s:ClassSession)
-RETURN e.eventId AS event_id, e.title AS title, e.description AS description, 
-       e.eventType AS event_type, toString(e.startDt) AS start_dt, toString(e.endDt) AS end_dt, 
+RETURN e.eventId AS event_id, e.title AS title, e.description AS description,
+       e.eventType AS event_type, toString(e.startDt) AS start_dt, toString(e.endDt) AS end_dt,
        toString(e.createdAt) AS created_at, toString(e.updatedAt) AS updated_at,
        u.userId AS user_id, u.userId AS created_by,
        r.roomId AS related_room_id, g.groupId AS related_group_id, s.sessionId AS related_session_id
@@ -1297,9 +1297,9 @@ DETACH DELETE e
 
 CHECK_CUSTOM_EVENT_CONFLICTS_QUERY = """
 MATCH (e:CustomEvent)
-WHERE ((e)<-[:CREATED]-(:User {userId: $user_id}) 
+WHERE ((e)<-[:CREATED]-(:User {userId: $user_id})
        OR ($room_id IS NOT NULL AND (e)-[:HELD_IN]->(:Room {roomId: $room_id})))
-  AND e.startDt < datetime($end_dt) 
+  AND e.startDt < datetime($end_dt)
   AND e.endDt > datetime($start_dt)
   AND ($exclude_event_id IS NULL OR e.eventId <> $exclude_event_id)
 RETURN e.title AS title, toString(e.startDt) AS start_dt, toString(e.endDt) AS end_dt
@@ -1699,36 +1699,36 @@ async def get_schedule_session_edit_options(
 
 _CREATE_SCHEDULE_SESSION_QUERY = """
     MATCH (c:Course {courseCode: $course_id})
-    
+
     MATCH (i:Instructor {instructorId: $instructor_id})
     MATCH (r:Room {roomId: $room_id})
-    
+
     MATCH (t:TimeSlot)
     WHERE t.dayOfWeek = $day_of_week
       AND t.startTime = $start_time
       AND t.endTime = $end_time
-    
+
     MATCH (g:Group)
     WHERE g.groupId IN $group_ids
-    
+
     WITH c, i, r, t, collect(g) AS groups
     WHERE size(groups) = size($group_ids)
-    
+
     CREATE (s:ClassSession {
         sessionId: $session_id,
         weeks: $weeks,
         createdAt: datetime()
     })
-    
+
     MERGE (s)-[:OF_COURSE]->(c)
     MERGE (s)-[:TAUGHT_BY]->(i)
     MERGE (s)-[:HELD_IN]->(r)
     MERGE (s)-[:AT_TIME]->(t)
-    
+
     FOREACH (g IN groups |
         MERGE (s)-[:FOR_GROUP]->(g)
     )
-    
+
     RETURN s.sessionId AS session_id
 """
 
@@ -1737,18 +1737,18 @@ _CREATE_SESSION_CONFLICT_QUERY = """
     WHERE t.dayOfWeek = $day_of_week
       AND t.startTime = $start_time
       AND t.endTime = $end_time
-    
+
     MATCH (other:ClassSession)-[:AT_TIME]->(t)
-    
+
     OPTIONAL MATCH (other)-[:TAUGHT_BY]->(i:Instructor)
     OPTIONAL MATCH (other)-[:HELD_IN]->(r:Room)
     OPTIONAL MATCH (other)-[:FOR_GROUP]->(g:Group)
-    
+
     WHERE
         i.instructorId = $instructor_id
         OR r.roomId = $room_id
         OR g.groupId IN $group_ids
-    
+
     RETURN count(DISTINCT other) AS conflicts
 """
 
