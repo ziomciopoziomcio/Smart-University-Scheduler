@@ -135,11 +135,11 @@ class DayOfWeek(str, Enum):
 
 
 class UpdateScheduleSessionRequest(BaseModel):
-    day_of_week: DayOfWeek = Field(alias="dayOfWeek")
-    start_time: str = Field(alias="startTime")
-    end_time: str = Field(alias="endTime")
-    instructor_id: int = Field(alias="instructorId")
-    room_id: int = Field(alias="roomId")
+    day_of_week: DayOfWeek | None = Field(default=None, alias="dayOfWeek")
+    start_time: str | None = Field(default=None, alias="startTime")
+    end_time: str | None = Field(default=None, alias="endTime")
+    instructor_id: int | None = Field(default=None, alias="instructorId")
+    room_id: int | None = Field(default=None, alias="roomId")
     apply_once: bool = Field(
         default=False,
         alias="applyOnce",
