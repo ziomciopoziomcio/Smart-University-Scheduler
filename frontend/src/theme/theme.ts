@@ -1,12 +1,42 @@
 import { createTheme, type ThemeOptions } from '@mui/material/styles';
 
 export const themePresets = {
-    oceanic: { main: '#045f8d', dark: '#004566', name: 'Oceanic' },
-    emerald: { main: '#065f46', dark: '#044431', name: 'Emerald' },
-    amethyst: { main: '#a23abf', dark: '#612272', name: 'Amethyst' },
-    slate: { main: '#334155', dark: '#1e293b', name: 'Slate' },
-    rose: { main: '#be123c', dark: '#881337', name: 'Rose' },
-    amber: { main: '#b45309', dark: '#78350f', name: 'Amber' },
+    oceanic: { 
+        main: '#045f8d', 
+        dark: '#004566', 
+        name: 'Oceanic',
+        logo: { primary: '#284051', secondary: '#3CA5B2', accent: '#20739E' }
+    },
+    emerald: { 
+        main: '#065f46', 
+        dark: '#044431', 
+        name: 'Emerald',
+        logo: { primary: '#1B4332', secondary: '#34D399', accent: '#059669' }
+    },
+    amethyst: { 
+        main: '#a23abf', 
+        dark: '#612272', 
+        name: 'Amethyst',
+        logo: { primary: '#4A1D52', secondary: '#D946EF', accent: '#A23ABF' }
+    },
+    slate: { 
+        main: '#334155', 
+        dark: '#1e293b', 
+        name: 'Slate',
+        logo: { primary: '#0F172A', secondary: '#94A3B8', accent: '#475569' }
+    },
+    rose: { 
+        main: '#be123c', 
+        dark: '#881337', 
+        name: 'Rose',
+        logo: { primary: '#4C0519', secondary: '#FB7185', accent: '#E11D48' }
+    },
+    amber: { 
+        main: '#b45309', 
+        dark: '#78350f', 
+        name: 'Amber',
+        logo: { primary: '#451A03', secondary: '#FBBF24', accent: '#D97706' }
+    },
 } as const;
 
 export type ThemePreset = keyof typeof themePresets;
@@ -20,9 +50,11 @@ export interface ThemeConfig {
 declare module '@mui/material/styles' {
     interface Palette {
         gradients: { brand: string };
+        logo: { primary: string; secondary: string; accent: string; };
     }
     interface PaletteOptions {
         gradients?: { brand: string };
+        logo?: { primary: string; secondary: string; accent: string; };
     }
     interface TypeBackground {
         highlight: string;
@@ -79,6 +111,7 @@ export const createAppTheme = (config: ThemeConfig) => {
             gradients: {
                 brand: `linear-gradient(135deg, ${colors.main} 0%, ${colors.dark} 100%)`,
             },
+            logo: colors.logo,
         },
         fontSizes: {
             tiny: `${baseFontSize * 0.75}px`,
@@ -128,7 +161,7 @@ export const createAppTheme = (config: ThemeConfig) => {
 
 
 export const theme = createAppTheme({
-    preset: 'emerald',
-    mode: 'dark',
+    preset: 'oceanic',
+    mode: 'light',
     baseFontSize: 16
 });
