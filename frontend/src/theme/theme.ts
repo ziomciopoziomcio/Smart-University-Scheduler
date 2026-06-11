@@ -128,7 +128,7 @@ export const createAppTheme = (config: ThemeConfig) => {
 
 
 export const theme = createAppTheme({
-    preset: 'amethyst',
-    mode: 'light',
+    preset: 'emerald',
+    mode: 'dark',
     baseFontSize: 16
 });
