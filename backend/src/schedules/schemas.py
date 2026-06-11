@@ -230,3 +230,5 @@ class CreateScheduleSessionRequest(BaseModel):
 
     instructor_id: int = Field(alias="instructorId")
     room_id: int = Field(alias="roomId")
+
+    weeks: list[int] = Field(default_factory=lambda: list(range(1, 16)))
