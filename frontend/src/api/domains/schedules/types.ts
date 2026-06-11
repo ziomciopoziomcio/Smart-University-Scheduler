@@ -165,12 +165,3 @@ export interface ScheduleSessionEditOptionsResponse {
     instructors: ScheduleEditInstructorOption[];
     rooms: ScheduleEditRoomOption[];
 }
-
-export interface UpdateScheduleSessionRequest {
-    dayOfWeek: DayOfWeek;
-    startTime: string;
-    endTime: string;
-    instructorId: number;
-    roomId: number;
-    applyOnce: boolean;
-}
