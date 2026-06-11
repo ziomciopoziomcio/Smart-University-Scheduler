@@ -1049,7 +1049,7 @@ def _to_plural_day(dow: str) -> str:
         ) from exc
 
 
-@router.put(
+@router.patch(
     "/session/{session_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
@@ -1067,42 +1067,68 @@ async def update_schedule_session(
     - 404: Session not found.
     - 409: Schedule conflict detected.
     """
+    fetch_query = """
+        MATCH (s:ClassSession {sessionId: $session_id})
+        MATCH (s)-[:AT_TIME]->(t:TimeSlot)
+        MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
+        MATCH (s)-[:HELD_IN]->(r:Room)
+        RETURN t.dayOfWeek AS day_of_week,
+               t.startTime AS start_time,
+               t.endTime AS end_time,
+               i.instructorId AS instructor_id,
+               r.roomId AS room_id,
+               s.weeks AS weeks
+        """
+    curr_res = await neo4j_session.run(fetch_query, session_id=session_id)
+    curr_record = await curr_res.single()
 
-    mapped_day_of_week = _to_plural_day(payload.day_of_week.value)
-
-    # check session
-    result = await neo4j_session.run(
-        "MATCH (s:ClassSession {sessionId: $session_id}) RETURN s",
-        session_id=session_id,
-    )
-
-    if not await result.single():
+    if not curr_record:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Session not found",
         )
 
-    # find timeslot
+    if payload.day_of_week is not None:
+        mapped_day = _to_plural_day(payload.day_of_week.value)
+    else:
+        mapped_day = curr_record["day_of_week"]
+
+    start_time = (
+        payload.start_time
+        if payload.start_time is not None
+        else curr_record["start_time"]
+    )
+    end_time = (
+        payload.end_time if payload.end_time is not None else curr_record["end_time"]
+    )
+    room_id = payload.room_id if payload.room_id is not None else curr_record["room_id"]
+    instructor_id = (
+        payload.instructor_id
+        if payload.instructor_id is not None
+        else curr_record["instructor_id"]
+    )
+    weeks = payload.weeks if payload.weeks is not None else curr_record["weeks"]
+
     timeslot_id = await _get_timeslot_or_400(
         neo4j_session=neo4j_session,
-        day_of_week=mapped_day_of_week,
-        start_time=payload.start_time,
-        end_time=payload.end_time,
+        day_of_week=mapped_day,
+        start_time=start_time,
+        end_time=end_time,
     )
 
-    # conflict check adn update
     updated = await update_schedule_atomic(
         session_id=session_id,
         timeslot_id=timeslot_id,
-        room_id=payload.room_id,
-        instructor_id=payload.instructor_id,
+        room_id=room_id,
+        instructor_id=instructor_id,
+        weeks=weeks,
         neo4j_session=neo4j_session,
     )
 
     if not updated:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Schedule conflict detected",
+            detail="Schedule conflict detected in the specified weeks",
         )
 
     return None
