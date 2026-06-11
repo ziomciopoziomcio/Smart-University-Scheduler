@@ -113,6 +113,8 @@ export default function GenerateSchedulePage() {
 
     const [validationReport, setValidationReport] =
         useState<ValidationReport | null>(null);
+    const [validatedFacultyId, setValidatedFacultyId] =
+        useState<number | null>(null);
 
     const [isPlannerSettingsLoading, setIsPlannerSettingsLoading] =
         useState(false);
@@ -191,6 +193,7 @@ export default function GenerateSchedulePage() {
             setIsPlannerSettingsLoading(true);
             setErrorMessage(null);
             setValidationReport(null);
+            setValidatedFacultyId(null);
 
             try {
                 const settings = await fetchPlannerSettings(
@@ -239,13 +242,15 @@ export default function GenerateSchedulePage() {
 
     const invalidateValidation = () => {
         setValidationReport(null);
+        setValidatedFacultyId(null);
         setIsConfigurationDirty(true);
     };
 
     const handleFacultyChange = (facultyId: number) => {
         setSelectedFacultyId(facultyId);
+        setValidationReport(null);
+        setValidatedFacultyId(null);
     };
-
     const handleSavePlannerSettings = async () => {
         if (!selectedFacultyId) {
             return;
@@ -253,6 +258,7 @@ export default function GenerateSchedulePage() {
 
         setIsPlannerSettingsSaving(true);
         setValidationReport(null);
+        setValidatedFacultyId(null);
         setErrorMessage(null);
 
         try {
@@ -305,6 +311,7 @@ export default function GenerateSchedulePage() {
             );
 
             setValidationReport(report);
+            setValidatedFacultyId(selectedFacultyId);
         } catch (error) {
             setErrorMessage(
                 getErrorMessage(
@@ -324,6 +331,7 @@ export default function GenerateSchedulePage() {
             !selectedFacultyId ||
             !plannerSettings ||
             !validationReport ||
+            validatedFacultyId !== selectedFacultyId ||
             isConfigurationDirty
         ) {
             return;
@@ -363,6 +371,7 @@ export default function GenerateSchedulePage() {
         !selectedFacultyId ||
         !plannerSettings ||
         !validationReport ||
+        validatedFacultyId !== selectedFacultyId ||
         isConfigurationDirty ||
         isGenerating ||
         isPlannerSettingsLoading ||
