@@ -1,6 +1,6 @@
-import {Breadcrumbs, Typography, Box, type Theme, type SxProps} from '@mui/material';
+import {Breadcrumbs, Typography, Box, Link as MuiLink, type Theme, type SxProps} from '@mui/material';
 import {NavigateNext} from '@mui/icons-material';
-import {Link} from 'react-router-dom';
+import {Link as RouterLink} from 'react-router-dom';
 import {useTheme} from '@mui/material/styles';
 
 export interface BreadcrumbItem {
@@ -21,11 +21,14 @@ export function PageBreadcrumbs({items, sx}: PageBreadcrumbsProps) {
         <Box sx={{
             p: 2,
             borderRadius: '16px',
-            border: '1px solid rgba(0,0,0,0.05)',
+            border: 1,
+            borderColor: 'divider',
             background: theme.palette.background.paper,
             display: 'flex',
             alignItems: 'center',
-            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
+            boxShadow: theme.palette.mode === 'dark' 
+                ? '0 4px 20px rgba(0, 0, 0, 0.4)' 
+                : '0 2px 12px rgba(0, 0, 0, 0.06)',
             ...sx
         }}>
             <Breadcrumbs
@@ -40,15 +43,22 @@ export function PageBreadcrumbs({items, sx}: PageBreadcrumbsProps) {
                             {item.label}
                         </Typography>
                     ) : (
-                        <Link
+                        <MuiLink
                             key={index}
+                            component={RouterLink}
                             to={item.path}
-                            style={{textDecoration: 'none', color: '#555'}}
+                            sx={{
+                                textDecoration: 'none',
+                                color: 'text.secondary',
+                                fontSize: '0.9rem',
+                                '&:hover': {
+                                    textDecoration: 'underline',
+                                    color: 'primary.main'
+                                }
+                            }}
                         >
-                            <Typography sx={{fontSize: '0.9rem', '&:hover': {textDecoration: 'underline'}}}>
-                                {item.label}
-                            </Typography>
-                        </Link>
+                            {item.label}
+                        </MuiLink>
                     );
                 })}
             </Breadcrumbs>

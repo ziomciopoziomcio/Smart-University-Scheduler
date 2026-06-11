@@ -62,7 +62,7 @@ export default function ListPagination({
                 <Typography
                     sx={{
                         fontSize: '14px',
-                        color: '#6B7280',
+                        color: 'text.secondary',
                         whiteSpace: 'nowrap',
                     }}
                 >
@@ -78,17 +78,17 @@ export default function ListPagination({
                             minWidth: 74,
                             height: 34,
                             fontSize: '14px',
-                            color: '#111111',
+                            color: 'text.primary',
                             borderRadius: '10px',
-                            bgcolor: '#F8FAFC',
+                            bgcolor: 'background.default',
                             '& .MuiOutlinedInput-notchedOutline': {
-                                borderColor: 'rgba(107, 114, 128, 0.22)',
+                                borderColor: 'divider',
                             },
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: 'rgba(107, 114, 128, 0.32)',
+                                borderColor: 'text.disabled',
                             },
                             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                borderColor: 'rgba(107, 114, 128, 0.36)',
+                                borderColor: 'primary.main',
                                 borderWidth: '1px',
                             },
                             '& .MuiSelect-select': {
@@ -110,7 +110,7 @@ export default function ListPagination({
             <Typography
                 sx={{
                     fontSize: '14px',
-                    color: '#4B5563',
+                    color: 'text.secondary',
                     minWidth: '42px',
                     textAlign: 'center',
                     whiteSpace: 'nowrap',
@@ -133,11 +133,14 @@ export default function ListPagination({
                     sx={{
                         width: 30,
                         height: 30,
-                        color: page === 1 ? '#D1D5DB' : '#6B7280',
+                        color: 'action.active',
                         borderRadius: '8px',
                         '&:hover': {
-                            bgcolor: page === 1 ? 'transparent' : '#F3F4F6',
+                            bgcolor: 'action.hover',
                         },
+                        '&.Mui-disabled': {
+                            color: 'action.disabled',
+                        }
                     }}
                 >
                     <ChevronLeftRounded fontSize="small"/>
@@ -150,11 +153,14 @@ export default function ListPagination({
                     sx={{
                         width: 30,
                         height: 30,
-                        color: page >= totalPages ? '#D1D5DB' : '#6B7280',
+                        color: 'action.active',
                         borderRadius: '8px',
                         '&:hover': {
-                            bgcolor: page >= totalPages ? 'transparent' : '#F3F4F6',
+                            bgcolor: 'action.hover',
                         },
+                        '&.Mui-disabled': {
+                            color: 'action.disabled',
+                        }
                     }}
                 >
                     <ChevronRightRounded fontSize="small"/>
