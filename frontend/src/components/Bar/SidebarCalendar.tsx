@@ -1,5 +1,6 @@
 import {useState} from 'react';
-import {Box, Typography, IconButton, MenuItem, Menu, useTheme} from '@mui/material';
+import {Box, Typography, IconButton, MenuItem, Menu} from '@mui/material';
+import {useTheme} from '@mui/material/styles';
 import {CalendarToday, ChevronLeft, ChevronRight, ArrowDropDown} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 
