@@ -10,15 +10,21 @@ import {EditScheduleSessionPopup} from './EditScheduleSessionPopup';
 import {formatMinutesToTimeLabel, getGridHeight, parseTimeToMinutes} from './utils/utils';
 import {getDayIndexFromDate, parseIsoDate} from './utils/dateUtils';
 
+import {usePermissionStore} from '@store/usePermissionStore';
+import {PERMISSIONS} from '@constants/permissions';
+
 import type {
     CourseSessionDetailsResponse,
     DayOfWeek,
+    ScheduleEditInstructorOption,
+    ScheduleEditRoomOption,
     ScheduleEntry,
     ScheduleEntryDetails,
     UpdateScheduleSessionRequest,
 } from '@api';
 import {
     fetchCourseSessionDetails,
+    fetchScheduleSessionEditOptions,
     updateScheduleSession,
 } from '@api';
 
@@ -42,22 +48,10 @@ interface EditInitialValues {
     applyOnce: boolean;
 }
 
-interface EditInstructorOption {
-    id: number;
-    name: string;
-}
-
-interface EditRoomOption {
-    id: number;
-    name: string;
-    building: string;
-    campus: string;
-}
-
 interface ScheduleSessionEditOptions {
     current: EditInitialValues;
-    instructors: EditInstructorOption[];
-    rooms: EditRoomOption[];
+    instructors: ScheduleEditInstructorOption[];
+    rooms: ScheduleEditRoomOption[];
 }
 
 interface DragPreviewState {
@@ -235,18 +229,23 @@ const mapCourseSessionDetails = (
 };
 
 export function WeekScheduleGrid({
-    entries,
-    onSessionUpdated,
-    onTileHoverChange,
-}: WeekScheduleGridProps) {
+                                     entries,
+                                     onSessionUpdated,
+                                     onTileHoverChange,
+                                 }: WeekScheduleGridProps) {
     const [selectedEntry, setSelectedEntry] = useState<ScheduleEntry | null>(null);
     const [selectedDetails, setSelectedDetails] = useState<ScheduleEntryDetails | null>(null);
 
     const [editEntry, setEditEntry] = useState<ScheduleEntry | null>(null);
     const [editInitialValues, setEditInitialValues] = useState<EditInitialValues | null>(null);
-    const [editInstructors, setEditInstructors] = useState<EditInstructorOption[]>([]);
-    const [editRooms, setEditRooms] = useState<EditRoomOption[]>([]);
+    const [editInstructors, setEditInstructors] =
+        useState<ScheduleEditInstructorOption[]>([]);
+
+    const [editRooms, setEditRooms] =
+        useState<ScheduleEditRoomOption[]>([]);
     const [isSavingEdit, setIsSavingEdit] = useState(false);
+    const [editError, setEditError] = useState<string | null>(null);
+    const [isLoadingEditOptions, setIsLoadingEditOptions] = useState(false);
 
     const [dragPreview, setDragPreview] = useState<DragPreviewState | null>(null);
     const [dropPreview, setDropPreview] = useState<DropPreviewState | null>(null);
@@ -257,6 +256,12 @@ export function WeekScheduleGrid({
 
     const {formatMessage} = useIntl();
     const gridHeight = getGridHeight();
+
+    const hasAnyPermission = usePermissionStore((state) => state.hasAnyPermission);
+
+    const canUpdateClassSession = hasAnyPermission([
+        PERMISSIONS.CLASS_SESSION_UPDATE,
+    ]);
 
     const orderedEntries = useMemo(() => {
         return [...entries].sort((a, b) => {
@@ -356,70 +361,25 @@ export function WeekScheduleGrid({
         };
     };
 
-    const getDefaultEditValues = (entry: ScheduleEntry): EditInitialValues => {
-        const dayIndex = getDayIndexFromDate(parseIsoDate(entry.date));
-
-        return {
-            dayOfWeek: dayOfWeekByIndex[dayIndex] ?? 'MONDAY',
-            startTime: entry.startTime,
-            endTime: entry.endTime,
-            instructorId: 1,
-            roomId: 1,
-            applyOnce: false,
-        };
-    };
-
     const loadEditOptions = async (
         entry: ScheduleEntry,
         values?: Partial<EditInitialValues>,
     ): Promise<ScheduleSessionEditOptions> => {
-        /*
-            TODO BACKEND:
-            const response = await fetchScheduleSessionEditOptions(entry.id);
-
-            return {
-                current: {
-                    dayOfWeek: response.current.dayOfWeek,
-                    startTime: response.current.startTime,
-                    endTime: response.current.endTime,
-                    instructorId: response.current.instructorId,
-                    roomId: response.current.roomId,
-                    applyOnce: false,
-                    ...values,
-                },
-                instructors: response.instructors,
-                rooms: response.rooms,
-            };
-        */
-
-        const current = {
-            ...getDefaultEditValues(entry),
-            ...values,
-            applyOnce: false,
-        };
+        const response = await fetchScheduleSessionEditOptions(entry.id);
 
         return {
-            current,
-            instructors: [
-                {
-                    id: 0,
-                    name: formatMessage({
-                        id: 'schedule.edit.instructorMissing',
-                        defaultMessage: 'Instructor will be loaded from backend',
-                    }),
-                },
-            ],
-            rooms: [
-                {
-                    id: 0,
-                    name: formatMessage({
-                        id: 'schedule.edit.roomMissing',
-                        defaultMessage: 'Room will be loaded from backend',
-                    }),
-                    building: '',
-                    campus: '',
-                },
-            ],
+            current: {
+                dayOfWeek: response.current.dayOfWeek,
+                startTime: response.current.startTime,
+                endTime: response.current.endTime,
+                instructorId: response.current.instructorId,
+                roomId: response.current.roomId,
+                applyOnce: false,
+
+                ...values,
+            },
+            instructors: response.instructors,
+            rooms: response.rooms,
         };
     };
 
@@ -434,20 +394,44 @@ export function WeekScheduleGrid({
         setEditInitialValues(null);
         setEditInstructors([]);
         setEditRooms([]);
+        setEditError(null);
+        setIsLoadingEditOptions(false);
     };
 
     const openEditPopup = async (
         entry: ScheduleEntry,
         values?: Partial<EditInitialValues>,
     ) => {
-        const options = await loadEditOptions(entry, values);
+        if (!canUpdateClassSession) {
+            return;
+        }
 
         setEditEntry(entry);
-        setEditInitialValues(options.current);
-        setEditInstructors(options.instructors);
-        setEditRooms(options.rooms);
+        setEditInitialValues(null);
+        setEditInstructors([]);
+        setEditRooms([]);
+        setEditError(null);
+        setIsLoadingEditOptions(true);
 
         handleClosePopup();
+
+        try {
+            const options = await loadEditOptions(entry, values);
+
+            setEditInitialValues(options.current);
+            setEditInstructors(options.instructors);
+            setEditRooms(options.rooms);
+        } catch (error) {
+            console.error('Failed to fetch edit options', error);
+
+            setEditError(
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to fetch edit options',
+            );
+        } finally {
+            setIsLoadingEditOptions(false);
+        }
     };
 
     const handleTileClick = async (entry: ScheduleEntry) => {
@@ -481,12 +465,15 @@ export function WeekScheduleGrid({
         }
     };
 
-    const handleEditSave = async (payload: UpdateScheduleSessionRequest) => {
-        if (!editEntry) {
+    const handleEditSave = async (
+        payload: UpdateScheduleSessionRequest,
+    ) => {
+        if (!editEntry || !canUpdateClassSession) {
             return;
         }
 
         setIsSavingEdit(true);
+        setEditError(null);
 
         try {
             await updateScheduleSession(editEntry.id, payload);
@@ -495,6 +482,12 @@ export function WeekScheduleGrid({
             await onSessionUpdated?.();
         } catch (error) {
             console.error('Nie udało się zaktualizować zajęć:', error);
+
+            setEditError(
+                error instanceof Error
+                    ? error.message
+                    : 'Nie udało się zaktualizować zajęć.',
+            );
         } finally {
             setIsSavingEdit(false);
         }
@@ -504,7 +497,7 @@ export function WeekScheduleGrid({
         entry: ScheduleEntry,
         event: ReactPointerEvent<HTMLDivElement>,
     ) => {
-        if (event.button !== 0) {
+        if (event.button !== 0 || !canUpdateClassSession) {
             return;
         }
 
@@ -792,6 +785,7 @@ export function WeekScheduleGrid({
                                     onTileHoverChange?.(null);
                                 }}
                                 draggingEntryId={dragPreview?.hasMoved ? dragPreview.entry.id : null}
+                                isDraggable={canUpdateClassSession}
                             />
                         );
                     })}
@@ -810,9 +804,13 @@ export function WeekScheduleGrid({
                                     entry={selectedEntry}
                                     details={selectedDetails}
                                     onClose={handleClosePopup}
-                                    onEdit={() => {
-                                        void openEditPopup(selectedEntry);
-                                    }}
+                                    onEdit={
+                                        canUpdateClassSession
+                                            ? () => {
+                                                void openEditPopup(selectedEntry);
+                                            }
+                                            : undefined
+                                    }
                                 />
                             </Box>
                         </Box>
@@ -838,11 +836,12 @@ export function WeekScheduleGrid({
                 initialValues={editInitialValues}
                 instructors={editInstructors}
                 rooms={editRooms}
+                isLoading={isLoadingEditOptions}
                 isSaving={isSavingEdit}
+                errorMessage={editError}
                 onClose={handleCloseEditPopup}
                 onSave={handleEditSave}
             />
-
             {dragPreview?.hasMoved && (
                 <Box
                     sx={{

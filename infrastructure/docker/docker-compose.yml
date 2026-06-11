@@ -26,6 +26,27 @@ services:
     depends_on:
       - postgres
 
+  # go api
+  go_api:
+    build:
+      context: ../../go_api
+    container_name: smart_scheduler_go_api
+    restart: unless-stopped
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      SECRET_KEY: ${SECRET_KEY}
+      BACKEND_URL: "http://backend:3000"
+      BACKEND_GRPC_TARGET: ${BACKEND_GRPC_TARGET}
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+      - backend
+
   # graph DB
   neo4j:
     image: neo4j:5.15.0
@@ -123,6 +144,31 @@ services:
       - ../../backend:/app
     command: uvicorn main:app --host 0.0.0.0 --port 3000 --reload
 
+  grpc_backend:
+    build:
+      context: ../../backend
+    container_name: smart_scheduler_grpc_backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      NEO4J_HOST: ${NEO4J_HOST:-neo4j}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+      NEO4J_USER: ${NEO4J_USER:-neo4j}
+      NEO4J_PORT: ${NEO4J_PORT:-7687}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+    ports:
+      - "50051:50051"
+    volumes:
+      - ../../backend:/app
+    command: python grpc_server.py
+    depends_on:
+      - postgres
+      - neo4j
+
   ai_worker:
     build:
       context: ../../ai_worker
@@ -145,9 +191,12 @@ services:
       KAFKA_URL: "kafka:29092"
       GA_MAX_WORKERS: ${GA_MAX_WORKERS:-4}
     depends_on:
-      - postgres
-      - neo4j
-      - kafka
+      postgres:
+        condition: service_started
+      neo4j:
+        condition: service_started
+      kafka:
+        condition: service_healthy
     volumes:
       - ../../ai_worker:/app
     command: python worker.py
