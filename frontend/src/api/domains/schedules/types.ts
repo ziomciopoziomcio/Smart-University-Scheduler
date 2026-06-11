@@ -153,25 +153,6 @@ export type ScheduleEditRoomOption = {
     campus?: string;
 };
 
-export interface ScheduleSessionEditOptionsResponse {
-    current: {
-        dayOfWeek: DayOfWeek;
-        startTime: string;
-        endTime: string;
-        instructorId: number;
-        roomId: number;
-    };
-    instructors: Array<{
-        id: number;
-        name: string;
-    }>;
-    rooms: Array<{
-        id: number;
-        name: string;
-        building: string;
-        campus: string;
-    }>;
-}
 
 export interface ScheduleSessionEditOptionsResponse {
     current: {
