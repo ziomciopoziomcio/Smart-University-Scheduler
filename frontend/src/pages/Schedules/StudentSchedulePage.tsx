@@ -201,7 +201,7 @@ export default function StudentSchedulePage() {
                     )
                 );
             } catch (err) {
-                console.error('Wystąpił błąd podczas ładowania planu', err);
+                console.error('Fetch plan failed', err);
                 setEntries([]);
             } finally {
                 setIsScheduleLoading(false);
