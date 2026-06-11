@@ -16,6 +16,8 @@ import {PERMISSIONS} from '@constants/permissions';
 import type {
     CourseSessionDetailsResponse,
     DayOfWeek,
+    ScheduleEditInstructorOption,
+    ScheduleEditRoomOption,
     ScheduleEntry,
     ScheduleEntryDetails,
     UpdateScheduleSessionRequest,
@@ -46,22 +48,10 @@ interface EditInitialValues {
     applyOnce: boolean;
 }
 
-interface EditInstructorOption {
-    id: number;
-    name: string;
-}
-
-interface EditRoomOption {
-    id: number;
-    name: string;
-    building: string;
-    campus: string;
-}
-
 interface ScheduleSessionEditOptions {
     current: EditInitialValues;
-    instructors: EditInstructorOption[];
-    rooms: EditRoomOption[];
+    instructors: ScheduleEditInstructorOption[];
+    rooms: ScheduleEditRoomOption[];
 }
 
 interface DragPreviewState {
@@ -248,8 +238,11 @@ export function WeekScheduleGrid({
 
     const [editEntry, setEditEntry] = useState<ScheduleEntry | null>(null);
     const [editInitialValues, setEditInitialValues] = useState<EditInitialValues | null>(null);
-    const [editInstructors, setEditInstructors] = useState<EditInstructorOption[]>([]);
-    const [editRooms, setEditRooms] = useState<EditRoomOption[]>([]);
+    const [editInstructors, setEditInstructors] =
+        useState<ScheduleEditInstructorOption[]>([]);
+
+    const [editRooms, setEditRooms] =
+        useState<ScheduleEditRoomOption[]>([]);
     const [isSavingEdit, setIsSavingEdit] = useState(false);
     const [editError, setEditError] = useState<string | null>(null);
 
