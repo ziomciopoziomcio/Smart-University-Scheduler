@@ -172,7 +172,7 @@ def _save_user_msg_sync(
 
 
 def _save_ai_msg_sync(
-    chat_id: int, content: str, sugg_data: dict | None, context: str
+    chat_id: int, content: str, sugg_data: dict | None
 ) -> schemas.MessageRead:
     """
     Save the AI assistant's message to the database, along with any schedule suggestion data if applicable.
@@ -182,7 +182,6 @@ def _save_ai_msg_sync(
     :param sugg_data: A dictionary containing schedule suggestion data if the AI's response included a rescheduling suggestion.
     This may include reason, proposed timeslot and room IDs, and a validated UUID for the target class session.
     If no suggestion is included, this will be None.
-    :param context: A snapshot of the user's scheduling context at the time of the AI's response,
     which will be stored in the state_before field of any created schedule suggestion for reference during review.
     This should be a string representation of the relevant scheduling information that was provided to the AI agent as part of the system prompt.
     :return:
@@ -195,7 +194,6 @@ def _save_ai_msg_sync(
                 target_class_session_id=sugg_data["_validated_uuid"],
                 state_before={
                     "info": "Validated by Neo4j",
-                    "context_snapshot": context,
                 },
                 state_after={
                     "proposed_timeslot_ids": sugg_data.get("proposed_timeslot_ids"),
@@ -358,7 +356,7 @@ async def create_message(
         messages, neo4j_session
     )
     ai_msg_schema = await asyncio.to_thread(
-        _save_ai_msg_sync, chat_id, final_content, suggestion_data, user_context
+        _save_ai_msg_sync, chat_id, final_content, suggestion_data
     )
 
     return {"user_message": user_msg_schema, "ai_message": ai_msg_schema}
