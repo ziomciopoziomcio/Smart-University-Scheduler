@@ -210,3 +210,22 @@ export interface ValidationReport {
     oversized_groups: OversizedGroupIssue[];
     semester_parity_warnings: string[];
 }
+
+export interface CreateScheduleSessionRequest {
+    courseId: number;
+    groupIds: number[];
+    dayOfWeek: DayOfWeek;
+    startTime: string;
+    endTime: string;
+    instructorId: number;
+    roomId: number;
+}
+
+export interface CreateScheduleSessionResponse {
+    session_id: string;
+}
+
+export interface ScheduleFacultyOption {
+    id: number;
+    name: string;
+}

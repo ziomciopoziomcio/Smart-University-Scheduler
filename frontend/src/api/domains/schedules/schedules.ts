@@ -5,6 +5,8 @@ import {
 
 import type {
     CourseSessionDetailsResponse,
+    CreateScheduleSessionRequest,
+    CreateScheduleSessionResponse,
     GenerateScheduleRequest,
     ScheduleSessionEditOptionsResponse,
     ScheduleVersion,
@@ -183,6 +185,28 @@ export const validateOptimizationData = async (
 
     return response.json();
 };
+
+export const createScheduleSession = async (
+    payload: CreateScheduleSessionRequest,
+): Promise<CreateScheduleSessionResponse> => {
+    const response = await fetch(`${SCHEDULES_URL}/session`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        throw new Error(
+            await getApiErrorMessage(
+                response,
+                'Failed to create schedule session',
+            ),
+        );
+    }
+
+    return response.json();
+};
+
 
 const getApiErrorMessage = async (
     response: Response,

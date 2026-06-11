@@ -305,6 +305,11 @@
     }
   },
   "schedule": {
+    "add": {
+      "button": "Dodaj zajęcia",
+      "title": "Dodaj zajęcia",
+      "description": "Stwórz nowe zajęcia, które pojawią się w planie."
+    },
     "details": {
       "close": "Zamknij",
       "time": "Czas",
