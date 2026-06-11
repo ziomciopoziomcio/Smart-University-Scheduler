@@ -35,18 +35,7 @@ def _get_user_neo4j_identities(user_id: int, db: Session) -> tuple[int, list[int
     return -1, [-1]
 
 
-async def get_user_schedule_context(user_id: int, neo4j_session, db: Session) -> str:
-    """
-    Gets schedule from Neo4j
-    :param user_id: The user id for which to fetch the schedule
-    :param neo4j_session: The Neo4j session to use for the query
-    :param db: Database session
-    :return: A string representation of the user's upcoming schedule, or an error message if the schedule cannot be fetched.
-    """
-    instructor_id, group_ids = await asyncio.to_thread(
-        _get_user_neo4j_identities, user_id, db
-    )
-    cypher_query = """
+USER_CONTEXT_QUERY = """
         OPTIONAL MATCH (i:Instructor {instructorId: $instructor_id})<-[:TAUGHT_BY]-(s_inst:ClassSession)
         OPTIONAL MATCH (g:Group)<-[:FOR_GROUP]-(s_group:ClassSession) WHERE g.groupId IN $group_ids
 
@@ -74,9 +63,22 @@ async def get_user_schedule_context(user_id: int, neo4j_session, db: Session) ->
         LIMIT 15
         """
 
+
+async def get_user_schedule_context(user_id: int, neo4j_session, db: Session) -> str:
+    """
+    Gets schedule from Neo4j
+    :param user_id: The user id for which to fetch the schedule
+    :param neo4j_session: The Neo4j session to use for the query
+    :param db: Database session
+    :return: A string representation of the user's upcoming schedule, or an error message if the schedule cannot be fetched.
+    """
+    instructor_id, group_ids = await asyncio.to_thread(
+        _get_user_neo4j_identities, user_id, db
+    )
+
     try:
         result = await neo4j_session.run(
-            cypher_query, instructor_id=instructor_id, group_ids=group_ids
+            USER_CONTEXT_QUERY, instructor_id=instructor_id, group_ids=group_ids
         )
         records = await result.data()
 
