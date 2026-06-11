@@ -165,3 +165,48 @@ export interface ScheduleSessionEditOptionsResponse {
     instructors: ScheduleEditInstructorOption[];
     rooms: ScheduleEditRoomOption[];
 }
+
+export type SemesterType = 'WINTER' | 'SUMMER';
+
+export interface PlannerSettingsPayload {
+    faculty_id: number;
+    planned_academic_year: string;
+    planned_semester_type: SemesterType;
+    is_planning_active: boolean;
+}
+
+export interface PlannerSettings extends PlannerSettingsPayload {
+    id: number;
+}
+
+export interface WorkloadIssue {
+    course_code: number;
+    class_type: string;
+    required_hours: number;
+    available_hours: number;
+}
+
+export interface RoomIssue {
+    course_code: number;
+    group_names: string[];
+    members_amount: number;
+    pc_needed: boolean;
+    projector_needed: boolean;
+}
+
+export interface OversizedGroupIssue {
+    course_code: number;
+    class_type: string;
+    group_name: string;
+    members_amount: number;
+    max_capacity: number;
+}
+
+export interface ValidationReport {
+    total_genes_to_generate: number;
+    missing_competencies: string[];
+    workload_mismatch: WorkloadIssue[];
+    no_suitable_rooms: RoomIssue[];
+    oversized_groups: OversizedGroupIssue[];
+    semester_parity_warnings: string[];
+}
