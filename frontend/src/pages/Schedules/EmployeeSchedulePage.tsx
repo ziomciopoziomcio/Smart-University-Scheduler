@@ -13,10 +13,10 @@ import {
     getUnit
 } from '@api';
 import {WeekSchedule} from '@components/Schedule/WeekSchedule';
-import {addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
+import {toIsoDate} from '@components/Schedule/utils/dateUtils.ts';
+import {useCalendarWeekStore} from '@store/useCalendarWeekStore';
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
 
-//TODO: INSTEAD OF FETCH UNIT DO GET UNIT!! https://github.com/ziomciopoziomcio/Smart-University-Scheduler/issues/240
 
 export async function getLecturerScheduleForWeek(
     lecturerId: string,
@@ -34,7 +34,17 @@ export default function EmployeeSchedulePage() {
     const intl = useIntl();
     const {facultyId, unitId, lecturerId} = useParams();
 
-    const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => getStartOfWeek(new Date()));
+    const currentWeekStart = useCalendarWeekStore(
+        (state) => state.currentWeekStart,
+    );
+
+    const goToPreviousWeek = useCalendarWeekStore(
+        (state) => state.goToPreviousWeek,
+    );
+
+    const goToNextWeek = useCalendarWeekStore(
+        (state) => state.goToNextWeek,
+    );
     const [entries, setEntries] = useState<ScheduleEntry[]>([]);
     const [isScheduleLoading, setIsScheduleLoading] = useState<boolean>(false);
     const [isNamesLoading, setIsNamesLoading] = useState<boolean>(true);
@@ -174,8 +184,8 @@ export default function EmployeeSchedulePage() {
                 entries={entries}
                 currentWeekStart={currentWeekStart}
                 isLoading={isScheduleLoading}
-                onPrevWeek={() => setCurrentWeekStart((prev) => addWeeks(prev, -1))}
-                onNextWeek={() => setCurrentWeekStart((prev) => addWeeks(prev, 1))}
+                onPrevWeek={goToPreviousWeek}
+                onNextWeek={goToNextWeek}
             />
         </Box>
     );
