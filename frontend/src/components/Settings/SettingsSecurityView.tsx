@@ -7,28 +7,20 @@ import {
     Alert,
     Collapse,
     IconButton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
-    Tooltip
 } from '@mui/material';
 import {
     ExpandMore,
     LockOutlined,
     SecurityOutlined,
-    CheckCircleOutline,
-    ContentCopy,
-    HelpOutline
 } from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 import {useAuthStore} from '@store/useAuthStore';
-import {setup2FA, confirm2FA, disable2FA, changePassword} from '@api/domains/users/auth';
-import {QRCodeSVG} from 'qrcode.react';
-import {OtpInput} from '@components/Login/OtpInput';
 import {useTheme} from "@mui/material/styles";
 import {AppButton} from '@components/Common';
+
+import {PasswordChangeModal} from './PasswordChangeModal';
+import {TwoFactorSetupModal} from './TwoFactorSetupModal';
+import {TwoFactorDisableModal} from './TwoFactorDisableModal';
 
 interface SettingsSecurityViewProps {
     search: string;
@@ -36,30 +28,17 @@ interface SettingsSecurityViewProps {
 
 export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
     const intl = useIntl();
-    const {token, user, finalizeLogin} = useAuthStore();
+    const {user} = useAuthStore();
     const theme = useTheme();
 
     const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
-    const [loading, setLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    // 2FA Setup Dialog
-    const [setupDialogOpen, setSetupDialogOpen] = useState(false);
-    const [setupData, setSetupData] = useState<{ qr: string, secret: string } | null>(null);
-    const [verificationCode, setVerificationCode] = useState('');
-    const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
-
-    // 2FA Disable Dialog
-    const [disableDialogOpen, setDisableDialogOpen] = useState(false);
-    const [disablePassword, setDisablePassword] = useState('');
-    const [disableCode, setDisableCode] = useState('');
-
-    // Password Change Dialog
+    // Dialogs State
     const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
-    const [oldPassword, setOldPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [setupDialogOpen, setSetupDialogOpen] = useState(false);
+    const [disableDialogOpen, setDisableDialogOpen] = useState(false);
 
     const toggleGroup = (groupName: string) => {
         const next = new Set(collapsedGroups);
@@ -68,88 +47,12 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
         setCollapsedGroups(next);
     };
 
-    const handlePasswordChange = async () => {
-        if (!token) return;
-        if (newPassword !== confirmNewPassword) {
-            setError(intl.formatMessage({id: 'users.errors.passwordMismatch'}));
-            return;
-        }
-
-        setLoading(true);
-        try {
-            await changePassword(token, oldPassword, newPassword, confirmNewPassword);
-            setShowSuccess(intl.formatMessage({id: 'settings.security.password.success'}));
-            setPasswordDialogOpen(false);
-            setOldPassword('');
-            setNewPassword('');
-            setConfirmNewPassword('');
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error changing password');
-        } finally {
-            setLoading(false);
-        }
+    const handleSuccess = (message: string) => {
+        setShowSuccess(message);
     };
 
-    const handleEnable2FA = async () => {
-        if (!token) return;
-        setLoading(true);
-        try {
-            const data = await setup2FA(token);
-            setSetupData({qr: data.provisioning_uri, secret: data.secret});
-            setSetupDialogOpen(true);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error setting up 2FA');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleConfirm2FA = async () => {
-        if (!token) return;
-        setLoading(true);
-        try {
-            const data = await confirm2FA(token, verificationCode);
-            setBackupCodes(data.backup_codes);
-            await finalizeLogin(token); // Refresh user data
-            setShowSuccess(intl.formatMessage({id: 'settings.security.twoFactor.successEnabled'}));
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error confirming 2FA');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleDisable2FA = async () => {
-        if (!token) return;
-        setLoading(true);
-        try {
-            await disable2FA(token, disablePassword, disableCode);
-            await finalizeLogin(token); // Refresh user data
-            setShowSuccess(intl.formatMessage({id: 'settings.security.twoFactor.successDisabled'}));
-            setDisableDialogOpen(false);
-            setDisablePassword('');
-            setDisableCode('');
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error disabling 2FA');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const copyBackupCodes = () => {
-        if (backupCodes) {
-            navigator.clipboard.writeText(backupCodes.join('\n')).catch(() => { /* ignore */
-            });
-            setShowSuccess(intl.formatMessage({id: 'users.modal.copySuccess'}));
-        }
-    };
-
-    const copySecret = () => {
-        if (setupData?.secret) {
-            navigator.clipboard.writeText(setupData.secret).catch(() => { /* ignore */
-            });
-            setShowSuccess(intl.formatMessage({id: 'users.modal.copySuccess'}));
-        }
+    const handleError = (message: string) => {
+        setError(message);
     };
 
     const securityGroupTitle = intl.formatMessage({id: 'settings.security.title'});
@@ -162,9 +65,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
             action: (
                 <AppButton
                     variant="outlined"
-                    onClick={() => {
-                        setPasswordDialogOpen(true);
-                    }}
+                    onClick={() => setPasswordDialogOpen(true)}
                     startIcon={<LockOutlined/>}
                     sx={{width: '240px'}}
                 >
@@ -180,9 +81,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                 <AppButton
                     variant="outlined"
                     color="error"
-                    onClick={() => {
-                        setDisableDialogOpen(true);
-                    }}
+                    onClick={() => setDisableDialogOpen(true)}
                     sx={{width: '240px', borderColor: 'error.main', color: 'error.main', '&:hover': {borderColor: 'error.dark', bgcolor: 'error.light'}}}
                 >
                     {intl.formatMessage({id: 'settings.security.twoFactor.disable'})}
@@ -190,9 +89,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
             ) : (
                 <AppButton
                     variant="contained"
-                    onClick={() => {
-                        void handleEnable2FA();
-                    }}
+                    onClick={() => setSetupDialogOpen(true)}
                     startIcon={<SecurityOutlined/>}
                     sx={{width: '240px'}}
                 >
@@ -211,9 +108,7 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1.5}}>
                     <Paper
                         elevation={0}
-                        onClick={() => {
-                            toggleGroup(securityGroupTitle);
-                        }}
+                        onClick={() => toggleGroup(securityGroupTitle)}
                         sx={{
                             px: 3,
                             py: 1.5,
@@ -286,285 +181,34 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
                 </Box>
             )}
 
-            {/* Password Change Dialog */}
-            <Dialog open={passwordDialogOpen} onClose={() => {
-                setPasswordDialogOpen(false);
-            }} maxWidth="xs" fullWidth>
-                <DialogTitle sx={{color: 'text.primary', fontWeight: 700}}>
-                    {intl.formatMessage({id: 'settings.security.password.title'})}
-                </DialogTitle>
-                <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 2, mt: 1}}>
-                    <TextField
-                        label={intl.formatMessage({id: 'settings.security.password.oldPassword'})}
-                        type="password"
-                        fullWidth
-                        value={oldPassword}
-                        onChange={(e) => {
-                            setOldPassword(e.target.value);
-                        }}
-                    />
-                    <TextField
-                        label={intl.formatMessage({id: 'settings.security.password.newPassword'})}
-                        type="password"
-                        fullWidth
-                        value={newPassword}
-                        onChange={(e) => {
-                            setNewPassword(e.target.value);
-                        }}
-                    />
-                    <TextField
-                        label={intl.formatMessage({id: 'settings.security.password.confirmPassword'})}
-                        type="password"
-                        fullWidth
-                        value={confirmNewPassword}
-                        onChange={(e) => {
-                            setConfirmNewPassword(e.target.value);
-                        }}
-                    />
-                </DialogContent>
-                <DialogActions sx={{p: 3}}>
-                    <AppButton variant="text" onClick={() => {
-                        setPasswordDialogOpen(false);
-                    }}>{intl.formatMessage({id: 'common.cancel'})}</AppButton>
-                    <AppButton
-                        variant="contained"
-                        onClick={() => {
-                            void handlePasswordChange();
-                        }}
-                        disabled={!oldPassword || !newPassword || !confirmNewPassword}
-                        loading={loading}
-                        sx={{width: '120px'}}
-                    >
-                        {intl.formatMessage({id: 'common.save'})}
-                    </AppButton>
-                </DialogActions>
-            </Dialog>
+            <PasswordChangeModal 
+                open={passwordDialogOpen} 
+                onClose={() => setPasswordDialogOpen(false)} 
+                onSuccess={handleSuccess} 
+                onError={handleError} 
+            />
 
-            <Dialog
-                open={setupDialogOpen}
-                onClose={() => {
-                    if (!backupCodes) setSetupDialogOpen(false);
-                }}
-                maxWidth="sm"
-                fullWidth
-                PaperProps={{
-                    sx: {
-                        borderRadius: '20px',
-                        minHeight: '450px'
-                    }
-                }}
-            >
-                <DialogTitle sx={{color: 'text.primary', fontWeight: 700, pb: 1}}>
-                    {intl.formatMessage({id: 'settings.security.twoFactor.setupTitle'})}
-                </DialogTitle>
-                <DialogContent sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 3,
-                    mt: 1,
-                    alignItems: 'center',
-                    overflowY: 'auto',
-                    scrollbarWidth: 'none',
-                    '&::-webkit-scrollbar': {
-                        display: 'none'
-                    },
-                    msOverflowStyle: 'none'
-                }}>
-                    {!backupCodes ? (
-                        <>
-                            <Typography variant="body2" color="text.secondary" textAlign="center">
-                                {intl.formatMessage({id: 'settings.security.twoFactor.setupDesc'})}
-                            </Typography>
-                            {setupData && (
-                                <Box sx={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    gap: 2,
-                                    width: '100%'
-                                }}>
-                                    <Box sx={{
-                                        p: 2,
-                                        bgcolor: '#ffffff', // Keep white for QR code readability
-                                        borderRadius: '12px',
-                                        border: 1,
-                                        borderColor: 'divider',
-                                        boxShadow: theme.palette.mode === 'dark' ? '0 4px 12px rgba(0,0,0,0.5)' : '0 4px 12px rgba(0,0,0,0.05)'
-                                    }}>
-                                        <QRCodeSVG value={setupData.qr} size={180}/>
-                                    </Box>
-                                    <Box sx={{display: 'flex', alignItems: 'center', gap: 1.5}}>
-                                        <Box sx={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 1,
-                                            bgcolor: 'background.default',
-                                            px: 2,
-                                            py: 1,
-                                            borderRadius: '8px',
-                                            border: 1,
-                                            borderStyle: 'dashed',
-                                            borderColor: 'divider'
-                                        }}>
-                                            <Typography color="text.primary" sx={{
-                                                fontFamily: 'monospace',
-                                                fontWeight: 700,
-                                                letterSpacing: '1px'
-                                            }}>
-                                                {setupData.secret}
-                                            </Typography>
-                                            <Tooltip title={intl.formatMessage({id: 'users.modal.copyTooltip'})}>
-                                                <IconButton size="small" onClick={copySecret}>
-                                                    <ContentCopy fontSize="small" sx={{color: 'text.secondary'}}/>
-                                                </IconButton>
-                                            </Tooltip>
-                                        </Box>
-                                        <Tooltip
-                                            title={intl.formatMessage({id: 'settings.security.twoFactor.manualEntry'})}>
-                                            <HelpOutline
-                                                sx={{fontSize: '1.4rem', color: 'text.secondary', cursor: 'help'}}/>
-                                        </Tooltip>
-                                    </Box>
-                                </Box>
-                            )}
-                            <Box sx={{width: '100%', mt: 1}}>
-                                <Typography variant="caption" color="text.primary"
-                                            sx={{display: 'block', mb: 1, textAlign: 'center', fontWeight: 600}}>
-                                    {intl.formatMessage({id: 'settings.security.twoFactor.confirmCode'})}
-                                </Typography>
-                                <OtpInput
-                                    value={verificationCode}
-                                    onChange={setVerificationCode}
-                                    disabled={loading}
-                                />
-                            </Box>
-                        </>
-                    ) : (
-                        <Box sx={{width: '100%'}}>
-                            <Alert severity="success" icon={<CheckCircleOutline/>} sx={{mb: 3}}>
-                                {intl.formatMessage({id: 'settings.security.twoFactor.successEnabled'})}
-                            </Alert>
-                            <Typography variant="subtitle2" color="text.primary" fontWeight={700} gutterBottom>
-                                {intl.formatMessage({id: 'settings.security.twoFactor.backupCodesTitle'})}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{mb: 2}}>
-                                {intl.formatMessage({id: 'settings.security.twoFactor.backupCodesDesc'})}
-                            </Typography>
-                            <Paper variant="outlined" sx={{p: 2, bgcolor: 'background.default', position: 'relative', borderColor: 'divider'}}>
-                                <IconButton
-                                    size="small"
-                                    onClick={copyBackupCodes}
-                                    sx={{position: 'absolute', top: 8, right: 8}}
-                                >
-                                    <ContentCopy fontSize="small" sx={{color: 'text.secondary'}}/>
-                                </IconButton>
-                                <Box sx={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1}}>
-                                    {backupCodes.map((code) => (
-                                        <Typography key={code} color="text.primary"
-                                                    sx={{fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 600}}>
-                                            {code}
-                                        </Typography>
-                                    ))}
-                                </Box>
-                            </Paper>
-                        </Box>
-                    )}
-                </DialogContent>
-                <DialogActions sx={{p: 3}}>
-                    {!backupCodes ? (
-                        <>
-                            <AppButton variant="text" onClick={() => {
-                                setSetupDialogOpen(false);
-                            }}>{intl.formatMessage({id: 'common.cancel'})}</AppButton>
-                            <AppButton
-                                variant="contained"
-                                onClick={() => {
-                                    void handleConfirm2FA();
-                                }}
-                                disabled={verificationCode.length !== 6}
-                                loading={loading}
-                            >
-                                {intl.formatMessage({id: 'common.save'})}
-                            </AppButton>
-                        </>
-                    ) : (
-                        <AppButton
-                            variant="contained"
-                            onClick={() => {
-                                setSetupDialogOpen(false);
-                                setBackupCodes(null);
-                                setVerificationCode('');
-                                setSetupData(null);
-                            }}
-                        >
-                            {intl.formatMessage({id: 'schedule.details.close'})}
-                        </AppButton>
-                    )}
-                </DialogActions>
-            </Dialog>
+            <TwoFactorSetupModal 
+                open={setupDialogOpen} 
+                onClose={() => setSetupDialogOpen(false)} 
+                onSuccess={handleSuccess} 
+                onError={handleError} 
+            />
 
-            {/* 2FA Disable Dialog */}
-            <Dialog open={disableDialogOpen} onClose={() => {
-                setDisableDialogOpen(false);
-            }} maxWidth="xs" fullWidth>
-                <DialogTitle sx={{color: 'text.primary', fontWeight: 700}}>
-                    {intl.formatMessage({id: 'settings.security.twoFactor.disableTitle'})}
-                </DialogTitle>
-                <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 2, mt: 1, alignItems: 'center'}}>
-                    <Typography variant="body2" color="text.secondary" textAlign="center">
-                        {intl.formatMessage({id: 'settings.security.twoFactor.disableDesc'})}
-                    </Typography>
-                    <TextField
-                        label={intl.formatMessage({id: 'settings.security.twoFactor.passwordLabel'})}
-                        type="password"
-                        fullWidth
-                        value={disablePassword}
-                        onChange={(e) => {
-                            setDisablePassword(e.target.value);
-                        }}
-                    />
-                    <Box sx={{mt: 1, width: '100%'}}>
-                        <Typography variant="caption" color="text.primary"
-                                    sx={{display: 'block', mb: 1, fontWeight: 600, textAlign: 'center'}}>
-                            {intl.formatMessage({id: 'settings.security.twoFactor.codeLabel'})}
-                        </Typography>
-                        <OtpInput
-                            value={disableCode}
-                            onChange={setDisableCode}
-                            disabled={loading}
-                        />
-                    </Box>
-                </DialogContent>
-                <DialogActions sx={{p: 3}}>
-                    <AppButton variant="text" onClick={() => {
-                        setDisableDialogOpen(false);
-                    }}>{intl.formatMessage({id: 'common.cancel'})}</AppButton>
-                    <AppButton
-                        variant="contained"
-                        color="error"
-                        onClick={() => {
-                            void handleDisable2FA();
-                        }}
-                        disabled={!disablePassword || disableCode.length !== 6}
-                        loading={loading}
-                        sx={{bgcolor: 'error.main', '&:hover': {bgcolor: 'error.dark'}, color: 'error.contrastText'}}
-                    >
-                        {intl.formatMessage({id: 'settings.security.twoFactor.disable'})}
-                    </AppButton>
-                </DialogActions>
-            </Dialog>
+            <TwoFactorDisableModal 
+                open={disableDialogOpen} 
+                onClose={() => setDisableDialogOpen(false)} 
+                onSuccess={handleSuccess} 
+                onError={handleError} 
+            />
 
-            <Snackbar open={!!showSuccess} autoHideDuration={3000} onClose={() => {
-                setShowSuccess(null);
-            }}>
+            <Snackbar open={!!showSuccess} autoHideDuration={3000} onClose={() => setShowSuccess(null)}>
                 <Alert severity="success" variant="filled" sx={{borderRadius: '12px'}}>
                     {showSuccess}
                 </Alert>
             </Snackbar>
 
-            <Snackbar open={!!error} autoHideDuration={5000} onClose={() => {
-                setError(null);
-            }}>
+            <Snackbar open={!!error} autoHideDuration={5000} onClose={() => setError(null)}>
                 <Alert severity="error" variant="filled" sx={{borderRadius: '12px'}}>
                     {error}
                 </Alert>
