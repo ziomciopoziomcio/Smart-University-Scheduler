@@ -101,8 +101,7 @@ async def get_user_schedule_context(user_id: int, neo4j_session, db: Session) ->
         return "SYSTEM ERROR: Could not fetch the schedule from the database."
 
 
-async def search_available_times_in_neo4j(session_id: str, neo4j_session) -> str:
-    cypher_query: LiteralString = """
+SEARCH_SLOTS_QUERY: LiteralString = """
     MATCH (s:ClassSession {sessionId: $session_id})
     MATCH (s)-[:AT_TIME]->(ts:TimeSlot)
     WITH s, count(ts) AS duration
@@ -134,8 +133,11 @@ async def search_available_times_in_neo4j(session_id: str, neo4j_session) -> str
     ORDER BY day, start_time
     LIMIT 5
     """
+
+
+async def search_available_times_in_neo4j(session_id: str, neo4j_session) -> str:
     try:
-        result = await neo4j_session.run(cypher_query, session_id=session_id)
+        result = await neo4j_session.run(SEARCH_SLOTS_QUERY, session_id=session_id)
         records = await result.data()
 
         if not records:
