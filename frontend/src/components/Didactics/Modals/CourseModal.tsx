@@ -377,7 +377,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
                                     <Checkbox
                                         checked={selectedTypes[type].enabled}
                                         onChange={() => { handleTypeToggle(type); }}
-                                        sx={{color: '#2b5073', '&.Mui-checked': {color: '#2b5073'}}}
+                                        sx={{color: 'primary.main', '&.Mui-checked': {color: 'primary.main'}}}
                                     />
                                 }
                                 label={intl.formatMessage({id: `didactics.classTypes.${type}`})}
@@ -406,10 +406,11 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
                         sx={{
                             py: 1.5,
                             borderRadius: '12px',
-                            background: '#2b5073',
+                            bgcolor: 'primary.main',
+                            color: 'primary.contrastText',
                             textTransform: 'none',
                             fontSize: '1rem',
-                            '&:hover': {bgcolor: '#1a3a56'}
+                            '&:hover': {bgcolor: 'primary.dark'}
                         }}
                     >
                         {loading ? (
@@ -425,7 +426,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
                         variant="text"
                         fullWidth
                         onClick={onClose}
-                        sx={{color: '#2b5073', textTransform: 'none', fontWeight: 600}}
+                        sx={{color: 'primary.main', textTransform: 'none', fontWeight: 600}}
                     >
                         {intl.formatMessage({id: 'didactics.common.cancel'})}
                     </Button>

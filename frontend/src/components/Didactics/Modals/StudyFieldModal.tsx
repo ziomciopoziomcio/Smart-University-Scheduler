@@ -149,10 +149,11 @@ export function StudyFieldModal({open, studyField, facultyId, onClose, onSuccess
                         sx={{
                             py: 1.5,
                             borderRadius: '12px',
-                            background: '#2b5073',
+                            bgcolor: 'primary.main',
+                            color: 'primary.contrastText',
                             textTransform: 'none',
                             fontSize: '1rem',
-                            '&:hover': {bgcolor: '#1a3a56'}
+                            '&:hover': {bgcolor: 'primary.dark'}
                         }}
                     >
                         {loading ?
@@ -165,7 +166,7 @@ export function StudyFieldModal({open, studyField, facultyId, onClose, onSuccess
                         fullWidth
                         onClick={onClose}
                         disabled={loading}
-                        sx={{color: '#2b5073', textTransform: 'none', fontWeight: 600}}
+                        sx={{color: 'primary.main', textTransform: 'none', fontWeight: 600}}
                     >
                         {intl.formatMessage({id: 'didactics.common.cancel'})}
                     </Button>

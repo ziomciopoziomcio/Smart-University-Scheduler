@@ -156,7 +156,13 @@ export function CourseInstructorModal({open, course, instructor, facultyId, onCl
                     fullWidth
                     onClick={handleSubmit}
                     disabled={loading || !form.employee || !form.hours || !form.class_type || (!isEdit && availableTypes.length === 0)}
-                    sx={{borderRadius: '12px', bgcolor: '#2b5073', py: 1.5}}
+                    sx={{
+                        borderRadius: '12px', 
+                        bgcolor: 'primary.main', 
+                        color: 'primary.contrastText',
+                        py: 1.5,
+                        '&:hover': { bgcolor: 'primary.dark' }
+                    }}
                 >
                     {loading ? <CircularProgress size={24}
                                                  color="inherit"/> : intl.formatMessage({id: 'didactics.common.save'})}
