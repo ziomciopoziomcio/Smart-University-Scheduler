@@ -39,7 +39,7 @@ export function ScheduleStudentGroupView({
                 items={data}
                 icon={PeopleIcon}
                 getTitle={(item) => item.group_name}
-                titleWidth="250px"
+                titleWidth="700px"
                 onItemClick={(item) => {
                     if (majorId) {
                         navigate(`/schedules/study/faculty/${facultyId}/field/${fieldOfStudyId}/semester/${semesterId}/major/${majorId}/group/${item.id}/schedule`);
