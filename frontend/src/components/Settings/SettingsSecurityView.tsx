@@ -183,32 +183,32 @@ export function SettingsSecurityView({search}: SettingsSecurityViewProps) {
 
             <PasswordChangeModal 
                 open={passwordDialogOpen} 
-                onClose={() => setPasswordDialogOpen(false)} 
+                onClose={() => { setPasswordDialogOpen(false); }} 
                 onSuccess={handleSuccess} 
                 onError={handleError} 
             />
 
             <TwoFactorSetupModal 
                 open={setupDialogOpen} 
-                onClose={() => setSetupDialogOpen(false)} 
+                onClose={() => { setSetupDialogOpen(false); }} 
                 onSuccess={handleSuccess} 
                 onError={handleError} 
             />
 
             <TwoFactorDisableModal 
                 open={disableDialogOpen} 
-                onClose={() => setDisableDialogOpen(false)} 
+                onClose={() => { setDisableDialogOpen(false); }} 
                 onSuccess={handleSuccess} 
                 onError={handleError} 
             />
 
-            <Snackbar open={!!showSuccess} autoHideDuration={3000} onClose={() => setShowSuccess(null)}>
+            <Snackbar open={!!showSuccess} autoHideDuration={3000} onClose={() => { setShowSuccess(null); }}>
                 <Alert severity="success" variant="filled" sx={{borderRadius: '12px'}}>
                     {showSuccess}
                 </Alert>
             </Snackbar>
 
-            <Snackbar open={!!error} autoHideDuration={5000} onClose={() => setError(null)}>
+            <Snackbar open={!!error} autoHideDuration={5000} onClose={() => { setError(null); }}>
                 <Alert severity="error" variant="filled" sx={{borderRadius: '12px'}}>
                     {error}
                 </Alert>

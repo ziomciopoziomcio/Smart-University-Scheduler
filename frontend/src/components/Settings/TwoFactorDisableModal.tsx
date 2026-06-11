@@ -17,8 +17,8 @@ import {AppButton} from '@components/Common';
 interface TwoFactorDisableModalProps {
     open: boolean;
     onClose: () => void;
-    onSuccess: (message: string) => void;
-    onError: (message: string) => void;
+    onSuccess: (_message: string) => void;
+    onError: (_message: string) => void;
 }
 
 export function TwoFactorDisableModal({open, onClose, onSuccess, onError}: TwoFactorDisableModalProps) {
@@ -65,7 +65,7 @@ export function TwoFactorDisableModal({open, onClose, onSuccess, onError}: TwoFa
                     type="password"
                     fullWidth
                     value={disablePassword}
-                    onChange={(e) => setDisablePassword(e.target.value)}
+                    onChange={(e) => { setDisablePassword(e.target.value); }}
                     disabled={loading}
                 />
                 <Box sx={{mt: 1, width: '100%'}}>

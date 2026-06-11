@@ -14,8 +14,8 @@ import {AppButton} from '@components/Common';
 interface PasswordChangeModalProps {
     open: boolean;
     onClose: () => void;
-    onSuccess: (message: string) => void;
-    onError: (message: string) => void;
+    onSuccess: (_message: string) => void;
+    onError: (_message: string) => void;
 }
 
 export function PasswordChangeModal({open, onClose, onSuccess, onError}: PasswordChangeModalProps) {
@@ -65,7 +65,7 @@ export function PasswordChangeModal({open, onClose, onSuccess, onError}: Passwor
                     type="password"
                     fullWidth
                     value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
+                    onChange={(e) => { setOldPassword(e.target.value); }}
                     disabled={loading}
                 />
                 <TextField
@@ -73,7 +73,7 @@ export function PasswordChangeModal({open, onClose, onSuccess, onError}: Passwor
                     type="password"
                     fullWidth
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    onChange={(e) => { setNewPassword(e.target.value); }}
                     disabled={loading}
                 />
                 <TextField
@@ -81,7 +81,7 @@ export function PasswordChangeModal({open, onClose, onSuccess, onError}: Passwor
                     type="password"
                     fullWidth
                     value={confirmNewPassword}
-                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    onChange={(e) => { setConfirmNewPassword(e.target.value); }}
                     disabled={loading}
                 />
             </DialogContent>

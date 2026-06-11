@@ -14,13 +14,16 @@ export function AppButton({variant = 'contained', loading, children, sx, ...prop
         ...sx,
     };
 
+    const isDisabled = loading || props.disabled;
+    const startIcon = loading ? <CircularProgress size={20} color="inherit"/> : props.startIcon;
+
     if (variant === 'contained') {
         return (
             <Button
                 variant="contained"
                 disableElevation
-                disabled={loading || props.disabled}
-                startIcon={loading ? <CircularProgress size={20} color="inherit"/> : props.startIcon}
+                disabled={isDisabled}
+                startIcon={startIcon}
                 sx={{
                     bgcolor: 'primary.main',
                     color: 'primary.contrastText',
@@ -38,8 +41,8 @@ export function AppButton({variant = 'contained', loading, children, sx, ...prop
         return (
             <Button
                 variant="outlined"
-                disabled={loading || props.disabled}
-                startIcon={loading ? <CircularProgress size={20} color="inherit"/> : props.startIcon}
+                disabled={isDisabled}
+                startIcon={startIcon}
                 sx={{
                     borderColor: 'primary.main',
                     color: 'primary.main',
@@ -62,8 +65,8 @@ export function AppButton({variant = 'contained', loading, children, sx, ...prop
     return (
         <Button
             variant="text"
-            disabled={loading || props.disabled}
-            startIcon={loading ? <CircularProgress size={20} color="inherit"/> : props.startIcon}
+            disabled={isDisabled}
+            startIcon={startIcon}
             sx={{
                 color: 'primary.main',
                 '&:hover': {bgcolor: 'action.hover', color: 'primary.dark'},

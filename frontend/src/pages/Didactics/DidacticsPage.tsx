@@ -311,7 +311,7 @@ export default function DidacticsPage({view}: { view: string }) {
                         {/*TODO: change data type from any*/}
                         {view === 'semesters' && (
                             <ProgramSemesterView
-                                data={data as any[]}
+                                data={data as unknown[]}
                                 facultyId={Number(facultyId)}
                                 fieldId={Number(fieldId)}
                                 programId={Number(programId)}

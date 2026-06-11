@@ -20,9 +20,9 @@ export const SusLogo = ({
 }: SusLogoProps) => {
   const theme = useTheme();
   
-  const finalPrimary = primaryColor || theme.palette.logo?.primary || "#284051";
-  const finalSecondary = secondaryColor || theme.palette.logo?.secondary || "#3CA5B2";
-  const finalAccent = accentColor || theme.palette.logo?.accent || "#20739E";
+  const finalPrimary = primaryColor ?? theme.palette.logo.primary ?? "#284051";
+  const finalSecondary = secondaryColor ?? theme.palette.logo.secondary ?? "#3CA5B2";
+  const finalAccent = accentColor ?? theme.palette.logo.accent ?? "#20739E";
 
   return (
     <svg

@@ -23,9 +23,107 @@ import {useTheme} from '@mui/material/styles';
 interface TwoFactorSetupModalProps {
     open: boolean;
     onClose: () => void;
-    onSuccess: (message: string) => void;
-    onError: (message: string) => void;
+    onSuccess: (_message: string) => void;
+    onError: (_message: string) => void;
 }
+
+const SetupView = ({setupData, theme, intl, copySecret, verificationCode, setVerificationCode, loading}: any) => (
+    <>
+        <Typography variant="body2" color="text.secondary" textAlign="center">
+            {intl.formatMessage({id: 'settings.security.twoFactor.setupDesc'})}
+        </Typography>
+        {setupData && (
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2,
+                width: '100%'
+            }}>
+                <Box sx={{
+                    p: 2,
+                    bgcolor: '#ffffff',
+                    borderRadius: '12px',
+                    border: 1,
+                    borderColor: 'divider',
+                    boxShadow: theme.palette.mode === 'dark' ? '0 4px 12px rgba(0,0,0,0.5)' : '0 4px 12px rgba(0,0,0,0.05)'
+                }}>
+                    <QRCodeSVG value={setupData.qr} size={180}/>
+                </Box>
+                <Box sx={{display: 'flex', alignItems: 'center', gap: 1.5}}>
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        bgcolor: 'background.default',
+                        px: 2,
+                        py: 1,
+                        borderRadius: '8px',
+                        border: 1,
+                        borderStyle: 'dashed',
+                        borderColor: 'divider'
+                    }}>
+                        <Typography color="text.primary" sx={{
+                            fontFamily: 'monospace',
+                            fontWeight: 700,
+                            letterSpacing: '1px'
+                        }}>
+                            {setupData.secret}
+                        </Typography>
+                        <Tooltip title={intl.formatMessage({id: 'users.modal.copyTooltip'})}>
+                            <IconButton size="small" onClick={copySecret}>
+                                <ContentCopy fontSize="small" sx={{color: 'text.secondary'}}/>
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+                    <Tooltip title={intl.formatMessage({id: 'settings.security.twoFactor.manualEntry'})}>
+                        <HelpOutline sx={{fontSize: '1.4rem', color: 'text.secondary', cursor: 'help'}}/>
+                    </Tooltip>
+                </Box>
+            </Box>
+        )}
+        <Box sx={{width: '100%', mt: 1}}>
+            <Typography variant="caption" color="text.primary" sx={{display: 'block', mb: 1, textAlign: 'center', fontWeight: 600}}>
+                {intl.formatMessage({id: 'settings.security.twoFactor.confirmCode'})}
+            </Typography>
+            <OtpInput
+                value={verificationCode}
+                onChange={setVerificationCode}
+                disabled={loading}
+            />
+        </Box>
+    </>
+);
+
+const BackupCodesView = ({backupCodes, copyBackupCodes, intl}: any) => (
+    <Box sx={{width: '100%'}}>
+        <Alert severity="success" icon={<CheckCircleOutline/>} sx={{mb: 3}}>
+            {intl.formatMessage({id: 'settings.security.twoFactor.successEnabled'})}
+        </Alert>
+        <Typography variant="subtitle2" color="text.primary" fontWeight={700} gutterBottom>
+            {intl.formatMessage({id: 'settings.security.twoFactor.backupCodesTitle'})}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{mb: 2}}>
+            {intl.formatMessage({id: 'settings.security.twoFactor.backupCodesDesc'})}
+        </Typography>
+        <Paper variant="outlined" sx={{p: 2, bgcolor: 'background.default', position: 'relative', borderColor: 'divider'}}>
+            <IconButton
+                size="small"
+                onClick={copyBackupCodes}
+                sx={{position: 'absolute', top: 8, right: 8}}
+            >
+                <ContentCopy fontSize="small" sx={{color: 'text.secondary'}}/>
+            </IconButton>
+            <Box sx={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1}}>
+                {backupCodes.map((code: string) => (
+                    <Typography key={code} color="text.primary" sx={{fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 600}}>
+                        {code}
+                    </Typography>
+                ))}
+            </Box>
+        </Paper>
+    </Box>
+);
 
 export function TwoFactorSetupModal({open, onClose, onSuccess, onError}: TwoFactorSetupModalProps) {
     const intl = useIntl();
@@ -114,112 +212,19 @@ export function TwoFactorSetupModal({open, onClose, onSuccess, onError}: TwoFact
                 {intl.formatMessage({id: 'settings.security.twoFactor.setupTitle'})}
             </DialogTitle>
             <DialogContent sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 3,
-                mt: 1,
-                alignItems: 'center',
-                overflowY: 'auto',
-                scrollbarWidth: 'none',
-                '&::-webkit-scrollbar': {
-                    display: 'none'
-                },
+                display: 'flex', flexDirection: 'column', gap: 3, mt: 1, alignItems: 'center',
+                overflowY: 'auto', scrollbarWidth: 'none',
+                '&::-webkit-scrollbar': { display: 'none' },
                 msOverflowStyle: 'none'
             }}>
                 {!backupCodes ? (
-                    <>
-                        <Typography variant="body2" color="text.secondary" textAlign="center">
-                            {intl.formatMessage({id: 'settings.security.twoFactor.setupDesc'})}
-                        </Typography>
-                        {setupData && (
-                            <Box sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: 2,
-                                width: '100%'
-                            }}>
-                                <Box sx={{
-                                    p: 2,
-                                    bgcolor: '#ffffff', // Keep white for QR code readability
-                                    borderRadius: '12px',
-                                    border: 1,
-                                    borderColor: 'divider',
-                                    boxShadow: theme.palette.mode === 'dark' ? '0 4px 12px rgba(0,0,0,0.5)' : '0 4px 12px rgba(0,0,0,0.05)'
-                                }}>
-                                    <QRCodeSVG value={setupData.qr} size={180}/>
-                                </Box>
-                                <Box sx={{display: 'flex', alignItems: 'center', gap: 1.5}}>
-                                    <Box sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 1,
-                                        bgcolor: 'background.default',
-                                        px: 2,
-                                        py: 1,
-                                        borderRadius: '8px',
-                                        border: 1,
-                                        borderStyle: 'dashed',
-                                        borderColor: 'divider'
-                                    }}>
-                                        <Typography color="text.primary" sx={{
-                                            fontFamily: 'monospace',
-                                            fontWeight: 700,
-                                            letterSpacing: '1px'
-                                        }}>
-                                            {setupData.secret}
-                                        </Typography>
-                                        <Tooltip title={intl.formatMessage({id: 'users.modal.copyTooltip'})}>
-                                            <IconButton size="small" onClick={copySecret}>
-                                                <ContentCopy fontSize="small" sx={{color: 'text.secondary'}}/>
-                                            </IconButton>
-                                        </Tooltip>
-                                    </Box>
-                                    <Tooltip title={intl.formatMessage({id: 'settings.security.twoFactor.manualEntry'})}>
-                                        <HelpOutline sx={{fontSize: '1.4rem', color: 'text.secondary', cursor: 'help'}}/>
-                                    </Tooltip>
-                                </Box>
-                            </Box>
-                        )}
-                        <Box sx={{width: '100%', mt: 1}}>
-                            <Typography variant="caption" color="text.primary" sx={{display: 'block', mb: 1, textAlign: 'center', fontWeight: 600}}>
-                                {intl.formatMessage({id: 'settings.security.twoFactor.confirmCode'})}
-                            </Typography>
-                            <OtpInput
-                                value={verificationCode}
-                                onChange={setVerificationCode}
-                                disabled={loading}
-                            />
-                        </Box>
-                    </>
+                    <SetupView 
+                        setupData={setupData} theme={theme} intl={intl} 
+                        copySecret={copySecret} verificationCode={verificationCode} 
+                        setVerificationCode={setVerificationCode} loading={loading} 
+                    />
                 ) : (
-                    <Box sx={{width: '100%'}}>
-                        <Alert severity="success" icon={<CheckCircleOutline/>} sx={{mb: 3}}>
-                            {intl.formatMessage({id: 'settings.security.twoFactor.successEnabled'})}
-                        </Alert>
-                        <Typography variant="subtitle2" color="text.primary" fontWeight={700} gutterBottom>
-                            {intl.formatMessage({id: 'settings.security.twoFactor.backupCodesTitle'})}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{mb: 2}}>
-                            {intl.formatMessage({id: 'settings.security.twoFactor.backupCodesDesc'})}
-                        </Typography>
-                        <Paper variant="outlined" sx={{p: 2, bgcolor: 'background.default', position: 'relative', borderColor: 'divider'}}>
-                            <IconButton
-                                size="small"
-                                onClick={copyBackupCodes}
-                                sx={{position: 'absolute', top: 8, right: 8}}
-                            >
-                                <ContentCopy fontSize="small" sx={{color: 'text.secondary'}}/>
-                            </IconButton>
-                            <Box sx={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1}}>
-                                {backupCodes.map((code) => (
-                                    <Typography key={code} color="text.primary" sx={{fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 600}}>
-                                        {code}
-                                    </Typography>
-                                ))}
-                            </Box>
-                        </Paper>
-                    </Box>
+                    <BackupCodesView backupCodes={backupCodes} copyBackupCodes={copyBackupCodes} intl={intl} />
                 )}
             </DialogContent>
             <DialogActions sx={{p: 3}}>

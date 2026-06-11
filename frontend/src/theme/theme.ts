@@ -96,66 +96,72 @@ export const createAppTheme = (config: ThemeConfig) => {
         ? 'rgba(255, 255, 255, 0.15)' 
         : `${colors.main}33`;
 
+    const palette: ThemeOptions['palette'] = {
+        mode,
+        primary: {
+            main: colors.main,
+        },
+        background: {
+            default: backgroundDefault,
+            paper: backgroundPaper,
+            highlight: hoverHighlight,
+            selected: selectedHighlight
+        },
+        gradients: {
+            brand: `linear-gradient(135deg, ${colors.main} 0%, ${colors.dark} 100%)`,
+        },
+        logo: colors.logo,
+    };
+
+    const fontSizes = {
+        tiny: `${baseFontSize * 0.75}px`,
+        small: `${baseFontSize * 0.875}px`,
+        medium: `${baseFontSize}px`,
+        large: `${baseFontSize * 1.25}px`,
+        huge: `${baseFontSize * 1.5}px`,
+    };
+
+    const components: ThemeOptions['components'] = {
+        MuiPaper: {
+            styleOverrides: {
+                root: {
+                    borderRadius: 16,
+                    boxShadow: isDark 
+                        ? '0 4px 20px rgba(0, 0, 0, 0.4)' 
+                        : '0 2px 12px rgba(0, 0, 0, 0.06)',
+                    backgroundImage: 'none',
+                },
+            },
+        },
+        MuiButton: {
+            styleOverrides: {
+                root: {
+                    borderRadius: 10,
+                    height: 50,
+                    textTransform: 'none',
+                    fontSize: baseFontSize,
+                    fontWeight: 500,
+                },
+            },
+        },
+        MuiTextField: {
+            defaultProps: {
+                fullWidth: true,
+                variant: 'outlined',
+            },
+        },
+    };
+
     return createTheme({
-        palette: {
-            mode,
-            primary: {
-                main: colors.main,
-            },
-            background: {
-                default: backgroundDefault,
-                paper: backgroundPaper,
-                highlight: hoverHighlight,
-                selected: selectedHighlight
-            },
-            gradients: {
-                brand: `linear-gradient(135deg, ${colors.main} 0%, ${colors.dark} 100%)`,
-            },
-            logo: colors.logo,
-        },
-        fontSizes: {
-            tiny: `${baseFontSize * 0.75}px`,
-            small: `${baseFontSize * 0.875}px`,
-            medium: `${baseFontSize}px`,
-            large: `${baseFontSize * 1.25}px`,
-            huge: `${baseFontSize * 1.5}px`,
-        },
+        palette,
+        fontSizes,
         iconSizes: {
             textFieldDecorator: '16px'
         },
         shape: {
             borderRadius: 12,
         },
-        components: {
-            MuiPaper: {
-                styleOverrides: {
-                    root: {
-                        borderRadius: 16,
-                        boxShadow: isDark 
-                            ? '0 4px 20px rgba(0, 0, 0, 0.4)' 
-                            : '0 2px 12px rgba(0, 0, 0, 0.06)',
-                        backgroundImage: 'none',
-                    },
-                },
-            },
-            MuiButton: {
-                styleOverrides: {
-                    root: {
-                        borderRadius: 10,
-                        height: 50,
-                        textTransform: 'none',
-                        fontSize: baseFontSize,
-                        fontWeight: 500,
-                    },
-                },
-            },
-            MuiTextField: {
-                defaultProps: {
-                    fullWidth: true,
-                    variant: 'outlined',
-                },
-            },
-        },
+        components,
     } satisfies ThemeOptions);
 };
 
