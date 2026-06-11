@@ -1,4 +1,5 @@
-import {Box, CircularProgress, useTheme} from '@mui/material';
+import {Box, CircularProgress} from '@mui/material';
+import {useTheme} from '@mui/material/styles';
 
 export function ChatTypingBubble() {
     const theme = useTheme();
