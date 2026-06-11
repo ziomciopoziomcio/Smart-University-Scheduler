@@ -73,7 +73,7 @@ export default function FacultyModal({open, faculty, onClose, onSuccess}: Facult
                         {intl.formatMessage({id: 'structures.common.save'})}
                     </AppButton>
                     <AppButton variant="text" onClick={onClose} disabled={loading}>
-                        {intl.formatMessage({id: 'facilities.common.cancel'})}
+                        {intl.formatMessage({id: 'structures.common.cancel'})}
                     </AppButton>
                 </Box>
             </DialogContent>
