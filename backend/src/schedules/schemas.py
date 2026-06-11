@@ -125,13 +125,13 @@ class ScheduleEntry(BaseModel):
 
 
 class DayOfWeek(str, Enum):
-    MONDAY = "Monday"
-    TUESDAY = "Tuesday"
-    WEDNESDAY = "Wednesday"
-    THURSDAY = "Thursday"
-    FRIDAY = "Friday"
-    SATURDAY = "Saturday"
-    SUNDAY = "Sunday"
+    MONDAY = "MONDAY"
+    TUESDAY = "TUESDAY"
+    WEDNESDAY = "WEDNESDAY"
+    THURSDAY = "THURSDAY"
+    FRIDAY = "FRIDAY"
+    SATURDAY = "SATURDAY"
+    SUNDAY = "SUNDAY"
 
 
 class UpdateScheduleSessionRequest(BaseModel):
@@ -141,7 +141,8 @@ class UpdateScheduleSessionRequest(BaseModel):
     instructor_id: int = Field(alias="instructorId")
     room_id: int = Field(alias="roomId")
     apply_once: bool = Field(
-        default=False, alias="applyOnce"
+        default=False,
+        alias="applyOnce",
     )  # todo develop in next release
 
 
@@ -189,3 +190,43 @@ class CustomEventUpdate(BaseModel):
             if self.start_dt > self.end_dt:
                 raise ValueError("start_dt must be before or equal to end_dt")
         return self
+
+
+class ScheduleEditInstructorOption(BaseModel):
+    id: int
+    name: str
+
+
+class ScheduleEditRoomOption(BaseModel):
+    id: int
+    name: str
+    building: str | None = None
+    campus: str | None = None
+
+
+class ScheduleEditCurrent(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    day_of_week: DayOfWeek = Field(alias="dayOfWeek")
+    start_time: str = Field(alias="startTime")
+    end_time: str = Field(alias="endTime")
+    instructor_id: int = Field(alias="instructorId")
+    room_id: int = Field(alias="roomId")
+
+
+class ScheduleSessionEditOptions(BaseModel):
+    current: ScheduleEditCurrent
+    instructors: list[ScheduleEditInstructorOption]
+    rooms: list[ScheduleEditRoomOption]
+
+
+class CreateScheduleSessionRequest(BaseModel):
+    course_id: int = Field(alias="courseId")
+    group_ids: list[int] = Field(alias="groupIds")
+
+    day_of_week: str = Field(alias="dayOfWeek")
+    start_time: str = Field(alias="startTime")
+    end_time: str = Field(alias="endTime")
+
+    instructor_id: int = Field(alias="instructorId")
+    room_id: int = Field(alias="roomId")

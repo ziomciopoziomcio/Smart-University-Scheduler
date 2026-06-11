@@ -825,6 +825,24 @@
     }
   },
   "generateSchedule": {
+    "configuration": {
+      "title": "Planner configuration",
+      "description": "First select the faculty, academic year and semester. Save the planner settings, then run data validation.",
+      "facultyLabel": "Faculty",
+      "academicYearLabel": "Academic year",
+      "semesterLabel": "Semester",
+      "semester": {
+        "winter": "Winter",
+        "summer": "Summer"
+      },
+      "saveButton": "Save planner settings",
+      "validateButton": "Validate data",
+      "unsavedWarning": "Save the planner settings before running validation.",
+      "savedInfo": "Planner settings have been saved. You can now run data validation.",
+      "validationCompleted": "Validation completed. Detected issues: {issuesCount}.",
+      "generateBlocked": "Schedule generation will be available after saving the planner settings and running validation.",
+      "unexpectedError": "An unexpected error occurred."
+    },
     "hero": {
       "title": "Generate plans",
       "description": "Schedule generation may take a while. You can review the created version and check detected issues.",

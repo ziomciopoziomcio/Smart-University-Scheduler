@@ -123,7 +123,7 @@ ROOM_PLAN_QUERY = """
 
     RETURN
         s.sessionId AS session_id,
-        course.courseName AS title,
+        course.courseName AS course_name,
         course.classType AS class_type,
         config.physical_date AS physical_date,
         t.startTime AS start_time,
@@ -148,7 +148,7 @@ EMPLOYEE_SCHEDULE_QUERY = """
 
     RETURN
         s.sessionId AS session_id,
-        course.courseName AS title,
+        course.courseName AS course_name,
         course.classType AS class_type,
         config.physical_date AS physical_date,
         t.startTime AS start_time,
@@ -649,18 +649,59 @@ def _get_filtered_group_ids(
 
 
 def _map_schedule_entries(records: list[dict]) -> list[schemas.ScheduleEntry]:
-    """Maps Neo4j records to ScheduleEntry Pydantic schemas."""
-    return [
-        schemas.ScheduleEntry(
-            id=rec["session_id"],
-            title=rec["title"],
-            date=date.fromisoformat(rec["physical_date"]),
-            startTime=rec["start_time"],
-            endTime=rec["end_time"],
-            variant=_parse_variant(rec["class_type"]),
-        )
-        for rec in records
-    ]
+    """Maps Neo4j records to ScheduleEntry Pydantic schemas, grouping consecutive slots."""
+    if not records:
+        return []
+
+    sorted_records = sorted(
+        records, key=lambda x: (x.get("physical_date", ""), x.get("start_time", ""))
+    )
+
+    grouped_entries: list[schemas.ScheduleEntry] = []
+
+    for rec in sorted_records:
+        rec_id = rec["session_id"]
+        rec_title = rec["title"]
+        rec_date = date.fromisoformat(rec["physical_date"])
+        rec_start = rec["start_time"]
+        rec_end = rec["end_time"]
+        rec_variant = _parse_variant(rec["class_type"])
+
+        if not grouped_entries:
+            grouped_entries.append(
+                schemas.ScheduleEntry(
+                    id=rec_id,
+                    title=rec_title,
+                    date=rec_date,
+                    startTime=rec_start,
+                    end_time=rec_end,
+                    variant=rec_variant,
+                )
+            )
+            continue
+
+        last_entry = grouped_entries[-1]
+
+        if (
+            last_entry.id == rec_id
+            and last_entry.date == rec_date
+            and last_entry.variant == rec_variant
+            and rec_start >= last_entry.end_time
+        ):
+            last_entry.end_time = rec_end
+        else:
+            grouped_entries.append(
+                schemas.ScheduleEntry(
+                    id=rec_id,
+                    title=rec_title,
+                    date=rec_date,
+                    startTime=rec_start,
+                    end_time=rec_end,
+                    variant=rec_variant,
+                )
+            )
+
+    return grouped_entries
 
 
 @router.get("/study-field-plan", response_model=list[schemas.ScheduleEntry])
@@ -983,15 +1024,22 @@ async def _get_timeslot_or_400(
 
 def _to_plural_day(dow: str) -> str:
     mapping = {
-        "Monday": "Mondays",
-        "Tuesday": "Tuesdays",
-        "Wednesday": "Wednesdays",
-        "Thursday": "Thursdays",
-        "Friday": "Fridays",
-        "Saturday": "Saturdays",
-        "Sunday": "Sundays",
+        "MONDAY": "Mondays",
+        "TUESDAY": "Tuesdays",
+        "WEDNESDAY": "Wednesdays",
+        "THURSDAY": "Thursdays",
+        "FRIDAY": "Fridays",
+        "SATURDAY": "Saturdays",
+        "SUNDAY": "Sundays",
     }
-    return mapping[dow]
+
+    try:
+        return mapping[dow.upper()]
+    except KeyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unsupported day of week: {dow}",
+        ) from exc
 
 
 @router.put(
@@ -1537,3 +1585,240 @@ async def delete_custom_event(
 
     await neo4j_session.run(DELETE_CUSTOM_EVENT_QUERY, event_id=custom_event_id)
     return None
+
+
+_SESSION_EDIT_CURRENT_QUERY = """
+MATCH (s:ClassSession {sessionId: $session_id})
+MATCH (s)-[:AT_TIME]->(t:TimeSlot)
+MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
+MATCH (s)-[:HELD_IN]->(r:Room)
+RETURN t.dayOfWeek AS timeslot_day,
+       t.startTime AS start_time,
+       t.endTime AS end_time,
+       i.instructorId AS instructor_id,
+       r.roomId AS room_id
+LIMIT 1
+"""
+
+_INSTRUCTORS_LIST_QUERY = """
+MATCH (i:Instructor)
+RETURN i.instructorId AS id,
+       trim(
+           COALESCE(i.degree + ' ', '') +
+           COALESCE(i.firstName + ' ', '') +
+           COALESCE(i.lastName, '')
+       ) AS name
+ORDER BY name
+"""
+
+_ROOMS_LIST_QUERY = """
+MATCH (r:Room)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(cp:Campus)
+RETURN r.roomId AS id,
+       COALESCE(r.roomName, 'TBA') AS name,
+       COALESCE(b.buildingNumber, 'TBA') AS building,
+       COALESCE(cp.campusShort, 'TBA') AS campus
+ORDER BY campus, building, name
+"""
+
+
+@router.get(
+    "/session/{session_id}/edit-options",
+    response_model=schemas.ScheduleSessionEditOptions,
+)
+async def get_schedule_session_edit_options(
+    session_id: str,
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(require_permission("schedule:update")),
+):
+    """
+    Return options needed to edit a class session:
+    - current: current session day/time/instructor/room
+    - instructors: list of available instructors {id, name}
+    - rooms: list of available rooms {id, name, building, campus}
+    """
+    result = await neo4j_session.run(
+        _SESSION_EDIT_CURRENT_QUERY,
+        session_id=session_id,
+    )
+    record = await result.single()
+
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session or its current schedule relations were not found",
+        )
+
+    timeslot_day = record["timeslot_day"]
+    dow = timeslot_day[:-1] if timeslot_day.endswith("s") else timeslot_day
+
+    current = schemas.ScheduleEditCurrent(
+        dayOfWeek=dow.upper(),
+        startTime=record["start_time"],
+        endTime=record["end_time"],
+        instructorId=record["instructor_id"],
+        roomId=record["room_id"],
+    )
+
+    inst_result = await neo4j_session.run(_INSTRUCTORS_LIST_QUERY)
+    inst_rows = await inst_result.data()
+
+    instructors = [
+        schemas.ScheduleEditInstructorOption(
+            id=row["id"],
+            name=row["name"],
+        )
+        for row in inst_rows
+    ]
+
+    rooms_result = await neo4j_session.run(_ROOMS_LIST_QUERY)
+    rooms_rows = await rooms_result.data()
+
+    rooms = [
+        schemas.ScheduleEditRoomOption(
+            id=row["id"],
+            name=row["name"],
+            building=row["building"],
+            campus=row["campus"],
+        )
+        for row in rooms_rows
+    ]
+
+    return schemas.ScheduleSessionEditOptions(
+        current=current,
+        instructors=instructors,
+        rooms=rooms,
+    )
+
+
+_CREATE_SCHEDULE_SESSION_QUERY = """
+    MATCH (c:Course {courseCode: $course_id})
+    
+    MATCH (i:Instructor {instructorId: $instructor_id})
+    MATCH (r:Room {roomId: $room_id})
+    
+    MATCH (t:TimeSlot)
+    WHERE t.dayOfWeek = $day_of_week
+      AND t.startTime = $start_time
+      AND t.endTime = $end_time
+    
+    MATCH (g:Group)
+    WHERE g.groupId IN $group_ids
+    
+    WITH c, i, r, t, collect(g) AS groups
+    WHERE size(groups) = size($group_ids)
+    
+    CREATE (s:ClassSession {
+        sessionId: $session_id,
+        weeks: $weeks,
+        createdAt: datetime()
+    })
+    
+    MERGE (s)-[:OF_COURSE]->(c)
+    MERGE (s)-[:TAUGHT_BY]->(i)
+    MERGE (s)-[:HELD_IN]->(r)
+    MERGE (s)-[:AT_TIME]->(t)
+    
+    FOREACH (g IN groups |
+        MERGE (s)-[:FOR_GROUP]->(g)
+    )
+    
+    RETURN s.sessionId AS session_id
+"""
+
+_CREATE_SESSION_CONFLICT_QUERY = """
+    MATCH (t:TimeSlot)
+    WHERE t.dayOfWeek = $day_of_week
+      AND t.startTime = $start_time
+      AND t.endTime = $end_time
+    
+    MATCH (other:ClassSession)-[:AT_TIME]->(t)
+    
+    OPTIONAL MATCH (other)-[:TAUGHT_BY]->(i:Instructor)
+    OPTIONAL MATCH (other)-[:HELD_IN]->(r:Room)
+    OPTIONAL MATCH (other)-[:FOR_GROUP]->(g:Group)
+    
+    WHERE
+        i.instructorId = $instructor_id
+        OR r.roomId = $room_id
+        OR g.groupId IN $group_ids
+    
+    RETURN count(DISTINCT other) AS conflicts
+"""
+
+
+def _upper_to_plural_day(day: str) -> str | None:
+    mapping = {
+        "MONDAY": "Mondays",
+        "TUESDAY": "Tuesdays",
+        "WEDNESDAY": "Wednesdays",
+        "THURSDAY": "Thursdays",
+        "FRIDAY": "Fridays",
+        "SATURDAY": "Saturdays",
+        "SUNDAY": "Sundays",
+    }
+    return mapping.get(day, None)
+
+
+@router.post(
+    "/session",
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_schedule_session(
+    payload: schemas.CreateScheduleSessionRequest,
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(
+        require_permission("class-session:create")
+    ),
+):
+    """
+    Create a schedule session in Neo4j.
+    """
+    mapped_day = _upper_to_plural_day(payload.day_of_week)
+    if mapped_day is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="dayOfWeek must be in the singular and in capital letters, e.g. 'MONDAY'",
+        )
+
+    conflict_result = await neo4j_session.run(
+        _CREATE_SESSION_CONFLICT_QUERY,
+        day_of_week=mapped_day,
+        start_time=payload.start_time,
+        end_time=payload.end_time,
+        instructor_id=payload.instructor_id,
+        room_id=payload.room_id,
+        group_ids=payload.group_ids,
+    )
+
+    conflict_record = await conflict_result.single()
+
+    if conflict_record and conflict_record["conflicts"] > 0:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Schedule conflict detected",
+        )
+
+    session_id = str(uuid.uuid4())
+
+    result = await neo4j_session.run(
+        _CREATE_SCHEDULE_SESSION_QUERY,
+        session_id=session_id,
+        course_id=payload.course_id,
+        group_ids=payload.group_ids,
+        instructor_id=payload.instructor_id,
+        room_id=payload.room_id,
+        day_of_week=mapped_day,
+        start_time=payload.start_time,
+        end_time=payload.end_time,
+        weeks=list(range(1, 16)),
+    )
+
+    record = await result.single()
+
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Failed to create session",
+        )
+
+    return {"session_id": record["session_id"]}

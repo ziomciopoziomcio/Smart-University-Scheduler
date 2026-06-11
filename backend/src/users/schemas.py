@@ -225,3 +225,8 @@ class PasswordChangeRequest(BaseModel):
 
 class VerifyEmailResponse(BaseModel):
     detail: str
+
+
+class APIKeyResponse(BaseModel):
+    detail: str
+    api_key: str

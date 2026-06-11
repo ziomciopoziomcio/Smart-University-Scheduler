@@ -822,6 +822,24 @@
     }
   },
   "generateSchedule": {
+    "configuration": {
+      "title": "Konfiguracja planera",
+      "description": "Najpierw wybierz wydział, rok akademicki i semestr. Zapisz ustawienia planera, a następnie uruchom walidację danych.",
+      "facultyLabel": "Wydział",
+      "academicYearLabel": "Rok akademicki",
+      "semesterLabel": "Semestr",
+      "semester": {
+        "winter": "Zimowy",
+        "summer": "Letni"
+      },
+      "saveButton": "Zapisz ustawienia planera",
+      "validateButton": "Waliduj dane",
+      "unsavedWarning": "Zapisz ustawienia planera przed uruchomieniem walidacji.",
+      "savedInfo": "Ustawienia planera zostały zapisane. Możesz uruchomić walidację danych.",
+      "validationCompleted": "Walidacja zakończona. Wykryte problemy: {issuesCount}.",
+      "generateBlocked": "Generowanie planu będzie dostępne po zapisaniu ustawień planera i wykonaniu walidacji.",
+      "unexpectedError": "Wystąpił nieoczekiwany błąd."
+    },
     "hero": {
       "title": "Generuj plany",
       "description": "Generowanie planu może potrwać dłuższą chwilę. Po zakończeniu zobaczysz najważniejsze informacje, ostrzeżenia oraz problemy wymagające sprawdzenia.",
