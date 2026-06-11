@@ -140,6 +140,11 @@ class UpdateScheduleSessionRequest(BaseModel):
     end_time: str | None = Field(default=None, alias="endTime")
     instructor_id: int | None = Field(default=None, alias="instructorId")
     room_id: int | None = Field(default=None, alias="roomId")
+
+    weeks: list[int] | None = Field(
+        default=None,
+    )
+
     apply_once: bool = Field(
         default=False,
         alias="applyOnce",
