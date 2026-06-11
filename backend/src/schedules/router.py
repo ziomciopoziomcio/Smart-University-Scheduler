@@ -1588,7 +1588,6 @@ async def delete_custom_event(
     return None
 
 
-
 GROUP_COURSE_HOURS_SUMMARY_QUERY = """
         MATCH (g:Group {groupId: $group_id})
               <-[:FOR_GROUP]-(s:ClassSession)
@@ -1813,6 +1812,7 @@ async def validate_group_plan(
         "message": f"Found {len(validation_result)} issues",
         "issues": validation_result,
     }
+
 
 _SESSION_EDIT_CURRENT_QUERY = """
 MATCH (s:ClassSession {sessionId: $session_id})
@@ -2049,4 +2049,3 @@ async def create_schedule_session(
         )
 
     return {"session_id": record["session_id"]}
-
