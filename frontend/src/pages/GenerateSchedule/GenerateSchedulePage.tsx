@@ -1,19 +1,27 @@
 import {useEffect, useMemo, useState} from 'react';
 import {
-    Alert,
     Box,
     Button,
-    Card,
-    CardContent,
     CircularProgress,
     FormControl,
     InputLabel,
     MenuItem,
+    Paper,
     Select,
     Stack,
     TextField,
     Typography,
 } from '@mui/material';
+import {
+    CheckCircleOutlineRounded,
+    ErrorOutlineRounded,
+    FactCheckOutlined,
+    InfoOutlined,
+    SaveOutlined,
+    SettingsSuggestOutlined,
+    WarningAmberRounded,
+} from '@mui/icons-material';
+import {useIntl} from 'react-intl';
 
 import {
     type Faculty,
@@ -27,13 +35,9 @@ import {
     updatePlannerSettings,
     validateOptimizationData,
 } from '@api';
-
-import {
-    GenerateHero,
-} from '@components/Generate';
-
+import {GenerateHero} from '@components/Generate';
 import {useAuthStore} from '@store/useAuthStore';
-import {useIntl} from 'react-intl';
+import {theme} from '../../theme/theme.ts';
 
 const isAdministratorRole = (roles?: string[]) => {
     return roles?.some((role) => {
@@ -76,8 +80,8 @@ const getCurrentSemesterType = (): SemesterType => {
     const month = new Date().getMonth() + 1;
 
     return month >= 9 || month <= 2
-        ? 'WINTER'
-        : 'SUMMER';
+        ? 'Winter'
+        : 'Summer';
 };
 
 const getErrorMessage = (
@@ -102,9 +106,7 @@ export default function GenerateSchedulePage() {
     const [isFacultiesLoading, setIsFacultiesLoading] = useState(false);
 
     const [academicYear, setAcademicYear] = useState(getCurrentAcademicYear());
-    const [semesterType, setSemesterType] = useState<SemesterType>(
-        getCurrentSemesterType(),
-    );
+    const [semesterType, setSemesterType] = useState(getCurrentSemesterType());
 
     const [plannerSettings, setPlannerSettings] =
         useState<PlannerSettings | null>(null);
@@ -172,7 +174,7 @@ export default function GenerateSchedulePage() {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [intl]);
 
     useEffect(() => {
         if (!selectedFacultyId) {
@@ -233,7 +235,7 @@ export default function GenerateSchedulePage() {
         return () => {
             cancelled = true;
         };
-    }, [selectedFacultyId]);
+    }, [intl, selectedFacultyId]);
 
     const invalidateValidation = () => {
         setValidationReport(null);
@@ -242,8 +244,6 @@ export default function GenerateSchedulePage() {
 
     const handleFacultyChange = (facultyId: number) => {
         setSelectedFacultyId(facultyId);
-        setNotifications([]);
-        setHasGeneratedSchedule(false);
     };
 
     const handleSavePlannerSettings = async () => {
@@ -330,16 +330,13 @@ export default function GenerateSchedulePage() {
         }
 
         setIsGenerating(true);
-        setHasGeneratedSchedule(false);
-        setNotifications([]);
         setErrorMessage(null);
 
         try {
             await generateSchedule({
                 faculty_id: selectedFacultyId,
             });
-            //TODO: PROGRESS
-            setHasGeneratedSchedule(true);
+            // TODO: Add generation progress / success notification.
         } catch (error) {
             setErrorMessage(
                 getErrorMessage(
@@ -363,222 +360,352 @@ export default function GenerateSchedulePage() {
         : 0;
 
     const isGenerateDisabled =
+        !selectedFacultyId ||
         !plannerSettings ||
         !validationReport ||
         isConfigurationDirty ||
-        isGenerating;
+        isGenerating ||
+        isPlannerSettingsLoading ||
+        isPlannerSettingsSaving ||
+        isValidating;
+
+    const status = (() => {
+        if (errorMessage) {
+            return {
+                icon: <ErrorOutlineRounded/>,
+                background: '#FFF5F5',
+                border: 'rgba(205, 74, 74, 0.18)',
+                color: '#B64747',
+                message: errorMessage,
+            };
+        }
+
+        if (isConfigurationDirty) {
+            return {
+                icon: <WarningAmberRounded/>,
+                background: '#FFF9EE',
+                border: 'rgba(201, 145, 42, 0.20)',
+                color: '#9A6A19',
+                message: intl.formatMessage({
+                    id: 'generateSchedule.configuration.unsavedWarning',
+                }),
+            };
+        }
+
+        if (validationReport) {
+            const hasIssues = validationIssuesCount > 0;
+
+            return {
+                icon: hasIssues
+                    ? <WarningAmberRounded/>
+                    : <CheckCircleOutlineRounded/>,
+                background: hasIssues ? '#FFF9EE' : '#F2FBF5',
+                border: hasIssues
+                    ? 'rgba(201, 145, 42, 0.20)'
+                    : 'rgba(52, 145, 88, 0.20)',
+                color: hasIssues ? '#9A6A19' : '#2D7C4B',
+                message: intl.formatMessage(
+                    {
+                        id: 'generateSchedule.configuration.validationCompleted',
+                    },
+                    {
+                        issuesCount: validationIssuesCount,
+                    },
+                ),
+            };
+        }
+
+        return {
+            icon: <InfoOutlined/>,
+            background: '#F5F7FC',
+            border: 'rgba(79, 94, 130, 0.14)',
+            color: '#5E6C8B',
+            message: intl.formatMessage({
+                id: 'generateSchedule.configuration.savedInfo',
+            }),
+        };
+    })();
 
     return (
         <Box
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 2,
+                gap: 2.5,
                 width: '100%',
             }}
         >
-            <Card>
-                <CardContent>
-                    <Stack spacing={2}>
-                        <Box>
-                            <Typography variant="h6">
+            <Paper
+                elevation={0}
+                sx={{
+                    p: {xs: 3, md: 4.5},
+                    borderRadius: '24px',
+                    background: '#FFFFFF',
+                    border: '1px solid rgba(0,0,0,0.06)',
+                    boxShadow: '0 14px 34px rgba(20, 30, 55, 0.07)',
+                }}
+            >
+                <Stack spacing={{xs: 3, md: 3.5}}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: {xs: 2, md: 2.5},
+                        }}
+                    >
+                        <Box sx={{minWidth: 0, textAlign: 'left'}}>
+                            <Typography
+                                sx={{
+                                    fontSize: {xs: 24, md: 30},
+                                    fontWeight: 700,
+                                    color: '#4F4F4F',
+                                    lineHeight: 1.15,
+                                }}
+                            >
                                 {intl.formatMessage({
                                     id: 'generateSchedule.configuration.title',
                                 })}
                             </Typography>
 
                             <Typography
-                                variant="body2"
-                                color="text.secondary"
+                                sx={{
+                                    mt: 0.8,
+                                    fontSize: {xs: 14, md: 15.5},
+                                    color: '#7A7A7A',
+                                    maxWidth: 840,
+                                    lineHeight: 1.6,
+                                }}
                             >
                                 {intl.formatMessage({
                                     id: 'generateSchedule.configuration.description',
                                 })}
                             </Typography>
                         </Box>
+                    </Box>
 
-                        <Stack
-                            direction={{
-                                xs: 'column',
-                                md: 'row',
-                            }}
-                            spacing={2}
+                    <Stack
+                        direction={{xs: 'column', md: 'row'}}
+                        spacing={2}
+                    >
+                        <FormControl
+                            fullWidth
+                            size="small"
+                            disabled={
+                                isFacultiesLoading ||
+                                isPlannerSettingsLoading
+                            }
                         >
-                            <FormControl
-                                fullWidth
-                                disabled={
-                                    isFacultiesLoading ||
-                                    isPlannerSettingsLoading
-                                }
-                            >
-                                <InputLabel id="faculty-select-label">
-                                    {intl.formatMessage({
-                                        id: 'generateSchedule.configuration.facultyLabel',
-                                    })}
-                                </InputLabel>
-
-                                <Select
-                                    labelId="faculty-select-label"
-                                    label={intl.formatMessage({
-                                        id: 'generateSchedule.configuration.facultyLabel',
-                                    })}
-                                    value={selectedFacultyId ?? ''}
-                                    onChange={(event) => {
-                                        handleFacultyChange(
-                                            Number(event.target.value),
-                                        );
-                                    }}
-                                >
-                                    {faculties.map((faculty) => (
-                                        <MenuItem
-                                            key={faculty.id}
-                                            value={faculty.id}
-                                        >
-                                            {faculty.faculty_name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-
-                            <TextField
-                                select
-                                fullWidth
-                                label={intl.formatMessage({
-                                    id: 'generateSchedule.configuration.academicYearLabel',
+                            <InputLabel id="faculty-select-label">
+                                {intl.formatMessage({
+                                    id: 'generateSchedule.configuration.facultyLabel',
                                 })}
-                                value={academicYear}
-                                disabled={isPlannerSettingsLoading}
+                            </InputLabel>
+
+                            <Select
+                                labelId="faculty-select-label"
+                                label={intl.formatMessage({
+                                    id: 'generateSchedule.configuration.facultyLabel',
+                                })}
+                                value={selectedFacultyId ?? ''}
                                 onChange={(event) => {
-                                    setAcademicYear(event.target.value);
-                                    invalidateValidation();
+                                    handleFacultyChange(
+                                        Number(event.target.value),
+                                    );
                                 }}
+                                sx={selectSx}
                             >
-                                {academicYearOptions.map((year) => (
+                                {faculties.map((faculty) => (
                                     <MenuItem
-                                        key={year}
-                                        value={year}
+                                        key={faculty.id}
+                                        value={faculty.id}
                                     >
-                                        {year}
+                                        {faculty.faculty_name}
                                     </MenuItem>
                                 ))}
-                            </TextField>
+                            </Select>
+                        </FormControl>
 
-                            <TextField
-                                select
-                                fullWidth
-                                label={intl.formatMessage({
-                                    id: 'generateSchedule.configuration.semesterLabel',
-                                })}
-                                value={semesterType}
-                                disabled={isPlannerSettingsLoading}
-                                onChange={(event) => {
-                                    setSemesterType(
-                                        event.target.value as SemesterType,
-                                    );
-
-                                    invalidateValidation();
-                                }}
-                            >
-                                <MenuItem value="Winter">
-                                    {intl.formatMessage({
-                                        id: 'generateSchedule.configuration.semester.winter',
-                                    })}
-                                </MenuItem>
-
-                                <MenuItem value="Summer">
-                                    {intl.formatMessage({
-                                        id: 'generateSchedule.configuration.semester.summer',
-                                    })}
-                                </MenuItem>
-                            </TextField>
-                        </Stack>
-
-                        <Stack
-                            direction={{
-                                xs: 'column',
-                                sm: 'row',
+                        <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label={intl.formatMessage({
+                                id: 'generateSchedule.configuration.academicYearLabel',
+                            })}
+                            value={academicYear}
+                            disabled={isPlannerSettingsLoading}
+                            onChange={(event) => {
+                                setAcademicYear(event.target.value);
+                                invalidateValidation();
                             }}
-                            spacing={1}
+                            sx={textFieldSx}
+                        >
+                            {academicYearOptions.map((year) => (
+                                <MenuItem
+                                    key={year}
+                                    value={year}
+                                >
+                                    {year}
+                                </MenuItem>
+                            ))}
+                        </TextField>
+
+                        <TextField
+                            select
+                            fullWidth
+                            size="small"
+                            label={intl.formatMessage({
+                                id: 'generateSchedule.configuration.semesterLabel',
+                            })}
+                            value={semesterType}
+                            disabled={isPlannerSettingsLoading}
+                            onChange={(event) => {
+                                setSemesterType(
+                                    event.target.value as SemesterType,
+                                );
+                                invalidateValidation();
+                            }}
+                            sx={textFieldSx}
+                        >
+                            <MenuItem value="Winter">
+                                {intl.formatMessage({
+                                    id: 'generateSchedule.configuration.semester.winter',
+                                })}
+                            </MenuItem>
+
+                            <MenuItem value="Summer">
+                                {intl.formatMessage({
+                                    id: 'generateSchedule.configuration.semester.summer',
+                                })}
+                            </MenuItem>
+                        </TextField>
+                    </Stack>
+
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: {xs: 'column', sm: 'row'},
+                            alignItems: {xs: 'stretch', sm: 'center'},
+                            justifyContent: 'flex-end',
+                            gap: 2,
+                        }}
+                    >
+                        <Stack
+                            direction={{xs: 'column', sm: 'row'}}
+                            spacing={1.25}
                         >
                             <Button
                                 variant="contained"
-                                onClick={handleSavePlannerSettings}
+                                startIcon={
+                                    isPlannerSettingsSaving
+                                        ? <CircularProgress size={18} color="inherit"/>
+                                        : <SaveOutlined/>
+                                }
+                                onClick={() => void handleSavePlannerSettings()}
                                 disabled={
                                     !selectedFacultyId ||
                                     isPlannerSettingsLoading ||
                                     isPlannerSettingsSaving
                                 }
+                                sx={{
+                                    px: 2.8,
+                                    py: 1.25,
+                                    minHeight: 48,
+                                    borderRadius: '16px',
+                                    textTransform: 'none',
+                                    fontWeight: 700,
+                                    background: theme.palette.gradients.brand,
+                                    boxShadow: '0 10px 20px rgba(79, 94, 130, 0.22)',
+                                    '&:hover': {
+                                        background: theme.palette.gradients.brand,
+                                        filter: 'brightness(0.96)',
+                                        boxShadow: '0 12px 24px rgba(79, 94, 130, 0.28)',
+                                    },
+                                }}
                             >
-                                {isPlannerSettingsSaving
-                                    ? <CircularProgress size={20}/>
-                                    : intl.formatMessage({
-                                        id: 'generateSchedule.configuration.saveButton',
-                                    })}
+                                {intl.formatMessage({
+                                    id: 'generateSchedule.configuration.saveButton',
+                                })}
                             </Button>
 
                             <Button
                                 variant="outlined"
-                                onClick={handleValidate}
+                                startIcon={
+                                    isValidating
+                                        ? <CircularProgress size={18} color="inherit"/>
+                                        : <FactCheckOutlined/>
+                                }
+                                onClick={() => void handleValidate()}
                                 disabled={
                                     !plannerSettings ||
                                     isConfigurationDirty ||
                                     isValidating ||
                                     isPlannerSettingsSaving
                                 }
+                                sx={{
+                                    px: 2.8,
+                                    py: 1.25,
+                                    minHeight: 48,
+                                    borderRadius: '16px',
+                                    textTransform: 'none',
+                                    fontWeight: 700,
+                                    color: '#657493',
+                                    borderColor: 'rgba(101, 116, 147, 0.28)',
+                                    '&:hover': {
+                                        borderColor: 'rgba(101, 116, 147, 0.50)',
+                                        background: '#F8F9FC',
+                                    },
+                                }}
                             >
-                                {isValidating
-                                    ? <CircularProgress size={20}/>
-                                    : intl.formatMessage({
-                                        id: 'generateSchedule.configuration.validateButton',
-                                    })}
+                                {intl.formatMessage({
+                                    id: 'generateSchedule.configuration.validateButton',
+                                })}
                             </Button>
                         </Stack>
 
-                        {isConfigurationDirty && (
-                            <Alert severity="warning">
-                                {intl.formatMessage({
-                                    id: 'generateSchedule.configuration.unsavedWarning',
-                                })}
-                            </Alert>
+                        {(isFacultiesLoading || isPlannerSettingsLoading) && (
+                            <CircularProgress size={24} sx={{color: '#7A89A8'}}/>
                         )}
+                    </Box>
 
-                        {plannerSettings &&
-                            !isConfigurationDirty &&
-                            !validationReport && (
-                                <Alert severity="info">
-                                    {intl.formatMessage({
-                                        id: 'generateSchedule.configuration.savedInfo',
-                                    })}
-                                </Alert>
-                            )}
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1.25,
+                            px: 2,
+                            py: 1.55,
+                            borderRadius: '16px',
+                            background: status.background,
+                            border: `1px solid ${status.border}`,
+                            color: status.color,
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                flexShrink: 0,
+                                '& svg': {
+                                    fontSize: 22,
+                                },
+                            }}
+                        >
+                            {status.icon}
+                        </Box>
 
-                        {validationReport && (
-                            <Alert
-                                severity={
-                                    validationIssuesCount === 0
-                                        ? 'success'
-                                        : 'warning'
-                                }
-                            >
-                                {intl.formatMessage(
-                                    {
-                                        id: 'generateSchedule.configuration.validationCompleted',
-                                    },
-                                    {
-                                        issuesCount: validationIssuesCount,
-                                    },
-                                )}
-                            </Alert>
-                        )}
-
-                        {errorMessage && (
-                            <Alert severity="error">
-                                {errorMessage}
-                            </Alert>
-                        )}
-                    </Stack>
-                </CardContent>
-            </Card>
+                        <Typography
+                            sx={{
+                                fontSize: 14,
+                                fontWeight: 600,
+                                lineHeight: 1.5,
+                            }}
+                        >
+                            {status.message}
+                        </Typography>
+                    </Box>
+                </Stack>
+            </Paper>
 
             <GenerateHero
                 onGenerate={handleGenerate}
@@ -592,12 +719,62 @@ export default function GenerateSchedulePage() {
             />
 
             {!validationReport && (
-                <Alert severity="info">
-                    {intl.formatMessage({
-                        id: 'generateSchedule.configuration.generateBlocked',
-                    })}
-                </Alert>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.1,
+                        px: 2,
+                        py: 1.5,
+                        borderRadius: '16px',
+                        color: '#5E6C8B',
+                        background: '#F5F7FC',
+                        border: '1px solid rgba(79, 94, 130, 0.12)',
+                    }}
+                >
+                    <InfoOutlined sx={{fontSize: 21, flexShrink: 0}}/>
+
+                    <Typography sx={{fontSize: 14, fontWeight: 600}}>
+                        {intl.formatMessage({
+                            id: 'generateSchedule.configuration.generateBlocked',
+                        })}
+                    </Typography>
+                </Box>
             )}
         </Box>
     );
 }
+
+const selectSx = {
+    height: 48,
+    borderRadius: '16px',
+    bgcolor: '#FBFCFF',
+    fontSize: 14,
+    '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: 'rgba(0,0,0,0.08)',
+    },
+    '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: 'rgba(0,0,0,0.16)',
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#7A89A8',
+    },
+};
+
+const textFieldSx = {
+    '& .MuiOutlinedInput-root': {
+        height: 48,
+        borderRadius: '16px',
+        bgcolor: '#FBFCFF',
+        fontSize: 14,
+        '& fieldset': {
+            borderColor: 'rgba(0,0,0,0.08)',
+        },
+        '&:hover fieldset': {
+            borderColor: 'rgba(0,0,0,0.16)',
+        },
+        '&.Mui-focused fieldset': {
+            borderColor: '#7A89A8',
+        },
+    },
+};

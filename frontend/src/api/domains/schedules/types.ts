@@ -166,7 +166,7 @@ export interface ScheduleSessionEditOptionsResponse {
     rooms: ScheduleEditRoomOption[];
 }
 
-export type SemesterType = 'WINTER' | 'SUMMER';
+export type SemesterType = 'Winter' | 'Summer';
 
 export interface PlannerSettingsPayload {
     faculty_id: number;
