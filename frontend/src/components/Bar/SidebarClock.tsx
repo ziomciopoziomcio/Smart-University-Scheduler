@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
-import {Box, Typography, useTheme} from '@mui/material';
+import {Box, Typography} from '@mui/material';
+import {useTheme} from '@mui/material/styles';
 import {AccessTimeFilled} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 
