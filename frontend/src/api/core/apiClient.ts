@@ -31,10 +31,18 @@ const notifyUnauthorized = () => {
     }
 };
 
-export const getHeaders = () => ({
-    'Authorization': `Bearer ${getTokenFromStorage()}`,
-    'Content-Type': 'application/json',
-});
+export const getHeaders = () => {
+    const token = getTokenFromStorage();
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+    };
+
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    return headers;
+};
 
 // Global fetch interceptor for 401 Unauthorized errors
 if (typeof window !== 'undefined') {

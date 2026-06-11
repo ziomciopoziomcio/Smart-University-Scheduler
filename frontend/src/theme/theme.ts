@@ -156,7 +156,7 @@ export const createAppTheme = (config: ThemeConfig) => {
                 },
             },
         },
-    } as ThemeOptions);
+    } satisfies ThemeOptions);
 };
 
 
