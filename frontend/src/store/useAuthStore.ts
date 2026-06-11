@@ -96,7 +96,11 @@ export const useAuthStore = create<AuthState>()(
 
 // Break circular dependency by listening to a custom event from the API client
 if (typeof window !== 'undefined') {
-    window.addEventListener('app:unauthorized', () => {
-        useAuthStore.getState().setSessionExpired(true);
-    });
+    const w = window as typeof window & { __susUnauthorizedListenerAttached?: boolean };
+    if (!w.__susUnauthorizedListenerAttached) {
+        w.__susUnauthorizedListenerAttached = true;
+        window.addEventListener('app:unauthorized', () => {
+            useAuthStore.getState().setSessionExpired(true);
+        });
+    }
 }
