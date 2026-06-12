@@ -1822,3 +1822,39 @@ async def create_schedule_session(
         )
 
     return {"session_id": record["session_id"]}
+
+
+_DELETE_CLASS_SESSION_QUERY = """
+    MATCH (s:ClassSession {sessionId: $session_id})
+    DETACH DELETE s
+    RETURN count(s) AS deleted_count
+"""
+
+
+@router.delete(
+    "/session/{session_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_class_session(
+    session_id: str,
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(
+        require_permission("class-session:delete")
+    ),
+):
+    """
+    Delete a class session from Neo4j.
+    """
+
+    result = await neo4j_session.run(
+        _DELETE_CLASS_SESSION_QUERY,
+        session_id=session_id,
+    )
+
+    record = await result.single()
+
+    if not record or record["deleted_count"] == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Class session '{session_id}' not found",
+        )
