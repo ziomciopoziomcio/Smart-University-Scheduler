@@ -52,25 +52,26 @@ export default function TileView<T extends { id: number | string }>({
                             flexGrow: stretch ? 1 : 0,
                             width: stretch ? '30%' : 'calc(33.33% - 16px)',
                             p: isFlat ? 1.5 : 2.5,
-                            border: isFlat ? 'none' : '1px solid rgba(0,0,0,0.1)',
+                            border: isFlat ? 'none' : 1,
+                            borderColor: 'divider',
                             borderRadius: '16px',
                             cursor: 'pointer',
                             transition: 'background-color 0.2s ease, transform 0.2s ease, border-color 0.2s',
                             bgcolor: 'transparent',
                             '&:hover': {
-                                borderColor: isFlat ? 'transparent' : 'rgba(0,0,0,0.2)',
-                                bgcolor: isFlat ? '#F3F5F8' : '#fbfbfb',
+                                borderColor: isFlat ? 'transparent' : 'text.disabled',
+                                bgcolor: 'background.highlight',
                                 transform: isFlat ? 'none' : 'translateY(-2px)'
                             },
                             '&:hover .tile-icon': {
-                                color: isFlat ? '#686868' : 'inherit',
+                                color: 'primary.main',
                                 transform: isFlat ? 'translateX(1px)' : 'none',
                             },
                             '&:hover .tile-title': {
-                                color: isFlat ? '#505050' : 'text.primary',
+                                color: 'text.primary',
                             },
                             '&:hover .tile-subtitle': {
-                                color: isFlat ? '#666666' : 'text.primary',
+                                color: 'text.primary',
                             }
                         }}
                     >
@@ -79,7 +80,7 @@ export default function TileView<T extends { id: number | string }>({
                                 <Box
                                     className="tile-icon"
                                     sx={{
-                                        color: isFlat ? '#7b7b7b' : 'rgba(0,0,0,0.4)',
+                                        color: 'text.secondary',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         minWidth: isFlat ? 56 : 'auto',
                                         transition: 'color 0.2s ease, transform 0.2s ease',
@@ -98,7 +99,7 @@ export default function TileView<T extends { id: number | string }>({
                                 <Typography className="tile-title" sx={{
                                     fontWeight: isFlat ? 500 : 600,
                                     fontSize: isFlat ? '18px' : '1rem',
-                                    color: isFlat ? '#6b6b6b' : 'text.primary',
+                                    color: 'text.primary',
                                     textAlign: 'start',
                                     lineHeight: 1.2,
                                     transition: 'color 0.2s ease'
@@ -108,7 +109,7 @@ export default function TileView<T extends { id: number | string }>({
                                 {getSubtitle && (
                                     <Typography className="tile-subtitle" variant="body2" sx={{
                                         fontSize: isFlat ? '15px' : '0.875rem',
-                                        color: isFlat ? '#7a7a7a' : 'text.secondary',
+                                        color: 'text.secondary',
                                         textAlign: 'start',
                                         lineHeight: 1.35,
                                         transition: 'color 0.2s ease'
@@ -123,7 +124,7 @@ export default function TileView<T extends { id: number | string }>({
                                 e.stopPropagation();
                                 onMenuOpen(e, item);
                             }}>
-                                <MoreVert/>
+                                <MoreVert sx={{color: 'text.disabled'}}/>
                             </IconButton>
                         )}
                     </Box>
@@ -136,14 +137,16 @@ export default function TileView<T extends { id: number | string }>({
                     flexGrow: stretch ? 1 : 0,
                     width: stretch ? '30%' : 'calc(33.33% - 16px)',
                     p: 2.5,
-                    border: '1px dashed rgba(0,0,0,0.2)', borderRadius: '16px',
+                    border: '1px dashed',
+                    borderColor: 'divider',
+                    borderRadius: '16px',
                     cursor: 'pointer', transition: 'all 0.2s', gap: 2,
-                    '&:hover': {bgcolor: '#fbfbfb', borderColor: 'rgba(0,0,0,0.3)'}
+                    '&:hover': {bgcolor: 'background.highlight', borderColor: 'text.disabled'}
                 }}>
-                    <DefaultIcon inheritViewBox opacity={0.3}/>
-                    <Typography color="text.disabled" fontWeight={500}
+                    <DefaultIcon inheritViewBox sx={{ color: 'text.disabled', opacity: 0.8 }}/>
+                    <Typography color="text.secondary" fontWeight={500}
                                 sx={{display: 'flex', alignItems: 'center', gap: 1}}>
-                        <span style={{fontSize: '1.2rem'}}>+</span> {addLabel}
+                        <span style={{fontSize: '1.2rem', color: 'inherit'}}>+</span> {addLabel}
                     </Typography>
                 </Box>
             )}

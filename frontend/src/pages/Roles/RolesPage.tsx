@@ -2,6 +2,7 @@ import {useState, useEffect, useCallback} from 'react';
 import {useParams} from 'react-router-dom';
 import {Box, CircularProgress, Alert} from '@mui/material';
 import {useIntl} from 'react-intl';
+import {useTheme} from '@mui/material/styles';
 
 import {PageBreadcrumbs, type BreadcrumbItem, SearchBar} from '@components/Common';
 import {type Role, type Permission, fetchRoles, getRole, fetchPermissions} from '@api';
@@ -14,6 +15,8 @@ interface RolesPageProps {
 export default function RolesPage({view}: RolesPageProps) {
     const {id} = useParams<{ id: string }>();
     const intl = useIntl();
+
+    const theme = useTheme();
 
     const [roles, setRoles] = useState<Role[]>([]);
     const [currentRole, setCurrentRole] = useState<Role | null>(null);
@@ -112,7 +115,7 @@ export default function RolesPage({view}: RolesPageProps) {
                 width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                background: ['users', 'permissions'].includes(view) ? 'transparent' : '#ffffff',
+                background: ['users', 'permissions'].includes(view) ? 'transparent' : theme.palette.background.paper,
                 boxShadow: ['users', 'permissions'].includes(view) ? 'none' : '0 2px 12px rgba(0, 0, 0, 0.06)',
                 borderRadius: 2,
                 overflow: 'hidden',

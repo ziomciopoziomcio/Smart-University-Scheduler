@@ -33,7 +33,9 @@ export default function ActionMenu({
                     sx: {
                         borderRadius: '12px',
                         minWidth: '160px',
-                        boxShadow: '0px 4px 20px rgba(0,0,0,0.08)'
+                        boxShadow: (theme) => theme.palette.mode === 'dark' 
+                            ? '0px 8px 32px rgba(0,0,0,0.5)' 
+                            : '0px 4px 20px rgba(0,0,0,0.08)'
                     }
                 }
             }}

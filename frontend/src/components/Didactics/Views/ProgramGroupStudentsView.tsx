@@ -271,7 +271,7 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
 
             {/* TITLES & COUNTS CARDS */}
             <Box sx={{display: 'flex', gap: 3, alignItems: 'center', justifyContent: 'center'}}>
-                <Card sx={{flex: 1, borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)'}}>
+                <Card sx={{flex: 1, borderRadius: '12px', border: 1, borderColor: 'divider', boxShadow: 'none', bgcolor: 'background.paper'}}>
                     <Box sx={{p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                         <Typography variant="subtitle1" fontWeight={700} color="primary.main">
                             {group?.group_name || '...'}
@@ -282,7 +282,7 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                     </Box>
                 </Card>
                 <Box sx={{width: 56}}/>
-                <Card sx={{flex: 1, borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)'}}>
+                <Card sx={{flex: 1, borderRadius: '12px', border: 1, borderColor: 'divider', boxShadow: 'none', bgcolor: 'background.paper'}}>
                     <Box sx={{p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                         <Typography variant="subtitle1" fontWeight={700} color="primary.main">
                             {intl.formatMessage({id: 'sidebar.students'})} {field?.field_name} - {program?.start_year}
@@ -302,7 +302,10 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                     display: 'flex',
                     flexDirection: 'column',
                     borderRadius: '16px',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+                    border: 1, 
+                    borderColor: 'divider', 
+                    boxShadow: 'none',
+                    bgcolor: 'background.paper'
                 }}>
                     <CardContent
                         sx={{flexGrow: 1, p: 0, display: 'flex', flexDirection: 'column', position: 'relative'}}>
@@ -316,7 +319,8 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                bgcolor: 'rgba(255,255,255,0.6)',
+                                bgcolor: 'background.paper',
+                                opacity: 0.7,
                                 zIndex: 1
                             }}>
                                 <CircularProgress size={32}/>
@@ -332,7 +336,8 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                                         key={student.id}
                                         disablePadding
                                         sx={{
-                                            borderBottom: '1px solid rgba(0,0,0,0.04)',
+                                            borderBottom: 1,
+                                            borderColor: 'divider',
                                         }}
                                     >
                                         <ListItemButton
@@ -411,8 +416,8 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                             height: 80,
                             borderRadius: '12px',
                             bgcolor: 'primary.main',
-                            color: 'white',
-                            boxShadow: '0 4px 12px rgba(43, 80, 115, 0.2)',
+                            color: 'primary.contrastText',
+                            boxShadow: 2,
                             '&:hover': {bgcolor: 'primary.dark'},
                             '&.Mui-disabled': {bgcolor: 'action.disabledBackground'},
                         }}
@@ -429,8 +434,8 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                             height: 80,
                             borderRadius: '12px',
                             bgcolor: 'primary.main',
-                            color: 'white',
-                            boxShadow: '0 4px 12px rgba(43, 80, 115, 0.2)',
+                            color: 'primary.contrastText',
+                            boxShadow: 2,
                             '&:hover': {bgcolor: 'primary.dark'},
                             '&.Mui-disabled': {bgcolor: 'action.disabledBackground'},
                         }}
@@ -445,7 +450,10 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                     display: 'flex',
                     flexDirection: 'column',
                     borderRadius: '16px',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+                    border: 1, 
+                    borderColor: 'divider', 
+                    boxShadow: 'none',
+                    bgcolor: 'background.paper'
                 }}>
                     <CardContent
                         sx={{flexGrow: 1, p: 0, display: 'flex', flexDirection: 'column', position: 'relative'}}>
@@ -459,7 +467,8 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                bgcolor: 'rgba(255,255,255,0.6)',
+                                bgcolor: 'background.paper',
+                                opacity: 0.7,
                                 zIndex: 1
                             }}>
                                 <CircularProgress size={32}/>
@@ -475,7 +484,8 @@ export function ProgramGroupStudentsView({groupId, programId}: ProgramGroupStude
                                         key={student.id}
                                         disablePadding
                                         sx={{
-                                            borderBottom: '1px solid rgba(0,0,0,0.04)',
+                                            borderBottom: 1,
+                                            borderColor: 'divider',
                                         }}
                                     >
                                         <ListItemButton

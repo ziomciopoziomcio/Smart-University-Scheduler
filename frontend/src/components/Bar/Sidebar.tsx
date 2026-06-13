@@ -43,7 +43,7 @@ import {NavLink} from 'react-router-dom';
 
 import SidebarClock from './SidebarClock';
 import SidebarCalendar from './SidebarCalendar';
-import {theme} from '../../theme/theme';
+import {useTheme} from '@mui/material/styles';
 
 import {
     canAccessSection,
@@ -142,6 +142,7 @@ export function Sidebar() {
     const [open, setOpen] = useState(false);
     const drawerWidth = open ? 310 : 80;
     const intl = useIntl();
+    const theme = useTheme();
 
     const {user} = useAuthStore();
     const hasAnyPermission = usePermissionStore((state) => state.hasAnyPermission);
@@ -217,11 +218,12 @@ export function Sidebar() {
                                             justifyContent: open ? 'initial' : 'center',
                                             px: 2.5,
                                             borderRadius: '12px',
-                                            backgroundColor: isActive ? '#FFF' : 'transparent',
-                                            color: isActive ? '#045f8d' : '#555',
+                                            backgroundColor: isActive ? theme.palette.background.paper : 'transparent',
+                                            color: isActive ? theme.palette.primary.main : theme.palette.text.secondary,
                                             transition: 'all 0.2s ease-in-out',
                                             '&:hover': {
-                                                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                                                backgroundColor: theme.palette.background.highlight,
+                                                color: theme.palette.primary.main,
                                             },
                                         }}
                                     >
@@ -269,9 +271,14 @@ export function Sidebar() {
                         setOpen(!open);
                     }}
                     sx={{
-                        background: 'white',
-                        boxShadow: '0px 4px 10px rgba(0,0,0,0.05)',
-                        '&:hover': {bgcolor: '#fff'},
+                        background: theme.palette.background.paper,
+                        color: theme.palette.primary.main,
+                        boxShadow: theme.palette.mode === 'dark' 
+                            ? '0px 4px 20px rgba(0,0,0,0.4)' 
+                            : '0px 4px 10px rgba(0,0,0,0.05)',
+                        '&:hover': {
+                            bgcolor: theme.palette.background.highlight,
+                        },
                     }}
                 >
                     {open ? <ArrowBack/> : <ArrowForward/>}

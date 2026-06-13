@@ -14,13 +14,13 @@ class RescheduleSuggestionTool(BaseModel):
         ...,
         description="The reason for the rescheduling",
     )
-    proposed_timeslot_id: int | None = Field(
-        None,
-        description="The proposed timeslot id of the class to reschedule",
+    proposed_timeslot_ids: list[int] = Field(
+        ...,
+        description="EXACT list of timeslot IDs returned by SearchAvailableTimesTool (e.g., [12, 13, 14])",
     )
-    proposed_room_id: int | None = Field(
-        None,
-        description="The proposed room id of the class to reschedule",
+    proposed_room_id: int = Field(
+        ...,
+        description="The ID of the room chosen from the SearchAvailableTimesTool results",
     )
     confirmation_message: str = Field(
         ...,
@@ -30,14 +30,10 @@ class RescheduleSuggestionTool(BaseModel):
     )
 
 
-class CheckAvailabilityTool(BaseModel):
+class SearchAvailableTimesTool(BaseModel):
     """RAG tool for checking availability of a class session."""
 
     session_id: str = Field(
         ...,
-        description="The session id of the class to check",
-    )
-    proposed_timeslot_id: int = Field(
-        ...,
-        description="The proposed timeslot id of the class to check",
+        description="The session id of the class you want to reschedule",
     )

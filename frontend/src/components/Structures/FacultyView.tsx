@@ -101,6 +101,7 @@ export function FacultyView({data, onRefresh}: FacultyViewProps) {
                 onMenuOpen={canUseFacultyActions ? handleMenuOpen : undefined}
                 onAddClick={canCreateFaculty ? handleAddClick : undefined}
                 addLabel={intl.formatMessage({id: 'structures.faculty.add'})}
+
             />
 
             {canUseFacultyActions && (

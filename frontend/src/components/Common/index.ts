@@ -6,3 +6,5 @@ export * from './ListView.tsx';
 export {default as SearchBar} from './SearchBar.tsx';
 export {default as TileView} from './TileView.tsx';
 export {default as UserAvatar} from './UserAvatar.tsx';
+export * from './AppButton.tsx';
+export {SusLogo} from './Logotype.tsx';
