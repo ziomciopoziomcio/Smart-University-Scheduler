@@ -1,21 +1,11 @@
 import {useState} from 'react';
-import {
-    Box,
-    Typography,
-    Paper,
-    IconButton,
-    Tooltip,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Alert,
-} from '@mui/material';
-import {ContentCopy, Tag, WarningAmber} from '@mui/icons-material';
+import {Box, Typography, Paper, Alert} from '@mui/material';
+import {Tag} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 import {PageBreadcrumbs, type BreadcrumbItem, AppButton} from '@components/Common';
 import {generateApiKey} from '@api/domains/users/apikeys';
 import {useTheme} from '@mui/material/styles';
+import APIKeyDisplayModal from './components/APIKeyDisplayModal';
 
 export default function APIKeysPage() {
     const intl = useIntl();
@@ -43,12 +33,6 @@ export default function APIKeysPage() {
             setError(err instanceof Error ? err.message : 'Error generating API key');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const copyToClipboard = () => {
-        if (newKey) {
-            navigator.clipboard.writeText(newKey).catch(() => { /* ignore */ });
         }
     };
 
@@ -95,84 +79,11 @@ export default function APIKeysPage() {
                 </Box>
             </Paper>
 
-            <Dialog
-                open={modalOpen}
-                disableEscapeKeyDown
-                onClose={(event, reason) => {
-                    void event;
-                    // Only allow closing via the button
-                    if (reason === 'backdropClick' || reason === 'escapeKeyDown') return;
-                    setModalOpen(false);
-                }}
-                maxWidth="sm"
-                fullWidth
-                PaperProps={{
-                    sx: {
-                        borderRadius: '24px',
-                        p: 1
-                    }
-                }}
-            >
-                <DialogTitle sx={{fontWeight: 700, textAlign: 'center', pt: 3}}>
-                    {intl.formatMessage({id: 'publicapi.modal.title'})}
-                </DialogTitle>
-                <DialogContent sx={{pb: 1}}>
-                    <Box sx={{display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center', mt: 1}}>
-                        <Typography variant="body2" color="text.secondary" textAlign="center">
-                            {intl.formatMessage({id: 'publicapi.modal.description'})}
-                        </Typography>
-
-                        <Box sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1.5,
-                            width: '100%',
-                            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f8fafc',
-                            p: 2,
-                            borderRadius: '12px',
-                            border: '1px dashed',
-                            borderColor: 'divider'
-                        }}>
-                            <Typography sx={{
-                                fontFamily: 'monospace',
-                                fontWeight: 700,
-                                flexGrow: 1,
-                                wordBreak: 'break-all',
-                                letterSpacing: '0.5px',
-                                fontSize: '0.95rem'
-                            }}>
-                                {newKey}
-                            </Typography>
-                            <Tooltip title={intl.formatMessage({id: 'users.modal.copyTooltip'})}>
-                                <IconButton onClick={copyToClipboard} color="primary">
-                                    <ContentCopy fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        </Box>
-
-                        <Alert 
-                            severity="warning" 
-                            icon={<WarningAmber />}
-                            sx={{
-                                borderRadius: '12px',
-                                width: '100%',
-                                '& .MuiAlert-message': {fontWeight: 600}
-                            }}
-                        >
-                            {intl.formatMessage({id: 'publicapi.modal.warning'})}
-                        </Alert>
-                    </Box>
-                </DialogContent>
-                <DialogActions sx={{p: 3, justifyContent: 'center'}}>
-                    <AppButton
-                        variant="contained"
-                        onClick={() => { setModalOpen(false); }}
-                        sx={{px: 6}}
-                    >
-                        {intl.formatMessage({id: 'schedule.details.close'})}
-                    </AppButton>
-                </DialogActions>
-            </Dialog>
+            <APIKeyDisplayModal 
+                open={modalOpen} 
+                apiKey={newKey} 
+                onClose={() => { setModalOpen(false); }} 
+            />
         </Box>
     );
 }

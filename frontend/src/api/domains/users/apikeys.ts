@@ -8,20 +8,19 @@ export interface APIKeyResponse {
 const extractErrorMessage = async (response: Response, fallback: string): Promise<string> => {
     const contentType = response.headers.get('content-type') ?? '';
 
-    if (contentType.includes('application/json')) {
-        try {
-            const errorData = await response.json();
-            const detail = errorData?.detail;
-            if (Array.isArray(detail) && detail[0]?.msg) return detail[0].msg;
-            if (typeof detail === 'string' && detail.length > 0) return detail;
-        } catch {
-            // ignore
-        }
+    if (!contentType.includes('application/json')) {
+        return fallback;
     }
 
     try {
-        const text = (await response.text()).trim();
-        return text || fallback;
+        const errorData = await response.json();
+        const detail = errorData?.detail;
+        
+        if (Array.isArray(detail)) {
+            return detail[0]?.msg || fallback;
+        }
+        
+        return (typeof detail === 'string' && detail.length > 0) ? detail : fallback;
     } catch {
         return fallback;
     }
