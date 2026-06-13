@@ -237,3 +237,8 @@ class CreateScheduleSessionRequest(BaseModel):
     room_id: int = Field(alias="roomId")
 
     weeks: list[int] = Field(default_factory=lambda: list(range(1, 16)))
+
+
+class ValidationSource(str, Enum):
+    ACTIVE_GROUPS = "ACTIVE_GROUPS"
+    PLANNER_SETTINGS = "PLANNER_SETTINGS"
