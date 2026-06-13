@@ -59,7 +59,7 @@
     "absences:view", "absence:view",
     "custom-events:create", "custom-events:view", "custom-events:update", "custom-events:delete",
     "settings:create", "settings:view", "settings:update", "settings:delete",
-    "optimization:run", "optimization:view"
+    "optimization:run", "optimization:view", "chats:view"
   ],
   "Deans Office": [
     "students:view", "student:view", "student:create", "student:update", "student:delete",
@@ -87,7 +87,7 @@
     "suggestions:view", "suggestion:view", "suggestion:create", "suggestion:update", "suggestion:delete", "suggestion:approve", "suggestion:reject",
     "absences:view", "absence:view", "absence:create", "absence:update", "absence:delete",
     "custom-events:create", "custom-events:view", "custom-events:update", "custom-events:delete",
-    "settings:view"
+    "settings:view", "chats:view"
   ],
   "Unit head": [
     "students:view", "student:view",
@@ -114,7 +114,7 @@
     "suggestions:view", "suggestion:view", "suggestion:create",
     "absences:view", "absence:view", "absence:create", "absence:update",
     "custom-events:view",
-    "settings:view"
+    "settings:view", "chats:view"
   ],
   "Instructor": [
     "students:view", "student:view",
@@ -141,7 +141,7 @@
     "suggestions:view", "suggestion:view", "suggestion:create",
     "absences:view", "absence:view", "absence:create", "absence:update",
     "custom-events:view",
-    "settings:view"
+    "settings:view", "chats:view"
   ],
   "Student": [
     "student:view", "student:update",
@@ -167,7 +167,7 @@
     "class-sessions:view", "class-session:view",
     "suggestions:view", "suggestion:view", "suggestion:create",
     "absences:view", "absence:view",
-    "custom-events:view"
+    "custom-events:view", "chats:view"
   ],
   "Administrative Staff": [
     "employees:view", "employee:view",
