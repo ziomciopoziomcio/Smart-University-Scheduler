@@ -266,6 +266,6 @@ export const SIDEBAR_PERMISSIONS = {
     ],
 
     PUBLIC_API: [
-        PERMISSIONS.USER_ME,
+        PERMISSIONS.USER_API_KEY_GENERATE,
     ],
 } as const;
