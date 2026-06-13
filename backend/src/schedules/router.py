@@ -4,10 +4,15 @@ from datetime import timezone, datetime, date, timedelta, time
 
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import cast, String, text
+from sqlalchemy import cast, String, text, and_, or_
 from typing import List, Dict, Any
 
-from .schemas import CustomEventRead, CustomEventCreate, CustomEventUpdate
+from .schemas import (
+    CustomEventRead,
+    CustomEventCreate,
+    CustomEventUpdate,
+    ValidationSource,
+)
 from ..academics.models import Students, Employees
 from . import models
 from . import schemas
@@ -29,6 +34,7 @@ from ..database.neo4j import get_neo4j_session
 from ..users import models as user_models
 from ..courses.models import ClassType
 from ..courses import models as course_models
+from ..settings import models as settings_models
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
 
@@ -1750,55 +1756,10 @@ def compare_neo4j_with_postgres(
     result.extend(_detect_extra_neo4j_entries(group_id, neo4j_map, postgres_map))
 
 
-def _group_exists(db: Session, group_id: str) -> int:
-    """
-    Checks if given group exists in postgres
-    """
-    group_exists_query = text("""
-            SELECT 1
-            FROM groups
-            WHERE id = :group_id
-            LIMIT 1
-        """)
-
-    try:
-        group_id_int = int(group_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Incorrect group_id param",
-        )
-
-    group_exists = db.execute(group_exists_query, {"group_id": group_id_int}).scalar()
-
-    if group_exists is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Group {group_id} not found",
-        )
-    if not group_exists:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Group {group_id} not found",
-        )
-
-    return group_id_int
-
-
-def _get_all_active_groups(session: Session) -> List[int]:
-    """
-    Returns a list of IDs of all active groups.
-    """
-    query = text("""
-        select id from groups where is_active = true
-    """)
-
-    result = session.execute(query)
-    return [row[0] for row in result.fetchall()]
-
-
 @router.get("/validate-plan", status_code=status.HTTP_200_OK)
 async def validate_group_plan(
+    source: ValidationSource = Query(ValidationSource.ACTIVE_GROUPS),
+    faculty_id: int | None = Query(None),
     neo4j_session=Depends(get_neo4j_session),
     db: Session = Depends(get_db),
     _current_user: user_models.Users = Depends(require_permission("schedule:view")),
@@ -1807,7 +1768,7 @@ async def validate_group_plan(
     Validates timetables for all active groups by comparing teaching hours
     stored in Neo4j against curriculum requirements defined in PostgreSQL.
     """
-    active_groups = _get_all_active_groups(db)
+    active_groups = _get_groups_for_validation(source, db, faculty_id)
     validation_result = []
     for ag_id in active_groups:
         # get group data from neo
@@ -2001,9 +1962,9 @@ _CREATE_SESSION_CONFLICT_QUERY = """
         i,
         r,
         g
-    
+
     WHERE conflict_type IS NOT NULL
-    
+
     RETURN
         other.sessionId AS session_id,
         conflict_type,
@@ -2186,3 +2147,52 @@ async def delete_class_session(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Class session '{session_id}' not found",
         )
+
+
+def _get_groups_for_validation(
+    source: ValidationSource,
+    db: Session,
+    faculty_id: int | None = None,
+) -> list[int]:
+    if source == ValidationSource.ACTIVE_GROUPS:
+        results = (
+            db.query(ac_mod.Groups.id).filter(ac_mod.Groups.is_active.is_(True)).all()
+        )
+        return [int(row[0]) for row in results]
+    if not faculty_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="faculty_id is required when validating against PLANNER_SETTINGS",
+        )
+    results = (
+        db.query(ac_mod.Groups.id)
+        .join(
+            course_models.Study_program,
+            ac_mod.Groups.study_program == course_models.Study_program.id,
+        )
+        .join(
+            course_models.Study_fields,
+            course_models.Study_program.study_field == course_models.Study_fields.id,
+        )
+        .join(
+            settings_models.PlannerSettings,
+            course_models.Study_fields.faculty
+            == settings_models.PlannerSettings.faculty_id,
+        )
+        .filter(
+            ac_mod.Groups.is_active.is_(True),
+            course_models.Study_fields.faculty == faculty_id,
+            or_(
+                and_(
+                    settings_models.PlannerSettings.planned_semester_type == "Winter",
+                    ac_mod.Groups.semester % 2 != 0,  # todo: 2 cycle
+                ),
+                and_(
+                    settings_models.PlannerSettings.planned_semester_type == "Summer",
+                    ac_mod.Groups.semester % 2 == 0,  # todo: 2 cycle
+                ),
+            ),
+        )
+        .all()
+    )
+    return [int(row[0]) for row in results]
