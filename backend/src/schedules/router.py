@@ -1786,27 +1786,12 @@ _TIME_SLOT_EXISTS_QUERY = """
 """
 
 
-@router.post(
-    "/session",
-    status_code=status.HTTP_201_CREATED,
-)
-async def create_schedule_session(
-    payload: schemas.CreateScheduleSessionRequest,
-    neo4j_session=Depends(get_neo4j_session),
-    # _current_user: user_models.Users = Depends(
-    #     require_permission("class-session:create")
-    # ),
-):
+async def _validate_timeslot(
+    neo4j_session, mapped_day: str, payload: schemas.CreateScheduleSessionRequest
+) -> None:
     """
-    Create a schedule session in Neo4j.
+    Validate that the requested time slot exists in the schedule.
     """
-    mapped_day = _upper_to_plural_day(payload.day_of_week)
-    if mapped_day is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="dayOfWeek must be in the singular and in capital letters, e.g. 'MONDAY'",
-        )
-
     timeslot_check = await neo4j_session.run(
         _TIME_SLOT_EXISTS_QUERY,
         day_of_week=mapped_day,
@@ -1827,6 +1812,13 @@ async def create_schedule_session(
             },
         )
 
+
+async def _detect_session_conflicts(
+    neo4j_session, mapped_day: str, payload: schemas.CreateScheduleSessionRequest
+) -> None:
+    """
+    Check for scheduling conflicts involving instructors, rooms, or groups.
+    """
     conflict_result = await neo4j_session.run(
         _CREATE_SESSION_CONFLICT_QUERY,
         day_of_week=mapped_day,
@@ -1858,6 +1850,31 @@ async def create_schedule_session(
                 ],
             },
         )
+
+
+@router.post(
+    "/session",
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_schedule_session(
+    payload: schemas.CreateScheduleSessionRequest,
+    neo4j_session=Depends(get_neo4j_session),
+    # _current_user: user_models.Users = Depends(
+    #     require_permission("class-session:create")
+    # ),
+):
+    """
+    Create a schedule session in Neo4j.
+    """
+    mapped_day = _upper_to_plural_day(payload.day_of_week)
+    if mapped_day is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="dayOfWeek must be in the singular and in capital letters, e.g. 'MONDAY'",
+        )
+
+    await _validate_timeslot(neo4j_session, mapped_day, payload)
+    await _detect_session_conflicts(neo4j_session, mapped_day, payload)
 
     session_id = str(uuid.uuid4())
 
