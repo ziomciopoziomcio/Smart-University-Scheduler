@@ -589,17 +589,7 @@ async def get_lecturer_plan(
     )
     records = await result.data()
 
-    return [
-        schemas.ScheduleEntry(
-            id=rec["session_id"],
-            title=rec["title"],
-            date=date.fromisoformat(rec["physical_date"]),
-            startTime=rec["start_time"],
-            endTime=rec["end_time"],
-            variant=_parse_variant(rec["class_type"]),
-        )
-        for rec in records
-    ]
+    return _map_schedule_entries(records)
 
 
 def _validate_study_field_plan_params(
