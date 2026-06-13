@@ -36,6 +36,7 @@ import {
     ArrowForward,
     GroupsOutlined,
     InboxOutlined,
+    Tag,
 } from '@mui/icons-material';
 
 import {useIntl} from 'react-intl';
@@ -129,6 +130,12 @@ const menuConfig: SidebarMenuItem[] = [
         icon: <SettingsOutlined/>,
         path: '/settings',
         section: 'SETTINGS',
+    },
+    {
+        id: 'sidebar.publicapi',
+        icon: <Tag/>,
+        path: '/public-api',
+        section: 'PUBLIC_API',
     },
     {
         id: 'sidebar.generateSchedule',

@@ -108,6 +108,7 @@ export const PERMISSIONS = {
     USER_2FA_DISABLE: 'user-2fa:disable',
     USER_2FA_VERIFY: 'user-2fa:verify',
     USER_PASSWORD_CHANGE: 'user:password-change',
+    USER_API_KEY_GENERATE: 'api-key:generate',
 
     ROLES_VIEW: 'roles:view',
     ROLE_VIEW: 'role:view',
@@ -262,5 +263,9 @@ export const SIDEBAR_PERMISSIONS = {
     GENERATE_SCHEDULE: [
         PERMISSIONS.SCHEDULE_GENERATE,
         PERMISSIONS.OPTIMIZATION_RUN,
+    ],
+
+    PUBLIC_API: [
+        PERMISSIONS.USER_ME,
     ],
 } as const;

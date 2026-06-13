@@ -103,7 +103,19 @@
     "users": "Użytkownicy",
     "didactics": "Dydaktyka",
     "generateSchedule": "Generuj plan",
+    "publicapi": "Publiczne API",
     "programs": "Programy"
+  },
+  "publicapi": {
+    "title": "Klucze dostępu Publicznego API",
+    "description": "Zarządzaj swoimi kluczami API, aby uzyskać programowy dostęp do systemu.",
+    "generateButton": "Generuj nowy klucz API",
+    "modal": {
+      "title": "Nowy Klucz API",
+      "description": "To jest Twój nowy klucz API. Skopiuj go teraz, ponieważ nie zostanie wyświetlony ponownie.",
+      "copySuccess": "Klucz API skopiowany do schowka!",
+      "warning": "OSTRZEŻENIE: Zachowaj ten klucz w tajemnicy. Każdy, kto go posiada, może uzyskać dostęp do Twojego konta."
+    }
   },
   "navbar": {
     "guest": "Gość",

@@ -21,6 +21,7 @@ import EmployeesPage from "./pages/Employees/EmployeesPage.tsx";
 import UsersPage from "./pages/Users/UsersPage.tsx";
 import RolesPage from "./pages/Roles/RolesPage.tsx";
 import SettingsPage from "./pages/Settings/SettingsPage.tsx";
+import APIKeysPage from "./pages/PublicAPI/APIKeysPage.tsx";
 import SchedulesFacilitiesPage from "./pages/Schedules/FacilitiesSchedulesPage.tsx";
 import RoomSchedulePage from "./pages/Schedules/RoomSchedulePage.tsx";
 import StudentSchedulePage from "./pages/Schedules/StudentSchedulePage.tsx";
@@ -102,6 +103,11 @@ function AppRoute() {
                         {/*==================== SETTINGS ====================*/}
                         <Route element={<PermissionRoute section="SETTINGS"/>}>
                             <Route path="/settings" element={<SettingsPage/>}/>
+                        </Route>
+
+                        {/*==================== API KEYS ====================*/}
+                        <Route element={<PermissionRoute section="PUBLIC_API"/>}>
+                            <Route path="/public-api" element={<APIKeysPage/>}/>
                         </Route>
 
                         {/*==================== EDIT ROLES ====================*/}
