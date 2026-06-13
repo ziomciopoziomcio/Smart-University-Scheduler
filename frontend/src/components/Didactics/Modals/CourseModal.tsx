@@ -3,7 +3,6 @@ import {
     Dialog,
     DialogContent,
     Typography,
-    Button,
     Box,
     TextField,
     Alert,
@@ -30,6 +29,7 @@ import {
     type CourseCreate
 } from '@api';
 import type {CourseLanguage, ClassType} from '@api/core';
+import { AppButton } from '@components/Common';
 
 interface CourseModalProps {
     open: boolean;
@@ -377,7 +377,7 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
                                     <Checkbox
                                         checked={selectedTypes[type].enabled}
                                         onChange={() => { handleTypeToggle(type); }}
-                                        sx={{color: '#2b5073', '&.Mui-checked': {color: '#2b5073'}}}
+                                        sx={{color: 'primary.main', '&.Mui-checked': {color: 'primary.main'}}}
                                     />
                                 }
                                 label={intl.formatMessage({id: `didactics.classTypes.${type}`})}
@@ -398,37 +398,13 @@ export default function CourseModal({open, course, unitId, onClose, onSuccess}: 
                 </Box>
 
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        onClick={() => { void handleSubmit(); }}
-                        disabled={loading || loadingEmployees}
-                        sx={{
-                            py: 1.5,
-                            borderRadius: '12px',
-                            background: '#2b5073',
-                            textTransform: 'none',
-                            fontSize: '1rem',
-                            '&:hover': {bgcolor: '#1a3a56'}
-                        }}
-                    >
-                        {loading ? (
-                            <CircularProgress size={24} color="inherit"/>
-                        ) : (
-                            intl.formatMessage({
-                                id: isEdit ? 'didactics.common.saveChanges' : 'didactics.courses.add'
-                            })
-                        )}
-                    </Button>
+                    <AppButton variant="contained" onClick={() => { void handleSubmit(); }} loading={loading} disabled={loading || loadingEmployees}>
+                        {intl.formatMessage({id: isEdit ? 'didactics.common.saveChanges' : 'didactics.courses.add'})}
+                    </AppButton>
 
-                    <Button
-                        variant="text"
-                        fullWidth
-                        onClick={onClose}
-                        sx={{color: '#2b5073', textTransform: 'none', fontWeight: 600}}
-                    >
+                    <AppButton variant="text" onClick={onClose}>
                         {intl.formatMessage({id: 'didactics.common.cancel'})}
-                    </Button>
+                    </AppButton>
                 </Box>
             </DialogContent>
         </Dialog>

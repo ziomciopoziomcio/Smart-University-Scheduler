@@ -55,7 +55,7 @@ export function FieldDashboardView() {
     ].filter((option) => option.canView);
 
     return (
-        <Box sx={{width: '100%', background: '#FFF'}}>
+        <Box sx={{width: '100%'}}>
             <TileView
                 items={options}
                 getIcon={(item) => item.icon}

@@ -1,10 +1,11 @@
 import {useState, useEffect} from 'react';
 import {
     Dialog, DialogContent, DialogTitle, DialogActions, Box,
-    Button, TextField, CircularProgress, FormControl, InputLabel, Select, MenuItem, Typography,
+    Button, TextField, FormControl, InputLabel, Select, MenuItem, Typography,
     FormControlLabel, Checkbox
 } from '@mui/material';
 import {useIntl} from 'react-intl';
+import { AppButton } from '@components/Common';
 import {
     createGroup,
     updateGroup,
@@ -181,11 +182,9 @@ export function ProgramGroupModal({
                 <Button onClick={onClose} disabled={isSubmitting} sx={{fontWeight: 600, color: 'text.secondary'}}>
                     {intl.formatMessage({id: 'didactics.common.cancel'})}
                 </Button>
-                <Button onClick={() => { void handleSubmit(); }} variant="contained" disabled={isSubmitting || !groupName}
-                        sx={{borderRadius: '10px', px: 4, fontWeight: 600}}>
-                    {isSubmitting ?
-                        <CircularProgress size={24} color="inherit"/> : intl.formatMessage({id: 'didactics.common.save'})}
-                </Button>
+                <AppButton variant="contained" onClick={() => { void handleSubmit(); }} loading={isSubmitting} disabled={isSubmitting || !groupName}>
+                        {intl.formatMessage({id: 'didactics.common.save'})}
+                    </AppButton>
             </DialogActions>
         </Dialog>
     );

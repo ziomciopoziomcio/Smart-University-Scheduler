@@ -91,7 +91,7 @@ export function UnitView({data, facultyId, onRefresh}: UnitViewProps) {
                 items={data}
                 icon={Groups}
                 getTitle={(item: Unit) => item.unit_name}
-                titleWidth="350px"
+                titleWidth="700px"
                 columns={[
                     {
                         render: (item: Unit) => item.unit_short,

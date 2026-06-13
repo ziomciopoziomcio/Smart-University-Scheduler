@@ -35,9 +35,10 @@ export function ChatArchivePanel({
                 display: {xs: 'none', md: 'flex'},
                 flexDirection: 'column',
                 // borderRadius: 3,
-                border: '1px solid rgba(0,0,0,0.06)',
+                border: 1,
+                borderColor: 'divider',
                 overflow: 'hidden',
-                bgcolor: '#FFFFFF',
+                bgcolor: 'background.paper',
             }}
         >
             <Box sx={{p: 2}}>

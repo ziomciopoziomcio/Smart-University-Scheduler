@@ -4,6 +4,7 @@ import {
     Button, TextField, CircularProgress, Autocomplete, FormControl, InputLabel, Select, MenuItem, Typography
 } from '@mui/material';
 import {useIntl} from 'react-intl';
+import { AppButton } from '@components/Common';
 import {
     createCurriculumCourse, fetchCourses, fetchMajors, fetchElectiveBlocks,
     type Course, type Major, type ElectiveBlock
@@ -182,10 +183,9 @@ export function CurriculumModal({open, programId, semesterId, fieldId, onClose, 
                     fontWeight: 600,
                     color: 'text.secondary'
                 }}>{intl.formatMessage({id: 'didactics.common.cancel'})}</Button>
-                <Button onClick={handleSubmit} variant="contained" disabled={isSubmitting || !selectedCourse}
-                        sx={{borderRadius: '10px', px: 4, fontWeight: 600}}>
-                    {isSubmitting ? <CircularProgress size={24}/> : intl.formatMessage({id: 'didactics.common.save'})}
-                </Button>
+                <AppButton variant="contained" onClick={handleSubmit} loading={isSubmitting} disabled={isSubmitting || !selectedCourse}>
+                        {intl.formatMessage({id: 'didactics.common.save'})}
+                    </AppButton>
             </DialogActions>
         </Dialog>
     );

@@ -2,6 +2,7 @@ import {useState, useEffect, useCallback} from 'react';
 import {useParams} from 'react-router-dom';
 import {Box, CircularProgress, Alert, Typography} from '@mui/material';
 import {useIntl} from 'react-intl';
+import {useTheme} from '@mui/material/styles';
 
 import {PageBreadcrumbs, type BreadcrumbItem, SearchBar} from '@components/Common';
 import {
@@ -47,6 +48,8 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
     const [totalItems, setTotalItems] = useState(0);
+
+    const theme = useTheme();
 
     useEffect(() => {
         setPage(1);
@@ -221,7 +224,7 @@ export default function StudentsSchedulesPage({view}: StudentsSchedulesPageProps
                     px: {xs: 2, md: 3},
                     py: {xs: 2.5, md: 3},
                     borderRadius: 2,
-                    bgcolor: '#FFFFFF',
+                    background: theme.palette.background.paper,
                     minHeight: 420
                 }}
             >

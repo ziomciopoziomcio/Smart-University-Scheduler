@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import {
-    Dialog, DialogContent, Typography, Button, Box,
-    TextField, Alert, CircularProgress
+    Dialog, DialogContent, Typography, Box,
+    TextField, Alert
 } from '@mui/material';
 import { useIntl } from 'react-intl';
 import { type Major, createMajor, updateMajor } from '@api';
+import { AppButton } from '@components/Common';
 
 interface MajorModalProps {
     open: boolean;
@@ -77,34 +78,12 @@ export function MajorModal({ open, major, fieldId, onClose, onSuccess }: MajorMo
                 />
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        onClick={handleSubmit}
-                        disabled={loading || !name.trim()}
-                        sx={{
-                            py: 1.5,
-                            borderRadius: '12px',
-                            background: '#2b5073',
-                            textTransform: 'none',
-                            fontSize: '1rem',
-                            '&:hover': { bgcolor: '#1a3a56' }
-                        }}
-                    >
-                        {loading ?
-                            <CircularProgress size={24} color="inherit" /> :
-                            intl.formatMessage({id: isEdit ? 'didactics.common.saveChanges' : 'didactics.majors.add'})
-                        }
-                    </Button>
-                    <Button
-                        variant="text"
-                        fullWidth
-                        onClick={onClose}
-                        disabled={loading}
-                        sx={{ color: '#2b5073', textTransform: 'none', fontWeight: 600 }}
-                    >
+                    <AppButton variant="contained" onClick={handleSubmit} loading={loading} disabled={loading || !name.trim()}>
+                        {intl.formatMessage({id: isEdit ? 'didactics.common.saveChanges' : 'didactics.majors.add'})}
+                    </AppButton>
+                    <AppButton variant="text" onClick={onClose} disabled={loading}>
                         {intl.formatMessage({id: 'didactics.common.cancel'})}
-                    </Button>
+                    </AppButton>
                 </Box>
             </DialogContent>
         </Dialog>
