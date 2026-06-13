@@ -1966,13 +1966,28 @@ _CREATE_SESSION_CONFLICT_QUERY = """
     OPTIONAL MATCH (other)-[:HELD_IN]->(r:Room)
     OPTIONAL MATCH (other)-[:FOR_GROUP]->(g:Group)
 
-    WITH other, i, r, g
-    WHERE
-        i.instructorId = $instructor_id
-        OR r.roomId = $room_id
-        OR g.groupId IN $group_ids
+    WITH DISTINCT other, i, r, g
 
-    RETURN count(DISTINCT other) AS conflicts
+    WITH
+        other,
+        CASE
+            WHEN i.instructorId = $instructor_id THEN "INSTRUCTOR"
+            WHEN r.roomId = $room_id THEN "ROOM"
+            WHEN g.groupId IN $group_ids THEN "GROUP"
+        END AS conflict_type,
+        i,
+        r,
+        g
+    
+    WHERE conflict_type IS NOT NULL
+    
+    RETURN
+        other.sessionId AS session_id,
+        conflict_type,
+        i.instructorId AS instructor_id,
+        r.roomId AS room_id,
+        g.groupId AS group_id,
+        other.weeks AS weeks
 """
 
 
@@ -1987,6 +2002,81 @@ def _upper_to_plural_day(day: str) -> str | None:
         "SUNDAY": "Sundays",
     }
     return mapping.get(day, None)
+
+
+_TIME_SLOT_EXISTS_QUERY = """
+    MATCH (t:TimeSlot)
+    WHERE t.dayOfWeek = $day_of_week
+      AND t.startTime = $start_time
+      AND t.endTime = $end_time
+    RETURN t.timeSlotId AS id
+"""
+
+
+async def _validate_timeslot(
+    neo4j_session, mapped_day: str, payload: schemas.CreateScheduleSessionRequest
+) -> None:
+    """
+    Validate that the requested time slot exists in the schedule.
+    """
+    timeslot_check = await neo4j_session.run(
+        _TIME_SLOT_EXISTS_QUERY,
+        day_of_week=mapped_day,
+        start_time=payload.start_time,
+        end_time=payload.end_time,
+    )
+
+    timeslot = await timeslot_check.single()
+
+    if not timeslot:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "message": "Time slot not found",
+                "day_of_week": payload.day_of_week,
+                "start_time": payload.start_time,
+                "end_time": payload.end_time,
+            },
+        )
+
+
+async def _detect_session_conflicts(
+    neo4j_session, mapped_day: str, payload: schemas.CreateScheduleSessionRequest
+) -> None:
+    """
+    Check for scheduling conflicts involving instructors, rooms, or groups.
+    """
+    conflict_result = await neo4j_session.run(
+        _CREATE_SESSION_CONFLICT_QUERY,
+        day_of_week=mapped_day,
+        start_time=payload.start_time,
+        end_time=payload.end_time,
+        instructor_id=payload.instructor_id,
+        room_id=payload.room_id,
+        group_ids=payload.group_ids,
+        weeks=payload.weeks,
+    )
+
+    conflicts = [record async for record in conflict_result]
+
+    if conflicts:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "Schedule conflict detected",
+                "conflicts": [
+                    {
+                        "session_id": c["session_id"],
+                        "type": c["conflict_type"],
+                        "instructor_id": c["instructor_id"],
+                        "room_id": c["room_id"],
+                        "group_id": c["group_id"],
+                        "weeks": c["weeks"],
+                    }
+                    for c in conflicts
+                ],
+            },
+        )
 
 
 @router.post(
@@ -2010,24 +2100,8 @@ async def create_schedule_session(
             detail="dayOfWeek must be in the singular and in capital letters, e.g. 'MONDAY'",
         )
 
-    conflict_result = await neo4j_session.run(
-        _CREATE_SESSION_CONFLICT_QUERY,
-        day_of_week=mapped_day,
-        start_time=payload.start_time,
-        end_time=payload.end_time,
-        instructor_id=payload.instructor_id,
-        room_id=payload.room_id,
-        group_ids=payload.group_ids,
-        weeks=payload.weeks,
-    )
-
-    conflict_record = await conflict_result.single()
-
-    if conflict_record and conflict_record["conflicts"] > 0:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Schedule conflict detected",
-        )
+    await _validate_timeslot(neo4j_session, mapped_day, payload)
+    await _detect_session_conflicts(neo4j_session, mapped_day, payload)
 
     session_id = str(uuid.uuid4())
 
