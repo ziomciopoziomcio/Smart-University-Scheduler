@@ -4,7 +4,7 @@ import {Logout} from '@mui/icons-material';
 import {useAuthStore} from '@store/useAuthStore';
 import {useIntl} from 'react-intl';
 import {useNavigate} from 'react-router-dom';
-import {theme} from "../../theme/theme.ts";
+import {useTheme} from '@mui/material/styles';
 import UserAvatar from "@components/Common/UserAvatar.tsx";
 
 export function Navbar() {
@@ -12,7 +12,7 @@ export function Navbar() {
     const navigate = useNavigate();
 
     const {user, logout} = useAuthStore();
-
+    const theme = useTheme();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
 
@@ -34,7 +34,7 @@ export function Navbar() {
 
     return (
         <AppBar position="fixed" sx={{
-            zIndex: (theme) => theme.zIndex.drawer + 1,
+            zIndex: (t) => t.zIndex.drawer + 1,
             background: theme.palette.gradients.brand,
             height: "80px",
             justifyContent: 'center',
@@ -71,11 +71,8 @@ export function Navbar() {
                     aria-expanded={open ? 'true' : undefined}
                 >
                     <Avatar sx={{
-                        color: '#ddd',
                         width: 50,
                         height: 50,
-                        border: '2px solid white',
-                        background: theme.palette.primary.main,
                         cursor: 'pointer'
                     }}>
                         <UserAvatar name={user?.name} surname={user?.surname} size={48}/>
@@ -105,7 +102,7 @@ export function Navbar() {
                                     right: 14,
                                     width: 10,
                                     height: 10,
-                                    bgcolor: 'background.paper',
+                                    background: 'background.paper',
                                     transform: 'translateY(-50%) rotate(45deg)',
                                     zIndex: 0,
                                 },

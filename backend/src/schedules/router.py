@@ -4,7 +4,8 @@ from datetime import timezone, datetime, date, timedelta, time
 
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import cast, String
+from sqlalchemy import cast, String, text
+from typing import List, Dict, Any
 
 from .schemas import CustomEventRead, CustomEventCreate, CustomEventUpdate
 from ..academics.models import Students, Employees
@@ -1620,6 +1621,232 @@ async def delete_custom_event(
     return None
 
 
+GROUP_COURSE_HOURS_SUMMARY_QUERY = """
+        MATCH (g:Group {groupId: $group_id})
+              <-[:FOR_GROUP]-(s:ClassSession)
+              -[:OF_COURSE]->(c:Course)
+
+        OPTIONAL MATCH (s)-[:AT_TIME]->(t:TimeSlot)
+
+        WITH
+            c.courseCode AS course_code,
+            c.courseName AS course_name,
+            c.classType AS class_type,
+            s,
+            count(t) AS slot_count
+
+        RETURN
+            course_code,
+            course_name,
+            class_type,
+            sum(slot_count * size(s.weeks)) AS total_slots
+        ORDER BY course_name, class_type
+    """
+
+
+def _get_group_course_type_details(session: Session, group_id: int):
+    """
+    Return course type details for all courses assigned to the specified group.
+    """
+    query = text("""
+        SELECT
+            ctd.course,
+            c.course_name,
+            ctd.class_type,
+            ctd.class_hours
+        FROM groups g
+        JOIN curriculum_courses cc
+            ON cc.study_program = g.study_program
+        JOIN courses c
+            ON c.course_code = cc.course
+        JOIN course_type_detail ctd
+            ON ctd.course = cc.course
+        WHERE g.id = :group_id
+          AND cc.semester = g.semester
+          AND cc.elective_block IS NOT DISTINCT FROM g.elective_block
+          AND cc.major IS NOT DISTINCT FROM g.major
+        ORDER BY c.course_name
+    """)
+
+    return session.execute(query, {"group_id": group_id}).mappings().all()
+
+
+def _detect_extra_neo4j_entries(
+    group_id: int,
+    neo4j_map: Dict[tuple, Dict[str, Any]],
+    postgres_map: Dict[tuple, Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """
+    Detect entries that exist in Neo4j but are missing in Postgres.
+    """
+    extras = []
+
+    for key, neo in neo4j_map.items():
+        if key not in postgres_map:
+            extras.append(
+                {
+                    "group_id": group_id,
+                    "course_code": neo["course_code"],
+                    "course_name": neo["course_name"],
+                    "class_type": neo["class_type"],
+                    "neo4j_slots": neo["total_slots"],
+                    "postgres_hours": None,
+                    "match": False,
+                    "extra_in_neo4j": True,
+                    "difference": None,
+                }
+            )
+
+    return extras
+
+
+def compare_neo4j_with_postgres(
+    result: List,
+    group_id: int,
+    neo4j_data: List[Dict[str, Any]],
+    postgres_data: List[Dict[str, Any]],
+) -> None:
+    """
+    - detects missing courses in Neo4j
+    - detects mismatches
+    """
+
+    neo4j_map = {
+        (n["course_code"], str(n["class_type"]).lower()): n for n in neo4j_data
+    }
+
+    postgres_map = {
+        (p["course"], str(p["class_type"]).lower()): p for p in postgres_data
+    }
+
+    for key, pg in postgres_map.items():
+        neo = neo4j_map.get(key)
+
+        if neo is None:
+            # course exists in postgres but is missing in neo4j
+            result.append(
+                {
+                    "group_id": group_id,
+                    "course_code": pg["course"],
+                    "course_name": pg["course_name"],
+                    "class_type": pg["class_type"],
+                    "neo4j_slots": 0,
+                    "postgres_hours": pg["class_hours"],
+                    "match": False,
+                    "missing_in_neo4j": True,
+                    "difference": -pg["class_hours"],
+                }
+            )
+            continue
+
+        match = neo["total_slots"] == pg["class_hours"]
+        # hours mismatch
+        if not match:
+            result.append(
+                {
+                    "group_id": group_id,
+                    "course_code": pg["course"],
+                    "course_name": pg["course_name"],
+                    "class_type": pg["class_type"],
+                    "neo4j_slots": neo["total_slots"],
+                    "postgres_hours": pg["class_hours"],
+                    "match": match,
+                    "missing_in_neo4j": False,
+                    "difference": neo["total_slots"] - pg["class_hours"],
+                }
+            )
+
+    # detect extra Neo4j entries
+    result.extend(_detect_extra_neo4j_entries(group_id, neo4j_map, postgres_map))
+
+
+def _group_exists(db: Session, group_id: str) -> int:
+    """
+    Checks if given group exists in postgres
+    """
+    group_exists_query = text("""
+            SELECT 1
+            FROM groups
+            WHERE id = :group_id
+            LIMIT 1
+        """)
+
+    try:
+        group_id_int = int(group_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect group_id param",
+        )
+
+    group_exists = db.execute(group_exists_query, {"group_id": group_id_int}).scalar()
+
+    if group_exists is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Group {group_id} not found",
+        )
+    if not group_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Group {group_id} not found",
+        )
+
+    return group_id_int
+
+
+def _get_all_active_groups(session: Session) -> List[int]:
+    """
+    Returns a list of IDs of all active groups.
+    """
+    query = text("""
+        select id from groups where is_active = true
+    """)
+
+    result = session.execute(query)
+    return [row[0] for row in result.fetchall()]
+
+
+@router.get("/validate-plan", status_code=status.HTTP_200_OK)
+async def validate_group_plan(
+    neo4j_session=Depends(get_neo4j_session),
+    db: Session = Depends(get_db),
+    _current_user: user_models.Users = Depends(require_permission("schedule:view")),
+):
+    """
+    Validates timetables for all active groups by comparing teaching hours
+    stored in Neo4j against curriculum requirements defined in PostgreSQL.
+    """
+    active_groups = _get_all_active_groups(db)
+    validation_result = []
+    for ag_id in active_groups:
+        # get group data from neo
+        result = await neo4j_session.run(
+            GROUP_COURSE_HOURS_SUMMARY_QUERY, group_id=ag_id
+        )
+        group_hours_summary_neo = await result.data()
+
+        # get group data from postgres
+        group_hours_summary_postgres = _get_group_course_type_details(db, ag_id)
+
+        # compare data
+        compare_neo4j_with_postgres(
+            validation_result,
+            ag_id,
+            group_hours_summary_neo,
+            group_hours_summary_postgres,
+        )
+
+    if not validation_result:
+        return {"valid": True, "message": "Plan is valid", "issues": []}
+
+    return {
+        "valid": False,
+        "message": f"Found {len(validation_result)} issues",
+        "issues": validation_result,
+    }
+
+
 _SESSION_EDIT_CURRENT_QUERY = """
 MATCH (s:ClassSession {sessionId: $session_id})
 MATCH (s)-[:AT_TIME]->(t:TimeSlot)
@@ -1766,16 +1993,34 @@ _CREATE_SESSION_CONFLICT_QUERY = """
 
     MATCH (other:ClassSession)-[:AT_TIME]->(t)
 
+    WHERE ANY(w IN other.weeks WHERE w IN $weeks)
+
     OPTIONAL MATCH (other)-[:TAUGHT_BY]->(i:Instructor)
     OPTIONAL MATCH (other)-[:HELD_IN]->(r:Room)
     OPTIONAL MATCH (other)-[:FOR_GROUP]->(g:Group)
 
-    WHERE
-        i.instructorId = $instructor_id
-        OR r.roomId = $room_id
-        OR g.groupId IN $group_ids
+    WITH DISTINCT other, i, r, g
 
-    RETURN count(DISTINCT other) AS conflicts
+    WITH
+        other,
+        CASE
+            WHEN i.instructorId = $instructor_id THEN "INSTRUCTOR"
+            WHEN r.roomId = $room_id THEN "ROOM"
+            WHEN g.groupId IN $group_ids THEN "GROUP"
+        END AS conflict_type,
+        i,
+        r,
+        g
+    
+    WHERE conflict_type IS NOT NULL
+    
+    RETURN
+        other.sessionId AS session_id,
+        conflict_type,
+        i.instructorId AS instructor_id,
+        r.roomId AS room_id,
+        g.groupId AS group_id,
+        other.weeks AS weeks
 """
 
 
@@ -1790,6 +2035,81 @@ def _upper_to_plural_day(day: str) -> str | None:
         "SUNDAY": "Sundays",
     }
     return mapping.get(day, None)
+
+
+_TIME_SLOT_EXISTS_QUERY = """
+    MATCH (t:TimeSlot)
+    WHERE t.dayOfWeek = $day_of_week
+      AND t.startTime = $start_time
+      AND t.endTime = $end_time
+    RETURN t.timeSlotId AS id
+"""
+
+
+async def _validate_timeslot(
+    neo4j_session, mapped_day: str, payload: schemas.CreateScheduleSessionRequest
+) -> None:
+    """
+    Validate that the requested time slot exists in the schedule.
+    """
+    timeslot_check = await neo4j_session.run(
+        _TIME_SLOT_EXISTS_QUERY,
+        day_of_week=mapped_day,
+        start_time=payload.start_time,
+        end_time=payload.end_time,
+    )
+
+    timeslot = await timeslot_check.single()
+
+    if not timeslot:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "message": "Time slot not found",
+                "day_of_week": payload.day_of_week,
+                "start_time": payload.start_time,
+                "end_time": payload.end_time,
+            },
+        )
+
+
+async def _detect_session_conflicts(
+    neo4j_session, mapped_day: str, payload: schemas.CreateScheduleSessionRequest
+) -> None:
+    """
+    Check for scheduling conflicts involving instructors, rooms, or groups.
+    """
+    conflict_result = await neo4j_session.run(
+        _CREATE_SESSION_CONFLICT_QUERY,
+        day_of_week=mapped_day,
+        start_time=payload.start_time,
+        end_time=payload.end_time,
+        instructor_id=payload.instructor_id,
+        room_id=payload.room_id,
+        group_ids=payload.group_ids,
+        weeks=payload.weeks,
+    )
+
+    conflicts = [record async for record in conflict_result]
+
+    if conflicts:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "Schedule conflict detected",
+                "conflicts": [
+                    {
+                        "session_id": c["session_id"],
+                        "type": c["conflict_type"],
+                        "instructor_id": c["instructor_id"],
+                        "room_id": c["room_id"],
+                        "group_id": c["group_id"],
+                        "weeks": c["weeks"],
+                    }
+                    for c in conflicts
+                ],
+            },
+        )
 
 
 @router.post(
@@ -1813,23 +2133,8 @@ async def create_schedule_session(
             detail="dayOfWeek must be in the singular and in capital letters, e.g. 'MONDAY'",
         )
 
-    conflict_result = await neo4j_session.run(
-        _CREATE_SESSION_CONFLICT_QUERY,
-        day_of_week=mapped_day,
-        start_time=payload.start_time,
-        end_time=payload.end_time,
-        instructor_id=payload.instructor_id,
-        room_id=payload.room_id,
-        group_ids=payload.group_ids,
-    )
-
-    conflict_record = await conflict_result.single()
-
-    if conflict_record and conflict_record["conflicts"] > 0:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Schedule conflict detected",
-        )
+    await _validate_timeslot(neo4j_session, mapped_day, payload)
+    await _detect_session_conflicts(neo4j_session, mapped_day, payload)
 
     session_id = str(uuid.uuid4())
 
@@ -1843,7 +2148,7 @@ async def create_schedule_session(
         day_of_week=mapped_day,
         start_time=payload.start_time,
         end_time=payload.end_time,
-        weeks=list(range(1, 16)),
+        weeks=payload.weeks,
     )
 
     record = await result.single()
@@ -1855,3 +2160,39 @@ async def create_schedule_session(
         )
 
     return {"session_id": record["session_id"]}
+
+
+_DELETE_CLASS_SESSION_QUERY = """
+    MATCH (s:ClassSession {sessionId: $session_id})
+    DETACH DELETE s
+    RETURN count(s) AS deleted_count
+"""
+
+
+@router.delete(
+    "/session/{session_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_class_session(
+    session_id: str,
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(
+        require_permission("class-session:delete")
+    ),
+):
+    """
+    Delete a class session from Neo4j.
+    """
+
+    result = await neo4j_session.run(
+        _DELETE_CLASS_SESSION_QUERY,
+        session_id=session_id,
+    )
+
+    record = await result.single()
+
+    if not record or record["deleted_count"] == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Class session '{session_id}' not found",
+        )

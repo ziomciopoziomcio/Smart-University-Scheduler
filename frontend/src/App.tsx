@@ -4,7 +4,6 @@ import AppRoute from './AppRoute';
 import enMessages from './locales/en.json';
 import plMessages from './locales/pl.json';
 import {useAuthStore} from '@store/useAuthStore';
-import './App.css';
 
 const flattenMessages = (nestedMessages: Record<string, unknown> | null, prefix = '') => {
   if (nestedMessages === null) return {};

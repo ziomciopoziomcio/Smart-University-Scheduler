@@ -1,11 +1,12 @@
 import {useState, useEffect} from 'react';
 import {
-    Dialog, DialogContent, Typography, Box, Button, CircularProgress,
+    Dialog, DialogContent, Typography, Box, CircularProgress,
     FormControl, InputLabel, Select, MenuItem, Autocomplete, TextField,
     InputAdornment
 } from '@mui/material';
 import {Search} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
+import { AppButton } from '@components/Common';
 import {
     type Employee, type User, type Faculty, type Unit,
     createEmployee, updateEmployee, fetchFaculties, fetchUnits, fetchUsers
@@ -205,27 +206,12 @@ export default function EmployeeModal({open, employee, onClose, onSuccess}: Empl
                 </FormControl>
 
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        onClick={handleSubmit}
-                        disabled={isSubmitting || !selectedUser || !facultyId || !unitId || isLoadingData}
-                        sx={{
-                            py: 1.5,
-                            borderRadius: '12px',
-                            background: '#2b5073',
-                            textTransform: 'none',
-                            fontSize: '1rem'
-                        }}
-                    >
-                        {isSubmitting
-                            ? <CircularProgress size={24} color="inherit"/>
-                            : intl.formatMessage({id: 'academics.common.save'})}
-                    </Button>
-                    <Button variant="text" fullWidth onClick={onClose} disabled={isSubmitting}
-                            sx={{color: '#2b5073', textTransform: 'none', fontWeight: 600}}>
+                    <AppButton variant="contained" onClick={handleSubmit} loading={isSubmitting} disabled={isSubmitting || !selectedUser || !facultyId || !unitId || isLoadingData}>
+                        {intl.formatMessage({id: 'academics.common.save'})}
+                    </AppButton>
+                    <AppButton variant="text" onClick={onClose} disabled={isSubmitting}>
                         {intl.formatMessage({id: 'academics.common.cancel'})}
-                    </Button>
+                    </AppButton>
                 </Box>
             </DialogContent>
         </Dialog>

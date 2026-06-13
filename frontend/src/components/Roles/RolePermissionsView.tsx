@@ -4,9 +4,7 @@ import {
     Typography,
     Switch,
     Paper,
-    Button,
     Zoom,
-    CircularProgress,
     Snackbar,
     Alert,
     Tooltip,
@@ -18,6 +16,7 @@ import {useIntl} from 'react-intl';
 import {type Role, type Permission, updateRolePermissions} from '@api';
 import {usePermissionStore} from '@store/usePermissionStore';
 import {PERMISSIONS} from '@constants/permissions';
+import {AppButton} from '@components/Common';
 
 interface RolePermissionsViewProps {
     role: Role;
@@ -134,16 +133,17 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                         sx={{
                             px: 3,
                             py: 1.5,
-                            bgcolor: '#ffffff',
-                            border: '1px solid #e2e8f0',
+                            bgcolor: 'background.paper',
+                            border: 1,
+                            borderColor: 'divider',
                             borderRadius: '12px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                            boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.5)' : '0 1px 2px rgba(0,0,0,0.03)',
                             cursor: 'pointer',
                             transition: 'background-color 0.2s',
-                            '&:hover': {bgcolor: '#f8fafc'},
+                            '&:hover': {bgcolor: 'background.highlight'},
                             '&:focus-visible': {
                                 outline: '2px solid',
                                 outlineColor: 'primary.main',
@@ -155,7 +155,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                             variant="subtitle2"
                             fontWeight={700}
                             sx={{
-                                color: '#000000',
+                                color: 'text.primary',
                                 textTransform: 'uppercase',
                                 letterSpacing: 1.2,
                                 userSelect: 'none',
@@ -181,10 +181,11 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                             elevation={0}
                             sx={{
                                 borderRadius: '16px',
-                                border: '1px solid #e2e8f0',
+                                border: 1,
+                                borderColor: 'divider',
                                 overflow: 'hidden',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                                bgcolor: '#ffffff',
+                                boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 1px 3px rgba(0,0,0,0.5)' : '0 1px 3px rgba(0,0,0,0.05)',
+                                bgcolor: 'background.paper',
                             }}
                         >
                             <Box sx={{display: 'flex', flexDirection: 'column'}}>
@@ -198,13 +199,14 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                                             gap: 4,
                                             py: 2,
                                             px: 3,
-                                            borderBottom: index !== perms.length - 1 ? '1px solid #f1f5f9' : 'none',
+                                            borderBottom: index !== perms.length - 1 ? 1 : 0,
+                                            borderColor: 'divider',
                                             transition: 'background-color 0.15s',
-                                            '&:hover': {bgcolor: '#f8fafc'},
+                                            '&:hover': {bgcolor: 'background.highlight'},
                                         }}
                                     >
                                         <Box sx={{display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'nowrap'}}>
-                                            <Typography variant="body2" fontWeight={400} color="#1e293b">
+                                            <Typography variant="body2" fontWeight={400} color="text.primary">
                                                 {perm.name || perm.code}
                                             </Typography>
 
@@ -214,12 +216,13 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                                                 sx={{
                                                     px: 1,
                                                     py: 0.4,
-                                                    bgcolor: '#f1f5f9',
+                                                    bgcolor: 'background.default',
                                                     borderRadius: '6px',
-                                                    color: '#64748b',
+                                                    color: 'text.secondary',
                                                     fontWeight: 700,
                                                     whiteSpace: 'nowrap',
-                                                    border: '1px solid #e2e8f0',
+                                                    border: 1,
+                                                    borderColor: 'divider',
                                                     fontSize: '0.65rem',
                                                 }}
                                             >
@@ -227,7 +230,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                                             </Typography>
                                         </Box>
 
-                                        <Typography variant="body2" color="#64748b">
+                                        <Typography variant="body2" color="text.secondary">
                                             {perm.description || '—'}
                                         </Typography>
 
@@ -244,7 +247,7 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                                                 })}>
                                                     <HourglassEmpty sx={{
                                                         fontSize: 18,
-                                                        color: '#f59e0b',
+                                                        color: 'warning.main',
                                                         animation: 'spin 2s linear infinite'
                                                     }}/>
                                                 </Tooltip>
@@ -269,26 +272,26 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                                                             color: '#fff',
 
                                                             '& + .MuiSwitch-track': {
-                                                                backgroundColor: '#2b5073',
+                                                                backgroundColor: 'primary.main',
                                                                 opacity: 1,
                                                                 border: 0,
                                                             },
                                                         },
 
                                                         '&.Mui-disabled': {
-                                                            color: '#cbd5e1',
+                                                            color: 'action.disabled',
 
                                                             '& + .MuiSwitch-track': {
-                                                                backgroundColor: '#e2e8f0',
+                                                                backgroundColor: 'action.disabledBackground',
                                                                 opacity: 1,
                                                             },
                                                         },
 
                                                         '&.Mui-disabled.Mui-checked': {
-                                                            color: '#f8fafc',
+                                                            color: 'action.disabledBackground',
 
                                                             '& + .MuiSwitch-track': {
-                                                                backgroundColor: '#94a3b8',
+                                                                backgroundColor: 'action.disabled',
                                                                 opacity: 0.6,
                                                             },
                                                         },
@@ -303,13 +306,13 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                                                     },
 
                                                     '& .MuiSwitch-switchBase.Mui-disabled .MuiSwitch-thumb': {
-                                                        backgroundColor: '#cbd5e1',
+                                                        backgroundColor: 'action.disabled',
                                                         boxShadow: 'none',
                                                     },
 
                                                     '& .MuiSwitch-track': {
                                                         borderRadius: 26 / 2,
-                                                        backgroundColor: '#cbd5e1',
+                                                        backgroundColor: 'action.disabledBackground',
                                                         opacity: 1,
                                                         transition: 'background-color 500ms',
                                                     },
@@ -337,26 +340,19 @@ export function RolePermissionsView({role, allPermissions}: RolePermissionsViewP
                             gap: 2,
                         }}
                     >
-                        <Button
+                        <AppButton
                             variant="contained"
-                            startIcon={saving ? <CircularProgress size={20} color="inherit"/> : <Save/>}
+                            startIcon={!saving && <Save/>}
+                            loading={saving}
                             onClick={() => { void handleSave(); }}
-                            disabled={saving}
                             sx={{
-                                bgcolor: '#2b5073',
                                 px: 4,
-                                py: 1.5,
-                                borderRadius: '50px',
-                                fontWeight: 700,
-                                boxShadow: '0 10px 25px rgba(43, 80, 115, 0.3)',
-                                '&:hover': {
-                                    bgcolor: '#1e3a54',
-                                    boxShadow: '0 12px 30px rgba(43, 80, 115, 0.4)',
-                                },
+                                // borderRadius: '50px',
+                                boxShadow: (theme) => theme.palette.mode === 'dark' ? '0 10px 25px rgba(0,0,0, 0.4)' : '0 10px 25px rgba(0, 0, 0, 0.1)',
                             }}
                         >
                             {saving ? intl.formatMessage({id: 'common.saving'}) : intl.formatMessage({id: 'common.save'})}
-                        </Button>
+                        </AppButton>
                     </Box>
                 </Zoom>
             )}

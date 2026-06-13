@@ -32,13 +32,14 @@ export function ChatArchiveListItem({
                 px: 1.5,
                 py: 1,
                 '&:hover': {
-                    bgcolor: '#F5F7FA',
+                    bgcolor: 'background.highlight',
                 },
                 '&.Mui-selected': {
-                    bgcolor: '#EEF3F7',
+                    bgcolor: 'background.selected',
                 },
                 '&.Mui-selected:hover': {
-                    bgcolor: '#E7EEF4',
+                    bgcolor: 'background.selected',
+                    opacity: 0.9
                 },
             }}
         >

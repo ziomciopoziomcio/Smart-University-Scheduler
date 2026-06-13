@@ -1,6 +1,12 @@
+import asyncio
+import json
+import os
 import uuid
 import logging
+
+from aiokafka import AIOKafkaConsumer
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi.responses import StreamingResponse
 
 from src.common.kafka_client import send_event
 from . import schemas
@@ -116,3 +122,32 @@ def validate_algorithm_data(
         return report_data
     except MissingPlannerSettingsError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.get("/progres/{task_id}")
+async def get_optimization_progress(task_id: str):
+    async def event_generator():
+        kafka_url = os.getenv("KAFKA_URL", "kafka:29092")
+        result_topic = os.getenv("KAFKA_RESULT_TOPIC", "schedule.optimization.results")
+        consumer = AIOKafkaConsumer(
+            result_topic,
+            bootstrap_servers=kafka_url,
+            group_id=f"sse_client_{uuid.uuid4()}",
+            value_deserializer=lambda m: json.loads(m.decode("utf-8")),
+            auto_offset_reset="latest",
+        )
+        await consumer.start()
+        try:
+            async for msg in consumer:
+                data = msg.value
+                if str(data.get("task_id")) == task_id:
+                    yield f"data: {json.dumps(data)}\n\n"
+
+                    if data.get("status") in ["COMPLETED", "FAILED", "PARTIAL_SUCCESS"]:
+                        break
+        except asyncio.CancelledError:
+            logger.info(f"SSE connection closed by client for task {task_id}")
+        finally:
+            await consumer.stop()
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
