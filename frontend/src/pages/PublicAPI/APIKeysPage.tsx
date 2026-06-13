@@ -98,7 +98,8 @@ export default function APIKeysPage() {
             <Dialog
                 open={modalOpen}
                 disableEscapeKeyDown
-                onClose={(_, reason) => {
+                onClose={(event, reason) => {
+                    void event;
                     // Only allow closing via the button
                     if (reason === 'backdropClick' || reason === 'escapeKeyDown') return;
                     setModalOpen(false);
