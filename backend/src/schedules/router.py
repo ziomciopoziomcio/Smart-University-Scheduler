@@ -4,7 +4,7 @@ from datetime import timezone, datetime, date, timedelta, time
 
 from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import cast, String, text, and_, or_
+from sqlalchemy import cast, String, and_, or_
 from typing import List, Dict, Any
 
 from .schemas import (
