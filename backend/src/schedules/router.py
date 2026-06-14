@@ -17,6 +17,7 @@ from ..academics.models import Students, Employees
 from . import models
 from . import schemas
 from ..academics import models as ac_mod
+from ..courses import models as cou_mod
 from ..common.kafka_client import send_event
 from ..common.pagination.pagination import PaginatedResponse, paginate
 from ..common.require_permission import (
@@ -1644,27 +1645,48 @@ def _get_group_course_type_details(session: Session, group_id: int):
     """
     Return course type details for all courses assigned to the specified group.
     """
-    query = text("""
-        SELECT
-            ctd.course,
-            c.course_name,
-            ctd.class_type,
-            ctd.class_hours
-        FROM groups g
-        JOIN curriculum_courses cc
-            ON cc.study_program = g.study_program
-        JOIN courses c
-            ON c.course_code = cc.course
-        JOIN course_type_detail ctd
-            ON ctd.course = cc.course
-        WHERE g.id = :group_id
-          AND cc.semester = g.semester
-          AND cc.elective_block IS NOT DISTINCT FROM g.elective_block
-          AND cc.major IS NOT DISTINCT FROM g.major
-        ORDER BY c.course_name
-    """)
+    rows = (
+        session.query(
+            cou_mod.Course_type_detail.course,
+            cou_mod.Course.course_name,
+            cou_mod.Course_type_detail.class_type,
+            cou_mod.Course_type_detail.class_hours,
+        )
+        .join(
+            cou_mod.Curriculum_course,
+            cou_mod.Curriculum_course.course == cou_mod.Course_type_detail.course,
+        )
+        .join(
+            cou_mod.Course,
+            cou_mod.Course.course_code == cou_mod.Curriculum_course.course,
+        )
+        .join(
+            ac_mod.Groups,
+            and_(
+                cou_mod.Curriculum_course.study_program == ac_mod.Groups.study_program,
+                cou_mod.Curriculum_course.semester == ac_mod.Groups.semester,
+                cou_mod.Curriculum_course.elective_block.is_not_distinct_from(
+                    ac_mod.Groups.elective_block
+                ),
+                cou_mod.Curriculum_course.major.is_not_distinct_from(
+                    ac_mod.Groups.major
+                ),
+            ),
+        )
+        .filter(ac_mod.Groups.id == group_id)
+        .order_by(cou_mod.Course.course_name)
+        .all()
+    )
 
-    return session.execute(query, {"group_id": group_id}).mappings().all()
+    return [
+        {
+            "course": row.course,
+            "course_name": row.course_name,
+            "class_type": row.class_type.name,
+            "class_hours": row.class_hours,
+        }
+        for row in rows
+    ]
 
 
 def _detect_extra_neo4j_entries(
