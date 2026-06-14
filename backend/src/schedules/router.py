@@ -1054,7 +1054,7 @@ async def update_schedule_session(
     session_id: str,
     payload: schemas.UpdateScheduleSessionRequest,
     neo4j_session=Depends(get_neo4j_session),
-    _current_user: user_models.Users = Depends(require_permission("schedule:update")),
+    _current_user: user_models.Users = Depends(require_permission("class-session:update")),
 ):
     """
     Update a scheduled class session.
