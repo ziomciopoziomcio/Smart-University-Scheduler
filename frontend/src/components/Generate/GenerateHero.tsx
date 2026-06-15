@@ -19,6 +19,7 @@ import type {Faculty} from '@api';
 interface GenerateHeroProps {
     onGenerate: () => Promise<void>;
     isGenerating: boolean;
+    isGenerateBlocked?: boolean;
 
     isAdministrator: boolean;
     faculties: Faculty[];
@@ -30,6 +31,7 @@ interface GenerateHeroProps {
 export default function GenerateHero({
     onGenerate,
     isGenerating,
+    isGenerateBlocked = false,
     isAdministrator,
     faculties,
     selectedFacultyId,
@@ -40,6 +42,7 @@ export default function GenerateHero({
 
     const isGenerateDisabled =
         isGenerating ||
+        isGenerateBlocked ||
         isFacultiesLoading ||
         (isAdministrator && !selectedFacultyId);
 
@@ -60,7 +63,14 @@ export default function GenerateHero({
                 flexDirection: {xs: 'column', md: 'row'},
             }}
         >
-            <Box sx={{display: 'flex', alignItems: 'center', gap: {xs: 6, md: 8}, flex: 1}}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: {xs: 6, md: 8},
+                    flex: 1,
+                }}
+            >
                 <CalendarTodayIcon
                     sx={{
                         fontSize: {xs: 70, md: 92},
@@ -69,7 +79,13 @@ export default function GenerateHero({
                     }}
                 />
 
-                <Box sx={{textAlign: 'left', width: '100%', maxWidth: 720}}>
+                <Box
+                    sx={{
+                        textAlign: 'left',
+                        width: '100%',
+                        maxWidth: 720,
+                    }}
+                >
                     <Typography
                         sx={{
                             fontSize: {xs: 30, md: 40},
@@ -79,7 +95,9 @@ export default function GenerateHero({
                             textAlign: 'left',
                         }}
                     >
-                        {intl.formatMessage({id: 'generateSchedule.hero.title'})}
+                        {intl.formatMessage({
+                            id: 'generateSchedule.hero.title',
+                        })}
                     </Typography>
 
                     <Typography
@@ -92,7 +110,9 @@ export default function GenerateHero({
                             textAlign: 'left',
                         }}
                     >
-                        {intl.formatMessage({id: 'generateSchedule.hero.description'})}
+                        {intl.formatMessage({
+                            id: 'generateSchedule.hero.description',
+                        })}
                     </Typography>
 
                     {isAdministrator && (
@@ -105,15 +125,30 @@ export default function GenerateHero({
                             }}
                         >
                             <InputLabel>
-                                {intl.formatMessage({id: 'generateSchedule.hero.facultyLabel'})}
+                                {intl.formatMessage({
+                                    id: 'generateSchedule.hero.facultyLabel',
+                                })}
                             </InputLabel>
 
                             <Select
-                                value={selectedFacultyId ? String(selectedFacultyId) : ''}
-                                label={intl.formatMessage({id: 'generateSchedule.hero.facultyLabel'})}
-                                disabled={isFacultiesLoading || isGenerating}
-                                onChange={(event: SelectChangeEvent) => {
-                                    onFacultyChange(Number(event.target.value));
+                                value={
+                                    selectedFacultyId
+                                        ? String(selectedFacultyId)
+                                        : ''
+                                }
+                                label={intl.formatMessage({
+                                    id: 'generateSchedule.hero.facultyLabel',
+                                })}
+                                disabled={
+                                    isFacultiesLoading ||
+                                    isGenerating
+                                }
+                                onChange={(
+                                    event: SelectChangeEvent,
+                                ) => {
+                                    onFacultyChange(
+                                        Number(event.target.value),
+                                    );
                                 }}
                                 sx={{
                                     height: 46,
@@ -121,19 +156,27 @@ export default function GenerateHero({
                                     bgcolor: '#FBFCFF',
                                     fontSize: 14,
                                     '& .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: 'rgba(0,0,0,0.08)',
+                                        borderColor:
+                                            'rgba(0,0,0,0.08)',
                                     },
-                                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: 'rgba(0,0,0,0.16)',
-                                    },
-                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: '#7A89A8',
-                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline':
+                                        {
+                                            borderColor:
+                                                'rgba(0,0,0,0.16)',
+                                        },
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline':
+                                        {
+                                            borderColor: '#7A89A8',
+                                        },
                                 }}
                             >
                                 {faculties.map((faculty) => (
-                                    <MenuItem key={faculty.id} value={String(faculty.id)}>
-                                        {faculty.faculty_short || faculty.faculty_name}
+                                    <MenuItem
+                                        key={faculty.id}
+                                        value={String(faculty.id)}
+                                    >
+                                        {faculty.faculty_short ||
+                                            faculty.faculty_name}
                                     </MenuItem>
                                 ))}
                             </Select>
@@ -145,7 +188,7 @@ export default function GenerateHero({
             <Button
                 size="large"
                 variant="contained"
-                startIcon={<AutoAwesomeOutlined/>}
+                startIcon={<AutoAwesomeOutlined />}
                 onClick={() => void onGenerate()}
                 disabled={isGenerateDisabled}
                 sx={{
@@ -158,11 +201,13 @@ export default function GenerateHero({
                     minHeight: 76,
                     background: theme.palette.gradients.brand,
                     color: '#FFFFFF',
-                    boxShadow: '0 16px 30px rgba(79, 94, 130, 0.30)',
+                    boxShadow:
+                        '0 16px 30px rgba(79, 94, 130, 0.30)',
                     '&:hover': {
                         background: theme.palette.gradients.brand,
                         filter: 'brightness(0.96)',
-                        boxShadow: '0 18px 34px rgba(79, 94, 130, 0.36)',
+                        boxShadow:
+                            '0 18px 34px rgba(79, 94, 130, 0.36)',
                     },
                     '&.Mui-disabled': {
                         color: '#FFFFFF',
@@ -171,8 +216,12 @@ export default function GenerateHero({
                 }}
             >
                 {isGenerating
-                    ? intl.formatMessage({id: 'generateSchedule.hero.generating'})
-                    : intl.formatMessage({id: 'generateSchedule.hero.button'})}
+                    ? intl.formatMessage({
+                        id: 'generateSchedule.hero.generating',
+                    })
+                    : intl.formatMessage({
+                        id: 'generateSchedule.hero.button',
+                    })}
             </Button>
         </Paper>
     );

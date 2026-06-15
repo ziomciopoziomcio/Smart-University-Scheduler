@@ -8,10 +8,13 @@ import BackpackIcon from '@assets/icons/backpack.svg?react';
 import {useNavigate} from 'react-router-dom';
 import {useIntl} from 'react-intl';
 import {PageBreadcrumbs, type BreadcrumbItem, TileView} from '@components/Common';
+import {useTheme} from "@mui/material/styles";
 
 export default function ChooseScheduleTypePage() {
+
     const navigate = useNavigate();
     const intl = useIntl();
+    const theme = useTheme();
 
     const getBreadcrumbs = () => {
         const items: BreadcrumbItem[] = [{
@@ -54,7 +57,7 @@ export default function ChooseScheduleTypePage() {
                     px: {xs: 2, md: 3},
                     py: {xs: 2.5, md: 3},
                     borderRadius: 2,
-                    background: '#ffffff',
+                    background: theme.palette.background.paper,
                     minHeight: 140,
                     display: 'flex',
                     alignItems: 'center',

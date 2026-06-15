@@ -1,4 +1,3 @@
- 
 import {Box, Typography, Divider, Button, IconButton, SvgIcon} from '@mui/material';
 import {Add, MoreVert} from '@mui/icons-material';
 import * as React from 'react';
@@ -42,6 +41,8 @@ export function ListView<T extends { id: number | string }>({
                                                                 rowSx = {},
                                                                 titleSx = {},
                                                             }: ListViewProps<T>) {
+
+
     return (
         <Box sx={{width: '100%'}}>
             {items.length === 0 && (
@@ -64,7 +65,7 @@ export function ListView<T extends { id: number | string }>({
                             cursor: onItemClick ? 'pointer' : 'default',
                             transition: 'background-color 0.2s ease',
                             '&:hover': {
-                                bgcolor: onItemClick ? '#F3F5F8' : 'transparent',
+                                bgcolor: onItemClick ? 'background.highlight' : 'transparent',
                             },
                             ...(typeof rowSx === 'function' ? rowSx(item) : rowSx),
                         }}
@@ -95,7 +96,7 @@ export function ListView<T extends { id: number | string }>({
                                     minWidth: 160,
                                     fontSize: '18px',
                                     fontWeight: 400,
-                                    color: '#111111',
+                                    color: 'text.primary',
                                     lineHeight: 1.2,
                                     ...titleSx,
                                 }}
@@ -138,7 +139,7 @@ export function ListView<T extends { id: number | string }>({
                                     <Box
                                         sx={{
                                             fontSize: '15px',
-                                            color: col.variant === 'primary' ? '#111111' : '#8A8A8A',
+                                            color: col.variant === 'primary' ? 'text.primary' : 'text.secondary',
                                             whiteSpace: 'nowrap',
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
@@ -161,7 +162,7 @@ export function ListView<T extends { id: number | string }>({
                                     }}
                                     sx={{ml: 'auto'}}
                                 >
-                                    <MoreVert sx={{color: '#aaa'}}/>
+                                    <MoreVert sx={{color: 'text.disabled'}}/>
                                 </IconButton>
                             )}
                         </Box>

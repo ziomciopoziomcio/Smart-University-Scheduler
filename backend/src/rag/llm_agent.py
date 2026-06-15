@@ -6,7 +6,7 @@ from groq.types.chat import (
     ChatCompletionToolParam,
 )
 
-from .tools import RescheduleSuggestionTool, CheckAvailabilityTool
+from .tools import RescheduleSuggestionTool, SearchAvailableTimesTool
 
 client = Groq()
 
@@ -25,11 +25,21 @@ def get_system_prompt(schedule_context: str) -> str:
     {schedule_context}
 
     RULES:
-    1. If the user wants to reschedule or move a class, you MUST ALWAYS call 'check_availability' first to check for conflicts and find available rooms.
-    2. If 'check_availability' returns a CONFLICT or NO ROOMS, inform the user and ask them to select a different time.
-     DO NOT call 'create_reschedule_suggestion'.
-    3. If 'check_availability' returns OK, use one of the available Room IDs provided in the tool response and then call 'create_reschedule_suggestion'.
-    4. ALWAYS use the Class Session IDs provided in the context above.
+    1. If the user wants to reschedule a class, you MUST ALWAYS call 'search_available_times' first.
+    2. 'search_available_times' will return a list of valid options containing
+    the day, time, internal 'timeslot_ids', and available rooms (with names and IDs).
+    3. You MUST present the available options to the user using ONLY human-readable formats (Day, Time, Room Name).
+    NEVER show 'timeslot_ids' or 'ID' numbers to the user!
+    4. NEVER ask the user to choose an option without showing them the full list of human-readable options first.
+    Do NOT call 'create_reschedule_suggestion' yet.
+    5. When presenting options, politely ask the user to confirm their choice by specifying
+    the EXACT Day, Time, and Room (e.g., "Piątek 11:15, sala E1") rather than just an option number.
+    6. If the user replies with a number (e.g., "Option 4"), strict map it ONLY to the last list of available times you generated.
+    Do NOT confuse it with any other classes in the schedule context.
+    7. Once the user makes a clear choice, call 'create_reschedule_suggestion' using the
+    EXACT 'timeslot_ids' array and the corresponding 'room_id' from your internal memory that matches their selection.
+    8. ALWAYS use the Class Session IDs provided in the context above.
+    9. ALWAYS reply in the exact same language the user is speaking.
     """  # TODO: Block another topics
 
 
@@ -44,17 +54,16 @@ def call_agent(messages: list[ChatCompletionMessageParam]):
         {
             "type": "function",
             "function": {
-                "name": "check_availability",
-                "description": "Check if a proposed timeslot has any group or instructor conflicts, and find available rooms. "
-                "Always use this before suggesting a reschedule.",
-                "parameters": CheckAvailabilityTool.model_json_schema(),
+                "name": "search_available_times",
+                "description": "Find exact available time windows (timeslot_ids array) and free rooms for a session.",
+                "parameters": SearchAvailableTimesTool.model_json_schema(),
             },
         },
         {
             "type": "function",
             "function": {
                 "name": "create_reschedule_suggestion",
-                "description": "Submit a formal request to reschedule a class session. Call this ONLY after verifying availability with check_availability.",
+                "description": "Submit a formal request to reschedule a class session.",
                 "parameters": RescheduleSuggestionTool.model_json_schema(),
             },
         },

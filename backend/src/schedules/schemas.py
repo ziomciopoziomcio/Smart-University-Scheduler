@@ -125,23 +125,29 @@ class ScheduleEntry(BaseModel):
 
 
 class DayOfWeek(str, Enum):
-    MONDAY = "Monday"
-    TUESDAY = "Tuesday"
-    WEDNESDAY = "Wednesday"
-    THURSDAY = "Thursday"
-    FRIDAY = "Friday"
-    SATURDAY = "Saturday"
-    SUNDAY = "Sunday"
+    MONDAY = "MONDAY"
+    TUESDAY = "TUESDAY"
+    WEDNESDAY = "WEDNESDAY"
+    THURSDAY = "THURSDAY"
+    FRIDAY = "FRIDAY"
+    SATURDAY = "SATURDAY"
+    SUNDAY = "SUNDAY"
 
 
 class UpdateScheduleSessionRequest(BaseModel):
-    day_of_week: DayOfWeek = Field(alias="dayOfWeek")
-    start_time: str = Field(alias="startTime")
-    end_time: str = Field(alias="endTime")
-    instructor_id: int = Field(alias="instructorId")
-    room_id: int = Field(alias="roomId")
+    day_of_week: DayOfWeek | None = Field(default=None, alias="dayOfWeek")
+    start_time: str | None = Field(default=None, alias="startTime")
+    end_time: str | None = Field(default=None, alias="endTime")
+    instructor_id: int | None = Field(default=None, alias="instructorId")
+    room_id: int | None = Field(default=None, alias="roomId")
+
+    weeks: list[int] | None = Field(
+        default=None,
+    )
+
     apply_once: bool = Field(
-        default=False, alias="applyOnce"
+        default=False,
+        alias="applyOnce",
     )  # todo develop in next release
 
 
@@ -217,14 +223,35 @@ class ScheduleEditRoomOption(BaseModel):
 
 
 class ScheduleEditCurrent(BaseModel):
-    day_of_week: str | None
-    start_time: str | None = None
-    end_time: str | None = None
-    instructor_id: int | None = None
-    room_id: int | None = None
+    model_config = ConfigDict(populate_by_name=True)
+
+    day_of_week: DayOfWeek = Field(alias="dayOfWeek")
+    start_time: str = Field(alias="startTime")
+    end_time: str = Field(alias="endTime")
+    instructor_id: int = Field(alias="instructorId")
+    room_id: int = Field(alias="roomId")
 
 
 class ScheduleSessionEditOptions(BaseModel):
     current: ScheduleEditCurrent
     instructors: list[ScheduleEditInstructorOption]
     rooms: list[ScheduleEditRoomOption]
+
+
+class CreateScheduleSessionRequest(BaseModel):
+    course_id: int = Field(alias="courseId")
+    group_ids: list[int] = Field(alias="groupIds")
+
+    day_of_week: str = Field(alias="dayOfWeek")
+    start_time: str = Field(alias="startTime")
+    end_time: str = Field(alias="endTime")
+
+    instructor_id: int = Field(alias="instructorId")
+    room_id: int = Field(alias="roomId")
+
+    weeks: list[int] = Field(default_factory=lambda: list(range(1, 16)))
+
+
+class ValidationSource(str, Enum):
+    ACTIVE_GROUPS = "ACTIVE_GROUPS"
+    PLANNER_SETTINGS = "PLANNER_SETTINGS"

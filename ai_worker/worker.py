@@ -5,6 +5,7 @@ import json
 import multiprocessing
 import os
 import logging
+from typing import Callable
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 
@@ -182,7 +183,10 @@ def _create_evolution_engine(data: dict) -> evolution.EvolutionEngine:
 
 
 def run_ai_optimizer_sync(
-    faculty_id: str, data: dict, base_genes: list[models.ClassSessionGene]
+    faculty_id: str,
+    data: dict,
+    base_genes: list[models.ClassSessionGene],
+    progress_callback: Callable[[int, int, float], None] | None = None,
 ) -> models.ScheduleChromosome:
     """
     Run the AI optimizer synchronously for a given faculty and input data.
@@ -190,6 +194,7 @@ def run_ai_optimizer_sync(
     This function is intended to be executed in a separate thread or process so that
     it does not block the main event loop.
 
+    :param progress_callback: Callback function
     :param faculty_id: Identifier of the faculty for which the schedule optimization
         should be performed.
     :param data: Dictionary containing all necessary data for the optimization
@@ -252,6 +257,10 @@ def run_ai_optimizer_sync(
 
             new_population.extend(offspring)
             population = new_population
+
+            if progress_callback:
+                best_fitness = population[0].fitness_score
+                progress_callback(gen + 1, generations, float(best_fitness))
 
     population.sort(key=lambda chrom: getattr(chrom, "fitness_score", float("inf")))
     return population[0]
@@ -330,8 +339,22 @@ async def process_task(
 
         base_genes = data_prov.prepare_initial_genes(data)
 
+        loop = asyncio.get_running_loop()
+
+        def on_progress(current_gen: int, total_gens: int, current_fittness: float):
+            message = {
+                "task_id": task_id,
+                "faculty_id": faculty_id,
+                "status": "IN_PROGRESS",
+                "current_generation": current_gen,
+                "total_generations": total_gens,
+                "fitness": current_fittness,
+            }
+            coro = producer.send_and_wait(result_topic, message)
+            asyncio.run_coroutine_threadsafe(coro, loop)
+
         best_schedule = await asyncio.to_thread(
-            run_ai_optimizer_sync, faculty_id, data, base_genes
+            run_ai_optimizer_sync, faculty_id, data, base_genes, on_progress
         )
 
         incomplete_genes = await neo4j_prov.save_best_schedule(

@@ -1,7 +1,9 @@
 import type {ReactNode} from 'react';
 import {Box, Paper, Typography} from '@mui/material';
-import logo from '@assets/logotype_no_bg_no_label.png'
-import {theme} from "../../theme/theme.ts";
+// import logo from '@assets/logotype_no_bg_no_label.png'
+import {useTheme} from "@mui/material/styles";
+import {SusLogo} from "@components/Common";
+
 
 type Props = {
     title: ReactNode;
@@ -9,6 +11,7 @@ type Props = {
 };
 
 export function AuthLayout({title, children}: Props) {
+    const theme = useTheme();
     return (
         <Box
             sx={{
@@ -40,17 +43,8 @@ export function AuthLayout({title, children}: Props) {
                         mb: 3,
                     }}
                 >
-                    <Box
-                        component="img"
-                        src={logo}
-                        alt="Logo"
-                        sx={{
-                            width: '140px',
-                            height: 'auto',
-                            display: 'block',
-                            mx: 'auto'
-                        }}
-            />
+                    <SusLogo width={140} height={140} />
+
                 </Box>
 
                 <Typography

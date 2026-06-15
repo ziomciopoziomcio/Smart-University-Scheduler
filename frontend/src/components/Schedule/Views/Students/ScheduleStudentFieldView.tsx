@@ -154,7 +154,7 @@ export function ScheduleStudentFieldView({
             <ListView<StudyFieldWithSummary>
                 items={data as StudyFieldWithSummary[]}
                 getTitle={(item) => item.field_name}
-                titleWidth="210px"
+                titleWidth="500px"
                 columns={[
                     {
                         render: (item) => getLanguageFlag(item.language),
@@ -165,17 +165,17 @@ export function ScheduleStudentFieldView({
                     {
                         render: getStudyModeLabel,
                         variant: 'secondary',
-                        width: '120px'
+                        width: '100px'
                     },
                     {
                         render: getStudyDegreeLabel,
                         variant: 'secondary',
-                        width: '140px'
+                        width: '100px'
                     },
                     {
                         render: getSemestersLabel,
                         variant: 'secondary',
-                        width: '130px'
+                        width: '110px'
                     },
                     {
                         render: getSpecializationsLabel,

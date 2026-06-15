@@ -21,6 +21,7 @@ export function DidacticsUnitView({ data, facultyId }: DidacticsUnitViewProps) {
             columns={[{ render: (u) => u.unit_short, variant: 'secondary', width: '150px' }]}
             onItemClick={(u) => navigate(`/didactics/courses/faculty/${facultyId}/unit/${u.id}`)}
             emptyMessage={intl.formatMessage({ id: 'didactics.units.empty' })}
+            titleWidth={"700px"}
         />
     );
 }

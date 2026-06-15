@@ -1,10 +1,11 @@
 import {useState, useEffect} from 'react';
 import {
     Dialog, DialogContent, DialogTitle, DialogActions,
-    Button, TextField, CircularProgress, Typography, Box, Alert
+    Button, TextField, Typography, Box, Alert
 } from '@mui/material';
 import {useIntl} from 'react-intl';
 import {type StudyProgram, createStudyProgram, updateStudyProgram} from '@api';
+import { AppButton } from '@components/Common';
 
 interface StudyProgramModalProps {
     open: boolean;
@@ -133,10 +134,9 @@ export function StudyProgramModal({open, program, fieldId, onClose, onSuccess}: 
                 <Button onClick={onClose} sx={{fontWeight: 600, color: 'text.secondary'}}>
                     {intl.formatMessage({id: 'didactics.common.cancel'})}
                 </Button>
-                <Button onClick={handleSubmit} variant="contained" disabled={isSubmitting}
-                        sx={{borderRadius: '10px', px: 4, fontWeight: 600}}>
-                    {isSubmitting ? <CircularProgress size={24}/> : intl.formatMessage({id: 'didactics.common.save'})}
-                </Button>
+                <AppButton variant="contained" onClick={handleSubmit} loading={isSubmitting} disabled={isSubmitting}>
+                        {intl.formatMessage({id: 'didactics.common.save'})}
+                    </AppButton>
             </DialogActions>
         </Dialog>
     );

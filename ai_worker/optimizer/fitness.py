@@ -44,6 +44,8 @@ class FitnessCalculator:
         self.W_HARD_PENALTY = 5000000
         self.W_WORKLOAD_MISMATCH = 500
 
+        self.INSTR_MULTIPLIER = 150
+
         self.base_workload_penalty = sum(
             hours * self.W_WORKLOAD_MISMATCH
             for hours in self.instructor_assignments.values()
@@ -449,7 +451,9 @@ class FitnessCalculator:
         for _, weeks_dict in instructor_itinerary.items():
             for _week, genes in weeks_dict.items():
                 days_active = set((g.timeslot_id - 1) // SLOTS_PER_DAY for g in genes)
-                penalty += len(days_active) * self.W_INSTR_DAY_USED
+                penalty += (
+                    len(days_active) * self.W_INSTR_DAY_USED * self.INSTR_MULTIPLIER
+                )
 
                 for day in days_active:
                     day_genes = sorted(
@@ -462,7 +466,7 @@ class FitnessCalculator:
                     )
                     penalty += self._calculate_daily_penalty(
                         day_genes,
-                        1,
+                        self.INSTR_MULTIPLIER,
                         self.W_INSTR_GAP_SLOT,
                         self.W_INSTR_MAX_GAP,
                         self.W_INSTR_FATIGUE,
@@ -488,7 +492,7 @@ class FitnessCalculator:
                     penalty += self._calculate_location_penalty(
                         sorted_genes[k],
                         sorted_genes[k + 1],
-                        1,
+                        self.INSTR_MULTIPLIER,
                         self.W_INSTR_CAMPUS_CHANGE,
                         self.W_INSTR_BUILDING_CHANGE,
                         self.W_INSTR_ROOM_CHANGE,

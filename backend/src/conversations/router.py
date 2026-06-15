@@ -17,11 +17,10 @@ from src.database.database import SessionLocal
 from src.rag.llm_agent import process_chat_message, get_system_prompt
 from src.schedules import models as schedule_models
 from . import models, schemas
-from ..academics import models as academics_models
 from ..common.require_permission import require_permission
 from ..database.database import get_db
-from ..database.neo4j import get_neo4j_session, check_availability_in_neo4j
-from ..rag.retriever import get_user_schedule_context
+from ..database.neo4j import get_neo4j_session
+from ..rag.retriever import get_user_schedule_context, search_available_times_in_neo4j
 from ..users import models as user_models
 from ..users.auth import get_current_user
 from ..users.models import Users
@@ -146,7 +145,7 @@ def delete_chat(
 
 def _save_user_msg_sync(
     chat_id: int, user_id: int, payload: schemas.MessageCreate
-) -> tuple[schemas.MessageRead, int, str | None]:
+) -> tuple[schemas.MessageRead, str | None]:
     """
     Save the user's message to the database and return the saved message along with the user ID to be used for scheduling context retrieval.
     :param chat_id: Value of the chat_id path parameter from the API endpoint
@@ -166,22 +165,14 @@ def _save_user_msg_sync(
         _commit_or_rollback(local_db)
         local_db.refresh(user_msg)
 
-        employee = (
-            local_db.query(academics_models.Employees)
-            .filter(academics_models.Employees.user_id == user_id)
-            .first()
-        )
-        schedule_user_id = employee.id if employee is not None else user_id
-
         return (
             schemas.MessageRead.model_validate(user_msg),
-            schedule_user_id,
             chat.title,
         )
 
 
 def _save_ai_msg_sync(
-    chat_id: int, content: str, sugg_data: dict | None, context: str
+    chat_id: int, content: str, sugg_data: dict | None
 ) -> schemas.MessageRead:
     """
     Save the AI assistant's message to the database, along with any schedule suggestion data if applicable.
@@ -191,7 +182,6 @@ def _save_ai_msg_sync(
     :param sugg_data: A dictionary containing schedule suggestion data if the AI's response included a rescheduling suggestion.
     This may include reason, proposed timeslot and room IDs, and a validated UUID for the target class session.
     If no suggestion is included, this will be None.
-    :param context: A snapshot of the user's scheduling context at the time of the AI's response,
     which will be stored in the state_before field of any created schedule suggestion for reference during review.
     This should be a string representation of the relevant scheduling information that was provided to the AI agent as part of the system prompt.
     :return:
@@ -204,10 +194,9 @@ def _save_ai_msg_sync(
                 target_class_session_id=sugg_data["_validated_uuid"],
                 state_before={
                     "info": "Validated by Neo4j",
-                    "context_snapshot": context,
                 },
                 state_after={
-                    "proposed_timeslot_id": sugg_data.get("proposed_timeslot_id"),
+                    "proposed_timeslot_ids": sugg_data.get("proposed_timeslot_ids"),
                     "proposed_room_id": sugg_data.get("proposed_room_id"),
                 },
                 status=schedule_models.SuggestionStatus.PENDING,
@@ -251,10 +240,13 @@ async def _process_llm_tool_chain(
         tool_name, args = resp.get("tool_name"), resp.get("arguments", {})
         messages.append(resp["raw_message"])
 
-        if tool_name == "check_availability":
-            res = await check_availability_in_neo4j(
-                args.get("session_id"), args.get("proposed_timeslot_id"), neo4j_session
+        if tool_name == "search_available_times":
+            print(args.get("session_id", "NOTHING session_id"))
+            res = await search_available_times_in_neo4j(
+                args.get("session_id"), neo4j_session
             )
+            print("response: ")
+            print(res)
             messages.append(
                 {"role": "tool", "tool_call_id": resp["tool_call_id"], "content": res}
             )
@@ -323,10 +315,11 @@ async def create_message(
     payload: schemas.MessageCreate,
     background_tasks: BackgroundTasks,
     neo4j_session=Depends(get_neo4j_session),
+    db: Session = Depends(get_db),
     current_user: Users = Depends(get_current_user),
     _current_user: user_models.Users = Depends(require_permission("message:create")),
 ):
-    user_msg_schema, schedule_user_id, chat_title = await asyncio.to_thread(
+    user_msg_schema, chat_title = await asyncio.to_thread(
         _save_user_msg_sync, chat_id, current_user.id, payload
     )
 
@@ -338,18 +331,32 @@ async def create_message(
             payload.content,
         )
 
-    user_context = await get_user_schedule_context(schedule_user_id, neo4j_session)
+    chat_history = (
+        db.query(models.Messages)
+        .filter(models.Messages.chat_id == chat_id)
+        .order_by(models.Messages.created_at.asc())
+        .limit(20)
+        .all()
+    )
 
-    messages = [
-        {"role": "system", "content": get_system_prompt(user_context)},
-        {"role": "user", "content": payload.content},
-    ]
+    user_context = await get_user_schedule_context(current_user.id, neo4j_session, db)
+
+    messages = [{"role": "system", "content": get_system_prompt(user_context)}]
+
+    for msg in chat_history:
+        role_str = msg.role.value if hasattr(msg.role, "value") else str(msg.role)
+        if msg.id != user_msg_schema.id:
+            messages.append({"role": role_str, "content": msg.content})
+
+    messages.append({"role": "user", "content": payload.content})
+
+    print(messages)
 
     final_content, suggestion_data = await _process_llm_tool_chain(
         messages, neo4j_session
     )
     ai_msg_schema = await asyncio.to_thread(
-        _save_ai_msg_sync, chat_id, final_content, suggestion_data, user_context
+        _save_ai_msg_sync, chat_id, final_content, suggestion_data
     )
 
     return {"user_message": user_msg_schema, "ai_message": ai_msg_schema}

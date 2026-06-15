@@ -1,7 +1,8 @@
 import {useState, useEffect} from 'react';
-import {Dialog, DialogContent, Typography, TextField, Button, CircularProgress, Box} from '@mui/material';
+import {Dialog, DialogContent, Typography, TextField, Box} from '@mui/material';
 import {createFaculty, updateFaculty, type Faculty} from '@api';
 import {useIntl} from "react-intl";
+import { AppButton } from '@components/Common';
 
 interface FacultyModalProps {
     open: boolean;
@@ -42,7 +43,7 @@ export default function FacultyModal({open, faculty, onClose, onSuccess}: Facult
     return (
         <Dialog open={open} onClose={onClose} PaperProps={{sx: {borderRadius: '24px', minWidth: 400}}}>
             <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 3}}>
-                <Typography variant="h5" fontWeight="bold">
+                <Typography variant="h5" fontWeight="bold" textAlign={"center"}>
                     {faculty ?
                         intl.formatMessage({id: 'structures.faculty.edit'}) :
                         intl.formatMessage({id: 'structures.faculty.add'})}
@@ -66,29 +67,14 @@ export default function FacultyModal({open, faculty, onClose, onSuccess}: Facult
                     fullWidth
                 />
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 1, mt: 1}}>
-                    <Button variant="contained"
-                            onClick={() => {
+                    <AppButton variant="contained" onClick={() => {
                                 void handleSubmit();
-                            }}
-                            disabled={loading || !name || !short}
-                            sx={{
-                                background: '#2b5073',
-                                borderRadius: '12px',
-                                py: 1.5
-                            }}
-                    >
-                        {loading ?
-                            <CircularProgress size={24} color="inherit"/> :
-                            intl.formatMessage({id: 'structures.common.save'})}
-                    </Button>
-                    <Button
-                        variant="text"
-                        onClick={onClose}
-                        disabled={loading}
-                        sx={{color: '#2b5073', textTransform: 'none', fontWeight: 600}}
-                    >
-                        {intl.formatMessage({id: 'facilities.common.cancel'})}
-                    </Button>
+                            }} loading={loading} disabled={loading || !name || !short}>
+                        {intl.formatMessage({id: 'structures.common.save'})}
+                    </AppButton>
+                    <AppButton variant="text" onClick={onClose} disabled={loading}>
+                        {intl.formatMessage({id: 'structures.common.cancel'})}
+                    </AppButton>
                 </Box>
             </DialogContent>
         </Dialog>

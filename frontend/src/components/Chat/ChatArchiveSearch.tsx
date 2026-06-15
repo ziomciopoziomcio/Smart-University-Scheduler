@@ -20,11 +20,12 @@ export function ChatArchiveSearch({value, onChange}: ChatArchiveSearchProps) {
                 py: 0.8,
                 mt: 0.5,
                 borderRadius: 1,
-                bgcolor: '#FFFFFF',
-                border: '1px solid rgba(0,0,0,0.06)',
+                bgcolor: 'background.paper',
+                border: 1,
+                borderColor: 'divider',
             }}
         >
-            <SearchOutlinedIcon sx={{fontSize: 22, color: '#1F1F1F'}}/>
+            <SearchOutlinedIcon sx={{fontSize: 22, color: 'text.primary'}}/>
 
             <TextField
                 variant="standard"

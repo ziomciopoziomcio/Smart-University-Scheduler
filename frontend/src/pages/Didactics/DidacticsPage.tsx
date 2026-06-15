@@ -20,6 +20,8 @@ import {
     ProgramSemesterDashboardView, ProgramGroupView, ProgramGroupStudentsView
 } from '@components/Didactics';
 
+import {useTheme} from '@mui/material/styles';
+
 export default function DidacticsPage({view}: { view: string }) {
     const {facultyId, fieldId, unitId, courseCode, programId, semesterId, groupId} = useParams();
     const intl = useIntl();
@@ -40,6 +42,8 @@ export default function DidacticsPage({view}: { view: string }) {
     const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
     const [currentProgram, setCurrentProgram] = useState<StudyProgram | null>(null);
     const [currentGroup, setCurrentGroup] = useState<Group | null>(null);
+
+    const theme = useTheme();
 
     useEffect(() => {
         setPage(1);
@@ -263,8 +267,10 @@ export default function DidacticsPage({view}: { view: string }) {
                         width: '100%',
                         display: 'flex',
                         flexDirection: 'column',
-                        background: view === 'group_members' ? 'transparent' : '#ffffff',
-                        boxShadow: view === 'group_members' ? 'none' : '0 2px 12px rgba(0, 0, 0, 0.06)',
+                        background: theme.palette.background.paper,
+                        boxShadow: view === 'group_members' ? 'none' : (theme) => theme.palette.mode === 'dark' ? '0 4px 20px rgba(0, 0, 0, 0.4)' : '0 2px 12px rgba(0, 0, 0, 0.06)',
+                        border: view === 'group_members' ? 0 : 1,
+                        borderColor: 'divider',
                         borderRadius: 2,
                         overflow: 'hidden',
                         p: view === 'group_members' ? 0 : {xs: 1, md: 2}
@@ -302,7 +308,7 @@ export default function DidacticsPage({view}: { view: string }) {
                                 basePath="/didactics/fields/faculty"
                             />
                         )}
-
+                        {/*TODO: change data type from any*/}
                         {view === 'semesters' && (
                             <ProgramSemesterView
                                 data={data as unknown[]}

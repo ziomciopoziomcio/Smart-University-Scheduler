@@ -1,5 +1,3 @@
-import {useAuthStore} from '@store/useAuthStore';
-
 export const BASE_URL = (import.meta.env.VITE_API_URL as string || 'http://localhost:3000').replace(/\/+$/, '');
 
 export const USERS_URL = `${BASE_URL}/users`;
@@ -7,12 +5,46 @@ export const ACADEMICS_URL = `${BASE_URL}/academics`;
 export const FACILITIES_URL = `${BASE_URL}/facilities`;
 export const COURSES_URL = `${BASE_URL}/course`;
 export const SCHEDULES_URL = `${BASE_URL}/schedules`;
+export const SETTINGS_URL = `${BASE_URL}/settings`;
+export const OPTIMIZE_URL = `${BASE_URL}/optimize`;
 
+/**
+ * Safely retrieves the token from localStorage without importing the store
+ * to avoid circular dependencies.
+ */
+const getTokenFromStorage = (): string | null => {
+    try {
+        const authStorage = localStorage.getItem('auth-storage');
+        if (!authStorage) return null;
+        const parsed = JSON.parse(authStorage);
+        return parsed.state?.token || null;
+    } catch (e) {
+        return null;
+    }
+};
 
-export const getHeaders = () => ({
-    'Authorization': `Bearer ${useAuthStore.getState().token}`,
-    'Content-Type': 'application/json',
-});
+/**
+ * Notifies the application about an unauthorized response via a custom event.
+ * This allows the store to react without being directly imported here.
+ */
+const notifyUnauthorized = () => {
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('app:unauthorized'));
+    }
+};
+
+export const getHeaders = () => {
+    const token = getTokenFromStorage();
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+    };
+
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+
+    return headers;
+};
 
 // Global fetch interceptor for 401 Unauthorized errors
 if (typeof window !== 'undefined') {
@@ -21,10 +53,9 @@ if (typeof window !== 'undefined') {
         const response = await originalFetch(...args);
 
         if (response.status === 401) {
-            const state = useAuthStore.getState();
-            // Only trigger if we're currently authenticated (avoid triggering on login screen)
-            if (state.token && !state.sessionExpired) {
-                state.setSessionExpired(true);
+            // Check if we actually had a token (to avoid triggering on login screen)
+            if (getTokenFromStorage()) {
+                notifyUnauthorized();
             }
         }
 
@@ -45,10 +76,8 @@ export const apiRequest = async (url: string, options: RequestInit = {}): Promis
     });
 
     if (response.status === 401) {
-        // Only trigger session expiration if we had a token to begin with
-        // (to avoid triggering it on initial login failure)
-        if (useAuthStore.getState().token) {
-            useAuthStore.getState().setSessionExpired(true);
+        if (getTokenFromStorage()) {
+            notifyUnauthorized();
         }
     }
 

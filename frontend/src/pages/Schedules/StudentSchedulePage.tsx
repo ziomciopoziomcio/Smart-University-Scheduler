@@ -49,6 +49,11 @@ export default function StudentSchedulePage() {
     const [selectedBlockGroupIds, setSelectedBlockGroupIds] = useState<Record<number, number[]>>({});
     const [loadingBlockGroups, setLoadingBlockGroups] = useState<Record<number, boolean>>({});
 
+    const selectedElectiveGroupIds = useMemo(
+        () => Object.values(selectedBlockGroupIds).flat(),
+        [selectedBlockGroupIds]
+    );
+
     useEffect(() => {
         if (!facultyId || !fieldOfStudyId) return;
 
@@ -145,30 +150,73 @@ export default function StudentSchedulePage() {
 
     useEffect(() => {
         const fetchPlan = async () => {
+            if (!fieldOfStudyId || !semesterId) return;
+
             setIsScheduleLoading(true);
 
             try {
-                const res = await fetchStudyFieldPlan({
+                const commonParams = {
                     startDate: toIsoDate(currentWeekStart),
                     studyField: Number(fieldOfStudyId),
                     semester: Number(semesterId),
+                };
+
+                const basePlanPromise = fetchStudyFieldPlan({
+                    ...commonParams,
                     specializationId: majorId ? Number(majorId) : null,
-                    groupId: Number(groupId)
+                    groupId: groupId ? Number(groupId) : null,
                 });
+
+                const electivePlanPromises = selectedElectiveGroupIds.map(
+                    (electiveGroupId) =>
+                        fetchStudyFieldPlan({
+                            ...commonParams,
+                            specializationId: null,
+                            groupId: electiveGroupId,
+                        })
+                );
+
+                const plans = await Promise.all([
+                    basePlanPromise,
+                    ...electivePlanPromises,
+                ]);
+
+                const mergedEntries = plans.flat();
+
+                const uniqueEntries = Array.from(
+                    new Map(
+                        mergedEntries.map((entry) => [
+                            `${entry.id}-${entry.date}-${entry.startTime}-${entry.endTime}`,
+                            entry,
+                        ])
+                    ).values()
+                );
 
                 const startIso = toIsoDate(currentWeekStart);
                 const endIso = toIsoDate(addDays(currentWeekStart, 6));
 
-                setEntries(res.filter((entry) => entry.date >= startIso && entry.date <= endIso));
+                setEntries(
+                    uniqueEntries.filter(
+                        (entry) => entry.date >= startIso && entry.date <= endIso
+                    )
+                );
             } catch (err) {
-                console.error('Wystąpił błąd podczas ładowania planu', err);
+                console.error('Fetch plan failed', err);
+                setEntries([]);
             } finally {
                 setIsScheduleLoading(false);
             }
         };
 
         void fetchPlan();
-    }, [fieldOfStudyId, semesterId, majorId, groupId, currentWeekStart]);
+    }, [
+        fieldOfStudyId,
+        semesterId,
+        majorId,
+        groupId,
+        currentWeekStart,
+        selectedElectiveGroupIds,
+    ]);
 
     const breadcrumbs = useMemo((): BreadcrumbItem[] => {
         const items: BreadcrumbItem[] = [
