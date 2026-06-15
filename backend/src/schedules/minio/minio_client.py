@@ -17,25 +17,25 @@ class MinioStorage:
         if not self.access_key or not self.secret_key:
             raise ValueError("ERROR: No MINIO key in environment variables!")
 
-        internal_endpoint = os.getenv("MINIO_ENDPOINT", "minio:9000")
-        public_endpoint = os.getenv(
-            "MINIO_PUBLIC_ENDPOINT",
-            "127.0.0.1:9000",
-        )
-
-        self.storage_client = Minio(
-            endpoint=internal_endpoint,
+        self.client = Minio(
+            endpoint="127.0.0.1:9000",
             access_key=self.access_key,
             secret_key=self.secret_key,
             secure=self.secure,
         )
 
-        self.url_client = Minio(
-            endpoint=public_endpoint,
-            access_key=self.access_key,
-            secret_key=self.secret_key,
-            secure=self.secure,
-        )
+        internal_docker_host = os.getenv("MINIO_ENDPOINT", "minio:9000")
+        self.client._http.connection_pool_kw["server_hostname"] = internal_docker_host
+
+        pool_manager = self.client._http
+        original_urlopen = pool_manager.urlopen
+
+        def redirected_urlopen(method, url, *args, **kwargs):
+            if "127.0.0.1:9000" in url:
+                url = url.replace("127.0.0.1:9000", internal_docker_host)
+            return original_urlopen(method, url, *args, **kwargs)
+
+        pool_manager.urlopen = redirected_urlopen
 
     def upload_pdf(
         self,
@@ -50,7 +50,7 @@ class MinioStorage:
         file_data.seek(0)
         length = file_data.getbuffer().nbytes
 
-        self.storage_client.put_object(
+        self.client.put_object(
             bucket_name=self.bucket_name,
             object_name=object_name,
             data=file_data,
@@ -58,7 +58,7 @@ class MinioStorage:
             content_type="application/pdf",
         )
 
-        url = self.url_client.presigned_get_object(
+        url = self.client.presigned_get_object(
             bucket_name=self.bucket_name,
             object_name=object_name,
             expires=expires,
@@ -86,7 +86,7 @@ class MinioStorage:
         cutoff = datetime.now(timezone.utc) - timedelta(days=older_than_days)
         deleted = []
 
-        for obj in self.storage_client.list_objects(
+        for obj in self.client.list_objects(
             self.bucket_name, prefix=prefix, recursive=True
         ):
             try:
@@ -99,9 +99,7 @@ class MinioStorage:
                     deleted.append(obj.object_name)
                 else:
                     try:
-                        self.storage_client.remove_object(
-                            self.bucket_name, obj.object_name
-                        )
+                        self.client.remove_object(self.bucket_name, obj.object_name)
                         deleted.append(obj.object_name)
                     except Exception as e:
                         logger.error(f"Failed to delete {obj.object_name}: {e}")
