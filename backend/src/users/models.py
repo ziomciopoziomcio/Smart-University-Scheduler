@@ -91,10 +91,17 @@ class UserApiKey(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
     api_key_hash: Mapped[str] = mapped_column(
         String(255), nullable=False, unique=True, index=True
+    )
+    expiration_date: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("true")
     )
 
 

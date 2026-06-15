@@ -230,3 +230,9 @@ class VerifyEmailResponse(BaseModel):
 class APIKeyResponse(BaseModel):
     detail: str
     api_key: str
+
+
+class APIKeyCreateRequest(BaseModel):
+    name: Annotated[str, StringConstraints(max_length=255)] = "Script Key"
+
+    model_config = ConfigDict(from_attributes=True)
