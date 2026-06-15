@@ -218,7 +218,7 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
         api_keys = (
             db.query(models.UserApiKey)
             .filter(
-                models.UserApiKey.is_active == True,
+                models.UserApiKey.is_active,
                 models.UserApiKey.expiration_date > now,
             )
             .all()
