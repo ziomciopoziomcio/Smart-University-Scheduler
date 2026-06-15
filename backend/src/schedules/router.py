@@ -1898,7 +1898,7 @@ async def get_user_plan_semester(
         owner_id=user_id,
     )
 
-  
+
 GROUP_COURSE_HOURS_SUMMARY_QUERY = """
         MATCH (g:Group {groupId: $group_id})
               <-[:FOR_GROUP]-(s:ClassSession)
