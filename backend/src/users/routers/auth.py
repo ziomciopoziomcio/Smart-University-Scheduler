@@ -70,19 +70,22 @@ def read_own_user(
     status_code=status.HTTP_201_CREATED,
 )
 def generate_api_key(
+    payload: schemas.APIKeyCreateRequest,
     current_user: models.Users = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    db.query(models.UserApiKey).filter(
-        models.UserApiKey.user_id == current_user.id
-    ).delete()
+    from datetime import datetime, timedelta
 
     raw_api_key = secrets.token_hex(32)
-
     hashed_key = hash_password(raw_api_key)
+    expiration = datetime.utcnow() + timedelta(days=365)
 
     new_api_key_entry = models.UserApiKey(
-        user_id=current_user.id, api_key_hash=hashed_key
+        user_id=current_user.id,
+        name=payload.name if payload.name else "Script Key",
+        api_key_hash=hashed_key,
+        expiration_date=expiration,
+        is_active=True,
     )
 
     db.add(new_api_key_entry)
@@ -92,6 +95,51 @@ def generate_api_key(
         "detail": "API key generated. Please copy it since it won't be shown again.",
         "api_key": raw_api_key,
     }
+
+
+@router.get("/api-keys", response_model=list[dict])
+def list_api_keys(
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    keys = (
+        db.query(models.UserApiKey)
+        .filter(models.UserApiKey.user_id == current_user.id)
+        .all()
+    )
+
+    return [
+        {
+            "id": k.id,
+            "name": k.name,
+            "expiration_date": k.expiration_date.strftime("%Y-%m-%d %H:%M:%S"),
+            "is_active": k.is_active,
+        }
+        for k in keys
+    ]
+
+
+@router.post("/api-keys/{key_id}/revoke")
+def revoke_api_key(
+    key_id: int,
+    current_user: models.Users = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    key_entry = (
+        db.query(models.UserApiKey)
+        .filter(
+            models.UserApiKey.id == key_id, models.UserApiKey.user_id == current_user.id
+        )
+        .first()
+    )
+
+    if not key_entry:
+        raise HTTPException(status_code=404, detail="API Key not found")
+
+    key_entry.is_active = False
+    _commit_or_rollback(db)
+
+    return {"detail": "API Key has been successfully revoked and deactivated."}
 
 
 @router.post("/2fa/setup", response_model=schemas.TwoFactorSetupResponse)

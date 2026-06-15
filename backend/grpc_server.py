@@ -3,6 +3,7 @@ import logging
 import grpc
 import user_pb2
 import user_pb2_grpc
+from datetime import datetime
 
 from src.database.database import SessionLocal
 from src.users.models import Users as UserModel
@@ -212,7 +213,17 @@ class UserRpcServiceServicer(user_pb2_grpc.UserRpcServiceServicer):
             db.close()
 
     def _find_user_by_api_key(self, db, provided_key: str):
-        api_keys = db.query(models.UserApiKey).all()
+        now = datetime.utcnow()
+
+        api_keys = (
+            db.query(models.UserApiKey)
+            .filter(
+                models.UserApiKey.is_active == True,
+                models.UserApiKey.expiration_date > now,
+            )
+            .all()
+        )
+
         for key_entry in api_keys:
             if verify_password(provided_key, key_entry.api_key_hash):
                 return key_entry.user_id
