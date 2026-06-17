@@ -46,7 +46,7 @@ class ScheduleAdapter:
         mappings = {
             "w": ["LECTURE", "WYKŁAD"],
             "l": ["LABORATORY", "LAB"],
-            "ć": ["TUTORIALS", "ĆWICZENIA"],
+            "c": ["TUTORIALS", "ĆWICZENIA"],
             "e": ["E-LEARNING", "ONLINE"],
         }
 
