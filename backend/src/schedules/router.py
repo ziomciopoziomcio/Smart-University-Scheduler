@@ -1725,23 +1725,23 @@ def _map_schedule_entries_with_week(
 
 
 STUDY_FIELD_PLAN_WITH_ROOMS_AND_TEACHERS_ACADEMIC_QUERY = """
-    MATCH (g:Group) WHERE g.groupId IN $group_ids
-    WITH collect(g) AS groups
-
-    UNWIND $day_configs AS config
-    UNWIND groups AS g
-
+    MATCH (g:Group)
+    WHERE g.groupId IN $group_ids
+    
     MATCH (s:ClassSession)-[:FOR_GROUP]->(g)
-    MATCH (s)-[:AT_TIME]->(t:TimeSlot {dayOfWeek: config.academic_day})
     MATCH (s)-[:OF_COURSE]->(c:Course)
-
+    
     OPTIONAL MATCH (s)-[:HELD_IN]->(r:Room)
     OPTIONAL MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
-
-    WHERE config.week_number IN s.weeks
-
-    WITH DISTINCT s, c, r, i, config, t
-
+    
+    UNWIND $day_configs AS config
+    
+    WITH s, c, r, i, config
+    
+    MATCH (s)-[:AT_TIME]->(t:TimeSlot)
+    WHERE t.dayOfWeek = config.academic_day
+    AND config.week_number IN s.weeks
+    
     RETURN
         s.sessionId AS session_id,
         c.courseName AS title,
@@ -1749,15 +1749,15 @@ STUDY_FIELD_PLAN_WITH_ROOMS_AND_TEACHERS_ACADEMIC_QUERY = """
         config.physical_date AS physical_date,
         t.startTime AS start_time,
         t.endTime AS end_time,
-
+        
         r.roomId AS room_id,
         r.roomName AS room_name,
-
+        
         i.instructorId AS instructor_id,
         i.firstName AS instructor_first_name,
         i.degree AS instructor_degree,
         i.lastName AS instructor_last_name
-
+        
     ORDER BY config.physical_date, t.startTime
 """
 
