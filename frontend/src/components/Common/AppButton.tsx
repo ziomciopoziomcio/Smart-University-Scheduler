@@ -61,20 +61,22 @@ export function AppButton({variant = 'contained', loading, children, sx, ...prop
         );
     }
 
-    // text variant
-    return (
-        <Button
-            variant="text"
-            disabled={isDisabled}
-            startIcon={startIcon}
-            sx={{
-                color: 'primary.main',
-                '&:hover': {bgcolor: 'action.hover', color: 'primary.dark'},
-                ...baseSx,
-            }}
-            {...props}
-        >
-            {children}
-        </Button>
-    );
+    if (variant === 'text') {
+        // text variant
+        return (
+            <Button
+                variant="text"
+                disabled={isDisabled}
+                startIcon={startIcon}
+                sx={{
+                    color: 'primary.main',
+                    '&:hover': {bgcolor: 'action.hover', color: 'primary.dark'},
+                    ...baseSx,
+                }}
+                {...props}
+            >
+                {children}
+            </Button>
+        );
+    }
 }

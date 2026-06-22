@@ -18,6 +18,7 @@ interface ListViewProps<T> {
     columns?: ListColumn<T>[];
     onItemClick?: (item: T) => void;
     onMenuOpen?: (e: React.MouseEvent<HTMLElement>, item: T) => void;
+    showActionButton?: (item: T) => boolean;
     onAddClick?: () => void;
     addLabel?: string;
     emptyMessage?: string;
@@ -34,6 +35,7 @@ export function ListView<T extends { id: number | string }>({
                                                                 columns = [],
                                                                 onItemClick,
                                                                 onMenuOpen,
+                                                                showActionButton,
                                                                 onAddClick,
                                                                 addLabel,
                                                                 emptyMessage,
@@ -153,7 +155,7 @@ export function ListView<T extends { id: number | string }>({
                                 </Box>
                             ))}
 
-                            {onMenuOpen && (
+                            {onMenuOpen && (!showActionButton || showActionButton(item)) && (
                                 <IconButton
                                     size="small"
                                     onClick={(e) => {
