@@ -53,13 +53,13 @@ export default function StudentView({data, onRefresh}: StudentViewProps) {
                     {
                         render: (item: Student) => `${item.user.name} ${item.user.surname}`,
                         variant: 'primary',
-                        width: '250px'
+                        width: '220px'
                     },
                     {
                         render: (item: Student) => item.user.email,
                         icon: Email,
                         variant: 'secondary',
-                        width: '250px'
+                        width: '320px'
                     },
                     {
                         render: (item: Student) => {
