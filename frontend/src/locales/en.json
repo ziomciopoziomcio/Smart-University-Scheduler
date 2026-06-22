@@ -103,7 +103,19 @@
     "users": "Users",
     "didactics": "Didactics",
     "generateSchedule": "Generate schedule",
+    "publicapi": "Public API",
     "programs": "Study programs"
+  },
+  "publicapi": {
+    "title": "Public API Access Keys",
+    "description": "Manage your API keys to access the system programmatically.",
+    "generateButton": "Generate new API key",
+    "modal": {
+      "title": "New API Key",
+      "description": "This is your new API key. Make sure to copy it now, as it will not be shown again.",
+      "copySuccess": "API key copied to clipboard!",
+      "warning": "WARNING: Keep this key secret. Anyone with this key can access your account."
+    }
   },
   "navbar": {
     "guest": "Guest",

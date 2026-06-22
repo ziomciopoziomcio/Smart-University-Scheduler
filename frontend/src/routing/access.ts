@@ -15,6 +15,7 @@ export type AppSection =
     | 'PERMISSIONS'
     | 'USERS'
     | 'SETTINGS'
+    | 'PUBLIC_API'
     | 'GENERATE_SCHEDULE';
 
 export const SECTION_PATHS: Record<AppSection, string> = {
@@ -30,6 +31,7 @@ export const SECTION_PATHS: Record<AppSection, string> = {
     PERMISSIONS: '/roles',
     USERS: '/users',
     SETTINGS: '/settings',
+    PUBLIC_API: '/public-api',
     GENERATE_SCHEDULE: '/generate',
 };
 
@@ -46,6 +48,7 @@ export const SECTION_ORDER: AppSection[] = [
     'PERMISSIONS',
     'USERS',
     'SETTINGS',
+    'PUBLIC_API',
     'GENERATE_SCHEDULE',
 ];
 
