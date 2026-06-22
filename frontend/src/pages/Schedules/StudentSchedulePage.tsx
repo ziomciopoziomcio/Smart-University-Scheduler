@@ -28,14 +28,26 @@ import {
 } from '@api';
 
 import {WeekSchedule} from '@components/Schedule/WeekSchedule';
-import {addDays, addWeeks, getStartOfWeek, toIsoDate} from '@components/Schedule/utils/dateUtils';
+import {addDays, toIsoDate} from '@components/Schedule/utils/dateUtils';
 import {PageBreadcrumbs, type BreadcrumbItem} from '@components/Common';
+import {useCalendarWeekStore} from '@store/useCalendarWeekStore';
 
 export default function StudentSchedulePage() {
     const intl = useIntl();
     const {facultyId, fieldOfStudyId, semesterId, majorId, groupId} = useParams();
 
-    const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => getStartOfWeek(new Date()));
+    const currentWeekStart = useCalendarWeekStore(
+        (state) => state.currentWeekStart,
+    );
+
+    const goToPreviousWeek = useCalendarWeekStore(
+        (state) => state.goToPreviousWeek,
+    );
+
+    const goToNextWeek = useCalendarWeekStore(
+        (state) => state.goToNextWeek,
+    );
+
     const [entries, setEntries] = useState<ScheduleEntry[]>([]);
     const [isScheduleLoading, setIsScheduleLoading] = useState<boolean>(false);
     const [isNamesLoading, setIsNamesLoading] = useState<boolean>(true);
@@ -305,12 +317,8 @@ export default function StudentSchedulePage() {
                         entries={entries}
                         currentWeekStart={currentWeekStart}
                         isLoading={isScheduleLoading}
-                        onPrevWeek={() => {
-                            setCurrentWeekStart((prev) => addWeeks(prev, -1));
-                        }}
-                        onNextWeek={() => {
-                            setCurrentWeekStart((prev) => addWeeks(prev, 1));
-                        }}
+                        onPrevWeek={goToPreviousWeek}
+                        onNextWeek={goToNextWeek}
                     />
 
                     {blocks.length > 0 && (
