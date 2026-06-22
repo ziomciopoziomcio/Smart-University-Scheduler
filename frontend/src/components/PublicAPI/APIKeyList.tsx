@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {Box, Typography, Chip} from '@mui/material';
+import {Paper, Box, Typography, Chip} from '@mui/material';
 import {Key, AccessTime} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 import {useTheme, alpha} from '@mui/material/styles';
@@ -47,10 +47,7 @@ export const APIKeyList = ({keys, onRevoke}: APIKeyListProps) => {
     };
 
     return (
-        <Box sx={{mt: 4}}>
-            <Typography variant="h6" fontWeight={700} sx={{mb: 2}}>
-                {intl.formatMessage({id: 'publicapi.listTitle'})}
-            </Typography>
+        <Paper>
             <ListView<APIKeyInfo>
                 items={keys}
                 icon={Key}
@@ -120,6 +117,6 @@ export const APIKeyList = ({keys, onRevoke}: APIKeyListProps) => {
                 onConfirm={() => { void handleConfirmRevoke(); }}
                 onClose={() => setConfirmOpen(false)}
             />
-        </Box>
+        </Paper>
     );
 };
