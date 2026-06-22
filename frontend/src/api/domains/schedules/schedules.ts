@@ -1,5 +1,5 @@
 import {
-    BASE_URL, getHeaders, SCHEDULES_URL, OPTIMIZE_URL,
+    getHeaders, SCHEDULES_URL, OPTIMIZE_URL,
     SETTINGS_URL
 } from '@api/core';
 

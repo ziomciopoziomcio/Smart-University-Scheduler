@@ -66,7 +66,7 @@ interface AddScheduleSessionPopupProps {
 
 interface FormValues {
     facultyId: string;
-    courseId: string;
+    courseId: number | '';
     groupIds: string[];
     dayOfWeek: DayOfWeek | '';
     startTime: string;
@@ -427,12 +427,16 @@ export function AddScheduleSessionPopup({
     };
 
     const handleSave = async () => {
-        if (!formValues.dayOfWeek) {
+        if (
+            !formValues.dayOfWeek ||
+            typeof formValues.courseId !== 'number' ||
+            Number.isNaN(formValues.courseId)
+        ) {
             return;
         }
 
         await onSave({
-            courseId: Number(formValues.courseId),
+            courseId: formValues.courseId,
             groupIds: formValues.groupIds.map(Number),
             dayOfWeek: formValues.dayOfWeek,
             startTime: formValues.startTime,
@@ -442,13 +446,17 @@ export function AddScheduleSessionPopup({
         });
     };
 
+    const isCourseInvalid =
+        typeof formValues.courseId !== 'number' ||
+        Number.isNaN(formValues.courseId);
+
     const isSaveDisabled =
         isSaving ||
         isLoadingInitialOptions ||
         isLoadingGroups ||
         Boolean(optionsError) ||
         !formValues.facultyId ||
-        !formValues.courseId ||
+        isCourseInvalid ||
         formValues.groupIds.length === 0 ||
         !formValues.dayOfWeek ||
         !formValues.startTime ||
@@ -645,12 +653,20 @@ export function AddScheduleSessionPopup({
                         <InputLabel>Course</InputLabel>
 
                         <Select
-                            value={formValues.courseId}
+                            value={
+                                formValues.courseId === ''
+                                    ? ''
+                                    : String(formValues.courseId)
+                            }
                             label="Course"
                             onChange={(event: SelectChangeEvent) => {
+                                const courseId = Number(event.target.value);
+
                                 setFormValues((current) => ({
                                     ...current,
-                                    courseId: event.target.value,
+                                    courseId: Number.isNaN(courseId)
+                                        ? ''
+                                        : courseId,
                                 }));
                             }}
                             sx={{
