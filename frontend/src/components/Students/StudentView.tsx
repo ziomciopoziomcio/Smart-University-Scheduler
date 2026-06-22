@@ -1,6 +1,12 @@
 import {useState} from 'react';
-import {Box} from '@mui/material';
-import {Email, Book} from '@mui/icons-material';
+import {Box, Typography, alpha} from '@mui/material';
+import {
+    Email,
+    Book,
+    ClassOutlined as ClassOutlinedIcon,
+    ExtensionOutlined as ExtensionOutlinedIcon,
+    AutoStories as AutoStoriesIcon
+} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 
 import {ListView, ActionMenu, DeleteConfirmDialog, UserAvatar} from '@components/Common';
@@ -72,6 +78,90 @@ export default function StudentView({data, onRefresh}: StudentViewProps) {
                         icon: Book,
                         variant: 'primary',
                         width: '350px'
+                    },
+                    {
+                        render: (item: Student) => {
+                            const groups = item.groups || [];
+                            return (
+                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                    {groups.map((group) => {
+                                        let Icon = AutoStoriesIcon;
+                                        let color = 'text.secondary';
+                                        let bgColor = (theme: any) => alpha(theme.palette.text.primary, 0.05);
+                                        let bgHoverColor = (theme: any) => alpha(theme.palette.text.primary, 0.1);
+                                        let iconOpacity = 0.6;
+                                        
+                                        if (group.major) {
+                                            Icon = ClassOutlinedIcon;
+                                            color = 'primary.main';
+                                            bgColor = (theme: any) => alpha(theme.palette.primary.main, 0.08);
+                                            bgHoverColor = (theme: any) => alpha(theme.palette.primary.main, 0.16);
+                                            iconOpacity = 0.8;
+                                        } else if (group.elective_block) {
+                                            Icon = ExtensionOutlinedIcon;
+                                            color = 'secondary.main';
+                                            bgColor = (theme: any) => alpha(theme.palette.secondary.main, 0.08);
+                                            bgHoverColor = (theme: any) => alpha(theme.palette.secondary.main, 0.16);
+                                            iconOpacity = 0.8;
+                                        }
+                                        
+                                        return (
+                                            <Box
+                                                key={group.id}
+                                                sx={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    height: 32,
+                                                    borderRadius: 16,
+                                                    bgcolor: bgColor,
+                                                    color: color,
+                                                    overflow: 'hidden',
+                                                    cursor: 'default',
+                                                    minWidth: 32,
+                                                    maxWidth: 32,
+                                                    justifyContent: 'center',
+                                                    boxSizing: 'border-box',
+                                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                    '&:hover': {
+                                                        maxWidth: 240,
+                                                        paddingLeft: '8px',
+                                                        paddingRight: '12px',
+                                                        justifyContent: 'flex-start',
+                                                        bgcolor: bgHoverColor,
+                                                        '& .group-pill-text': {
+                                                            opacity: 1,
+                                                            maxWidth: 180,
+                                                            marginLeft: '8px',
+                                                        }
+                                                    },
+                                                }}
+                                            >
+                                                <Icon sx={{ fontSize: 18, flexShrink: 0, opacity: iconOpacity }} />
+                                                <Typography
+                                                    className="group-pill-text"
+                                                    variant="caption"
+                                                    sx={{
+                                                        fontWeight: 600,
+                                                        fontSize: '0.75rem',
+                                                        whiteSpace: 'nowrap',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis',
+                                                        opacity: 0,
+                                                        maxWidth: 0,
+                                                        marginLeft: 0,
+                                                        color: color,
+                                                        transition: 'opacity 0.2s ease, max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.3s ease',
+                                                    }}
+                                                >
+                                                    {group.group_name}
+                                                </Typography>
+                                            </Box>
+                                        );
+                                    })}
+                                </Box>
+                            );
+                        },
+                        width: '240px'
                     }
                 ]}
                 onMenuOpen={handleMenuOpen}
