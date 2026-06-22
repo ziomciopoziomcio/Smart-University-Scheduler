@@ -140,12 +140,16 @@ function LoginPage() {
                     }
                 </Button>
 
-                <Stack direction="row" justifyContent="space-between">
-                    <Button variant="text" disabled={true} onClick={() => {
-                        navigate('/register');
-                    }}>
-                        <FormattedMessage id="login.createAccount"/>
-                    </Button>
+
+                <Stack direction="row" justifyContent="center">
+
+                    {/* REGISTER BUTTON - IT WAITS FOR BETTER DAYS */}
+                    {/*<Button variant="text" disabled={true} onClick={() => {*/}
+                    {/*    navigate('/register');*/}
+                    {/*}}>*/}
+                    {/*    <FormattedMessage id="login.createAccount"/>*/}
+                    {/*</Button>*/}
+
                     <Button variant="text" disabled={loading} onClick={() => navigate('/forgot-password')}>
                         <FormattedMessage id="login.forgotPassword"/>
                     </Button>
