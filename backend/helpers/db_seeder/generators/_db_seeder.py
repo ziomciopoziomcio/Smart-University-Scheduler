@@ -20,8 +20,8 @@ from helpers.db_seeder.generators.groups import (
     assign_students_to_elective_groups,
 )
 from helpers.db_seeder.generators.students import generate_students
-from backend.src.database.base import Base
-from backend.src.database.database import get_db, engine
+from src.database.base import Base
+from src.database.database import get_db, engine
 
 from helpers.db_seeder.generators.academics import generate_units
 from helpers.db_seeder.generators.course_instructors import (
@@ -52,7 +52,7 @@ from helpers.db_seeder.generators.roles_perms import (
 )
 from helpers.db_seeder.generators.study_programs import generate_study_programs
 from helpers.db_seeder.generators.users import generate_users
-from backend.src.users.auth import hash_password
+from src.users.auth import hash_password
 
 BASE_DIR = Path(__file__).resolve().parent
 

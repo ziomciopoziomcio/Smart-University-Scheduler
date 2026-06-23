@@ -3,8 +3,8 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from backend.src.academics.models import Units
-from backend.src.facilities.models import Campus, Building, Faculty, Room
+from src.academics.models import Units
+from src.facilities.models import Campus, Building, Faculty, Room
 
 
 def generate_campuses(session: Session) -> dict[str, Campus]:

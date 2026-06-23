@@ -2,9 +2,9 @@ from typing import Callable
 
 from sqlalchemy.orm import Session
 
-from backend.src.academics.models import Employees, Units
-from backend.src.users.models import Users, Roles
-from backend.src.facilities.models import Faculty
+from src.academics.models import Employees, Units
+from src.users.models import Users, Roles
+from src.facilities.models import Faculty
 
 
 def _get_admin_role_obj(roles: dict[str, Roles]) -> Roles:
