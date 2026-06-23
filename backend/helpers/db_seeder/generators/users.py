@@ -4,7 +4,7 @@ from faker import Faker
 
 
 from sqlalchemy.orm import Session
-from backend.src.users.models import Users, Roles
+from src.users.models import Users, Roles
 
 
 def _generate_full_names(

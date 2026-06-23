@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 
-from backend.src.users.models import Users
-from backend.src.academics.models import Students, Groups
-from backend.src.courses.models import Study_program, Curriculum_course, Major
+from src.users.models import Users
+from src.academics.models import Students, Groups
+from src.courses.models import Study_program, Curriculum_course, Major
 
 
 def _get_only_students(

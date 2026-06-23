@@ -4,9 +4,9 @@ import re
 from sqlalchemy.orm import Session
 import json
 
-from backend.src.facilities.models import Faculty
-from backend.src.academics.models import Units, Employees
-from backend.src.courses.models import (
+from src.facilities.models import Faculty
+from src.academics.models import Units, Employees
+from src.courses.models import (
     Study_fields,
     Course,
     ClassType,

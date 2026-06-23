@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from backend.src.users.models import Permissions, Roles
+from src.users.models import Permissions, Roles
 import pandas as pd
 
 

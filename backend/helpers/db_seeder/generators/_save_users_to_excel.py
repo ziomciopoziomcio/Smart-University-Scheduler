@@ -1,9 +1,9 @@
 import os
 from openpyxl import load_workbook, Workbook
 
-from backend.src.users.models import Users
-from backend.src.academics.models import Employees, Units
-from backend.src.facilities.models import Faculty
+from src.users.models import Users
+from src.academics.models import Employees, Units
+from src.facilities.models import Faculty
 
 
 class ExcelWriter:
