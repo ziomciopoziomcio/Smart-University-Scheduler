@@ -2,8 +2,8 @@ import json
 
 from sqlalchemy.orm import Session
 
-from backend.src.academics.models import Students, Groups, Group_members
-from backend.src.courses.models import (
+from src.academics.models import Students, Groups, Group_members
+from src.courses.models import (
     Study_program,
     Major,
     Curriculum_course,

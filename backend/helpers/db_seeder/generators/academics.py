@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
-from backend.src.academics.models import Units
-from backend.src.facilities.models import Faculty
+from src.academics.models import Units
+from src.facilities.models import Faculty
 
 
 def generate_units(session: Session, faculties: dict[str, Faculty]) -> dict[str, Units]:

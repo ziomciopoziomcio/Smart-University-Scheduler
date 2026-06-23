@@ -96,7 +96,7 @@ get_programs(
 from ProgramsParser import ProgramsParser
 
 pp = ProgramsParser(
-    module_dir="helpers\\data_collector\\",
+    module_dir="helpers/data_collector\\",
     plans_dir="plany\\",
     majors_filename="kierunki.csv",
     output="programs.json"

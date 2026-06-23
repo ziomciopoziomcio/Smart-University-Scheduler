@@ -2,9 +2,9 @@ import random
 
 from sqlalchemy.orm import Session
 
-from backend.src.academics.models import Units, Employees
-from backend.src.facilities.models import Faculty
-from backend.src.users.models import Users
+from src.academics.models import Units, Employees
+from src.facilities.models import Faculty
+from src.users.models import Users
 
 
 def _get_random_unit_id(db_units: dict[str, Units]) -> int:
