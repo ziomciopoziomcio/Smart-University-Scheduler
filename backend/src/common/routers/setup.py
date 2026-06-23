@@ -204,7 +204,19 @@ def initialize_system(
 
 
 @router.post("/seed")
-async def seed_system(session: Session = Depends(get_db)):
+async def seed_system(
+    session: Session = Depends(get_db),
+    x_seed_token: str = Header(..., alias="X-Seed-Token"),
+):
+    # token validation
+    expected_token = os.getenv("SEED_SECURITY_TOKEN")
+
+    if not expected_token:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Missing seed token")
+
+    if not secrets.compare_digest(expected_token, x_seed_token):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Invalid seed token")
+
     # CALENDAR
     generate_academic_calendar(session=session)
     session.commit()
