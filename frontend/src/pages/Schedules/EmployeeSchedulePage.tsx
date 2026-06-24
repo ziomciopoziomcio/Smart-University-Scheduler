@@ -33,6 +33,7 @@ export async function getLecturerScheduleForWeek(
 export default function EmployeeSchedulePage() {
     const intl = useIntl();
     const {facultyId, unitId, lecturerId} = useParams();
+    const [refreshRevision, setRefreshRevision] = useState(0);
 
     const currentWeekStart = useCalendarWeekStore(
         (state) => state.currentWeekStart,
@@ -133,7 +134,7 @@ export default function EmployeeSchedulePage() {
         return () => {
             isCancelled = true;
         };
-    }, [lecturerId, unitId, currentWeekStart]);
+    }, [lecturerId, unitId, currentWeekStart, refreshRevision]);
 
     const breadcrumbs = useMemo((): BreadcrumbItem[] => {
         return [
@@ -186,6 +187,9 @@ export default function EmployeeSchedulePage() {
                 isLoading={isScheduleLoading}
                 onPrevWeek={goToPreviousWeek}
                 onNextWeek={goToNextWeek}
+                onSessionUpdated={() => {
+                    setRefreshRevision((revision) => revision + 1);
+                }}
             />
         </Box>
     );
