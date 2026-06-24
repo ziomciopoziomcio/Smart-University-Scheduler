@@ -93,7 +93,7 @@ const EMPTY_FORM_VALUES: FormValues = {
     roomId: '',
 };
 
-const dayOptions: {value: DayOfWeek; label: string}[] = [
+const dayOptions: { value: DayOfWeek; label: string }[] = [
     {value: 'MONDAY', label: 'Monday'},
     {value: 'TUESDAY', label: 'Tuesday'},
     {value: 'WEDNESDAY', label: 'Wednesday'},
@@ -125,7 +125,7 @@ async function fetchAllPages<T>(
     return result;
 }
 
-function deduplicateById<T extends {id: number}>(items: T[]): T[] {
+function deduplicateById<T extends { id: number }>(items: T[]): T[] {
     return [...new Map(items.map((item) => [item.id, item])).values()];
 }
 
@@ -280,12 +280,12 @@ async function fetchAllGroupsForFaculty(
 }
 
 export function AddScheduleSessionPopup({
-    open,
-    isSaving = false,
-    errorMessage = null,
-    onClose,
-    onSave,
-}: AddScheduleSessionPopupProps) {
+                                            open,
+                                            isSaving = false,
+                                            errorMessage = null,
+                                            onClose,
+                                            onSave,
+                                        }: AddScheduleSessionPopupProps) {
     const {formatMessage} = useIntl();
 
     const [formValues, setFormValues] =
@@ -308,6 +308,16 @@ export function AddScheduleSessionPopup({
 
     const groupsRequestId = useRef(0);
 
+    const [courseSearch, setCourseSearch] = useState('');
+    const [instructorSearch, setInstructorSearch] = useState('');
+    const [roomSearch, setRoomSearch] = useState('');
+    const normalizeSearch = (value: string) =>
+        value
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim();
+
     useEffect(() => {
         if (!open) {
             return;
@@ -323,6 +333,9 @@ export function AddScheduleSessionPopup({
         setRooms([]);
         setOptionsError(null);
         setIsLoadingInitialOptions(true);
+        setCourseSearch('');
+        setInstructorSearch('');
+        setRoomSearch('');
 
         void fetchAllFaculties()
             .then(async (loadedFaculties) => {
@@ -375,6 +388,67 @@ export function AddScheduleSessionPopup({
             .map((group) => `${group.group_name} (#${group.id})`)
             .join(', ');
     }, [formValues.groupIds, groups]);
+
+    const filteredCourses = useMemo(() => {
+        const query = normalizeSearch(courseSearch);
+
+        if (!query) {
+            return courses;
+        }
+
+        return courses.filter((course) => {
+            const searchable = normalizeSearch(
+                [
+                    course.course_code,
+                    course.course_name,
+                ].join(' '),
+            );
+
+            return searchable.includes(query);
+        });
+    }, [courseSearch, courses]);
+
+    const filteredInstructors = useMemo(() => {
+        const query = normalizeSearch(instructorSearch);
+
+        if (!query) {
+            return instructors;
+        }
+
+        return instructors.filter((instructor) => {
+            const searchable = normalizeSearch(
+                [
+                    instructor.id,
+                    instructor.degree,
+                    instructor.name,
+                    instructor.surname,
+                ]
+                    .filter(Boolean)
+                    .join(' '),
+            );
+
+            return searchable.includes(query);
+        });
+    }, [instructorSearch, instructors]);
+
+    const filteredRooms = useMemo(() => {
+        const query = normalizeSearch(roomSearch);
+
+        if (!query) {
+            return rooms;
+        }
+
+        return rooms.filter((room) => {
+            const searchable = normalizeSearch(
+                [
+                    room.id,
+                    room.label,
+                ].join(' '),
+            );
+
+            return searchable.includes(query);
+        });
+    }, [roomSearch, rooms]);
 
     const handleFacultyChange = async (
         event: SelectChangeEvent,
@@ -552,7 +626,7 @@ export function AddScheduleSessionPopup({
                             gap: 1.2,
                         }}
                     >
-                        <CircularProgress size={18} />
+                        <CircularProgress size={18}/>
 
                         <Typography sx={{fontSize: 13, color: '#7A7A7A'}}>
                             {formatMessage({
@@ -641,7 +715,7 @@ export function AddScheduleSessionPopup({
                                 gap: 1.2,
                             }}
                         >
-                            <CircularProgress size={18} />
+                            <CircularProgress size={18}/>
 
                             <Typography sx={{fontSize: 13, color: '#7A7A7A'}}>
                                 Loading groups...
@@ -659,6 +733,13 @@ export function AddScheduleSessionPopup({
                                     : String(formValues.courseId)
                             }
                             label="Course"
+                            MenuProps={{
+                                PaperProps: {
+                                    sx: {
+                                        maxHeight: 360,
+                                    },
+                                },
+                            }}
                             onChange={(event: SelectChangeEvent) => {
                                 const courseId = Number(event.target.value);
 
@@ -674,14 +755,31 @@ export function AddScheduleSessionPopup({
                                 bgcolor: '#FBFCFF',
                             }}
                         >
-                            {courses.map((course) => (
+                            <MenuItem disableRipple>
+                                <TextField
+                                    autoFocus
+                                    fullWidth
+                                    size="small"
+                                    placeholder="Search by course code or name..."
+                                    value={courseSearch}
+                                    onChange={(event) => {
+                                        setCourseSearch(event.target.value);
+                                    }}
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                    }}
+                                    onKeyDown={(event) => {
+                                        event.stopPropagation();
+                                    }}
+                                />
+                            </MenuItem>
+
+                            {filteredCourses.map((course) => (
                                 <MenuItem
                                     key={course.course_code}
                                     value={String(course.course_code)}
                                 >
-                                    {course.course_name}
-                                    {' '}
-                                    (#{course.course_code})
+                                    {course.course_name} (#{course.course_code})
                                 </MenuItem>
                             ))}
                         </Select>
@@ -770,6 +868,13 @@ export function AddScheduleSessionPopup({
                         <Select
                             value={formValues.instructorId}
                             label="Instructor"
+                            MenuProps={{
+                                PaperProps: {
+                                    sx: {
+                                        maxHeight: 360,
+                                    },
+                                },
+                            }}
                             onChange={(event: SelectChangeEvent) => {
                                 setFormValues((current) => ({
                                     ...current,
@@ -781,7 +886,26 @@ export function AddScheduleSessionPopup({
                                 bgcolor: '#FBFCFF',
                             }}
                         >
-                            {instructors.map((instructor) => (
+                            <MenuItem disableRipple>
+                                <TextField
+                                    autoFocus
+                                    fullWidth
+                                    size="small"
+                                    placeholder="Search by instructor name or surname..."
+                                    value={instructorSearch}
+                                    onChange={(event) => {
+                                        setInstructorSearch(event.target.value);
+                                    }}
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                    }}
+                                    onKeyDown={(event) => {
+                                        event.stopPropagation();
+                                    }}
+                                />
+                            </MenuItem>
+
+                            {filteredInstructors.map((instructor) => (
                                 <MenuItem
                                     key={instructor.id}
                                     value={String(instructor.id)}
@@ -806,6 +930,13 @@ export function AddScheduleSessionPopup({
                         <Select
                             value={formValues.roomId}
                             label="Room"
+                            MenuProps={{
+                                PaperProps: {
+                                    sx: {
+                                        maxHeight: 360,
+                                    },
+                                },
+                            }}
                             onChange={(event: SelectChangeEvent) => {
                                 setFormValues((current) => ({
                                     ...current,
@@ -817,7 +948,26 @@ export function AddScheduleSessionPopup({
                                 bgcolor: '#FBFCFF',
                             }}
                         >
-                            {rooms.map((room) => (
+                            <MenuItem disableRipple>
+                                <TextField
+                                    autoFocus
+                                    fullWidth
+                                    size="small"
+                                    placeholder="Search by room, building or campus..."
+                                    value={roomSearch}
+                                    onChange={(event) => {
+                                        setRoomSearch(event.target.value);
+                                    }}
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                    }}
+                                    onKeyDown={(event) => {
+                                        event.stopPropagation();
+                                    }}
+                                />
+                            </MenuItem>
+
+                            {filteredRooms.map((room) => (
                                 <MenuItem
                                     key={room.id}
                                     value={String(room.id)}
