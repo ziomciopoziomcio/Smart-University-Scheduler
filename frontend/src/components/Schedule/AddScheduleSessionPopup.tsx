@@ -14,6 +14,8 @@ import {
     Stack,
     TextField,
     Typography,
+    Checkbox,
+    ListItemText,
     type SelectChangeEvent,
 } from '@mui/material';
 import {useIntl} from 'react-intl';
@@ -68,6 +70,7 @@ interface FormValues {
     facultyId: string;
     courseId: number | '';
     groupIds: string[];
+    weeks: string[];
     dayOfWeek: DayOfWeek | '';
     startTime: string;
     endTime: string;
@@ -82,10 +85,16 @@ interface RoomOption {
 
 const PAGE_SIZE = 100;
 
+const WEEK_OPTIONS = Array.from(
+    {length: 15},
+    (_, index) => index + 1,
+);
+
 const EMPTY_FORM_VALUES: FormValues = {
     facultyId: '',
     courseId: '',
     groupIds: [],
+    weeks: WEEK_OPTIONS.map(String),
     dayOfWeek: '',
     startTime: '',
     endTime: '',
@@ -389,6 +398,17 @@ export function AddScheduleSessionPopup({
             .join(', ');
     }, [formValues.groupIds, groups]);
 
+    const selectedWeeksLabel = useMemo(() => {
+        if (formValues.weeks.length === WEEK_OPTIONS.length) {
+            return 'All weeks';
+        }
+
+        return formValues.weeks
+            .map(Number)
+            .sort((left, right) => left - right)
+            .join(', ');
+    }, [formValues.weeks]);
+
     const filteredCourses = useMemo(() => {
         const query = normalizeSearch(courseSearch);
 
@@ -512,6 +532,9 @@ export function AddScheduleSessionPopup({
         await onSave({
             courseId: formValues.courseId,
             groupIds: formValues.groupIds.map(Number),
+            weeks: formValues.weeks
+                .map(Number)
+                .sort((left, right) => left - right),
             dayOfWeek: formValues.dayOfWeek,
             startTime: formValues.startTime,
             endTime: formValues.endTime,
@@ -532,6 +555,7 @@ export function AddScheduleSessionPopup({
         !formValues.facultyId ||
         isCourseInvalid ||
         formValues.groupIds.length === 0 ||
+        formValues.weeks.length === 0 ||
         !formValues.dayOfWeek ||
         !formValues.startTime ||
         !formValues.endTime ||
@@ -704,6 +728,53 @@ export function AddScheduleSessionPopup({
                                     {group.group_name} (#{group.id})
                                 </MenuItem>
                             ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth>
+                        <InputLabel>Weeks</InputLabel>
+
+                        <Select
+                            multiple
+                            value={formValues.weeks}
+                            label="Weeks"
+                            renderValue={() => selectedWeeksLabel}
+                            onChange={(event) => {
+                                const value = event.target.value;
+
+                                setFormValues((current) => ({
+                                    ...current,
+                                    weeks:
+                                        typeof value === 'string'
+                                            ? value.split(',')
+                                            : value,
+                                }));
+                            }}
+                            MenuProps={{
+                                PaperProps: {
+                                    sx: {
+                                        maxHeight: 360,
+                                    },
+                                },
+                            }}
+                            sx={{
+                                borderRadius: '16px',
+                                bgcolor: '#FBFCFF',
+                            }}
+                        >
+                            {WEEK_OPTIONS.map((week) => {
+                                const weekValue = String(week);
+
+                                return (
+                                    <MenuItem key={week} value={weekValue}>
+                                        <Checkbox
+                                            checked={formValues.weeks.includes(weekValue)}
+                                        />
+
+                                        <ListItemText primary={`Week ${week}`}/>
+                                    </MenuItem>
+                                );
+                            })}
                         </Select>
                     </FormControl>
 

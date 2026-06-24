@@ -214,6 +214,7 @@ export interface ValidationReport {
 export interface CreateScheduleSessionRequest {
     courseId: number;
     groupIds: number[];
+    weeks: number[];
     dayOfWeek: DayOfWeek;
     startTime: string;
     endTime: string;
