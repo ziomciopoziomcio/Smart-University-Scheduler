@@ -1967,17 +1967,18 @@ _CREATE_SESSION_CONFLICT_QUERY = """
       AND t.endTime = $end_time
 
     MATCH (other:ClassSession)-[:AT_TIME]->(t)
-
     WHERE ANY(w IN other.weeks WHERE w IN $weeks)
 
     OPTIONAL MATCH (other)-[:TAUGHT_BY]->(i:Instructor)
     OPTIONAL MATCH (other)-[:HELD_IN]->(r:Room)
     OPTIONAL MATCH (other)-[:FOR_GROUP]->(g:Group)
+    OPTIONAL MATCH (other)-[:OF_COURSE]->(c:Course)
 
-    WITH DISTINCT other, i, r, g
+    WITH DISTINCT other, i, r, g, c
 
     WITH
         other,
+        c.courseName AS course_name,
         CASE
             WHEN i.instructorId = $instructor_id THEN "INSTRUCTOR"
             WHEN r.roomId = $room_id THEN "ROOM"
@@ -1992,9 +1993,13 @@ _CREATE_SESSION_CONFLICT_QUERY = """
     RETURN
         other.sessionId AS session_id,
         conflict_type,
+        course_name,
         i.instructorId AS instructor_id,
+        COALESCE(i.degree + " " + i.firstName + " " + i.lastName, i.firstName + " " + i.lastName) AS instructor_name,
         r.roomId AS room_id,
+        r.roomName AS room_name,
         g.groupId AS group_id,
+        g.groupName AS group_name,
         other.weeks AS weeks
 """
 
@@ -2068,17 +2073,39 @@ async def _detect_session_conflicts(
     conflicts = [record async for record in conflict_result]
 
     if conflicts:
+        detailed_messages = []
+        for c in conflicts:
+            c_type = c["conflict_type"]
+            course = c["course_name"] or "Unknown Course"
+
+            if c_type == "INSTRUCTOR":
+                detailed_messages.append(
+                    f"Instructor '{c['instructor_name']}' is already busy teaching '{course}'."
+                )
+            elif c_type == "ROOM":
+                detailed_messages.append(
+                    f"Room '{c['room_name']}' is already occupied by '{course}'."
+                )
+            elif c_type == "GROUP":
+                detailed_messages.append(
+                    f"Group '{c['group_name']}' already has a session of '{course}' at this time."
+                )
+
+        error_message = "Schedule conflict detected: " + " | ".join(
+            set(detailed_messages)
+        )
+
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail={
-                "message": "Schedule conflict detected",
+                "message": error_message,
                 "conflicts": [
                     {
                         "session_id": c["session_id"],
                         "type": c["conflict_type"],
-                        "instructor_id": c["instructor_id"],
-                        "room_id": c["room_id"],
-                        "group_id": c["group_id"],
+                        "instructor_name": c["instructor_name"],
+                        "room_name": c["room_name"],
+                        "group_name": c["group_name"],
                         "weeks": c["weeks"],
                     }
                     for c in conflicts
