@@ -2,7 +2,8 @@
   "common": {
     "cancel": "Cancel",
     "save": "Save",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "delete": "Delete"
   },
   "login": {
     "title": "Sign in",
@@ -110,6 +111,22 @@
     "title": "Public API Access Keys",
     "description": "Manage your API keys to access the system programmatically.",
     "generateButton": "Generate new API key",
+    "keyName": "Key Name",
+    "expiration": "Expiration Date",
+    "status": "Status",
+    "active": "Active",
+    "revoked": "Revoked",
+    "namePlaceholder": "e.g. Schedule import script",
+    "nameLabel": "Friendly key name",
+    "modalCreateTitle": "Create new API key",
+    "errors": {
+      "nameRequired": "API key must have a name."
+    },
+    "revokeConfirmTitle": "Deactivate API Key?",
+    "revokeConfirmDesc": "Are you sure you want to deactivate this API key? Clients using it will lose access immediately.",
+    "revokeSuccess": "API key has been deactivated.",
+    "listTitle": "Your API Keys",
+    "noKeys": "No API keys generated yet.",
     "modal": {
       "title": "New API Key",
       "description": "This is your new API key. Make sure to copy it now, as it will not be shown again.",

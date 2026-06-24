@@ -26,10 +26,18 @@ const extractErrorMessage = async (response: Response, fallback: string): Promis
     }
 };
 
-export const generateApiKey = async (): Promise<APIKeyResponse> => {
+export interface APIKeyInfo {
+    id: number;
+    name: string;
+    expiration_date: string;
+    is_active: boolean;
+}
+
+export const generateApiKey = async (name?: string): Promise<APIKeyResponse> => {
     const response = await fetch(`${USERS_URL}/api-keys/generate`, {
         method: 'POST',
         headers: getHeaders(),
+        body: JSON.stringify({ name: name || undefined }),
     });
 
     if (!response.ok) {
@@ -38,4 +46,29 @@ export const generateApiKey = async (): Promise<APIKeyResponse> => {
     }
 
     return response.json() as Promise<APIKeyResponse>;
+};
+
+export const fetchApiKeys = async (): Promise<APIKeyInfo[]> => {
+    const response = await fetch(`${USERS_URL}/api-keys`, {
+        headers: getHeaders(),
+    });
+
+    if (!response.ok) {
+        const message = await extractErrorMessage(response, 'Failed to fetch API keys');
+        throw new Error(message);
+    }
+
+    return response.json() as Promise<APIKeyInfo[]>;
+};
+
+export const revokeApiKey = async (keyId: number): Promise<void> => {
+    const response = await fetch(`${USERS_URL}/api-keys/${keyId}/revoke`, {
+        method: 'POST',
+        headers: getHeaders(),
+    });
+
+    if (!response.ok) {
+        const message = await extractErrorMessage(response, 'Failed to revoke API key');
+        throw new Error(message);
+    }
 };

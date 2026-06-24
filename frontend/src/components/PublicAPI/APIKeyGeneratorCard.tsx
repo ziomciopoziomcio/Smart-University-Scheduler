@@ -1,4 +1,4 @@
-import {Box, Typography, Paper, Alert} from '@mui/material';
+import {Box, Typography, Paper} from '@mui/material';
 import {Tag} from '@mui/icons-material';
 import {useIntl} from 'react-intl';
 import {AppButton} from '@components/Common';
@@ -6,11 +6,9 @@ import {useTheme} from '@mui/material/styles';
 
 interface APIKeyGeneratorCardProps {
     onGenerate: () => void;
-    loading: boolean;
-    error: string | null;
 }
 
-export const APIKeyGeneratorCard = ({onGenerate, loading, error}: APIKeyGeneratorCardProps) => {
+export const APIKeyGeneratorCard = ({onGenerate}: APIKeyGeneratorCardProps) => {
     const intl = useIntl();
     const theme = useTheme();
 
@@ -35,17 +33,10 @@ export const APIKeyGeneratorCard = ({onGenerate, loading, error}: APIKeyGenerato
                 </Box>
             </Box>
 
-            {error && (
-                <Alert severity="error" sx={{mb: 3, borderRadius: '12px'}}>
-                    {error}
-                </Alert>
-            )}
-
             <Box sx={{mt: 4}}>
                 <AppButton
                     variant="contained"
                     onClick={onGenerate}
-                    loading={loading}
                     startIcon={<Tag />}
                     sx={{px: 4}}
                 >

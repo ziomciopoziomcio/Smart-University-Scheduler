@@ -2,7 +2,8 @@
   "common": {
     "cancel": "Anuluj",
     "save": "Zapisz",
-    "saving": "Zapisywanie..."
+    "saving": "Zapisywanie...",
+    "delete": "Usuń"
   },
   "login": {
     "title": "Zaloguj się",
@@ -110,6 +111,22 @@
     "title": "Klucze dostępu Publicznego API",
     "description": "Zarządzaj swoimi kluczami API, aby uzyskać programowy dostęp do systemu.",
     "generateButton": "Generuj nowy klucz API",
+    "keyName": "Nazwa klucza",
+    "expiration": "Data ważności",
+    "status": "Status",
+    "active": "Aktywny",
+    "revoked": "Deaktywowany",
+    "namePlaceholder": "Np. Skrypt do pobierania planu",
+    "nameLabel": "Przyjazna nazwa klucza",
+    "modalCreateTitle": "Utwórz nowy klucz API",
+    "errors": {
+      "nameRequired": "Klucz API musi mieć nazwę."
+    },
+    "revokeConfirmTitle": "Deaktywować klucz API?",
+    "revokeConfirmDesc": "Czy na pewno chcesz deaktywować ten klucz API? Klienci używający go stracą dostęp natychmiast.",
+    "revokeSuccess": "Klucz API został deaktywowany.",
+    "listTitle": "Twoje klucze API",
+    "noKeys": "Brak wygenerowanych kluczy API.",
     "modal": {
       "title": "Nowy Klucz API",
       "description": "To jest Twój nowy klucz API. Skopiuj go teraz, ponieważ nie zostanie wyświetlony ponownie.",
