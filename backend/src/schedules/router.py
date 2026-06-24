@@ -2178,7 +2178,7 @@ async def create_schedule_session(
         _CREATE_SCHEDULE_SESSION_QUERY,
         session_id=session_id,
         course_id=payload.course_id,
-        course_name=course_name, 
+        course_name=course_name,
         class_type=class_type,
         group_ids=payload.group_ids,
         instructor_id=payload.instructor_id,
