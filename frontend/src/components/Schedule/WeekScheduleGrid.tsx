@@ -12,7 +12,7 @@ import {getDayIndexFromDate, parseIsoDate} from './utils/dateUtils';
 
 import {usePermissionStore} from '@store/usePermissionStore';
 import {PERMISSIONS} from '@constants/permissions';
-
+import DeleteConfirmDialog from '@components/Common/DeleteConfirmDialog';
 import type {
     CourseSessionDetailsResponse,
     DayOfWeek,
@@ -26,6 +26,7 @@ import {
     fetchCourseSessionDetails,
     fetchScheduleSessionEditOptions,
     updateScheduleSession,
+    deleteScheduleSession,
 } from '@api';
 
 interface WeekScheduleGridProps {
@@ -257,10 +258,17 @@ export function WeekScheduleGrid({
     const {formatMessage} = useIntl();
     const gridHeight = getGridHeight();
 
+    const [isDeletingSession, setIsDeletingSession] = useState(false);
+    const [entryToDelete, setEntryToDelete] = useState<ScheduleEntry | null>(null);
+
     const hasAnyPermission = usePermissionStore((state) => state.hasAnyPermission);
 
     const canUpdateClassSession = hasAnyPermission([
         PERMISSIONS.CLASS_SESSION_UPDATE,
+    ]);
+
+    const canDeleteClassSession = hasAnyPermission([
+        PERMISSIONS.CLASS_SESSION_DELETE,
     ]);
 
     const orderedEntries = useMemo(() => {
@@ -361,6 +369,17 @@ export function WeekScheduleGrid({
         };
     };
 
+    const handleOpenDeleteDialog = (entry: ScheduleEntry) => {
+        setEntryToDelete(entry);
+    };
+    const handleCloseDeleteDialog = () => {
+        if (isDeletingSession) {
+            return;
+        }
+
+        setEntryToDelete(null);
+    };
+
     const loadEditOptions = async (
         entry: ScheduleEntry,
         values?: Partial<EditInitialValues>,
@@ -381,6 +400,33 @@ export function WeekScheduleGrid({
             instructors: response.instructors,
             rooms: response.rooms,
         };
+    };
+
+    const handleConfirmDeleteSession = async () => {
+        if (!entryToDelete) {
+            return;
+        }
+
+        setIsDeletingSession(true);
+
+        try {
+            await deleteScheduleSession(entryToDelete.id);
+
+            setEntryToDelete(null);
+            handleClosePopup();
+
+            await onSessionUpdated?.();
+        } catch (error) {
+            console.error('Nie udało się usunąć zajęć:', error);
+
+            alert(
+                error instanceof Error
+                    ? error.message
+                    : 'Nie udało się usunąć zajęć.',
+            );
+        } finally {
+            setIsDeletingSession(false);
+        }
     };
 
     const handleClosePopup = () => {
@@ -811,12 +857,37 @@ export function WeekScheduleGrid({
                                             }
                                             : undefined
                                     }
+                                    onDelete={
+                                        canDeleteClassSession
+                                            ? () => {
+                                                handleOpenDeleteDialog(selectedEntry);
+                                            }
+                                            : undefined
+                                    }
+                                    isDeleting={isDeletingSession}
                                 />
                             </Box>
                         </Box>
                     )}
                 </Box>
             </Box>
+
+            <DeleteConfirmDialog
+                open={Boolean(entryToDelete)}
+                loading={isDeletingSession}
+                title="Delete session"
+                description={
+                    entryToDelete
+                        ? `Are you sure you want to delete "${entryToDelete.title}" from the schedule?`
+                        : ''
+                }
+                cancelButtonLabel="Cancel"
+                confirmButtonLabel="Delete"
+                onClose={handleCloseDeleteDialog}
+                onConfirm={() => {
+                    void handleConfirmDeleteSession();
+                }}
+            />
 
             <EditScheduleSessionPopup
                 key={

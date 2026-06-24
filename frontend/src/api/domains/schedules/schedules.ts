@@ -207,6 +207,33 @@ export const createScheduleSession = async (
     return response.json();
 };
 
+export const deleteScheduleSession = async (
+    sessionId: string,
+): Promise<void> => {
+    const response = await fetch(`${SCHEDULES_URL}/session/${sessionId}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+    });
+
+    if (!response.ok) {
+        const text = await response.text();
+
+        let message = 'Failed to delete schedule session';
+
+        try {
+            const data = JSON.parse(text);
+
+            message =
+                typeof data?.detail === 'string'
+                    ? data.detail
+                    : data?.detail?.message ?? message;
+        } catch {
+            message = text || message;
+        }
+
+        throw new Error(message);
+    }
+};
 
 const getApiErrorMessage = async (
     response: Response,

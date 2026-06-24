@@ -1,5 +1,6 @@
 import CloseRounded from '@mui/icons-material/CloseRounded';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import {Box, Button, IconButton, Paper, Typography} from '@mui/material';
 import type {ScheduleEntry, ScheduleEntryDetails} from '@api';
 import {getTilePaletteByVariant} from './utils/tileColorUtils';
@@ -10,6 +11,8 @@ interface SubjectDetailsPopupProps {
     details: ScheduleEntryDetails;
     onClose: () => void;
     onEdit?: () => void;
+    onDelete?: () => void | Promise<void>;
+    isDeleting?: boolean;
 }
 
 export function SubjectDetailsPopup({
@@ -17,6 +20,8 @@ export function SubjectDetailsPopup({
                                         details,
                                         onClose,
                                         onEdit,
+                                        onDelete,
+                                        isDeleting = false,
                                     }: SubjectDetailsPopupProps) {
     const palette = getTilePaletteByVariant(entry.variant);
     const {formatMessage} = useIntl();
@@ -37,7 +42,7 @@ export function SubjectDetailsPopup({
                 boxSizing: 'border-box',
                 zIndex: 20,
                 p: 3,
-                pt: onEdit ? 5.5 : 3,
+                pt: onEdit || onDelete ? 5.5 : 3,
             }}
         >
             {onEdit && (
@@ -69,6 +74,49 @@ export function SubjectDetailsPopup({
                     }}
                 >
                     {formatMessage({id: 'schedule.details.edit', defaultMessage: 'Edit'})}
+                </Button>
+            )}
+
+            {onDelete && (
+                <Button
+                    size="small"
+                    startIcon={<DeleteOutlineIcon sx={{fontSize: 15}}/>}
+                    onClick={() => {
+                        void onDelete();
+                    }}
+                    disabled={isDeleting}
+                    sx={{
+                        position: 'absolute',
+                        top: 10,
+                        left: onEdit ? 78 : 12,
+                        minWidth: 'auto',
+                        height: 28,
+                        px: 1,
+                        borderRadius: '10px',
+                        textTransform: 'none',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: '#9D2F2F',
+                        bgcolor: 'rgba(255,255,255,0.65)',
+                        boxShadow: 'none',
+                        '& .MuiButton-startIcon': {
+                            mr: 0.5,
+                        },
+                        '&:hover': {
+                            bgcolor: 'rgba(255,235,235,0.95)',
+                            boxShadow: 'none',
+                        },
+                    }}
+                >
+                    {isDeleting
+                        ? formatMessage({
+                            id: 'schedule.details.deleting',
+                            defaultMessage: 'Deleting...',
+                        })
+                        : formatMessage({
+                            id: 'schedule.details.delete',
+                            defaultMessage: 'Delete',
+                        })}
                 </Button>
             )}
 
