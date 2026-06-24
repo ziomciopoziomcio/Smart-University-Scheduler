@@ -167,7 +167,7 @@ export const createAppTheme = (config: ThemeConfig) => {
 
 
 export const theme = createAppTheme({
-    preset: 'emerald',
+    preset: 'oceanic',
     mode: 'light',
     baseFontSize: 16
 });
