@@ -67,13 +67,13 @@ export default function UserView({data, onRefresh}: UserViewProps) {
                     {
                         render: (item: User) => `${formatDegree(item.degree)}${item.name} ${item.surname}`,
                         variant: 'primary',
-                        width: '250px'
+                        width: '220px'
                     },
                     {
                         render: (item: User) => item.email,
                         icon: Email,
                         variant: 'secondary',
-                        width: '250px'
+                        width: '320px'
                     },
                     {
                         render: (item: User) => (
@@ -99,7 +99,7 @@ export default function UserView({data, onRefresh}: UserViewProps) {
                             : intl.formatMessage({id: 'users.view.noRoles'}),
                         icon: Badge,
                         variant: 'primary',
-                        width: '250px'
+                        width: '100px'
                     }
                 ]}
                 onMenuOpen={handleMenuOpen}

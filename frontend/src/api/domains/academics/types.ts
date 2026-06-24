@@ -9,6 +9,7 @@ export interface Student {
     user: User;
     study_program_details: StudyProgramDetails;
     major_details: MajorDetails | null;
+    groups?: Group[];
 }
 
 export interface Employee {
