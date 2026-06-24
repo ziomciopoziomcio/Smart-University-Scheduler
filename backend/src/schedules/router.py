@@ -1927,10 +1927,9 @@ async def get_schedule_session_edit_options(
 
 _CREATE_SCHEDULE_SESSION_QUERY = """
     MERGE (c:Course {courseCode: $course_id})
-    ON CREATE SET c.courseName = "Nowy Przedmiot (Utworzony Automatycznie)",
-                  c.classType = "Other"
+    ON CREATE SET c.courseName = $course_name,
+                  c.classType = $class_type
 
-    // TA LINIA JEST WYMAGANA, ABY SPROSTOWAĆ BŁĄD SKŁADNI:
     WITH c
 
     MATCH (i:Instructor {instructorId: $instructor_id})
@@ -2125,6 +2124,7 @@ async def _detect_session_conflicts(
 )
 async def create_schedule_session(
     payload: schemas.CreateScheduleSessionRequest,
+    db: Session = Depends(get_db),
     neo4j_session=Depends(get_neo4j_session),
     _current_user: user_models.Users = Depends(
         require_permission("class-session:create")
@@ -2140,6 +2140,35 @@ async def create_schedule_session(
             detail="dayOfWeek must be in the singular and in capital letters, e.g. 'MONDAY'",
         )
 
+    db_course = (
+        db.query(course_models.Course)
+        .filter(course_models.Course.course_code == payload.course_id)
+        .first()
+    )
+
+    if not db_course:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Course with code {payload.course_id} does not exist in the SQL database.",
+        )
+
+    course_name = db_course.course_name
+
+    db_type_detail = (
+        db.query(cou_mod.Course_type_detail)
+        .filter(cou_mod.Course_type_detail.course == payload.course_id)
+        .first()
+    )
+
+    if db_type_detail and db_type_detail.class_type:
+        class_type = (
+            db_type_detail.class_type.name
+            if hasattr(db_type_detail.class_type, "name")
+            else str(db_type_detail.class_type)
+        )
+    else:
+        class_type = "Other"
+
     await _validate_timeslot(neo4j_session, mapped_day, payload)
     await _detect_session_conflicts(neo4j_session, mapped_day, payload)
 
@@ -2149,6 +2178,8 @@ async def create_schedule_session(
         _CREATE_SCHEDULE_SESSION_QUERY,
         session_id=session_id,
         course_id=payload.course_id,
+        course_name=course_name, 
+        class_type=class_type,
         group_ids=payload.group_ids,
         instructor_id=payload.instructor_id,
         room_id=payload.room_id,
