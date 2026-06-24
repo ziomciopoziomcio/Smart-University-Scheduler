@@ -1926,7 +1926,12 @@ async def get_schedule_session_edit_options(
 
 
 _CREATE_SCHEDULE_SESSION_QUERY = """
-    MATCH (c:Course {courseCode: $course_id})
+    MERGE (c:Course {courseCode: $course_id})
+    ON CREATE SET c.courseName = "Nowy Przedmiot (Utworzony Automatycznie)",
+                  c.classType = "Other"
+
+    // TA LINIA JEST WYMAGANA, ABY SPROSTOWAĆ BŁĄD SKŁADNI:
+    WITH c
 
     MATCH (i:Instructor {instructorId: $instructor_id})
     MATCH (r:Room {roomId: $room_id})
