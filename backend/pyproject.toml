@@ -6,6 +6,7 @@ exclude = '''
   | \.git
   | \.venv
   | venv
+  | helpers
   | .*_pb2\.py
   | .*_pb2_grpc\.py
 )/
@@ -20,6 +21,7 @@ exclude = [
     ".git",
     ".venv",
     "venv",
+    "helpers",
    "**/*_pb2.py",
     "**/*_pb2_grpc.py",
 ]
