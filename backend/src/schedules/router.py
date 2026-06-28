@@ -1938,6 +1938,8 @@ _CREATE_SCHEDULE_SESSION_QUERY = """
     MERGE (r:Room {roomId: $room_id})
     ON CREATE SET r.roomName = $room_name
 
+    WITH c, i, r
+
     MATCH (t:TimeSlot)
     WHERE t.dayOfWeek = $day_of_week
       AND t.startTime = $start_time
