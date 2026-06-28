@@ -291,6 +291,11 @@ if __name__ == "__main__":
         roles=db_roles,
         db_faculties=db_faculties,
         db_units=db_units,
+        name="Admin",
+        surname="Adminkowski",
+        password="qwerty",
+        phone_number="123456789",
+        email="admin@nimda.pl",
     )
     session.commit()
 
