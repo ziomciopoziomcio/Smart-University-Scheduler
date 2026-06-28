@@ -70,7 +70,7 @@ export const updateScheduleSession = async (
     payload: UpdateScheduleSessionRequest,
 ): Promise<void> => {
     const response = await fetch(`${SCHEDULES_URL}/session/${sessionId}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: getHeaders(),
         body: JSON.stringify(payload),
     });

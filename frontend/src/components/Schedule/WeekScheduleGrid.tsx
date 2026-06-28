@@ -209,12 +209,13 @@ const snapMinutes = (minutes: number) => {
 
 const mapCourseSessionDetails = (
     response: CourseSessionDetailsResponse,
+    entry: ScheduleEntry,
 ): ScheduleEntryDetails => {
     const targetAudience = response.targetAudience ?? response.target_audience ?? [];
 
     return {
         typeLabel: response.type,
-        timeLabel: response.time,
+        timeLabel: `${entry.startTime} - ${entry.endTime}`,
         location: response.location,
         lecturer: response.lecturer,
         audience: targetAudience.map((audienceItem) => {
@@ -500,7 +501,7 @@ export function WeekScheduleGrid({
             }
 
             setSelectedEntry(entry);
-            setSelectedDetails(mapCourseSessionDetails(response));
+            setSelectedDetails(mapCourseSessionDetails(response, entry));
         } catch (error) {
             console.error('Nie udało się pobrać szczegółów zajęć:', error);
 
