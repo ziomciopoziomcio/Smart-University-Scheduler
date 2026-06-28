@@ -1930,21 +1930,25 @@ _CREATE_SCHEDULE_SESSION_QUERY = """
     ON CREATE SET c.courseName = $course_name,
                   c.classType = $class_type
 
-    WITH c
+    MERGE (i:Instructor {instructorId: $instructor_id})
+    ON CREATE SET i.firstName = $instructor_first_name,
+                  i.lastName = $instructor_last_name,
+                  i.degree = $instructor_degree
 
-    MATCH (i:Instructor {instructorId: $instructor_id})
-    MATCH (r:Room {roomId: $room_id})
+    MERGE (r:Room {roomId: $room_id})
+    ON CREATE SET r.roomName = $room_name
 
     MATCH (t:TimeSlot)
     WHERE t.dayOfWeek = $day_of_week
       AND t.startTime = $start_time
       AND t.endTime = $end_time
 
-    MATCH (g:Group)
-    WHERE g.groupId IN $group_ids
+    WITH c, i, r, t
+    UNWIND $group_data AS g_info
+    MERGE (g:Group {groupId: g_info.id})
+    ON CREATE SET g.groupName = g_info.name
 
     WITH c, i, r, t, collect(g) AS groups
-    WHERE size(groups) = size($group_ids)
 
     CREATE (s:ClassSession {
         sessionId: $session_id,
@@ -2145,13 +2149,11 @@ async def create_schedule_session(
         .filter(course_models.Course.course_code == payload.course_id)
         .first()
     )
-
     if not db_course:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Course with code {payload.course_id} does not exist in the SQL database.",
         )
-
     course_name = db_course.course_name
 
     db_type_detail = (
@@ -2159,7 +2161,6 @@ async def create_schedule_session(
         .filter(cou_mod.Course_type_detail.course == payload.course_id)
         .first()
     )
-
     if db_type_detail and db_type_detail.class_type:
         class_type = (
             db_type_detail.class_type.name
@@ -2168,6 +2169,42 @@ async def create_schedule_session(
         )
     else:
         class_type = "Other"
+
+    db_instructor = (
+        db.query(ac_mod.Employees)
+        .filter(ac_mod.Employees.id == payload.instructor_id)
+        .first()
+    )
+    if not db_instructor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Instructor with ID {payload.instructor_id} does not exist in the SQL database.",
+        )
+
+    inst_first_name = getattr(db_instructor, "firstName", "Unknown")
+    inst_last_name = getattr(db_instructor, "lastName", "Instructor")
+    inst_degree = getattr(db_instructor, "degree", None)
+
+    db_room = (
+        db.query(ac_mod.Rooms).filter(ac_mod.Rooms.id == payload.room_id).first()
+        if hasattr(ac_mod, "Rooms")
+        else None
+    )
+    room_name = getattr(db_room, "roomName", f"Sala {payload.room_id}")
+
+    db_groups = (
+        db.query(ac_mod.Groups).filter(ac_mod.Groups.id.in_(payload.group_ids)).all()
+    )
+    if len(db_groups) != len(payload.group_ids):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="One or more group IDs do not exist in the SQL database.",
+        )
+
+    group_data = [
+        {"id": g.id, "name": getattr(g, "groupName", f"Grupa {g.id}")}
+        for g in db_groups
+    ]
 
     await _validate_timeslot(neo4j_session, mapped_day, payload)
     await _detect_session_conflicts(neo4j_session, mapped_day, payload)
@@ -2180,9 +2217,14 @@ async def create_schedule_session(
         course_id=payload.course_id,
         course_name=course_name,
         class_type=class_type,
-        group_ids=payload.group_ids,
         instructor_id=payload.instructor_id,
+        instructor_first_name=inst_first_name,
+        instructor_last_name=inst_last_name,
+        instructor_degree=inst_degree,
         room_id=payload.room_id,
+        room_name=room_name,
+        group_data=group_data,
+        group_ids=payload.group_ids,
         day_of_week=mapped_day,
         start_time=payload.start_time,
         end_time=payload.end_time,
