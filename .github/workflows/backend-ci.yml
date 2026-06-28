@@ -24,7 +24,7 @@ jobs:
         run: black backend/ --check
 
       - name: Run Ruff
-        run: ruff check backend/ --exclude backend/helpers
+        run: ruff check backend/
 
   test-and-build:
     runs-on: ubuntu-latest
