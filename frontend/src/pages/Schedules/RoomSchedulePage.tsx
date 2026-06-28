@@ -26,6 +26,7 @@ export async function getRoomScheduleForWeek(
 export default function RoomSchedulePage() {
     const {campusId, buildingId, roomId} = useParams();
     const intl = useIntl();
+    const [refreshRevision, setRefreshRevision] = useState(0);
 
     const currentWeekStart = useCalendarWeekStore(
         (state) => state.currentWeekStart,
@@ -106,7 +107,7 @@ export default function RoomSchedulePage() {
         return () => {
             isCancelled = true;
         };
-    }, [campusId, buildingId, roomId, currentWeekStart]);
+    }, [campusId, buildingId, roomId, currentWeekStart, refreshRevision]);
 
     const breadcrumbs = useMemo((): BreadcrumbItem[] => {
         const items: BreadcrumbItem[] = [
@@ -170,6 +171,9 @@ export default function RoomSchedulePage() {
                     isLoading={isScheduleLoading}
                     onPrevWeek={goToPreviousWeek}
                     onNextWeek={goToNextWeek}
+                    onSessionUpdated={() => {
+                        setRefreshRevision((revision) => revision + 1);
+                    }}
                 />
             )}
         </Box>

@@ -60,6 +60,7 @@ export default function StudentSchedulePage() {
     const [blockGroups, setBlockGroups] = useState<Record<number, StudyPlanGroupSummary[]>>({});
     const [selectedBlockGroupIds, setSelectedBlockGroupIds] = useState<Record<number, number[]>>({});
     const [loadingBlockGroups, setLoadingBlockGroups] = useState<Record<number, boolean>>({});
+    const [refreshRevision, setRefreshRevision] = useState(0);
 
     const selectedElectiveGroupIds = useMemo(
         () => Object.values(selectedBlockGroupIds).flat(),
@@ -158,7 +159,7 @@ export default function StudentSchedulePage() {
                 [blockId]: false,
             }));
         }
-    }, [facultyId, fieldOfStudyId, semesterId, blockGroups]);
+    }, [facultyId, fieldOfStudyId, semesterId, blockGroups, refreshRevision]);
 
     useEffect(() => {
         const fetchPlan = async () => {
@@ -228,6 +229,7 @@ export default function StudentSchedulePage() {
         groupId,
         currentWeekStart,
         selectedElectiveGroupIds,
+        refreshRevision,
     ]);
 
     const breadcrumbs = useMemo((): BreadcrumbItem[] => {
@@ -319,6 +321,9 @@ export default function StudentSchedulePage() {
                         isLoading={isScheduleLoading}
                         onPrevWeek={goToPreviousWeek}
                         onNextWeek={goToNextWeek}
+                        onSessionUpdated={() => {
+                            setRefreshRevision((revision) => revision + 1);
+                        }}
                     />
 
                     {blocks.length > 0 && (

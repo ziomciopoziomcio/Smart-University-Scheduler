@@ -1,10 +1,12 @@
 import {
-    BASE_URL, getHeaders, SCHEDULES_URL, OPTIMIZE_URL,
+    getHeaders, SCHEDULES_URL, OPTIMIZE_URL,
     SETTINGS_URL
 } from '@api/core';
 
 import type {
     CourseSessionDetailsResponse,
+    CreateScheduleSessionRequest,
+    CreateScheduleSessionResponse,
     GenerateScheduleRequest,
     ScheduleSessionEditOptionsResponse,
     ScheduleVersion,
@@ -182,6 +184,55 @@ export const validateOptimizationData = async (
     }
 
     return response.json();
+};
+
+export const createScheduleSession = async (
+    payload: CreateScheduleSessionRequest,
+): Promise<CreateScheduleSessionResponse> => {
+    const response = await fetch(`${SCHEDULES_URL}/session`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        throw new Error(
+            await getApiErrorMessage(
+                response,
+                'Failed to create schedule session',
+            ),
+        );
+    }
+
+    return response.json();
+};
+
+export const deleteScheduleSession = async (
+    sessionId: string,
+): Promise<void> => {
+    const response = await fetch(`${SCHEDULES_URL}/session/${sessionId}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+    });
+
+    if (!response.ok) {
+        const text = await response.text();
+
+        let message = 'Failed to delete schedule session';
+
+        try {
+            const data = JSON.parse(text);
+
+            message =
+                typeof data?.detail === 'string'
+                    ? data.detail
+                    : data?.detail?.message ?? message;
+        } catch {
+            message = text || message;
+        }
+
+        throw new Error(message);
+    }
 };
 
 const getApiErrorMessage = async (

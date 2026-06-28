@@ -305,6 +305,11 @@
     }
   },
   "schedule": {
+    "add": {
+      "button": "Add session",
+      "title": "Add schedule session",
+      "description": "Create a new schedule session for the course."
+    },
     "details": {
       "close": "Close",
       "time": "Time",

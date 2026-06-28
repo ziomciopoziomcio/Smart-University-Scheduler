@@ -1,12 +1,17 @@
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import ChevronLeftOutlined from '@mui/icons-material/ChevronLeftOutlined';
 import ChevronRightOutlined from '@mui/icons-material/ChevronRightOutlined';
-import {Box, IconButton, Typography} from '@mui/material';
+import {Box, Button, IconButton, Typography} from '@mui/material';
+import {useIntl} from 'react-intl';
+import {usePermissionStore} from '@store/usePermissionStore';
+import {PERMISSIONS} from '@constants/permissions';
 
 interface WeekScheduleHeaderProps {
     currentDateLabel: string;
     rangeLabel: string;
     onPrevWeek: () => void;
     onNextWeek: () => void;
+    onAddSession: () => void;
 }
 
 export function WeekScheduleHeader({
@@ -14,10 +19,19 @@ export function WeekScheduleHeader({
                                        rangeLabel,
                                        onPrevWeek,
                                        onNextWeek,
+                                       onAddSession,
                                    }: WeekScheduleHeaderProps) {
+    const {formatMessage} = useIntl();
+    const hasAnyPermission = usePermissionStore((state) => state.hasAnyPermission);
+
+    const canCreateClassSession = hasAnyPermission([
+        PERMISSIONS.CLASS_SESSION_CREATE,
+    ]);
+
     return (
         <Box
             sx={{
+                position: 'relative',
                 height: 80,
                 display: 'flex',
                 alignItems: 'center',
@@ -26,6 +40,37 @@ export function WeekScheduleHeader({
                 px: 2,
             }}
         >
+            {canCreateClassSession && (
+                <Button
+                    size="small"
+                    startIcon={<AddRoundedIcon/>}
+                    onClick={onAddSession}
+                    sx={{
+                        position: 'absolute',
+                        top: 8,
+                        left: 0,
+                        minHeight: 34,
+                        px: 1.5,
+                        borderRadius: '12px',
+                        textTransform: 'none',
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: '#5F6B7A',
+                        bgcolor: 'rgba(255,255,255,0.82)',
+                        boxShadow: 'none',
+                        '&:hover': {
+                            bgcolor: '#FFFFFF',
+                            boxShadow: 'none',
+                        },
+                    }}
+                >
+                    {formatMessage({
+                        id: 'schedule.add.button',
+                        defaultMessage: 'Add session',
+                    })}
+                </Button>
+            )}
+
             <IconButton size="large" onClick={onPrevWeek}>
                 <ChevronLeftOutlined fontSize="large"/>
             </IconButton>
@@ -41,6 +86,7 @@ export function WeekScheduleHeader({
                 >
                     {currentDateLabel}
                 </Typography>
+
                 <Typography
                     sx={{
                         fontSize: '19px',
