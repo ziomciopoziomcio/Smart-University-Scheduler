@@ -207,16 +207,20 @@ def initialize_system(
 async def seed_system(
     payload: SeedPayloadSchema,
     session: Session = Depends(get_db),
-    x_seed_token: str = Header(..., alias="X-Seed-Token"),
+    x_setup_token: str = Header(..., alias="X-Setup-Token"),
 ):
-    # token validation
-    expected_token = os.getenv("SEED_SECURITY_TOKEN")
+    expected_token = os.getenv("SETUP_SECURITY_TOKEN")
 
     if not expected_token:
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Missing seed token")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Missing Setup Token",
+        )
 
-    if not secrets.compare_digest(expected_token, x_seed_token):
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "Invalid seed token")
+    if not secrets.compare_digest(expected_token, x_setup_token):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Setup Token"
+        )
 
     # SEED ALWAYS
     # PERMISSIONS
