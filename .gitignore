@@ -8,3 +8,4 @@ backend/.env
 /postman
 go_api/tmp/
 *.log
+*.ttf

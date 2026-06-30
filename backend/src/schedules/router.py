@@ -14,8 +14,13 @@ from .schemas import (
     ValidationSource,
 )
 from ..academics.models import Students, Employees
+
 from . import models
 from . import schemas
+from src.schedules.minio.minio_client import get_storage_client
+from .pdf_generator.ScheduleAdapter import ScheduleAdapter
+from .pdf_generator.SchedulePdfGenerator import SchedulePdfGenerator
+from .pdf_generator.models import Schedule
 from ..academics import models as ac_mod
 from ..courses import models as cou_mod
 from ..common.kafka_client import send_event
@@ -542,6 +547,15 @@ def _get_academic_day_configs(db: Session, start_date: date) -> list[dict]:
         }
         for d in days
     ]
+
+
+def _semester_label_pl(semester_type: ac_mod.SemesterType) -> str:
+    """Map SemesterType to Polish."""
+    mapping = {
+        ac_mod.SemesterType.SUMMER: "Lato",
+        ac_mod.SemesterType.WINTER: "Zima",
+    }
+    return mapping.get(semester_type, str(semester_type).lower())
 
 
 def _parse_variant(class_type_str: str | None) -> ClassType:
@@ -1618,6 +1632,274 @@ async def delete_custom_event(
 
     await neo4j_session.run(DELETE_CUSTOM_EVENT_QUERY, event_id=custom_event_id)
     return None
+
+
+def get_academic_semester_configs(
+    db: Session,
+    academic_year: str,
+    semester_type: ac_mod.SemesterType,
+) -> list[dict]:
+    """
+    Returns all days for a given academic semester.
+
+    :param db: Session
+    :param academic_year: e.g. "2025/2026"
+    :param semester_type: SemesterType.WINTER or SemesterType.SUMMER
+    :return: List of dicts with keys:
+             physical_date (str), academic_day (str), week_number (int)
+    """
+
+    days = (
+        db.query(ac_mod.Academic_calendar)
+        .filter(
+            ac_mod.Academic_calendar.academic_year == academic_year,
+            ac_mod.Academic_calendar.semester_type == semester_type,
+        )
+        .order_by(ac_mod.Academic_calendar.calendar_date)
+        .all()
+    )
+
+    neo_days = {
+        1: "Mondays",
+        2: "Tuesdays",
+        3: "Wednesdays",
+        4: "Thursdays",
+        5: "Fridays",
+        6: "Saturdays",
+        7: "Sundays",
+    }
+
+    return [
+        {
+            "physical_date": d.calendar_date.isoformat(),
+            "academic_day": neo_days.get(d.academic_day_of_week),
+            "academic_day_of_week": d.academic_day_of_week,
+            "week_number": d.week_number,
+        }
+        for d in days
+    ]
+
+
+def _map_schedule_entries_with_week(
+    records: list[dict],
+    date_to_config: dict[str, dict[str, int]],
+) -> list[schemas.ScheduleEntryWithWeekNumber]:
+
+    # date_to_config:
+    # cfg["physical_date"]: {
+    #     "week_number": cfg["week_number"], # int
+    #     "academic_day_of_week": cfg["academic_day_of_week"], # int
+    # }
+
+    result = []
+
+    for rec in records:
+        config = date_to_config.get(rec["physical_date"]) or {}
+
+        week_number: int = config.get("week_number", 1)
+        academic_day_of_week: int = config.get("academic_day_of_week", 1)
+
+        instructor_name = None
+        first = rec.get("instructor_first_name", None)
+        last = rec.get("instructor_last_name", None)
+        degree = rec.get("instructor_degree", None)
+
+        if first or last:
+            instructor_name = " ".join(filter(None, [degree, first, last]))
+
+        room_name = rec.get("room_name", None)
+
+        result.append(
+            schemas.ScheduleEntryWithWeekNumber(
+                id=rec["session_id"],
+                title=rec["title"],
+                date=date.fromisoformat(rec["physical_date"]),
+                start_time=rec["start_time"],
+                end_time=rec["end_time"],
+                variant=_parse_variant(rec["class_type"]),
+                week_number=week_number,
+                academic_day_of_week=academic_day_of_week,
+                room_name=room_name,
+                instructor_name=instructor_name,
+            )
+        )
+
+    return result
+
+
+STUDY_FIELD_PLAN_WITH_ROOMS_AND_TEACHERS_ACADEMIC_QUERY = """
+    MATCH (g:Group)
+    WHERE g.groupId IN $group_ids
+    
+    MATCH (s:ClassSession)-[:FOR_GROUP]->(g)
+    MATCH (s)-[:OF_COURSE]->(c:Course)
+    
+    OPTIONAL MATCH (s)-[:HELD_IN]->(r:Room)
+    OPTIONAL MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
+    
+    UNWIND $day_configs AS config
+    
+    WITH s, c, r, i, config
+    
+    MATCH (s)-[:AT_TIME]->(t:TimeSlot)
+    WHERE t.dayOfWeek = config.academic_day
+    AND config.week_number IN s.weeks
+    
+    RETURN
+        s.sessionId AS session_id,
+        c.courseName AS title,
+        c.classType AS class_type,
+        config.physical_date AS physical_date,
+        t.startTime AS start_time,
+        t.endTime AS end_time,
+        
+        r.roomId AS room_id,
+        r.roomName AS room_name,
+        
+        i.instructorId AS instructor_id,
+        i.firstName AS instructor_first_name,
+        i.degree AS instructor_degree,
+        i.lastName AS instructor_last_name
+        
+    ORDER BY config.physical_date, t.startTime
+"""
+
+
+def _verify_user_schedule_permissions(
+    current_user: user_models.Users, target_user_id: int
+):
+    """Validates if the current user has permission to view the target user's schedule."""
+    if current_user.id != target_user_id and not user_has_permission(
+        current_user, "schedule:view_others"
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to view other users' schedules",
+        )
+
+
+def _prepare_semester_configs_or_400(
+    db: Session, academic_year: str, semester_type: ac_mod.SemesterType
+) -> tuple[list[dict], dict]:
+    """Fetches semester days and builds a date-to-config mapping."""
+    day_configs = get_academic_semester_configs(db, academic_year, semester_type)
+    if not day_configs:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No academic calendar entries found for the given semester",
+        )
+
+    date_to_config = {
+        cfg["physical_date"]: {
+            "week_number": cfg["week_number"],
+            "academic_day_of_week": cfg["academic_day_of_week"],
+        }
+        for cfg in day_configs
+    }
+    return day_configs, date_to_config
+
+
+async def _fetch_user_semester_entries(
+    db: Session,
+    neo4j_session,
+    user_id: int,
+    day_configs: list[dict],
+    date_to_config: dict,
+) -> list[schemas.ScheduleEntryWithWeekNumber]:
+    """Fetches and maps schedule entries for either a student or an employee."""
+    student = _get_student_with_user_id(db, user_id)
+    employee = _get_employee_with_user_id(db, user_id)
+
+    if not student and not employee:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User is neither a student nor an employee",
+        )
+
+    if student:
+        group_ids = _get_student_group_ids(db, student.id)
+        if not group_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User is not assigned to any study group",
+            )
+        result = await neo4j_session.run(
+            STUDY_FIELD_PLAN_WITH_ROOMS_AND_TEACHERS_ACADEMIC_QUERY,
+            group_ids=group_ids,
+            day_configs=day_configs,
+        )
+    else:
+        result = await neo4j_session.run(
+            EMPLOYEE_SCHEDULE_QUERY,
+            instructor_id=employee.id,
+            day_configs=day_configs,
+        )
+
+    records = await result.data()
+    return _map_schedule_entries_with_week(records, date_to_config)
+
+
+def _generate_and_upload_semester_pdf(
+    lessons: list,
+    academic_year: str,
+    semester_type: ac_mod.SemesterType,
+    owner_id: str | int,
+) -> dict:
+    """Builds the PDF from lessons and uploads it to MinIO."""
+    semester_label = _semester_label_pl(semester_type)
+    schedule = Schedule(
+        title=f"Plan zajęć - {semester_label} {academic_year}",
+        lessons=lessons,
+    )
+
+    pdf_stream = SchedulePdfGenerator().build(schedule)
+
+    sanitized_year = academic_year.replace("/", "-")
+    unique_suffix = uuid.uuid4().hex
+    object_name = f"schedules/user_{owner_id}/{sanitized_year}_{semester_type.lower()}_{unique_suffix}.pdf"
+
+    download_url = get_storage_client().upload_pdf(object_name, pdf_stream)
+
+    return {
+        "status": "success",
+        "file_name": object_name.split("/")[-1],
+        "download_url": download_url,
+    }
+
+
+@router.get(
+    "/user-plan-semester",
+    response_model=dict,
+)
+async def get_user_plan_semester(
+    user_id: int = Query(..., description="ID of the user"),
+    academic_year: str = Query(...),
+    semester_type: ac_mod.SemesterType = Query(...),
+    db: Session = Depends(get_db),
+    neo4j_session=Depends(get_neo4j_session),
+    _current_user: user_models.Users = Depends(require_permission("schedule:view")),
+):
+    """
+    Get the schedule plan for a specific user for all semester.
+    """
+    _verify_user_schedule_permissions(_current_user, user_id)
+
+    day_configs, date_to_config = _prepare_semester_configs_or_400(
+        db, academic_year, semester_type
+    )
+
+    mapped_entries = await _fetch_user_semester_entries(
+        db, neo4j_session, user_id, day_configs, date_to_config
+    )
+
+    lessons = ScheduleAdapter.build_lessons(mapped_entries)
+
+    return _generate_and_upload_semester_pdf(
+        lessons=lessons,
+        academic_year=academic_year,
+        semester_type=semester_type,
+        owner_id=user_id,
+    )
 
 
 GROUP_COURSE_HOURS_SUMMARY_QUERY = """
