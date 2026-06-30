@@ -292,7 +292,7 @@ if __name__ == "__main__":
         db_faculties=db_faculties,
         db_units=db_units,
         name="Admin",
-        surname="Adminkowski",
+        surname="Smith",
         password="qwerty",
         phone_number="123456789",
         email="admin@nimda.pl",
