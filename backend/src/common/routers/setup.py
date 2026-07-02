@@ -54,12 +54,7 @@ def _parse_academics_semester_type(value):
     raise ValueError(f"Unknown AcademicsSemesterType: {value!r}")
 
 
-@router.post("/")
-def initialize_system(
-    payload: SetupPayloadSchema,
-    db: Session = Depends(get_db),
-    x_setup_token: str = Header(..., description="Token required to run setup"),
-):
+def _validate_setup_token(x_setup_token):
     expected_token = os.getenv("SETUP_SECURITY_TOKEN")
     if not expected_token:
         raise HTTPException(
@@ -71,6 +66,15 @@ def initialize_system(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Setup Token"
         )
+
+
+@router.post("/")
+def initialize_system(
+    payload: SetupPayloadSchema,
+    db: Session = Depends(get_db),
+    x_setup_token: str = Header(..., description="Token required to run setup"),
+):
+    _validate_setup_token(x_setup_token)
 
     user_exist = db.execute(select(Users.id).limit(1))
     if user_exist.scalars().first():
@@ -169,18 +173,7 @@ async def seed_system(
     session: Session = Depends(get_db),
     x_setup_token: str = Header(..., alias="X-Setup-Token"),
 ):
-    expected_token = os.getenv("SETUP_SECURITY_TOKEN")
-
-    if not expected_token:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Missing Setup Token",
-        )
-
-    if not secrets.compare_digest(expected_token, x_setup_token):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Setup Token"
-        )
+    _validate_setup_token(x_setup_token)
 
     seed_service = SeederService(session)
     await seed_service.seed(payload)
