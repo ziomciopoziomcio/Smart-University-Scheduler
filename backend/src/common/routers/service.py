@@ -101,7 +101,7 @@ class SeederService:
         )
         self.session.commit()
 
-    def seed_test_database(self, payload: SeedPayloadSchema):
+    def _seed_infrastructure(self):
         # CALENDAR
         generate_academic_calendar(session=self.session)
         self.session.commit()
@@ -126,8 +126,16 @@ class SeederService:
         generate_rooms(self.session, ROOMS_PATH, db_faculties, db_units, db_buildings)
         self.session.commit()
 
+        return {
+            "campuses": db_campuses,
+            "faculties": db_faculties,
+            "buildings": db_buildings,
+            "units": db_units,
+        }
+
+    def _seed_academics(self, infra):
         # STUDY FIELDS
-        db_study_fields = generate_study_fields(self.session, db_faculties, PATH)
+        db_study_fields = generate_study_fields(self.session, infra["faculties"], PATH)
         self.session.commit()
 
         # STUDY PROGRAMS
@@ -142,6 +150,14 @@ class SeederService:
         db_elective_blocks = generate_elective_blocks(self.session, db_study_fields)
         self.session.commit()
 
+        return {
+            "study_fields": db_study_fields,
+            "study_programs": db_study_programs,
+            "majors": db_majors,
+            "elective_blocks": db_elective_blocks,
+        }
+
+    def _seed_users_employees(self, infrastructure):
         # USERS
         num_of_roles_not_teachers = {
             "Administrator": 0,
@@ -171,13 +187,25 @@ class SeederService:
         db_employees = generate_employees(
             session=self.session,
             db_teachers=db_teachers,
-            db_units=db_units,
-            db_faculties=db_faculties,
+            db_units=infrastructure["units"],
+            db_faculties=infrastructure["faculties"],
         )
         self.session.commit()
 
+        return {
+            "teachers": db_teachers,
+            "not_teachers": db_not_teachers,
+            "employees": db_employees,
+        }
+
+    def _seed_courses(self, db_infrastructure, db_users_employees, db_academics):
         # COURSES
-        db_courses = generate_courses(self.session, db_units, db_employees, PATH)
+        db_courses = generate_courses(
+            self.session,
+            db_infrastructure["units"],
+            db_users_employees["employees"],
+            PATH,
+        )
         self.session.commit()
 
         # COURSES TYPE DETAILS
@@ -188,9 +216,9 @@ class SeederService:
         db_curr_courses = generate_curriculum_courses(
             sourcefile=PATH,
             session=self.session,
-            db_study_programs=db_study_programs,
+            db_study_programs=db_academics["study_programs"],
             db_courses=db_courses,
-            db_majors=db_majors,
+            db_majors=db_academics["majors"],
         )
         self.session.commit()
 
@@ -198,88 +226,113 @@ class SeederService:
         db_elective_curr_courses = generate_curriculum_courses_elective_blocks(
             sourcefile=PATH,
             session=self.session,
-            db_study_programs=db_study_programs,
+            db_study_programs=db_academics["study_programs"],
             db_courses=db_courses,
-            db_elective_blocks=db_elective_blocks,
+            db_elective_blocks=db_academics["elective_blocks"],
             limit=3,
             seed=SEED,
         )
         self.session.commit()
 
+        return {
+            "courses": db_courses,
+            "curr_courses": db_curr_courses,
+            "elective_curr_courses": db_elective_curr_courses,
+        }
+
+    def _seed_groups(self, db_academics, db_courses):
         # GROUPS
         db_common_groups = generate_common_groups(
             session=self.session,
-            db_study_programs=db_study_programs,
+            db_study_programs=db_academics["study_programs"],
             sourcefile=GROUPS_PATH,
-            db_study_fields=db_study_fields,
+            db_study_fields=db_academics["study_fields"],
         )
         self.session.commit()
 
         db_major_groups = generate_major_groups(
             sourcefile=GROUPS_PATH,
             session=self.session,
-            db_study_programs=db_study_programs,
-            db_majors=db_majors,
-            db_curr_courses=db_curr_courses,
-            db_study_fields=db_study_fields,
+            db_study_programs=db_academics["study_programs"],
+            db_majors=db_academics["majors"],
+            db_curr_courses=db_courses["curr_courses"],
+            db_study_fields=db_academics["study_fields"],
         )
         self.session.commit()
 
         db_elective_groups = generate_elective_groups(
             session=self.session,
             sourcefile=GROUPS_PATH,
-            db_study_programs=db_study_programs,
-            db_elective_blocks=db_elective_blocks,
-            db_curr_courses=db_elective_curr_courses,
-            db_study_fields=db_study_fields,
+            db_study_programs=db_academics["study_programs"],
+            db_elective_blocks=db_academics["elective_blocks"],
+            db_curr_courses=db_courses["elective_curr_courses"],
+            db_study_fields=db_academics["study_fields"],
         )
         self.session.commit()
 
-        # STUDENTS
-        db_students = generate_students(
-            session=self.session,
-            db_not_teachers=db_not_teachers,
-            db_study_programs=db_study_programs,
-            db_majors=db_majors,
-            db_major_groups=db_major_groups,
-        )
-        self.session.commit()
+        return {
+            "common_groups": db_common_groups,
+            "major_groups": db_major_groups,
+            "elective_groups": db_elective_groups,
+        }
 
+    def _seed_assignments(self, db_groups, db_students, db_academics, db_courses):
         # GROUP MEMBERS
         assign_students_to_common_groups(
             session=self.session,
-            db_common_groups=db_common_groups,
+            db_common_groups=db_groups["common_groups"],
             db_students=db_students,
-            db_study_programs=db_study_programs,
+            db_study_programs=db_academics["study_programs"],
             group_size=15,
         )
         self.session.commit()
 
         assign_students_to_major_groups(
             session=self.session,
-            db_major_groups=db_major_groups,
+            db_major_groups=db_groups["major_groups"],
             db_students=db_students,
-            db_study_programs=db_study_programs,
-            db_curr_courses=db_curr_courses,
+            db_study_programs=db_academics["study_programs"],
+            db_curr_courses=db_courses["curr_courses"],
         )
         self.session.commit()
 
         assign_students_to_elective_groups(
             session=self.session,
-            db_elective_groups=db_elective_groups,
+            db_elective_groups=db_groups["elective_groups"],
             db_students=db_students,
-            db_study_programs=db_study_programs,
+            db_study_programs=db_academics["study_programs"],
         )
         self.session.commit()
+
+    def seed_test_database(self, payload: SeedPayloadSchema):
+        db_infrastructure = self._seed_infrastructure()
+        db_academics = self._seed_academics(db_infrastructure)
+        db_users_employees = self._seed_users_employees(db_infrastructure)
+        db_courses = self._seed_courses(
+            db_infrastructure, db_users_employees, db_academics
+        )
+        db_groups = self._seed_groups(db_academics, db_courses)
+
+        # STUDENTS
+        db_students = generate_students(
+            session=self.session,
+            db_not_teachers=db_users_employees["not_teachers"],
+            db_study_programs=db_academics["study_programs"],
+            db_majors=db_academics["majors"],
+            db_major_groups=db_groups["major_groups"],
+        )
+        self.session.commit()
+
+        self._seed_assignments(db_groups, db_students, db_academics, db_courses)
 
         # COURSE INSTRUCTORS
         generate_course_instructors(
             session=self.session,
             sourcefile=PATH,
             num_of_groups=5,
-            db_teachers=db_teachers,
-            db_courses=db_courses,
-            db_employees=db_employees,
+            db_teachers=db_users_employees["teachers"],
+            db_courses=db_courses["courses"],
+            db_employees=db_users_employees["employees"],
             debug=False,
         )
         self.session.commit()
@@ -289,8 +342,8 @@ class SeederService:
             session=self.session,
             password_hash_func=PASSWORD_HASH_FUNC,
             roles=self.db_roles,
-            db_faculties=db_faculties,
-            db_units=db_units,
+            db_faculties=db_infrastructure["faculties"],
+            db_units=db_infrastructure["units"],
             name=payload.admin_name,
             surname=payload.admin_surname,
             email=payload.admin_email,
