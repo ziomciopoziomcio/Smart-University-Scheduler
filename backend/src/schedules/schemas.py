@@ -197,6 +197,19 @@ class CustomEventUpdate(BaseModel):
         return self
 
 
+class ScheduleEntryWithWeekNumber(BaseModel):
+    id: str
+    title: str
+    date: date
+    start_time: str
+    end_time: str
+    variant: ClassType
+    week_number: int
+    academic_day_of_week: int
+    room_name: str | None = None
+    instructor_name: str | None = None
+
+
 class ScheduleEditInstructorOption(BaseModel):
     id: int
     name: str
