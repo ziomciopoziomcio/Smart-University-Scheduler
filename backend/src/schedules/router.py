@@ -146,13 +146,13 @@ def _day_label(day: str | None) -> str | None:
         normalized = normalized[:-1]
 
     labels = {
-        "MONDAY": "Poniedziałek",
-        "TUESDAY": "Wtorek",
-        "WEDNESDAY": "Środa",
-        "THURSDAY": "Czwartek",
-        "FRIDAY": "Piątek",
-        "SATURDAY": "Sobota",
-        "SUNDAY": "Niedziela",
+        "MONDAY": "Monday",
+        "TUESDAY": "Tuesday",
+        "WEDNESDAY": "Wednesday",
+        "THURSDAY": "Thursday",
+        "FRIDAY": "Friday",
+        "SATURDAY": "Saturday",
+        "SUNDAY": "Sunday",
     }
 
     return labels.get(normalized, day)
