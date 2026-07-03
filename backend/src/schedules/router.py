@@ -62,15 +62,28 @@ COURSE_DETAIL_QUERY = """
     OPTIONAL MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
     OPTIONAL MATCH (s)-[:HELD_IN]->(r:Room)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(cp:Campus)
 
+    WITH
+        c,
+        i,
+        r,
+        b,
+        cp,
+        collect(DISTINCT g.programName + " | " + g.groupName) AS audience_list,
+        min(t.startTime) AS start_time,
+        max(t.endTime) AS end_time
+
     RETURN
         c.courseName AS course_name,
         c.classType AS class_type,
-        COALESCE(t.startTime + " - " + t.endTime, "TBA") AS time_range,
+        CASE
+            WHEN start_time IS NULL OR end_time IS NULL THEN "TBA"
+            ELSE start_time + " - " + end_time
+        END AS time_range,
         COALESCE(cp.campusShort, "TBA") AS campus,
         COALESCE(b.buildingNumber, "TBA") AS building,
         COALESCE(r.roomName, "TBA") AS room,
         COALESCE((CASE WHEN i.degree IS NOT NULL THEN i.degree + " " ELSE "" END) + i.firstName + " " + i.lastName, "TBA") AS lecturer,
-        collect(DISTINCT g.programName + " | " + g.groupName) AS audience_list
+        audience_list AS audience_list
 """
 
 LECTURER_PLAN_ACADEMIC_QUERY = """
@@ -927,20 +940,22 @@ async def get_room_plan(
 
 _UPDATE_SCHEDULE_QUERY = """
     MATCH (s:ClassSession {sessionId: $session_id})
-    MATCH (t:TimeSlot {timeSlotId: $timeslot_id})
     MATCH (r:Room {roomId: $room_id})
     MATCH (i:Instructor {instructorId: $instructor_id})
+    MATCH (t:TimeSlot)
+    WHERE t.timeSlotId IN $timeslot_ids
 
-    /* other ClassSession in the same TimeSlot */
-    OPTIONAL MATCH (other:ClassSession)-[:AT_TIME]->(t)
+    WITH s, r, i, collect(t) AS new_timeslots, $weeks AS new_weeks
+
+    OPTIONAL MATCH (other:ClassSession)-[:AT_TIME]->(ot:TimeSlot)
     WHERE other.sessionId <> $session_id
-      AND ANY(w IN other.weeks WHERE w IN $weeks)
+      AND ot.timeSlotId IN $timeslot_ids
+      AND ANY(w IN other.weeks WHERE w IN new_weeks)
 
     OPTIONAL MATCH (other)-[:TAUGHT_BY]->(oi:Instructor)
     OPTIONAL MATCH (other)-[:HELD_IN]->(or:Room)
 
-    /* conflict checker */
-    WITH s, t, r, i, other, $weeks AS new_weeks,
+    WITH s, r, i, new_timeslots, new_weeks,
          collect(
             CASE
                 WHEN other IS NULL THEN null
@@ -950,53 +965,57 @@ _UPDATE_SCHEDULE_QUERY = """
             END
          ) AS conflicts
 
-    /* remove NULL vals */
-    WITH s, t, r, i, new_weeks,
+    WITH s, r, i, new_timeslots, new_weeks,
          [x IN conflicts WHERE x IS NOT NULL] AS conflicts_filtered
 
-    WITH s, t, r, i, new_weeks, size(conflicts_filtered) AS conflictCount
+    WITH s, r, i, new_timeslots, new_weeks, size(conflicts_filtered) AS conflictCount
     WHERE conflictCount = 0
 
-    /* update */
     SET s.weeks = new_weeks
 
-    WITH s, t, r, i
+    WITH s, r, i, new_timeslots
 
     OPTIONAL MATCH (s)-[old_time:AT_TIME]->(:TimeSlot)
     DELETE old_time
 
-    WITH s, t, r, i
+    WITH s, r, i, new_timeslots
 
     OPTIONAL MATCH (s)-[old_room:HELD_IN]->(:Room)
     DELETE old_room
 
-    WITH s, t, r, i
+    WITH s, r, i, new_timeslots
 
     OPTIONAL MATCH (s)-[old_instr:TAUGHT_BY]->(:Instructor)
     DELETE old_instr
 
-    WITH s, t, r, i
+    WITH s, r, i, new_timeslots
 
+    UNWIND new_timeslots AS t
     MERGE (s)-[:AT_TIME]->(t)
+
+    WITH DISTINCT s, r, i
+
     MERGE (s)-[:HELD_IN]->(r)
     MERGE (s)-[:TAUGHT_BY]->(i)
 
     RETURN s.sessionId AS sessionId
 """
 
-_FIND_TIMESLOT_QUERY = """
+_FIND_TIMESLOTS_QUERY = """
     MATCH (t:TimeSlot)
     WHERE t.dayOfWeek = $dayOfWeek
-      AND t.startTime = $startTime
-      AND t.endTime = $endTime
-    RETURN t.timeSlotId AS timeSlotId
-    LIMIT 1
+      AND t.startTime >= $startTime
+      AND t.endTime <= $endTime
+    RETURN t.timeSlotId AS timeSlotId,
+           t.startTime AS startTime,
+           t.endTime AS endTime
+    ORDER BY t.startTime
 """
 
 
 async def update_schedule_atomic(
     session_id: str,
-    timeslot_id: int,
+    timeslot_ids: list[int],
     room_id: int,
     instructor_id: int,
     weeks: list[int],
@@ -1005,7 +1024,7 @@ async def update_schedule_atomic(
     result = await neo4j_session.run(
         _UPDATE_SCHEDULE_QUERY,
         session_id=session_id,
-        timeslot_id=timeslot_id,
+        timeslot_ids=timeslot_ids,
         room_id=room_id,
         instructor_id=instructor_id,
         weeks=weeks,
@@ -1015,30 +1034,40 @@ async def update_schedule_atomic(
     return record is not None
 
 
-async def _get_timeslot_or_400(
+async def _get_timeslots_or_400(
     neo4j_session,
     day_of_week: str,
     start_time: str,
     end_time: str,
-) -> int:
+) -> list[int]:
     result = await neo4j_session.run(
-        _FIND_TIMESLOT_QUERY,
+        _FIND_TIMESLOTS_QUERY,
         dayOfWeek=day_of_week,
         startTime=start_time,
         endTime=end_time,
     )
 
-    record = await result.single()
+    records = await result.data()
 
-    if not record:
+    if not records:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Timeslots not found for {day_of_week} {start_time}-{end_time}",
+        )
+
+    actual_start = min(r["startTime"] for r in records)
+    actual_end = max(r["endTime"] for r in records)
+
+    if actual_start != start_time or actual_end != end_time:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
-                f"Timeslot not found for {day_of_week} " f"{start_time}-{end_time}"
+                f"Exact continuous timeslot range not found for "
+                f"{day_of_week} {start_time}-{end_time}"
             ),
         )
 
-    return record["timeSlotId"]
+    return [r["timeSlotId"] for r in records]
 
 
 def _to_plural_day(dow: str) -> str:
@@ -1086,9 +1115,18 @@ async def update_schedule_session(
         MATCH (s)-[:AT_TIME]->(t:TimeSlot)
         MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
         MATCH (s)-[:HELD_IN]->(r:Room)
-        RETURN t.dayOfWeek AS day_of_week,
-               t.startTime AS start_time,
-               t.endTime AS end_time,
+
+        WITH
+            s,
+            i,
+            r,
+            collect(DISTINCT t.dayOfWeek) AS days,
+            min(t.startTime) AS start_time,
+            max(t.endTime) AS end_time
+
+        RETURN days[0] AS day_of_week,
+               start_time AS start_time,
+               end_time AS end_time,
                i.instructorId AS instructor_id,
                r.roomId AS room_id,
                s.weeks AS weeks
@@ -1123,7 +1161,7 @@ async def update_schedule_session(
     )
     weeks = payload.weeks if payload.weeks is not None else curr_record["weeks"]
 
-    timeslot_id = await _get_timeslot_or_400(
+    timeslot_ids = await _get_timeslots_or_400(
         neo4j_session=neo4j_session,
         day_of_week=mapped_day,
         start_time=start_time,
@@ -1132,7 +1170,7 @@ async def update_schedule_session(
 
     updated = await update_schedule_atomic(
         session_id=session_id,
-        timeslot_id=timeslot_id,
+        timeslot_ids=timeslot_ids,
         room_id=room_id,
         instructor_id=instructor_id,
         weeks=weeks,
@@ -2109,9 +2147,19 @@ MATCH (s:ClassSession {sessionId: $session_id})
 MATCH (s)-[:AT_TIME]->(t:TimeSlot)
 MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
 MATCH (s)-[:HELD_IN]->(r:Room)
-RETURN t.dayOfWeek AS timeslot_day,
-       t.startTime AS start_time,
-       t.endTime AS end_time,
+
+WITH
+    s,
+    i,
+    r,
+    collect(DISTINCT t.dayOfWeek) AS days,
+    min(t.startTime) AS start_time,
+    max(t.endTime) AS end_time
+
+RETURN
+       days[0] AS timeslot_day,
+       start_time AS start_time,
+       end_time AS end_time,
        i.instructorId AS instructor_id,
        r.roomId AS room_id
 LIMIT 1

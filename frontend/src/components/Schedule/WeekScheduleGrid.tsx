@@ -209,12 +209,13 @@ const snapMinutes = (minutes: number) => {
 
 const mapCourseSessionDetails = (
     response: CourseSessionDetailsResponse,
+    entry: ScheduleEntry,
 ): ScheduleEntryDetails => {
     const targetAudience = response.targetAudience ?? response.target_audience ?? [];
 
     return {
         typeLabel: response.type,
-        timeLabel: response.time,
+        timeLabel: `${entry.startTime} - ${entry.endTime}`,
         location: response.location,
         lecturer: response.lecturer,
         audience: targetAudience.map((audienceItem) => {
@@ -417,12 +418,10 @@ export function WeekScheduleGrid({
 
             await onSessionUpdated?.();
         } catch (error) {
-            console.error('Nie udało się usunąć zajęć:', error);
-
             alert(
                 error instanceof Error
                     ? error.message
-                    : 'Nie udało się usunąć zajęć.',
+                    : 'Failed to delete session',
             );
         } finally {
             setIsDeletingSession(false);
@@ -500,9 +499,9 @@ export function WeekScheduleGrid({
             }
 
             setSelectedEntry(entry);
-            setSelectedDetails(mapCourseSessionDetails(response));
+            setSelectedDetails(mapCourseSessionDetails(response, entry));
         } catch (error) {
-            console.error('Nie udało się pobrać szczegółów zajęć:', error);
+            console.error('Failed to fetch schedules details:', error);
 
             if (detailsRequestId.current === currentRequestId) {
                 setSelectedEntry(null);
@@ -527,12 +526,12 @@ export function WeekScheduleGrid({
             handleCloseEditPopup();
             await onSessionUpdated?.();
         } catch (error) {
-            console.error('Nie udało się zaktualizować zajęć:', error);
+            console.error('Failed to update schedule:', error);
 
             setEditError(
                 error instanceof Error
                     ? error.message
-                    : 'Nie udało się zaktualizować zajęć.',
+                    : 'Failed to update schedule',
             );
         } finally {
             setIsSavingEdit(false);
