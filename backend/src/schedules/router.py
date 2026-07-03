@@ -53,6 +53,328 @@ EMPLOYEE_ABSENCE_LIMIT = 100
 # Schedules
 SUGGESTION_LIMIT = 50
 
+
+SUGGESTION_CURRENT_SESSION_QUERY = """
+MATCH (s:ClassSession {sessionId: $session_id})
+OPTIONAL MATCH (s)-[:OF_COURSE]->(c:Course)
+OPTIONAL MATCH (s)-[:AT_TIME]->(t:TimeSlot)
+OPTIONAL MATCH (s)-[:HELD_IN]->(r:Room)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(cp:Campus)
+OPTIONAL MATCH (s)-[:TAUGHT_BY]->(i:Instructor)
+RETURN
+    c.courseName AS course_name,
+    c.classType AS class_type,
+    t.timeSlotId AS timeslot_id,
+    t.dayOfWeek AS day_of_week,
+    t.startTime AS start_time,
+    t.endTime AS end_time,
+    r.roomId AS room_id,
+    r.roomName AS room_name,
+    b.buildingNumber AS building,
+    cp.campusShort AS campus,
+    i.instructorId AS instructor_id,
+    trim(
+        COALESCE(i.degree + ' ', '') +
+        COALESCE(i.firstName + ' ', '') +
+        COALESCE(i.lastName, '')
+    ) AS instructor_name
+LIMIT 1
+"""
+
+SUGGESTION_ROOM_BY_ID_QUERY = """
+MATCH (r:Room {roomId: $room_id})
+OPTIONAL MATCH (r)-[:IN_BUILDING]->(b:Building)-[:IN_CAMPUS]->(cp:Campus)
+RETURN
+    r.roomId AS room_id,
+    r.roomName AS room_name,
+    b.buildingNumber AS building,
+    cp.campusShort AS campus
+LIMIT 1
+"""
+
+SUGGESTION_TIMESLOTS_BY_ID_QUERY = """
+UNWIND $timeslot_ids AS requested_id
+MATCH (t:TimeSlot {timeSlotId: requested_id})
+RETURN
+    t.timeSlotId AS timeslot_id,
+    t.dayOfWeek AS day_of_week,
+    t.startTime AS start_time,
+    t.endTime AS end_time
+ORDER BY t.dayOfWeek, t.startTime, t.endTime
+"""
+
+
+def _first_state_value(state: dict[str, Any], keys: list[str]) -> Any:
+    for key in keys:
+        value = state.get(key)
+        if value not in (None, ""):
+            return value
+    return None
+
+
+def _coerce_int(value: Any) -> int | None:
+    if value in (None, ""):
+        return None
+    if isinstance(value, bool):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _coerce_int_list(value: Any) -> list[int]:
+    if value in (None, ""):
+        return []
+
+    raw_values = value if isinstance(value, list) else [value]
+    result: list[int] = []
+
+    for raw_value in raw_values:
+        parsed = _coerce_int(raw_value)
+        if parsed is not None and parsed not in result:
+            result.append(parsed)
+
+    return result
+
+
+def _day_label(day: str | None) -> str | None:
+    if not day:
+        return None
+
+    normalized = day.upper()
+    if normalized.endswith("S"):
+        normalized = normalized[:-1]
+
+    labels = {
+        "MONDAY": "Poniedziałek",
+        "TUESDAY": "Wtorek",
+        "WEDNESDAY": "Środa",
+        "THURSDAY": "Czwartek",
+        "FRIDAY": "Piątek",
+        "SATURDAY": "Sobota",
+        "SUNDAY": "Niedziela",
+    }
+
+    return labels.get(normalized, day)
+
+
+def _room_display(
+    room_name: Any, building: Any = None, campus: Any = None
+) -> str | None:
+    parts = [
+        str(part)
+        for part in [room_name, building, campus]
+        if part not in (None, "", "TBA")
+    ]
+    return " · ".join(parts) if parts else None
+
+
+def _timeslot_display(day_of_week: Any, start_time: Any, end_time: Any) -> str | None:
+    time_range = " – ".join(
+        str(part) for part in [start_time, end_time] if part not in (None, "")
+    )
+    day = _day_label(str(day_of_week)) if day_of_week not in (None, "") else None
+
+    if day and time_range:
+        return f"{day}, {time_range}"
+    if time_range:
+        return time_range
+    return day
+
+
+async def _enrich_suggestion_state(
+    state: dict[str, Any] | None,
+    target_class_session_id: uuid.UUID,
+    neo4j_session,
+    *,
+    variant: str,
+) -> dict[str, Any]:
+    enriched = dict(state or {})
+
+    if variant == "before":
+        result = await neo4j_session.run(
+            SUGGESTION_CURRENT_SESSION_QUERY,
+            session_id=str(target_class_session_id),
+        )
+        record = await result.single()
+
+        if record:
+            current_room = _room_display(
+                record.get("room_name"),
+                record.get("building"),
+                record.get("campus"),
+            )
+            current_time = _timeslot_display(
+                record.get("day_of_week"),
+                record.get("start_time"),
+                record.get("end_time"),
+            )
+
+            enriched.update(
+                {
+                    "course_name": enriched.get("course_name")
+                    or record.get("course_name"),
+                    "class_type": enriched.get("class_type")
+                    or record.get("class_type"),
+                    "day_of_week": enriched.get("day_of_week")
+                    or _day_label(record.get("day_of_week")),
+                    "start_time": enriched.get("start_time")
+                    or record.get("start_time"),
+                    "end_time": enriched.get("end_time") or record.get("end_time"),
+                    "time_label": enriched.get("time_label") or current_time,
+                    "room_name": enriched.get("room_name") or record.get("room_name"),
+                    "building": enriched.get("building") or record.get("building"),
+                    "campus": enriched.get("campus") or record.get("campus"),
+                    "room_label": enriched.get("room_label") or current_room,
+                    "instructor_name": enriched.get("instructor_name")
+                    or record.get("instructor_name"),
+                }
+            )
+
+        return {key: value for key, value in enriched.items() if value is not None}
+
+    room_id = _coerce_int(
+        _first_state_value(
+            enriched,
+            [
+                "proposed_room_id",
+                "proposedRoomId",
+                "new_room_id",
+                "newRoomId",
+                "room_id",
+                "roomId",
+            ],
+        )
+    )
+
+    if room_id is not None and not _first_state_value(
+        enriched,
+        [
+            "proposed_room_name",
+            "proposedRoomName",
+            "room_name",
+            "roomName",
+            "room_label",
+            "proposed_room_label",
+        ],
+    ):
+        result = await neo4j_session.run(SUGGESTION_ROOM_BY_ID_QUERY, room_id=room_id)
+        record = await result.single()
+
+        if record:
+            proposed_room = _room_display(
+                record.get("room_name"),
+                record.get("building"),
+                record.get("campus"),
+            )
+            enriched.update(
+                {
+                    "proposed_room_name": record.get("room_name"),
+                    "proposed_building": record.get("building"),
+                    "proposed_campus": record.get("campus"),
+                    "proposed_room_label": proposed_room,
+                }
+            )
+
+    timeslot_ids = _coerce_int_list(
+        _first_state_value(
+            enriched,
+            [
+                "proposed_timeslot_id",
+                "proposedTimeSlotId",
+                "proposed_timeslot_ids",
+                "proposedTimeSlotIds",
+                "new_timeslot_id",
+                "newTimeSlotId",
+                "timeslot_id",
+                "timeSlotId",
+            ],
+        )
+    )
+
+    if timeslot_ids and not _first_state_value(
+        enriched,
+        [
+            "proposed_time_label",
+            "proposedTimeLabel",
+            "time_label",
+            "day_of_week",
+            "start_time",
+            "end_time",
+        ],
+    ):
+        result = await neo4j_session.run(
+            SUGGESTION_TIMESLOTS_BY_ID_QUERY,
+            timeslot_ids=timeslot_ids,
+        )
+        records = await result.data()
+        labels = [
+            _timeslot_display(
+                row.get("day_of_week"), row.get("start_time"), row.get("end_time")
+            )
+            for row in records
+        ]
+        labels = [label for label in labels if label]
+
+        if records:
+            first = records[0]
+            enriched.update(
+                {
+                    "proposed_day_of_week": _day_label(first.get("day_of_week")),
+                    "proposed_start_time": first.get("start_time"),
+                    "proposed_end_time": first.get("end_time"),
+                    "proposed_time_label": "; ".join(labels),
+                }
+            )
+
+    return {key: value for key, value in enriched.items() if value is not None}
+
+
+async def _schedule_suggestion_to_response(
+    obj: models.ScheduleSuggestion,
+    neo4j_session,
+) -> dict[str, Any]:
+    return {
+        "id": obj.id,
+        "source": obj.source,
+        "reason": obj.reason,
+        "target_class_session_id": obj.target_class_session_id,
+        "state_before": await _enrich_suggestion_state(
+            obj.state_before,
+            obj.target_class_session_id,
+            neo4j_session,
+            variant="before",
+        ),
+        "state_after": await _enrich_suggestion_state(
+            obj.state_after,
+            obj.target_class_session_id,
+            neo4j_session,
+            variant="after",
+        ),
+        "status": obj.status,
+        "created_at": obj.created_at,
+        "resolved_at": obj.resolved_at,
+    }
+
+
+async def _replace_paginated_items_with_enriched_suggestions(page, neo4j_session):
+    items = getattr(page, "items", None)
+
+    if items is None and isinstance(page, dict):
+        items = page.get("items", [])
+
+    enriched_items = [
+        await _schedule_suggestion_to_response(item, neo4j_session)
+        for item in (items or [])
+    ]
+
+    if isinstance(page, dict):
+        return {**page, "items": enriched_items}
+
+    page.items = enriched_items
+    return page
+
+
 COURSE_DETAIL_QUERY = """
     MATCH (s:ClassSession {sessionId: $session_id})
     MATCH (s)-[:OF_COURSE]->(c:Course)
@@ -220,21 +542,37 @@ async def generate_schedule(
     response_model=schemas.ScheduleSuggestionRead,
     status_code=status.HTTP_201_CREATED,
 )
-def create_schedule_suggestion(
+async def create_schedule_suggestion(
     payload: schemas.ScheduleSuggestionCreate,
     db: Session = Depends(get_db),
+    neo4j_session=Depends(get_neo4j_session),
 ):
-    obj = models.ScheduleSuggestion(**payload.model_dump())
+    payload_data = payload.model_dump()
+    payload_data["state_before"] = await _enrich_suggestion_state(
+        payload_data.get("state_before"),
+        payload.target_class_session_id,
+        neo4j_session,
+        variant="before",
+    )
+    payload_data["state_after"] = await _enrich_suggestion_state(
+        payload_data.get("state_after"),
+        payload.target_class_session_id,
+        neo4j_session,
+        variant="after",
+    )
+
+    obj = models.ScheduleSuggestion(**payload_data)
     db.add(obj)
     _commit_or_rollback(db)
     db.refresh(obj)
-    return obj
+
+    return await _schedule_suggestion_to_response(obj, neo4j_session)
 
 
 @router.get(
     "/suggestions", response_model=PaginatedResponse[schemas.ScheduleSuggestionRead]
 )
-def list_schedule_suggestions(
+async def list_schedule_suggestions(
     status_filter: models.SuggestionStatus | None = Query(None, alias="status"),
     source: str | None = Query(
         None, description='Filter by suggestion source (e.g. "RAG")'
@@ -246,14 +584,13 @@ def list_schedule_suggestions(
     limit: int = Query(SUGGESTION_LIMIT, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    neo4j_session=Depends(get_neo4j_session),
 ):
     """
     List schedule suggestions with optional filters and search.
 
-    - status_filter: filter by suggestion status
-    - source: exact match on source
-    - source: case-insensitive substring match on source
-    - search: case-insensitive substring search across reason, source and JSON states
+    Returned suggestions are enriched with human-readable room and timeslot data,
+    so the frontend does not have to display raw Neo4j ids such as room_id or timeslot_id.
     """
     query = db.query(models.ScheduleSuggestion)
     count_query = db.query(models.ScheduleSuggestion.id)
@@ -284,7 +621,7 @@ def list_schedule_suggestions(
             search=search, query=query, count_query=count_query, columns=columns
         )
 
-    return paginate(
+    page = paginate(
         query,
         limit,
         offset,
@@ -292,14 +629,22 @@ def list_schedule_suggestions(
         count_query=count_query,
     )
 
+    return await _replace_paginated_items_with_enriched_suggestions(page, neo4j_session)
+
 
 @router.get(
     "/suggestions/{suggestion_id}", response_model=schemas.ScheduleSuggestionRead
 )
-def get_schedule_suggestion(suggestion_id: int, db: Session = Depends(get_db)):
-    return _get_or_404(
+async def get_schedule_suggestion(
+    suggestion_id: int,
+    db: Session = Depends(get_db),
+    neo4j_session=Depends(get_neo4j_session),
+):
+    obj = _get_or_404(
         db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
     )
+
+    return await _schedule_suggestion_to_response(obj, neo4j_session)
 
 
 @router.patch(
@@ -309,6 +654,7 @@ async def resolve_schedule_suggestion(  # todo: handle tab of class sessions
     suggestion_id: int,
     payload: schemas.ScheduleSuggestionUpdate,
     db: Session = Depends(get_db),
+    neo4j_session=Depends(get_neo4j_session),
 ):
     obj = _get_or_404(
         db, models.ScheduleSuggestion, suggestion_id, "Schedule Suggestion"
@@ -361,7 +707,7 @@ async def resolve_schedule_suggestion(  # todo: handle tab of class sessions
                 f"Failed to reschedule {suggestion_id}",
             )
 
-    return obj
+    return await _schedule_suggestion_to_response(obj, neo4j_session)
 
 
 @router.delete("/suggestions/{suggestion_id}", status_code=status.HTTP_204_NO_CONTENT)
