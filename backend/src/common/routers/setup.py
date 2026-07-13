@@ -12,9 +12,18 @@ from src.database.database import get_db
 from src.database import seeder
 from src.users.models import Users
 from src.users.auth import hash_password as get_password_hash
-from .schemas import SetupPayloadSchema
+from .schemas import SetupPayloadSchema, SeedPayloadSchema
 from src.settings import models as settings_models
 from src.academics.models import SemesterType as AcademicsSemesterType
+from .service import SeederService
+
+ROOMS_PATH = "helpers/db_seeder/data/rooms.json"
+GROUPS_PATH = "helpers/db_seeder/data/groups.json"
+PERMS_EXCEL_PATH = "helpers/db_seeder/data/role_uprawnienia.xlsx"
+PATH = "helpers/data_collector/final-programy.json"
+PERMS_EXCEL_SHEET = "Arkusz1"
+SEED = 1234
+
 
 router = APIRouter(prefix="/setup", tags=["System Setup"])
 
@@ -46,12 +55,7 @@ def _parse_academics_semester_type(value):
     raise ValueError(f"Unknown AcademicsSemesterType: {value!r}")
 
 
-@router.post("/")
-def initialize_system(
-    payload: SetupPayloadSchema,
-    db: Session = Depends(get_db),
-    x_setup_token: str = Header(..., description="Token required to run setup"),
-):
+def _validate_setup_token(x_setup_token):
     expected_token = os.getenv("SETUP_SECURITY_TOKEN")
     if not expected_token:
         raise HTTPException(
@@ -63,6 +67,15 @@ def initialize_system(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Setup Token"
         )
+
+
+@router.post("/")
+def initialize_system(
+    payload: SetupPayloadSchema,
+    db: Session = Depends(get_db),
+    x_setup_token: str = Header(..., description="Token required to run setup"),
+):
+    _validate_setup_token(x_setup_token)
 
     user_exist = db.execute(select(Users.id).limit(1))
     if user_exist.scalars().first():
@@ -153,3 +166,17 @@ def initialize_system(
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
     return {"message": "System initialized successfully."}
+
+
+@router.post("/seed")
+async def seed_system(
+    payload: SeedPayloadSchema,
+    session: Session = Depends(get_db),
+    x_setup_token: str = Header(..., alias="X-Setup-Token"),
+):
+    _validate_setup_token(x_setup_token)
+
+    seed_service = SeederService(session)
+    await seed_service.seed(payload)
+
+    return {"message": "success"}

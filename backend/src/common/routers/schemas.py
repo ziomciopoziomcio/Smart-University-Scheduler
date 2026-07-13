@@ -74,3 +74,16 @@ class SetupPayloadSchema(BaseModel):
             }
         },
     )
+
+
+class SeedPayloadSchema(BaseModel):
+    """Schema for system seed payload"""
+
+    admin_name: str
+    admin_surname: str
+    admin_email: str
+    admin_password: str
+    admin_phone: str
+    seed_test_db: bool = Field(
+        default=False,
+    )

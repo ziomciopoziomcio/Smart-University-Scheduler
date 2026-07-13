@@ -2,9 +2,9 @@ from typing import Callable
 
 from sqlalchemy.orm import Session
 
-from backend.src.academics.models import Employees, Units
-from backend.src.users.models import Users, Roles
-from backend.src.facilities.models import Faculty
+from src.academics.models import Employees, Units
+from src.users.models import Users, Roles
+from src.facilities.models import Faculty
 
 
 def _get_admin_role_obj(roles: dict[str, Roles]) -> Roles:
@@ -16,14 +16,24 @@ def _get_admin_role_obj(roles: dict[str, Roles]) -> Roles:
 
 def create_user_admin(
     session: Session,
+    name: str,
+    surname: str,
+    password: str,
+    phone_number: str,
+    email: str,
     password_hash_func: Callable[[str], str] | None,
     roles: dict[str, Roles],
-    db_faculties: dict[str, Faculty],
-    db_units: dict[str, Units],
+    db_faculties: dict[str, Faculty] | None,
+    db_units: dict[str, Units] | None,
 ):
     """
     Create an admin user
     :param session: database session
+    :param name: name of the admin
+    :param surname: surname of the admin
+    :param password: password of the admin
+    :param phone_number: phone number of the admin
+    :param email: email of the admin
     :param password_hash_func: hash function for passwords
         (in case of None, hash is the same as plain password)
     :param roles: dictionary mapping role names to Roles objects
@@ -39,17 +49,13 @@ def create_user_admin(
 
         password_hash_func = not_a_hash
 
-    mail = "admin@nimda.pl"
-    password = "qwerty"
     password_hash = password_hash_func(password)
-    name = "Admin"
-    surname = "Adminkowski"
     admin_role_obj = _get_admin_role_obj(roles)
 
     user_obj = Users(
         password_hash=password_hash,
-        email=mail,
-        phone_number="123456789",
+        email=email,
+        phone_number=phone_number,
         name=name,
         surname=surname,
         degree=None,
@@ -59,11 +65,24 @@ def create_user_admin(
     session.add(user_obj)
     session.flush()
 
-    unit_obj = db_units["I24"]
-    unit_id = unit_obj.id
-
-    fac_obj = db_faculties["WEEIA"]
+    if not db_faculties:
+        fac_obj = Faculty(
+            faculty_short="SYSTEM",
+            faculty_name="System",
+        )
+        session.add(fac_obj)
+        session.flush()
+    else:
+        fac_obj = db_faculties["WEEIA"]
     fac_id = fac_obj.id
+
+    if not db_units:
+        unit_obj = Units(unit_short="SYSTEM", unit_name="System", faculty_id=fac_id)
+        session.add(unit_obj)
+        session.flush()
+    else:
+        unit_obj = db_units["I24"]
+    unit_id = unit_obj.id
 
     emp_obj = Employees(
         user_id=user_obj.id,
