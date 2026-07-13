@@ -8,47 +8,6 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 from starlette import status
 
-from helpers.db_seeder.generators._db_seeder import PASSWORD_HASH_FUNC
-from helpers.db_seeder.generators.academic_calendar import generate_academic_calendar
-from helpers.db_seeder.generators.academics import generate_units
-from helpers.db_seeder.generators.course_instructors import (
-    extract_teachers,
-    generate_course_instructors,
-)
-from helpers.db_seeder.generators.courses import (
-    generate_study_fields,
-    generate_majors,
-    generate_elective_blocks,
-    generate_courses,
-    generate_course_type_details,
-)
-from helpers.db_seeder.generators.create_admin import create_user_admin
-from helpers.db_seeder.generators.curriculum_courses import (
-    generate_curriculum_courses,
-    generate_curriculum_courses_elective_blocks,
-)
-from helpers.db_seeder.generators.employees import generate_employees
-from helpers.db_seeder.generators.facilities import (
-    generate_campuses,
-    generate_faculties,
-    generate_buildings,
-    generate_rooms,
-)
-from helpers.db_seeder.generators.groups import (
-    generate_common_groups,
-    generate_major_groups,
-    generate_elective_groups,
-    assign_students_to_common_groups,
-    assign_students_to_major_groups,
-    assign_students_to_elective_groups,
-)
-from helpers.db_seeder.generators.roles_perms import (
-    generate_permissions_from_excel_file,
-    generate_roles_from_excel_file,
-)
-from helpers.db_seeder.generators.students import generate_students
-from helpers.db_seeder.generators.study_programs import generate_study_programs
-from helpers.db_seeder.generators.users import generate_users
 from src.database.database import get_db
 from src.database import seeder
 from src.users.models import Users
@@ -65,12 +24,6 @@ PATH = "helpers/data_collector/final-programy.json"
 PERMS_EXCEL_SHEET = "Arkusz1"
 SEED = 1234
 
-ROOMS_PATH = "helpers/db_seeder/data/rooms.json"
-GROUPS_PATH = "helpers/db_seeder/data/groups.json"
-PERMS_EXCEL_PATH = "helpers/db_seeder/data/role_uprawnienia.xlsx"
-PATH = "helpers/data_collector/final-programy.json"
-PERMS_EXCEL_SHEET = "Arkusz1"
-SEED = 1234
 
 router = APIRouter(prefix="/setup", tags=["System Setup"])
 
