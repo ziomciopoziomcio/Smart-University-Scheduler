@@ -1,7 +1,7 @@
 alembic
 python-dotenv
 psycopg2
-fastapi>=0.136.3
+fastapi>=0.139.2
 pydantic>=2.13.4
 email-validator
 passlib[bcrypt]
